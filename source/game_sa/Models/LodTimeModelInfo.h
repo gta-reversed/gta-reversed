@@ -3,7 +3,7 @@
 #include "AtomicModelInfo.h"
 #include "TimeInfo.h"
 
-class CLodTimeModelInfo : public CLodAtomicModelInfo {
+class NOTSA_EXPORT_VTABLE CLodTimeModelInfo : public CLodAtomicModelInfo {
 public:
     CTimeInfo m_lodTimeInfo;
 
@@ -15,8 +15,6 @@ public:
     CTimeInfo*    GetTimeInfo() override;
 
     // virtual implementations
-    ModelInfoType GetModelType_Reversed();
-    CTimeInfo*    GetTimeInfo_Reversed();
 };
 
 VALIDATE_SIZE(CLodTimeModelInfo, 0x28);

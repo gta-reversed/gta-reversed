@@ -2,9 +2,6 @@
 
 #include "References.h"
 
-CReference (&CReferences::aRefs)[MAX_NUM_REFERENCES] = *(CReference(*)[MAX_NUM_REFERENCES])0xB9B9A8;
-CReference*(&CReferences::pEmptyList) = *(CReference**)0xBA1768;
-
 void CReferences::InjectHooks() {
     RH_ScopedClass(CReferences);
     RH_ScopedCategoryGlobal();
@@ -17,6 +14,8 @@ void CReferences::InjectHooks() {
 
 // 0x5719B0
 void CReferences::Init() {
+    ZoneScoped;
+
     pEmptyList = aRefs;
 
     // todo: do better
@@ -46,25 +45,14 @@ void CReferences::RemoveReferencesToPlayer() {
     auto player = FindPlayerPed();
     if (player) {
         player->ResolveReferences();
-        auto& group = CPedGroups::GetGroup(player->m_pPlayerData->m_nPlayerGroup);
+        auto& group = CPedGroups::GetGroup(player->GetPlayerData()->m_nPlayerGroup);
         group.GetMembership().SetLeader(player);
         group.Process();
     }
 }
 
 void CReferences::PruneAllReferencesInWorld() {
-    for (int32 i = 0; i < GetPedPool()->GetSize(); ++i) {
-        if (auto ped = GetPedPool()->GetAt(i))
-            ped->PruneReferences();
-    }
-
-    for (int32 i = 0; i < GetVehiclePool()->GetSize(); ++i) {
-        if (auto vehicle = GetVehiclePool()->GetAt(i))
-            vehicle->PruneReferences();
-    }
-
-    for (int32 i = 0; i < GetObjectPool()->GetSize(); ++i) {
-        if (auto obj = GetObjectPool()->GetAt(i))
-            obj->PruneReferences();
-    }
+    rng::for_each(GetPedPool()->GetAllValid(), &CEntity::PruneReferences);
+    rng::for_each(GetVehiclePool()->GetAllValid(), &CEntity::PruneReferences);
+    rng::for_each(GetObjectPool()->GetAllValid(), &CEntity::PruneReferences);
 }

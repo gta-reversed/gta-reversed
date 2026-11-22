@@ -28,6 +28,8 @@ struct tFlyingHandlingData {
     float m_fMoveRes;
     CVector m_vecTurnRes;
     CVector m_vecSpeedRes;
+
+    int32 InitFromData(int32 id, const char* line);
 };
 
 VALIDATE_SIZE(tFlyingHandlingData, 0x58);

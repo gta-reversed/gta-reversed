@@ -17,9 +17,9 @@ public:
     uint8        m_nColSlot;
     union {
         struct {
-            uint8 m_bNotEmpty : 1;
+            uint8 m_bHasCollisionVolumes : 1; // AKA `m_bNotEmpty`
             uint8 m_bIsSingleColDataAlloc : 1;
-            uint8 m_bIsActive : 1;
+            uint8 m_IsActive : 1;
         };
         uint8 m_nFlags;
     };
@@ -50,8 +50,10 @@ public:
     // HELPERS
     [[nodiscard]] auto GetTriCount() const noexcept     { return m_pColData ? m_pColData->m_nNumTriangles : 0u; }
     [[nodiscard]] float GetBoundRadius() const noexcept { return m_boundSphere.m_fRadius; }
-    CVector& GetBoundCenter() { return m_boundSphere.m_vecCenter; }
-    CBoundingBox& GetBoundingBox() { return m_boundBox; }
+    auto& GetBoundCenter(this auto&& self) { return self.m_boundSphere.m_vecCenter; }
+    auto& GetBoundingBox(this auto&& self) { return self.m_boundBox; }
+    auto& GetBoundingSphere(this auto&& self) { return self.m_boundSphere; }
+    CCollisionData* GetData() const { return m_pColData; }
 };
 
 VALIDATE_SIZE(CColModel, 0x30);

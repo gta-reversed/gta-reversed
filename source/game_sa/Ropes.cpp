@@ -10,10 +10,6 @@
 #include "Rope.h"
 #include "Ropes.h"
 
-CRope (&CRopes::aRopes)[MAX_NUM_ROPES] = *(CRope(*)[MAX_NUM_ROPES])0xB768B8;
-int32& CRopes::PlayerControlsCrane = *(int32*)0xB76898;
-uint32& CRopes::m_nRopeIdCreationCounter = *(uint32*)0xB781F8;
-
 void CRopes::InjectHooks() {
     RH_ScopedClass(CRopes);
     RH_ScopedCategoryGlobal();
@@ -22,10 +18,10 @@ void CRopes::InjectHooks() {
     RH_ScopedInstall(Shutdown, 0x556B10);
     RH_ScopedInstall(Update, 0x558D70);
     RH_ScopedInstall(Render, 0x556AE0);
-    // RH_ScopedInstall(RegisterRope, 0x556B40);
+    RH_ScopedInstall(RegisterRope, 0x556B40, { .Reversed = false });
     RH_ScopedInstall(FindPickupHeight, 0x556760);
     RH_ScopedInstall(FindRope, 0x556000);
-    // RH_ScopedInstall(FindCoorsAlongRope, 0x555E40);
+    RH_ScopedInstall(FindCoorsAlongRope, 0x555E40, { .Reversed = false });
     RH_ScopedInstall(CreateRopeForSwatPed, 0x558D10);
     RH_ScopedInstall(IsCarriedByRope, 0x555F80);
     RH_ScopedInstall(SetSpeedOfTopNode, 0x555DF0);
@@ -36,7 +32,7 @@ void CRopes::Init() {
     for (auto& rope : aRopes) {
         rope.m_nType = eRopeType::NONE;
     }
-    PlayerControlsCrane = false;
+    PlayerControlsCrane = eControlledCrane::NONE;
 }
 
 // 0x556B10
@@ -51,6 +47,8 @@ void CRopes::Shutdown() {
 
 // 0x558D70
 void CRopes::Update() {
+    ZoneScoped;
+
     if (CReplay::Mode == MODE_PLAYBACK)
         return;
 
@@ -62,6 +60,8 @@ void CRopes::Update() {
 
 // 0x556AE0
 void CRopes::Render() {
+    ZoneScoped;
+
     for (auto& rope : aRopes) {
         if (rope.m_nType != eRopeType::NONE)
             rope.Render();
@@ -70,8 +70,8 @@ void CRopes::Render() {
 
 // Must be used in loop to make attached to holder
 // 0x556B40
-bool CRopes::RegisterRope(CEntity* ropeObj, uint32 ropeType, CVector startPos, bool bExpires, uint8 segmentCount, uint8 flags, CPhysical* holder, uint32 timeExpire) {
-    return plugin::CallAndReturn<bool, 0x556B40, CEntity*, uint32, CVector, bool, uint8, uint8, CPhysical*, uint32>(ropeObj, ropeType, startPos, bExpires, segmentCount, flags, holder, timeExpire);
+bool CRopes::RegisterRope(uint32 ropeID, uint32 ropeType, CVector startPos, bool bExpires, uint8 segmentCount, uint8 flags, CPhysical* holder, uint32 timeExpire) {
+    return plugin::CallAndReturn<bool, 0x556B40, uint32, uint32, CVector, bool, uint8, uint8, CPhysical*, uint32>(ropeID, ropeType, startPos, bExpires, segmentCount, flags, holder, timeExpire);
 }
 
 // 0x556760
@@ -91,14 +91,14 @@ int32 CRopes::FindRope(uint32 id) {
 
 // a4 always nullptr
 // 0x555E40
-bool CRopes::FindCoorsAlongRope(uint32 ropeId, float fCoorAlongRope, CVector* outPosn, CVector* a4) {
-    return plugin::CallAndReturn<bool, 0x555E40, uint32, float, CVector*, CVector*>(ropeId, fCoorAlongRope, outPosn, a4);
+bool CRopes::FindCoorsAlongRope(uint32 ropeId, float fDistAlongRope, CVector* outPosn, CVector* outSpeed) {
+    return plugin::CallAndReturn<bool, 0x555E40, uint32, float, CVector*, CVector*>(ropeId, fDistAlongRope, outPosn, outSpeed);
 }
 
 // 0x558D10
 int32 CRopes::CreateRopeForSwatPed(const CVector& startPos) {
     int32 newRopeId = m_nRopeIdCreationCounter + 100;
-    if (RegisterRope(reinterpret_cast<CEntity*>(newRopeId), static_cast<uint32>(eRopeType::SWAT), startPos, true, 0, 0, nullptr, 4000)) {
+    if (RegisterRope(newRopeId, static_cast<uint32>(eRopeType::SWAT), startPos, true, 0, 0, nullptr, 4000)) {
         return -1;
     }
 
@@ -112,7 +112,7 @@ bool CRopes::IsCarriedByRope(CPhysical* entity) {
         return false;
 
     for (auto& rope : aRopes) {
-        if (rope.m_nType != eRopeType::NONE && rope.m_pAttachedEntity == entity)
+        if (rope.m_nType != eRopeType::NONE && rope.m_pRopeAttachObject == entity)
             return true;
     }
     return false;

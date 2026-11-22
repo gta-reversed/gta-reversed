@@ -3,16 +3,16 @@
 #include "TaskGoToVehicleAndLean.h"
 
 void CTaskGoToVehicleAndLean::InjectHooks() {
-    RH_ScopedClass(CTaskGoToVehicleAndLean);
+    RH_ScopedVirtualClass(CTaskGoToVehicleAndLean, 0x86FAC8, 11);
     RH_ScopedCategory("Tasks/TaskTypes");
 
     RH_ScopedInstall(Constructor, 0x660E60);
     RH_ScopedInstall(Destructor, 0x660EE0);
-    // RH_ScopedInstall(Clone, 0x6621B0);
-    // RH_ScopedInstall(MakeAbortable, 0x664500);
-    // RH_ScopedInstall(CreateNextSubTask, 0x664590);
-    // RH_ScopedInstall(CreateFirstSubTask, 0x664D40);
-    // RH_ScopedInstall(ControlSubTask, 0x664E60);
+    RH_ScopedInstall(Clone, 0x6621B0, { .Reversed = false });
+    RH_ScopedInstall(MakeAbortable, 0x664500, { .Reversed = false });
+    RH_ScopedInstall(CreateNextSubTask, 0x664590, { .Reversed = false });
+    RH_ScopedInstall(CreateFirstSubTask, 0x664D40, { .Reversed = false });
+    RH_ScopedInstall(ControlSubTask, 0x664E60, { .Reversed = false });
 }
 
 // 0x660E60

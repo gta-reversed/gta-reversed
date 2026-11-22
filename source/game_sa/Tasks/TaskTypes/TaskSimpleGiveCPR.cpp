@@ -5,14 +5,14 @@
 #include "EventRevived.h"
 
 void CTaskSimpleGiveCPR::InjectHooks() {
-    RH_ScopedClass(CTaskSimpleGiveCPR);
+    RH_ScopedVirtualClass(CTaskSimpleGiveCPR, 0x86F4C8, 9);
     RH_ScopedCategory("Tasks/TaskTypes");
     RH_ScopedInstall(Constructor, 0x658860);
     RH_ScopedInstall(ReviveDeadPed, 0x658900);
-    RH_ScopedInstall(FinishGiveCPRAnimCB, 0x658910);
-    RH_ScopedVirtualInstall(Clone, 0x659A10);
-    RH_ScopedVirtualInstall(ProcessPed, 0x65A7C0);
-    RH_ScopedVirtualInstall(MakeAbortable, 0x6589B0);
+    RH_ScopedInstall(FinishGiveCPRAnimCB, 0x658990);
+    RH_ScopedVMTInstall(Clone, 0x659A10);
+    RH_ScopedVMTInstall(ProcessPed, 0x65A7C0);
+    RH_ScopedVMTInstall(MakeAbortable, 0x6589B0);
 }
 
 CTaskSimpleGiveCPR* CTaskSimpleGiveCPR::Constructor(CAccident* pAccident) {
@@ -35,25 +35,12 @@ CTaskSimpleGiveCPR::~CTaskSimpleGiveCPR() {
 }
 
 // 0x659A10
-CTask* CTaskSimpleGiveCPR::Clone() {
-    return Clone_Reversed();
+CTask* CTaskSimpleGiveCPR::Clone() const {
+    return new CTaskSimpleGiveCPR(m_pAccident);
 }
 
 // 0x65A7C0
 bool CTaskSimpleGiveCPR::ProcessPed(CPed* ped) {
-    return ProcessPed_Reversed(ped);
-}
-
-// 0x6589B0
-bool CTaskSimpleGiveCPR::MakeAbortable(CPed* ped, eAbortPriority priority, const CEvent* event) {
-    return MakeAbortable_Reversed(ped, priority, event);
-}
-
-CTask* CTaskSimpleGiveCPR::Clone_Reversed() {
-    return new CTaskSimpleGiveCPR(m_pAccident);
-}
-
-bool CTaskSimpleGiveCPR::ProcessPed_Reversed(CPed* ped) {
     if (bNoHealthValue) {
         m_fInitialHealth = ped->m_fHealth;
         bNoHealthValue = false;
@@ -64,14 +51,15 @@ bool CTaskSimpleGiveCPR::ProcessPed_Reversed(CPed* ped) {
         return true;
     } else {
         if (!m_pAnim) {
-            m_pAnim = CAnimManager::BlendAnimation(ped->m_pRwClump, ANIM_GROUP_MEDIC, ANIM_ID_CPR, 4.0F);
+            m_pAnim = CAnimManager::BlendAnimation(ped->GetRpClump(), ANIM_GROUP_MEDIC, ANIM_ID_CPR, 4.0F);
             m_pAnim->SetFinishCallback(FinishGiveCPRAnimCB, this);
         }
         return false;
     }
 }
 
-bool CTaskSimpleGiveCPR::MakeAbortable_Reversed(CPed* ped, eAbortPriority priority, const CEvent* event) {
+// 0x6589B0
+bool CTaskSimpleGiveCPR::MakeAbortable(CPed* ped, eAbortPriority priority, const CEvent* event) {
     eEventType eventType = event->GetEventType();
 
     if (priority == ABORT_PRIORITY_IMMEDIATE
@@ -86,7 +74,7 @@ bool CTaskSimpleGiveCPR::MakeAbortable_Reversed(CPed* ped, eAbortPriority priori
     ) {
         if (m_pAnim) {
             m_pAnim->SetFinishCallback(CDefaultAnimCallback::DefaultAnimCB, nullptr);
-            m_pAnim->m_fBlendDelta = -1000.0F;
+            m_pAnim->m_BlendDelta = -1000.0F;
             m_pAnim = nullptr;
         }
         return true;
@@ -109,7 +97,7 @@ void CTaskSimpleGiveCPR::ReviveDeadPed(CPed* ped) {
     }
 }
 
-// 0x658910
+// 0x658990
 void CTaskSimpleGiveCPR::FinishGiveCPRAnimCB(CAnimBlendAssociation* anim, void* ptask) {
     auto* task = reinterpret_cast<CTaskSimpleGiveCPR*>(ptask);
     task->m_pAnim = nullptr;

@@ -1,7 +1,8 @@
 #include "StdInc.h"
 
-#include "CDebugMenu.h"
+#include "UIRenderer.h"
 
+#include "DecisionMakers/DecisionMakerTypesFileLoader.h"
 #include "WaterCannons.h"
 #include "TheCarGenerators.h"
 #include "Radar.h"
@@ -17,11 +18,11 @@
 #include "FireManager.h"
 #include "Fx.h"
 #include "BreakManager_c.h"
-#include "BoneNodeManager_c.h"
 #include "Shadows.h"
 // todo: #include "ShadowManager.h"
 #include "PedType.h"
-#include "IKChainManager_c.h"
+#include "Ragdoll/BoneNodeManager.h"
+#include "Ragdoll/IKChainManager.h"
 #include "CreepingFire.h"
 #include "Skidmarks.h"
 #include "CarCtrl.h"
@@ -47,23 +48,17 @@
 #include "VehicleRecording.h"
 #include "ColAccel.h"
 #include "app.h"
+#include "Garages.h"
 #include "TaskSimpleClimb.h"
 #include "PedAttractor.h"
 #include "MBlur.h"
 #include "CustomBuildingRenderer.h"
 #include "Hud.h"
 #include "CarFXRenderer.h"
-
-char (&CGame::aDatFile)[32] = *reinterpret_cast<char (*)[32]>(0xB728EC);
-int32& CGame::currLevel = *reinterpret_cast<int32*>(0xB7290C);
-uint8& CGame::bMissionPackGame = *reinterpret_cast<uint8*>(0xB72910);
-int32& CGame::currArea = *reinterpret_cast<int32*>(0xB72914);
-RwMatrix*& CGame::m_pWorkingMatrix1 = *reinterpret_cast<RwMatrix**>(0xB72920);
-RwMatrix*& CGame::m_pWorkingMatrix2 = *reinterpret_cast<RwMatrix**>(0xB72924);
-int32& gameTxdSlot = *reinterpret_cast<int32*>(0xB728E8);
-
-bool& gbLARiots = *(bool*)0xB72958;
-bool& gbLARiots_NoPoliceCars = *(bool*)0xB72959;
+#include "ProcObjectMan.h"
+#include "InterestingEvents.h"
+#include "WindModifiers.h"
+#include "GrassRenderer.h"
 
 void CGame::InjectHooks() {
     RH_ScopedClass(CGame);
@@ -73,38 +68,104 @@ void CGame::InjectHooks() {
     RH_ScopedInstall(CanSeeWaterFromCurrArea, 0x53C4B0);
     RH_ScopedInstall(Init1, 0x5BF840);
     RH_ScopedInstall(Init2, 0x5BA1A0);
-    // RH_ScopedInstall(Init3, 0x5BA400);
+    RH_ScopedInstall(Init3, 0x5BA400);
     RH_ScopedInstall(Initialise, 0x53BC80);
-    // RH_ScopedInstall(InitialiseCoreDataAfterRW, 0x5BFA90);
-    // RH_ScopedInstall(InitialiseEssentialsAfterRW, 0x5BA160);
+    RH_ScopedInstall(InitialiseCoreDataAfterRW, 0x5BFA90);
+    RH_ScopedInstall(InitialiseEssentialsAfterRW, 0x5BA160);
     RH_ScopedInstall(InitialiseOnceBeforeRW, 0x53BB50);
-    // RH_ScopedInstall(InitialiseRenderWare, 0x5BD600);
-    RH_ScopedInstall(InitialiseWhenRestarting, 0x53C680);
-    // RH_ScopedInstall(Process, 0x53BEE0);
-    // RH_ScopedInstall(ReInitGameObjectVariables, 0x53BCF0);
+    RH_ScopedInstall(InitialiseRenderWare, 0x5BD600);
+    RH_ScopedInstall(InitialiseWhenRestarting, 0x53C680, {.State = HS::RedirectToGTA});
+    RH_ScopedInstall(Process, 0x53BEE0);
+    RH_ScopedInstall(ReInitGameObjectVariables, 0x53BCF0);
     RH_ScopedInstall(ReloadIPLs, 0x53BED0);
-    // RH_ScopedInstall(ShutDownForRestart, 0x53C550);
-    // RH_ScopedInstall(Shutdown, 0x53C900);
+    RH_ScopedInstall(ShutDownForRestart, 0x53C550);
+    RH_ScopedInstall(Shutdown, 0x53C900);
     RH_ScopedInstall(ShutdownRenderWare, 0x53BB80);
     RH_ScopedInstall(DrasticTidyUpMemory, 0x53C810);
     RH_ScopedInstall(FinalShutdown, 0x53BC30);
     RH_ScopedInstall(TidyUpMemory, 0x53C500);
+
+    RH_ScopedGlobalInstall(CameraDestroy, 0x72FD90);
+    RH_ScopedGlobalInstall(ValidateVersion, 0x5BA060);
+    RH_ScopedGlobalInstall(D3DDeviceRestoreCallback, 0x5BA120);
 }
 
 // 0x72FD90
-static void CameraDestroy(RwCamera *pRwCamera) {
-    plugin::Call<0x72FD90, RwCamera *>(pRwCamera);
+static void CameraDestroy(RwCamera* rwCamera) {
+    if (!rwCamera)
+        return;
+
+    if (auto parent = rwObjectGetParent(&rwCamera->object.object); parent) {
+        rwObjectHasFrameSetFrame(rwCamera, NULL);
+        RwFrameDestroy((RwFrame*)parent);
+    }
+
+    const auto DestroyIncludingParent = [](auto* buffer) {
+        if (!buffer)
+            return;
+
+        RwRasterDestroy(buffer);
+        if (auto parent = RwRasterGetParent(buffer); parent && parent != buffer) {
+            RwRasterDestroy(parent);
+        }
+    };
+
+    DestroyIncludingParent(rwCamera->frameBuffer);
+    DestroyIncludingParent(rwCamera->zBuffer);
+    RwCameraDestroy(rwCamera);
+}
+
+// 0x5BA060
+void ValidateVersion() {
+    auto file = CFileMgr::OpenFile("models\\coll\\peds.col", "rb");
+    if (!file) {
+        NOTSA_UNREACHABLE("Invalid version\nmodels\\coll\\peds.col file not found.");
+    }
+    CFileMgr::Seek(file, 100, 0);
+
+    // FORMAT: grandtheftauto3Version <mj>.<mn>, encoded and spreaded into the file.
+    char buf[128];
+    for (auto i = 0; i < 128; i++) {
+        CFileMgr::Read(file, &buf[i], 1u);
+        buf[i] -= 23;
+
+        if (buf[i] == '\0') {
+            break;
+        }
+        CFileMgr::Seek(file, 99, 1);
+    }
+
+    if (strncmp(buf, "grandtheftauto3", 15u) != 0) {
+        NOTSA_UNREACHABLE("Invalid version\npeds.col version text does not start with 'grandtheftauto3'.\nText was '{}'", buf);
+    }
+
+    static auto& version_name = StaticRef<char[64]>(0xB72C28);
+
+    strncpy_s(version_name, &buf[15], 64u);
+    CFileMgr::CloseFile(file);
+}
+
+static auto& s_PrevD3DDeviceRestoreCallback = StaticRef<rwD3D9DeviceRestoreCallBack>(0xBD0114);
+
+// 0x5BA120
+void D3DDeviceRestoreCallback() {
+    if (s_PrevD3DDeviceRestoreCallback) {
+        s_PrevD3DDeviceRestoreCallback();
+    }
+    if (g_realTimeShadowMan.m_bInitialised) {
+        g_realTimeShadowMan.m_bNeedsReinit = true;
+    }
+    CMirrors::d3dRestored = true;
 }
 
 // 0x53BB80
 void CGame::ShutdownRenderWare() {
-    CDebugMenu::Shutdown();
-    RwMatrixDestroy(CGame::m_pWorkingMatrix1);
-    RwMatrixDestroy(CGame::m_pWorkingMatrix2);
+    RwMatrixDestroy(m_pWorkingMatrix1);
+    RwMatrixDestroy(m_pWorkingMatrix2);
     CLoadingScreen::Shutdown();
     CHud::Shutdown();
     CFont::Shutdown();
-    std::ranges::for_each(CWorld::Players, [](auto& info) { info.DeletePlayerSkin(); });
+    rng::for_each(CWorld::Players, &CPlayerInfo::DeletePlayerSkin);
     CPlayerSkin::Shutdown();
     DestroyDebugFont();
     LightsDestroy(Scene.m_pRpWorld);
@@ -119,21 +180,28 @@ void CGame::ShutdownRenderWare() {
 }
 
 // 0x53C4A0
-bool CGame::CanSeeOutSideFromCurrArea() {
+bool CGame::CanSeeOutSideFromCurrArea() { // pattern: !CGame::currArea 
     return currArea == AREA_CODE_NORMAL_WORLD;
 }
 
 // 0x53C4B0
 bool CGame::CanSeeWaterFromCurrArea() {
-    return !currArea || currArea == AREA_CODE_5;
+    return CanSeeOutSideFromCurrArea() || currArea == AREA_CODE_5;
 }
 
 // 0x53C500
 void CGame::TidyUpMemory(bool a1, bool clearD3Dmem) {
-    if (FindPlayerPed(0) && clearD3Dmem) {
-        D3DResourceSystem::TidyUpD3DTextures(100);
-        D3DResourceSystem::TidyUpD3DIndexBuffers(200);
+    if (FindPlayerPed(PED_TYPE_PLAYER1) && clearD3Dmem) {
+        DrasticTidyUpMemory(a1);
     }
+}
+
+// notsa
+eAreaCodes CGame::GetPlayerOrCurrentAreaCode() {
+    auto* const player = FindPlayerPed();
+    return player
+        ? player->GetAreaCode()
+        : GetCurrentAreaCode();
 }
 
 // 0x53C810
@@ -144,16 +212,14 @@ void CGame::DrasticTidyUpMemory(bool a1) {
 
 // 0x53C900
 bool CGame::Shutdown() {
-    return plugin::CallAndReturn<bool, 0x53C900>();
-
     g_breakMan.Exit();
-    // g_interiorMan.Exit();
-    // g_procObjMan.Exit();
+    g_interiorMan.Exit();
+    g_procObjMan.Exit();
     g_waterCreatureMan.Exit();
     D3DResourceSystem::SetUseD3DResourceBuffering(false);
-    CStencilShadowObject::Shutdown();
-    // CPlantMgr::Shutdown();
-    // CGrassRenderer::Shutdown();
+    CStencilShadows::Shutdown();
+    CPlantMgr::Shutdown();
+    CGrassRenderer::Shutdown();
     CRopes::Shutdown();
     CVehicleRecording::ShutDown();
     CReplay::FinishPlayback();
@@ -161,20 +227,20 @@ bool CGame::Shutdown() {
     CTrain::Shutdown();
     CBirds::Shutdown();
     CSpecialFX::Shutdown();
-    // CGarages::Shutdown();
+    CGarages::Shutdown();
     CStuntJumpManager::Shutdown();
     CMovingThings::Shutdown();
     CWeapon::ShutdownWeapons();
     CPedType::Shutdown();
 
-    for (auto& playerInfo : CWorld::Players) {
-        if (playerInfo.m_pPed) {
-            CWorld::Remove(playerInfo.m_pPed);
-            delete playerInfo.m_pPed;
-            playerInfo.m_pPed = nullptr;
+    rng::for_each(CWorld::Players, [](auto& player) {
+        if (player.m_pPed) {
+            CWorld::Remove(player.m_pPed);
+            delete player.m_pPed;
+            player.m_pPed = nullptr;
         }
-        playerInfo.Clear();
-    }
+        player.Clear();
+    });
 
     CRenderer::Shutdown();
     CWorld::ShutDown();
@@ -199,7 +265,7 @@ bool CGame::Shutdown() {
     CSkidmarks::Shutdown();
     CWeaponEffects::Shutdown();
     CTimeCycle::Shutdown();
-    // CCover::m_ListOfProcessedBuildings.Flush();
+    CCover::m_ListOfProcessedBuildings.Flush();
     CPedGroups::CleanUpForShutDown();
     CTaskSequences::CleanUpForShutdown();
     CInformGroupEventQueue::Flush();
@@ -215,17 +281,10 @@ bool CGame::Shutdown() {
     CHud::ReInitialise();
     CTxdStore::RemoveTxdSlot(gameTxdSlot);
     CTxdStore::RemoveTxdSlot(CTxdStore::FindTxdSlot("particle"));
-    // col1[1].m_boundBox.m_vecMin.z = 0.0;
-    // col1[0].m_pColData = 0;
+    col1[1].m_boundBox.m_vecMin.z = 0.0f;
+    col1[0].m_pColData = nullptr;
     CTaskSimpleClimb::Shutdown();
-
-    { // todo: move to CPedAttractor::Shutdown() or something
-    // delete CPedAttractor::ms_tasks.First;
-    // CPedAttractor::ms_tasks.First = 0;
-    // CPedAttractor::ms_tasks.Last = 0;
-    // CPedAttractor::ms_tasks.End = 0;
-    }
-
+    CPedAttractor::Shutdown();
     CTheScripts::RemoveScriptTextureDictionary();
     CMBlur::MotionBlurClose();
     CdStreamRemoveImages();
@@ -235,19 +294,16 @@ bool CGame::Shutdown() {
 
 // 0x53C550
 void CGame::ShutDownForRestart() {
-    return plugin::Call<0x53C550>();
-
     D3DResourceSystem::SetUseD3DResourceBuffering(false);
     CVehicleRecording::ShutDown();
     CReplay::FinishPlayback();
     CReplay::EmptyReplayBuffer();
     CMovingThings::Shutdown();
-    std::ranges::for_each(CWorld::Players, [](auto& info) { info.Clear(); });
-    memset(CTheZones::ZonesVisited, 0, sizeof(CTheZones::ZonesVisited));
+    rng::for_each(CWorld::Players, [](auto& info) { info.Clear(); });
     CTheScripts::UndoBuildingSwaps();
     CTheScripts::UndoEntityInvisibilitySettings();
-    // todo: g_interiorMan.Exit();
-    // todo: g_procObjMan.Exit();
+    g_interiorMan.Exit();
+    g_procObjMan.Exit();
     g_waterCreatureMan.Exit();
     CRopes::Shutdown();
     CWorld::ClearForRestart();
@@ -266,13 +322,13 @@ void CGame::ShutDownForRestart() {
     g_breakMan.ResetAll();
     g_boneNodeMan.Reset();
     g_ikChainMan.Reset();
-    // todo: g_realTimeShadowMan.Shutdown();
+    g_realTimeShadowMan.Exit();
     CTheZones::ResetZonesRevealed();
     CEntryExitManager::ShutdownForRestart();
     CShopping::ShutdownForRestart();
     CTagManager::ShutdownForRestart();
     CStuntJumpManager::ShutdownForRestart();
-    FindPlayerPed(0);
+    FindPlayerPed(PED_TYPE_PLAYER1);
     CVehicle::ms_forceVehicleLightsOff = false;
 }
 
@@ -293,14 +349,16 @@ void CGame::GenerateTempPedAtStartOfNetworkGame() {
 
 // 0x5BF840
 bool CGame::Init1(char const *datFile) {
+    ZoneScoped;
+
     CMaths::InitMathsTables();
-    strcpy(CGame::aDatFile, datFile);
+    strcpy_s(aDatFile, datFile);
     CPools::Initialise();
     CPlaceable::InitMatrixArray();
     CIniFile::LoadIniFile();
     D3DResourceSystem::SetUseD3DResourceBuffering(false);
-    CGame::currLevel = LEVEL_NAME_COUNTRY_SIDE;
-    CGame::currArea = AREA_CODE_NORMAL_WORLD;
+    currLevel = LEVEL_NAME_COUNTRY_SIDE;
+    currArea = AREA_CODE_NORMAL_WORLD;
 
     CMemoryMgr::PushMemId(MEM_TEXTURES);
     gameTxdSlot = CTxdStore::AddTxdSlot("generic");
@@ -317,7 +375,7 @@ bool CGame::Init1(char const *datFile) {
     CGangWars::InitAtStartOfGame();
     CConversations::Clear();
     CPedToPlayerConversations::Clear();
-    CQuadTreeNode::InitPool();
+    CQuadTreeNode<void*>::InitPool();
 
     if (!CPlantMgr::Initialise() || !CCustomRoadsignMgr::Initialise()) {
         return false;
@@ -383,6 +441,8 @@ bool CGame::Init1(char const *datFile) {
 
 // 0x5BA1A0
 bool CGame::Init2(const char* datFile) {
+    ZoneScoped;
+
     LoadingScreen("Loading the Game", "Add Particles");
     CTheZones::PostZoneCreation();
     CEntryExitManager::PostEntryExitsCreation();
@@ -390,7 +450,7 @@ bool CGame::Init2(const char* datFile) {
     LoadingScreen("Loading the Game", "Setup paths");
     CPathFind::PreparePathData();
 
-    std::ranges::for_each(CWorld::Players, [](auto& info) {
+    rng::for_each(CWorld::Players, [](auto& info) {
         info.Clear();
         info.LoadPlayerSkin();
     });
@@ -403,7 +463,7 @@ bool CGame::Init2(const char* datFile) {
     CDraw::ms_fLODDistance = 0.0f;
 
     if (!CCustomCarPlateMgr::Initialise()) {
-        DEV_LOG("[CGame::Init2] CCustomCarPlateMgr::Initialise() failed");
+        NOTSA_LOG_DEBUG("[CGame::Init2] CCustomCarPlateMgr::Initialise() failed");
         return false;
     }
 
@@ -435,7 +495,7 @@ bool CGame::Init2(const char* datFile) {
     CPopulation::Initialise();
 
     LoadingScreen(nullptr, nullptr);
-    CWorld::PlayerInFocus = 0;
+    CWorld::PlayerInFocus = PED_TYPE_PLAYER1;
     CCoronas::Init();
     CShadows::Init();
 
@@ -483,15 +543,15 @@ bool CGame::Init2(const char* datFile) {
 
 // 0x5BA400
 bool CGame::Init3(const char* datFile) {
-    return plugin::CallAndReturn<bool, 0x5BA400, const char*>(datFile);
+    ZoneScoped;
 
     LoadingScreen("Loading the Game", "Load scene");
-    CPad::GetPad(0)->Clear(true, true);
-    CPad::GetPad(1)->Clear(true, true);
+    CPad::GetPad(PED_TYPE_PLAYER1)->Clear(true, true);
+    CPad::GetPad(PED_TYPE_PLAYER2)->Clear(true, true);
     D3DResourceSystem::SetUseD3DResourceBuffering(true);
     LoadingScreen("Loading the Game", "Procedural Interiors");
-    // g_interiorMan.Init();
-    // g_procObjMan.Init();
+    g_interiorMan.Init();
+    g_procObjMan.Init();
     g_waterCreatureMan.Init();
     g_realTimeShadowMan.Init();
     return true;
@@ -499,32 +559,40 @@ bool CGame::Init3(const char* datFile) {
 
 // 0x53BC80
 void CGame::Initialise(const char* datFile) {
-    CGame::Init1(datFile);
+    ZoneScoped;
+
+    Init1(datFile);
     CColAccel::startCache();
     CFileLoader::LoadLevel("DATA\\DEFAULT.DAT");
     CFileLoader::LoadLevel(datFile);
     CColAccel::endCache();
-    CGame::Init2(datFile);
+    Init2(datFile);
     CStencilShadows::Init();
     LoadingScreen("Loading the Game", "Start script");
     CTheScripts::StartTestScript();
     CTheScripts::Process();
     TheCamera.Process();
-    CGame::Init3(datFile);
+    Init3(datFile);
 }
 
 // 0x5BFA90
-void CGame::InitialiseCoreDataAfterRW() {
-    plugin::Call<0x5BFA90>();
+bool CGame::InitialiseCoreDataAfterRW() {
+    CTempColModels::Initialise();
+    gHandlingDataMgr.Initialise();
+    g_surfaceInfos.Init();
+    CPedStats::Initialise();
+    CTimeCycle::Initialise(false);
+    CPopCycle::Initialise();
+    CVehicleRecording::InitAtStartOfGame();
+
+    return AudioEngine.Initialise() && g_breakMan.Init() && g_boneNodeMan.Init() && !g_ikChainMan.Init();
 }
 
 // 0x5BA160
 bool CGame::InitialiseEssentialsAfterRW() {
-    return plugin::CallAndReturn<bool, 0x5BA160>();
-
     CMemoryMgr::PushMemId(MEM_30);
     TheText.Load(false);
-    if (!CCarFXRenderer::Initialise() || /* !CGrassRenderer::Initialise() ||*/ !CCustomBuildingRenderer::Initialise()) {
+    if (!CCarFXRenderer::Initialise() || !CGrassRenderer::Initialise() || !CCustomBuildingRenderer::Initialise()) {
         return false;
     }
     CMemoryMgr::PopMemId();
@@ -544,7 +612,61 @@ void CGame::InitialiseOnceBeforeRW() {
 
 // 0x5BD600
 bool CGame::InitialiseRenderWare() {
-    return plugin::CallAndReturn<bool, 0x5BD600>();
+    ValidateVersion();
+    D3DResourceSystem::Init();
+    CTxdStore::Initialise();
+    CVisibilityPlugins::Initialise();
+
+    const auto camera = RwCameraCreate();
+    if (!camera) {
+        CameraDestroy(camera);
+        return false;
+    }
+
+    const auto frame = RwFrameCreate();
+    rwObjectHasFrameSetFrame(&camera->object.object, frame);
+
+    RwCameraSetRaster(camera, RwRasterCreate(RsGlobal.maximumWidth, RsGlobal.maximumHeight, 0, rwRASTERTYPECAMERA));
+    assert(RwCameraGetRaster(camera));
+
+    RwCameraSetZRaster(camera, RwRasterCreate(RsGlobal.maximumWidth, RsGlobal.maximumHeight, 0, rwRASTERTYPEZBUFFER));
+    assert(RwCameraGetZRaster(camera));
+
+    if (!RwCameraGetFrame(camera)) {
+        CameraDestroy(camera);
+        return false;
+    }
+
+    Scene.m_pRwCamera = camera;
+    TheCamera.Init();
+    TheCamera.SetRwCamera(Scene.m_pRwCamera);
+    RwCameraSetFarClipPlane(Scene.m_pRwCamera, 2000.0f);
+    RwCameraSetNearClipPlane(Scene.m_pRwCamera, 0.9f);
+    CameraSize(Scene.m_pRwCamera, nullptr, 0.7f, DEFAULT_ASPECT_RATIO);
+
+    RwBBox bb;
+    bb.sup = { 10'000.0f,  10'000.0f,  10'000.0f};
+    bb.inf = {-10'000.0f, -10'000.0f, -10'000.0f};
+
+    if (Scene.m_pRpWorld = RpWorldCreate(&bb); !Scene.m_pRpWorld) {
+        CameraDestroy(Scene.m_pRwCamera);
+        Scene.m_pRwCamera = nullptr;
+
+        return false;
+    }
+    RpWorldAddCamera(Scene.m_pRpWorld, Scene.m_pRwCamera);
+    LightsCreate(Scene.m_pRpWorld);
+    CreateDebugFont();
+    CFont::Initialise();
+    CHud::Initialise();
+    CPlayerSkin::Initialise();
+    CPostEffects::Initialise();
+    CGame::m_pWorkingMatrix1 = RwMatrixCreate();
+    CGame::m_pWorkingMatrix2 = RwMatrixCreate();
+
+    s_PrevD3DDeviceRestoreCallback = _rwD3D9DeviceGetRestoreCallback();
+    _rwD3D9DeviceSetRestoreCallback(D3DDeviceRestoreCallback);
+    return true;
 }
 
 // 0x53C680
@@ -562,7 +684,7 @@ void CGame::InitialiseWhenRestarting() {
         }
     }
 
-    CGame::ReInitGameObjectVariables();
+    ReInitGameObjectVariables();
     CTimeCycle::InitForRestart();
     CWeaponEffects::Init();
     CPlane::InitPlaneGenerationAndRemoval();
@@ -583,13 +705,13 @@ void CGame::InitialiseWhenRestarting() {
                 }
             }
             TheCamera.SetFadeColour(0, 0, 0);
-            CGame::ShutDownForRestart();
+            ShutDownForRestart();
             CTimer::Stop();
             CTimer::Initialise();
             FrontEndMenuManager.m_bLoadingData = false;
-            CGame::ReInitGameObjectVariables();
-            CGame::currLevel = 0;
-            CGame::bMissionPackGame = 0;
+            ReInitGameObjectVariables();
+            currLevel = 0;
+            bMissionPackGame = 0;
             CCollision::SortOutCollisionAfterLoad();
         }
     }
@@ -607,13 +729,140 @@ void CGame::InitialiseWhenRestarting() {
 
 // 0x53BEE0
 void CGame::Process() {
-    plugin::Call<0x53BEE0>();
+    ZoneScoped;
+
+    CPad::UpdatePads();
+    g_LoadMonitor.BeginFrame();
+
+    const auto GetTime = [] { return CTimer::GetCurrentTimeInCycles() / CTimer::GetCyclesPerMillisecond(); };
+
+    const auto timeBeforeStreamingUpdate = GetTime();
+    CStreaming::Update();
+    auto updateTimeDelta = GetTime() - timeBeforeStreamingUpdate;
+
+    CCutsceneMgr::Update();
+
+    if (!CCutsceneMgr::IsCutsceneProcessing() && !CTimer::GetIsCodePaused()) {
+        FrontEndMenuManager.Process();
+    }
+
+    CTheZones::Update();
+    CCover::Update();
+    CAudioZones::Update(false, TheCamera.GetPosition());
+    CWindModifiers::Number = 0;
+
+    if (!CTimer::GetIsPaused()) {
+        CSprite2d::SetRecipNearClip();
+        CSprite2d::InitPerFrame();
+        CFont::InitPerFrame();
+        CCheat::DoCheats();
+        CClock::Update();
+        CWeather::Update();
+        CTheScripts::Process();
+        CCollision::Update();
+        ThePaths.UpdateStreaming(false);
+        CTrain::UpdateTrains();
+        CHeli::UpdateHelis();
+        CDarkel::Update();
+        CSkidmarks::Update();
+        CGlass::Update();
+        CWanted::UpdateEachFrame();
+        CCreepingFire::Update();
+        CSetPieces::Update();
+        gFireManager.Update();
+
+        if (updateTimeDelta >= 4) {
+            CPopulation::Update(false);
+        } else {
+            const auto timeBeforePopulationUpdate = GetTime();
+            CPopulation::Update(true);
+            updateTimeDelta = GetTime() - timeBeforePopulationUpdate;
+        }
+        CWeapon::UpdateWeapons();
+
+        if (!CCutsceneMgr::IsRunning()) {
+            CTheCarGenerators::Process();
+        }
+
+        if (CReplay::Mode != MODE_PLAYBACK) {
+            CCranes::UpdateCranes();
+        }
+
+        CClouds::Update();
+        CMovingThings::Update();
+        CWaterCannons::Update();
+        CUserDisplay::Process();
+        CReplay::Update();
+        CWorld::Process();
+
+        g_LoadMonitor.EndFrame();
+
+        if (!CTimer::IsSkipProcessThisFrame()) {
+            CPickups::Update();
+            CCarCtrl::PruneVehiclesOfInterest();
+            CGarages::Update();
+            CEntryExitManager::Update();
+            CStuntJumpManager::Update();
+            CBirds::Update();
+            CSpecialFX::Update();
+            CRopes::Update();
+        }
+        CPostEffects::Update();
+        CTimeCycle::Update();
+        CPopCycle::Update();
+
+        if (g_InterestingEvents.m_b1) {
+            g_InterestingEvents.ScanForNearbyEntities();
+        }
+
+        if (CReplay::ShouldStandardCameraBeProcessed()) {
+            TheCamera.Process();
+        } else {
+            TheCamera.ProcessFade();
+        }
+
+        CCullZones::Update();
+        if (CReplay::Mode != MODE_PLAYBACK) {
+            CGameLogic::Update();
+            CGangWars::Update();
+        }
+        CConversations::Update();
+        CPedToPlayerConversations::Update();
+        CBridge::Update();
+        CCoronas::DoSunAndMoon();
+        CCoronas::Update();
+        CShadows::UpdatePermanentShadows();
+
+        CPlantMgr::Update(TheCamera.GetPosition());
+        CCustomBuildingRenderer::Update();
+
+        CStencilShadows::RenderBuffer({
+            CTimeCycle::m_fShadowFrontX[CTimeCycle::m_CurrentStoredValue] * 2.f,
+            CTimeCycle::m_fShadowFrontY[CTimeCycle::m_CurrentStoredValue] * 2.f,
+            -1.5f
+        });
+
+        CStencilShadows::Process(TheCamera.GetPosition());
+        if (CReplay::Mode != MODE_PLAYBACK) {
+            if (updateTimeDelta < 4) {
+                CCarCtrl::GenerateRandomCars();
+            }
+            CRoadBlocks::GenerateRoadBlocks();
+            CCarCtrl::RemoveDistantCars();
+            CCarCtrl::RemoveCarsIfThePoolGetsFull();
+        }
+
+        g_fx.Update(TheCamera.m_pRwCamera, CTimer::GetTimeStepInSeconds());
+        g_breakMan.Update(CTimer::GetTimeStep());
+        g_interiorMan.Update();
+        g_procObjMan.Update();
+        g_waterCreatureMan.Update(CTimer::GetTimeStepInSeconds());
+    }
+    CWaterLevel::PreRenderWater();
 }
 
 // 0x53BCF0
 void CGame::ReInitGameObjectVariables() {
-    return plugin::Call<0x53BCF0>();
-
     TheCamera.Init();
     CGameLogic::InitAtStartOfGame();
     CGangWars::InitAtStartOfGame();
@@ -632,16 +881,16 @@ void CGame::ReInitGameObjectVariables() {
     CRadar::Initialise();
     CCarCtrl::ReInit();
     ThePaths.ReInit();
-    CTimeCycle::Initialise();
+    CTimeCycle::Initialise(false);
     CPopCycle::Initialise();
     CDraw::SetFOV(120.0f);
     CDraw::ms_fLODDistance = 500.0f;
-    CGame::currArea = AREA_CODE_NORMAL_WORLD;
+    currArea = AREA_CODE_NORMAL_WORLD;
     CPed::Initialise();
     CWeapon::InitialiseWeapons();
     CPopulation::Initialise();
-    std::ranges::for_each(CWorld::Players, [](auto& info) { info.Clear(); });
-    CWorld::PlayerInFocus = 0;
+    rng::for_each(CWorld::Players, [](auto& info) { info.Clear(); });
+    CWorld::PlayerInFocus = PED_TYPE_PLAYER1;
     CGlass::Init();
     gbLARiots_NoPoliceCars = false;
     gbLARiots = false;
@@ -661,11 +910,11 @@ void CGame::ReInitGameObjectVariables() {
     CSpecialFX::Init();
     CRopes::Init();
     CWaterCannons::Init();
-    // todo: CDecisionMakerTypesFileLoader::ReStart();
+    CDecisionMakerTypesFileLoader::ReStart();
     CVehicleRecording::Init();
     gFireManager.Init();
-    // todo: g_interiorMan.Init();
-    // todo: g_procObjMan.Init();
+    g_interiorMan.Init();
+    g_procObjMan.Init();
     g_waterCreatureMan.Init();
     g_realTimeShadowMan.Init();
     CStreaming::RemoveInappropriatePedModels();
@@ -677,8 +926,8 @@ void CGame::ReInitGameObjectVariables() {
         TheCamera.Process();
         CTrain::InitTrains();
     }
-    CPad::GetPad(0)->Clear(true, true);
-    CPad::GetPad(1)->Clear(true, true);
+    CPad::GetPad(PED_TYPE_PLAYER1)->Clear(true, true);
+    CPad::GetPad(PED_TYPE_PLAYER2)->Clear(true, true);
 }
 
 // 0x53BED0

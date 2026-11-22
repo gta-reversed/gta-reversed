@@ -3,7 +3,7 @@
 #include "Dummy.h"
 
 void CDummy::InjectHooks() {
-    RH_ScopedClass(CDummy);
+    RH_ScopedVirtualClass(CDummy, 0x8638C0, 22);
     RH_ScopedCategory("Entity/Dummy");
 
     RH_ScopedGlobalInstall(IsDummyPointerValid, 0x532730);
@@ -21,7 +21,7 @@ void CDummy::operator delete(void* obj) {
 
 // 0x532540
 CDummy::CDummy() : CEntity() {
-    m_nType = ENTITY_TYPE_DUMMY;
+    SetTypeDummy();
 }
 
 bool IsDummyPointerValid(CDummy* dummy) {

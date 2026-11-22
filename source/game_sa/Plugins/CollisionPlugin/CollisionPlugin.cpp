@@ -2,8 +2,7 @@
 
 #include "CollisionPlugin.h"
 
-RwInt32& gCollisionPluginOffset = *(RwInt32*)0x9689DC;
-CClumpModelInfo*& CCollisionPlugin::ms_currentModel = *(CClumpModelInfo**)0x9689E0;
+auto& gCollisionPluginOffset = StaticRef<RwInt32>(0x9689DC);
 
 void CCollisionPlugin::InjectHooks() {
     RH_ScopedClass(CCollisionPlugin);
@@ -42,13 +41,13 @@ static RwStream* ClumpCollisionStreamRead(RwStream* stream, RwInt32 binaryLength
     CColModel* model = new CColModel();
 
     switch (*(uint32*)PC_Scratch) {
-    case make_fourcc4("COLL"):
+    case MakeFourCC("COLL"):
         CFileLoader::LoadCollisionModel((uint8*)(&PC_Scratch[32]), *model);
         break;
-    case make_fourcc4("COL2"):
+    case MakeFourCC("COL2"):
         CFileLoader::LoadCollisionModelVer2((uint8*)(&PC_Scratch[32]), (PC_Scratch[4] - 24), *model, nullptr);
         break;
-    case make_fourcc4("COL3"):
+    case MakeFourCC("COL3"):
         CFileLoader::LoadCollisionModelVer3((uint8*)(&PC_Scratch[32]), (PC_Scratch[4] - 24), *model, nullptr);
         break;
     }

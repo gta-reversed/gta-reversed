@@ -1,23 +1,13 @@
 #include "StdInc.h"
 
-#include "PtrNodeSingleLink.h"
-
-void CPtrNodeSingleLink::InjectHooks() {
-    RH_ScopedClass(CPtrNodeSingleLink);
-    RH_ScopedCategory("Core");
-
-    RH_ScopedInstall(AddToList, 0x532960);
-}
-
-void CPtrNodeSingleLink::AddToList(CPtrListSingleLink* list) {
-    m_next = list->GetNode();
-    list->m_node = reinterpret_cast<CPtrNode*>(this);
-}
-
-void* CPtrNodeSingleLink::operator new(unsigned size) {
+namespace details {
+void* CPtrNodeSingleLink__operator_new(size_t sz) {
+    assert(sz == sizeof(CPtrNodeSingleLink<void*>));
     return GetPtrNodeSingleLinkPool()->New();
 }
 
-void CPtrNodeSingleLink::operator delete(void* data) {
-    GetPtrNodeSingleLinkPool()->Delete(static_cast<CPtrNodeSingleLink*>(data));
+void CPtrNodeSingleLink__operator_delete(void* data, size_t sz) {
+    assert(sz == sizeof(CPtrNodeSingleLink<void*>));
+    GetPtrNodeSingleLinkPool()->Delete(reinterpret_cast<CPtrNodeSingleLink<void*>*>(data));
 }
+};

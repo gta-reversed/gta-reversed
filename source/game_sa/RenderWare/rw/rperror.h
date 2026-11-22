@@ -1,10 +1,3 @@
-/*
-    Plugin-SDK file
-    Authors: GTA Community. See more here
-    https://github.com/DK22Pac/plugin-sdk
-    Do not delete this comment block. Respect others' work!
-*/
-#pragma once
 /***************************************************************************
  *                                                                         *
  * Module  : rperror.h                                                     *
@@ -12,6 +5,15 @@
  * Purpose : Used to generate error codes                                  *
  *                                                                         *
  **************************************************************************/
+
+#ifndef RPERROR_H
+#define RPERROR_H
+
+/****************************************************************************
+ Includes
+ */
+
+#include "rpplugin.h"
 
 /****************************************************************************
  Defines
@@ -21,7 +23,10 @@
 
 enum rwPLUGIN_ERRENUM
 {
+//#include "rperror.def"
     rwPLUGIN_ERRENUMLAST = RWFORCEENUMSIZEINT
 };
 
 typedef enum rwPLUGIN_ERRENUM rwPLUGIN_ERRENUM;
+
+#endif /* RPERROR_H */

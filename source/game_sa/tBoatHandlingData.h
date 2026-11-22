@@ -20,6 +20,7 @@ struct tBoatHandlingData {
     float   m_fLookLRBehindCamHeight;
     CVector m_vecMoveRes;
     CVector m_vecTurnRes;
-};
 
+    int32 InitFromData(int32 id, const char* line);
+};
 VALIDATE_SIZE(tBoatHandlingData, 0x3C);

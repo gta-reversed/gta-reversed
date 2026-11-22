@@ -6,26 +6,72 @@
 */
 #pragma once
 
-#include "RenderWare.h"
+#include <span>
+#include <rwplcore.h>
+#include <Base.h>
+
+class CVector;
+class CVector2D;
+
+constexpr CVector2D operator-(const CVector2D& vecOne, const CVector2D& vecTwo);
 
 class CVector2D : public RwV2d {
 public:
     constexpr CVector2D() = default;
+    constexpr explicit CVector2D(float XY) : RwV2d{XY, XY} {}
     constexpr CVector2D(float X, float Y) : RwV2d{ X, Y } {}
-    constexpr CVector2D(const CVector& vec3d)   { x = vec3d.x; y = vec3d.y; }
     constexpr CVector2D(const RwV2d& vec2d)     { x = vec2d.x; y = vec2d.y; }
     constexpr CVector2D(const CVector2D& vec2d) { x = vec2d.x; y = vec2d.y; }
 
+    //! Create a vector with the given heading (0 rad is at 3 O'Clock)
+    //! It is made to be compatible with `CMatrix::SetRotateZOnly` but in reality it probably should be x = sin, y = -cos instead
+    //! Because the following should be true: `CVector2D::FromHeading(heading).Heading() + PI == heading` (And it isn't :D)
+    //constexpr static auto FromHeading(float headingRad) { return CVector2D{ -std::sin(headingRad), std::cos(headingRad) }; } 
+
+    CVector2D(const CVector& vec3d);
+
+    /*!
+    * @returns A vector with each of its components set to a number in the given range [min, max)
+    */
+    static CVector2D Random(CVector2D min, CVector2D max);
+
+    /*!
+     * @param min Minimum value of any component
+     * @param max Maximum value of any component
+     * @return A vector with each of its components set to a number in the given range [min, max)  
+     */
+    static CVector2D Random(float min, float max);
+
     static void InjectHooks();
 
-    void  Normalise();
+    /*!
+    * @brief Normalize this vector in-place
+    *
+    * @param [opt, out, notsa] outMag The magnitude of the vector
+    */
+    void Normalise(float* outMag = nullptr);
+
+    /*!
+    * @brief Get a normalized copy of this vector
+    *
+    * @param [opt, out] mag The magnitude of the vector
+    */
+    auto Normalized(float* outMag = nullptr) const {
+        CVector2D cpy = *this;
+        cpy.Normalise(outMag);
+        return cpy;
+    }
+
+    [[nodiscard]] constexpr float CWSum() const { // Component-wise
+        return x + y;
+    }
 
     [[nodiscard]] constexpr inline float SquaredMagnitude() const {
         return x * x + y * y;
     }
 
     // Returns length of vector
-    [[nodiscard]] inline float Magnitude() {
+    [[nodiscard]] inline float Magnitude() const {
         return std::sqrt(x * x + y * y);
     }
 
@@ -64,20 +110,138 @@ public:
         y *= multiplier;
     }
 
+    inline void operator*=(CVector2D multiplier) {
+        x *= multiplier.x;
+        y *= multiplier.y;
+    }
+
     inline void operator/=(float divisor) {
         x /= divisor;
         y /= divisor;
+    }
+
+    void Reset() {
+        Set(0.f, 0.f);
     }
 
     inline void Set(float X, float Y) {
         x = X;
         y = Y;
     }
-     
-    [[nodiscard]] float Heading() const {
+
+    //! Heading of the vector
+    //! Tip: atan2(x, -y) is off by 180deg clockwise
+    float Heading() const {
+        // -x, y is basically GetPerpRight()
+        // that's the same as std::atan(y, x) - 90deg;
         return std::atan2(-x, y);
     }
+
+    auto GetComponents() const {
+        return std::span{ reinterpret_cast<const float*>(this), 2 };
+    }
+
+    constexpr friend CVector2D operator*(const CVector2D& vec, float multiplier) {
+        return { vec.x * multiplier, vec.y * multiplier };
+    }
+
+    //! Dot product of *this and another vector
+    float Dot(const CVector2D& lhs) const {
+        return x * lhs.x + y * lhs.y;
+    }
+
+    /*!
+    * @notsa
+    * 
+    * @brief Calculate the cross product of *this and `lhs`
+    * 
+    * @param lhs The vector to calculate the cross product with
+    *
+    * @return Magnitude of the vector that would result from a regular 3D cross product of the input vectors taking their Z values implicitly as 0.
+    *
+    * Returns the signed magnitude of the vector that would result
+    * from a regular 3D cross product of the input vectors,
+    * taking their Z values implicitly as 0
+    * (i.e. treating the 2D space as a plane in the 3D space).
+    * The 3D cross product will be perpendicular to that plane,
+    * and thus have 0 X & Y components
+    * (thus the scalar returned is the Z value of the 3D cross product vector).
+    * Copied from (with 1 change): https://stackoverflow.com/a/243977
+    */
+    float Cross(const CVector2D& lhs) const {
+        return (x * lhs.y) - (y * lhs.x); // same as Dot(lhs.GetPerpRight());
+    }
+
+    //! Get a copy of `*this` vector projected onto `projectOnTo` (which is assumed to be unit length)
+    //! The result will have a magnitude of `sqrt(abs(this->Dot(projectOnTo)))`
+    CVector2D ProjectOnToNormal(const CVector2D& projectOnTo) const {
+        return projectOnTo * Dot(projectOnTo);
+    }
+
+    //! Wrapper around `CGeneral::GetNodeHeadingFromVector`
+    uint32 NodeHeading() const;
+
+    //! Get a vector with the same magnitude as `*this` but rotated by `radians` (Interval: [0, 2PI])
+    CVector2D RotatedBy(float radians) const;
+
+    //! Get vector perpendicular to `*this` on the right side (Same direction `*this` rotated by -90)
+    //! Also see `GetPerpLeft` and `RotatedBy`
+    //! (This sometimes is also called a 2D cross product https://stackoverflow.com/questions/243945 )
+    CVector2D GetPerpRight() const { return { y, -x }; }
+
+    //! Get vector perpendicular to `*this` on the left side (Same direction `*this` rotated by 90)
+    //! Also see `GetPerpRight` and `RotatedBy`
+    CVector2D GetPerpLeft() const { return { -y, x }; }
+
+    /*!
+    * @notsa
+    * @return Make all component's values absolute (positive).
+    */
+    constexpr friend CVector2D abs(CVector2D v2) {
+        return { std::abs(v2.x), std::abs(v2.y) };
+    }
+
+    constexpr friend CVector2D pow(CVector2D vec, float power) { // todo/note: maybe use operator^?
+        return { std::pow(vec.x, power), std::pow(vec.y, power) };
+    }
+
+    float operator[](size_t i) const {
+        return (&x)[i];
+    }
+
+    float& operator[](size_t i) {
+        return (&x)[i];
+    }
+
+    bool ApproxEqualTo(CVector2D o, float epsilon);
+
+    /*!
+     * @brief Prefer this over (a - b).Magnitude()
+     * @param a Point A
+     * @param b Point B
+     * @return 2D Distance between 2 points
+    */
+    static inline float Dist(CVector2D a, CVector2D b) {
+        return (a - b).Magnitude();
+    }
+
+    /*!
+    * @brief Prefer this over (a - b).SquaredMagnitude()
+    * @param a Point A
+    * @param b Point B
+    * @return 2D Squared distance between 2 points
+    */
+    static inline float DistSqr(CVector2D a, CVector2D b) {
+        return (a - b).SquaredMagnitude();
+    }
+
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE(CVector2D, x, y);
 };
+
+/// Negate all components of the vector
+constexpr inline CVector2D operator-(const CVector2D& lhs) {
+    return { -lhs.x, -lhs.y };
+}
 
 constexpr inline CVector2D operator-(const CVector2D& vecOne, const CVector2D& vecTwo) {
     return { vecOne.x - vecTwo.x, vecOne.y - vecTwo.y };
@@ -91,8 +255,8 @@ constexpr inline CVector2D operator*(const CVector2D& vecOne, const CVector2D& v
     return { vecOne.x * vecTwo.x, vecOne.y * vecTwo.y };
 }
 
-constexpr inline CVector2D operator*(const CVector2D& vec, float multiplier) {
-    return { vec.x * multiplier, vec.y * multiplier };
+constexpr inline CVector2D operator/(const CVector2D& vecOne, const CVector2D& vecTwo) {
+    return { vecOne.x / vecTwo.x, vecOne.y / vecTwo.y };
 }
 
 constexpr inline CVector2D operator/(const CVector2D& vec, float dividend) {

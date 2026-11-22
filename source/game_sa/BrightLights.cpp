@@ -2,9 +2,6 @@
 
 #include "BrightLights.h"
 
-uint32& CBrightLights::NumBrightLights = *(uint32*)0xC7C6FC;
-tBrightLight (&CBrightLights::aBrightLights)[MAX_NUM_BRIGHTLIGHTS] = *(tBrightLight(*)[MAX_NUM_BRIGHTLIGHTS])0xC7CB58;
-
 void CBrightLights::InjectHooks() {
     RH_ScopedClass(CBrightLights);
     RH_ScopedCategoryGlobal();
@@ -24,7 +21,7 @@ void CBrightLights::Init() {
 void CBrightLights::RenderOutGeometryBuffer() {
     if (uiTempBufferIndicesStored) {
         LittleTest();
-        if (RwIm3DTransform(aTempBufferVertices, uiTempBufferVerticesStored, nullptr, rwIM3D_VERTEXUV))
+        if (RwIm3DTransform(TempBufferVertices.m_3d, uiTempBufferVerticesStored, nullptr, rwIM3D_VERTEXUV))
         {
             RwIm3DRenderIndexedPrimitive(rwPRIMTYPETRILIST, aTempBufferIndices, uiTempBufferIndicesStored);
             RwIm3DEnd();
@@ -36,6 +33,8 @@ void CBrightLights::RenderOutGeometryBuffer() {
 
 // 0x7241C0
 void CBrightLights::Render() {
+    ZoneScoped;
+
     if (NumBrightLights == 0)
         return;
 
@@ -52,7 +51,7 @@ void CBrightLights::Render() {
     for (unsigned i = 0; i < NumBrightLights; i++) {
         // Maybe render vertex buffer if running low on free items...
         if (uiTempBufferIndicesStored > TOTAL_TEMP_BUFFER_INDICES - 40u ||
-            uiTempBufferVerticesStored > TOTAL_TEMP_BUFFER_VERTICES - 40u
+            uiTempBufferVerticesStored > TOTAL_TEMP_BUFFER_3DVERTICES - 40u
         ) {
             CBrightLights::RenderOutGeometryBuffer();
         }
@@ -155,7 +154,7 @@ void tBrightLight::Render() const {
 
     // Get vertex pointer, `i` is passed to `GetVertexRealIdx`
     const auto GetVertex = [=](unsigned i) {
-        return &aTempBufferVertices[GetVertexRealIdx(i)];
+        return &TempBufferVertices.m_3d[GetVertexRealIdx(i)];
     };
 
     // Set position of vertex, workaround for taking a temporary's address

@@ -1,46 +1,58 @@
 #include "StdInc.h"
 
-#ifdef EXTRA_DEBUG_FEATURES
-
 #include "Occlusion.h"
-#include "ActiveOccluder.h"
-#include "Occluder.h"
 #include "Lines.h"
 
-#include "imgui.h"
+void COcclusionDebugModule::RenderWindow() {
+    const notsa::ui::ScopedWindow window{ "Occlusions", {}, m_IsOpen, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize };
+    if (!m_IsOpen) {
+        return;
+    }
+    {
+        const notsa::ui::ScopedDisable disabledScope{ true };
 
-bool COcclusionDebugModule::DrawActiveOcclusions = false;
-int COcclusionDebugModule::NumEntitiesSkipped = 0;
+        ImGui::InputScalar("NumInteriorOcculdersOnMap", ImGuiDataType_S32, &COcclusion::NumInteriorOccludersOnMap);
+        ImGui::InputScalar("NumOccludersOnMap", ImGuiDataType_S32, &COcclusion::NumOccludersOnMap);
+        ImGui::InputScalar("NumActiveOccluders", ImGuiDataType_S32, &COcclusion::NumActiveOccluders);
 
-void COcclusionDebugModule::ProcessImGui() {
-    ImGui::InputScalar("NumInteriorOcculdersOnMap", ImGuiDataType_::ImGuiDataType_S32, &COcclusion::NumInteriorOcculdersOnMap, nullptr, nullptr, nullptr, ImGuiInputTextFlags_ReadOnly);
-    ImGui::InputScalar("NumOccludersOnMap", ImGuiDataType_::ImGuiDataType_S32, &COcclusion::NumOccludersOnMap, nullptr, nullptr, nullptr, ImGuiInputTextFlags_ReadOnly);
-    ImGui::InputScalar("NumActiveOccluders", ImGuiDataType_::ImGuiDataType_S32, &COcclusion::NumActiveOccluders, nullptr, nullptr, nullptr, ImGuiInputTextFlags_ReadOnly);
+        ImGui::NewLine();
 
+        ImGui::InputScalar("FarAwayList", ImGuiDataType_S16, &COcclusion::FarAwayList);
+        ImGui::InputScalar("NearbyList", ImGuiDataType_S16, &COcclusion::NearbyList);
+        ImGui::InputScalar("ListWalkThroughFA", ImGuiDataType_S16, &COcclusion::ListWalkThroughFA);
+        ImGui::InputScalar("PreviousListWalkThroughFA", ImGuiDataType_S16, &COcclusion::PreviousListWalkThroughFA);
+
+        ImGui::NewLine();
+
+        ImGui::InputScalar("MinXInOccluder", ImGuiDataType_Float, &COccluder::MinXInOccluder);
+        ImGui::InputScalar("MaxXInOccluder", ImGuiDataType_Float, &COccluder::MaxXInOccluder);
+        ImGui::InputScalar("MinYInOccluder", ImGuiDataType_Float, &COccluder::MinYInOccluder);
+        ImGui::InputScalar("MaxYInOccluder", ImGuiDataType_Float, &COccluder::MaxYInOccluder);
+    }
+    
     ImGui::NewLine();
-    ImGui::InputScalar("FarAwayList", ImGuiDataType_::ImGuiDataType_S16, &COcclusion::FarAwayList, nullptr, nullptr, nullptr, ImGuiInputTextFlags_ReadOnly);
-    ImGui::InputScalar("NearbyList", ImGuiDataType_::ImGuiDataType_S16, &COcclusion::NearbyList, nullptr, nullptr, nullptr, ImGuiInputTextFlags_ReadOnly);
-    ImGui::InputScalar("ListWalkThroughFA", ImGuiDataType_::ImGuiDataType_S16, &COcclusion::ListWalkThroughFA, nullptr, nullptr, nullptr, ImGuiInputTextFlags_ReadOnly);
-    ImGui::InputScalar("PreviousListWalkThroughFA", ImGuiDataType_::ImGuiDataType_S16, &COcclusion::PreviousListWalkThroughFA, nullptr, nullptr, nullptr, ImGuiInputTextFlags_ReadOnly);
-
-    ImGui::NewLine();
-    ImGui::Text("Num skipped: %d", COcclusionDebugModule::NumEntitiesSkipped);
-    COcclusionDebugModule::NumEntitiesSkipped = 0;
-
-    ImGui::NewLine();
-    ImGui::Checkbox("Draw Active Occlusions", &COcclusionDebugModule::DrawActiveOcclusions);
+    ImGui::Checkbox("Draw Active Occlusions", &m_DrawActiveOcclusions);
 }
 
-void COcclusionDebugModule::ProcessRender() {
-    if (COcclusionDebugModule::DrawActiveOcclusions && COcclusion::NumActiveOccluders > 0) {
-        CSprite::FlushSpriteBuffer();
-        const CRGBA white = { 255, 255, 255, 255 };
-        for (auto& occl : std::span{ COcclusion::aActiveOccluders, (size_t)COcclusion::NumActiveOccluders }) {
-            for (auto& line : std::span{ occl.m_aLines, occl.m_cLinesCount }) {
-                const auto vecEnd = line.m_vecOrigin + line.m_vecDirection * line.m_fLength;
-                CLines::ImmediateLine2D(line.m_vecOrigin, vecEnd, white, white);
-            }
+void COcclusionDebugModule::RenderMenuEntry() {
+    notsa::ui::DoNestedMenuIL({ "Visualization", "Occlusions" }, [&] {
+        ImGui::Checkbox("Draw Active", &m_DrawActiveOcclusions);
+    });
+
+    notsa::ui::DoNestedMenuIL({ "Extra" }, [&] {
+        ImGui::MenuItem("Occls", nullptr, &m_IsOpen);
+    });
+}
+
+void COcclusionDebugModule::Render3D() {
+    if (!m_DrawActiveOcclusions || !COcclusion::NumActiveOccluders) {
+        return;
+    }
+    CSprite::FlushSpriteBuffer();
+    const CRGBA white = { 255, 255, 255, 255 };
+    for (auto& occl : COcclusion::GetActiveOccluders()) {
+        for (auto& line : occl.GetLines()) {
+            CLines::ImmediateLine2D(line.Origin, line.Origin + line.Dir * line.Length, white, white);
         }
     }
 }
-#endif

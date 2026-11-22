@@ -5,7 +5,7 @@
 
 class CPointRoute;
 
-class CTaskComplexWalkRoundObject : public CTaskComplex {
+class NOTSA_EXPORT_VTABLE CTaskComplexWalkRoundObject : public CTaskComplex {
 public:
     int32        m_moveState;
     CVector      m_targetPoint;
@@ -23,19 +23,16 @@ public:
     CTaskComplexWalkRoundObject(int32 moveState, const CVector& targetPoint, CEntity* object);
     ~CTaskComplexWalkRoundObject() override;
 
-    eTaskType GetTaskType() override { return Type; }
-    CTask* Clone() override { return new CTaskComplexWalkRoundObject(m_moveState, m_targetPoint, m_object); }
-    CTask* CreateNextSubTask(CPed* ped) override;
-    CTask* CreateFirstSubTask(CPed* ped) override;
-    CTask* ControlSubTask(CPed* ped) override;
+    eTaskType GetTaskType() const override { return Type; }
+    CTask*    Clone() const override { return new CTaskComplexWalkRoundObject(m_moveState, m_targetPoint, m_object); }
+    CTask*    CreateNextSubTask(CPed* ped) override;
+    CTask*    CreateFirstSubTask(CPed* ped) override;
+    CTask*    ControlSubTask(CPed* ped) override;
 
-    CTask* CreateRouteTask(CPed* ped);
+    CTask* CreateRouteTask(CPed*) const;
 
-private:
-    friend void InjectHooksMain();
+public:
     static void InjectHooks();
-
-    CTaskComplexWalkRoundObject* Constructor(int32 moveState, const CVector& targetPoint, CEntity* object);
 };
 
 VALIDATE_SIZE(CTaskComplexWalkRoundObject, 0x34);

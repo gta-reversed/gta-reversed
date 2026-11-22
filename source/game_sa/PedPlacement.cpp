@@ -12,30 +12,29 @@ void CPedPlacement::InjectHooks() {
     RH_ScopedClass(CPedPlacement);
     RH_ScopedCategoryGlobal();
 
-    RH_ScopedInstall(IsPositionClearForPed, 0x616860);
-    RH_ScopedInstall(FindZCoorForPed, 0x616920);
-    RH_ScopedOverloadedInstall(IsPositionClearOfCars, "Pos", 0x6168E0, CVehicle * (*)(const CVector*));
-    RH_ScopedOverloadedInstall(IsPositionClearOfCars, "Ped", 0x616A40, CVehicle * (*)(const CPed*));
+    //RH_ScopedInstall(FindZCoorForPed, 0x616920);
+    RH_ScopedOverloadedInstall(IsPositionClearForPed, "OG",  0x616860, bool(*)(const CVector&, float, int32, CEntity**, bool, bool, bool));
+    RH_ScopedOverloadedInstall(IsPositionClearOfCars, "Pos", 0x6168E0, CVehicle*(*)(const CVector*));
+    RH_ScopedOverloadedInstall(IsPositionClearOfCars, "Ped", 0x616A40, CVehicle*(*)(const CPed*));
 }
 
-// 0x616920
-bool CPedPlacement::FindZCoorForPed(CVector& inoutPos) {
-    CEntity* hitEntity{};
-
-    float firstHitZ = MAP_Z_LOW_LIMIT;
-    if (CColPoint cp{}; CWorld::ProcessVerticalLine(inoutPos + CVector{ 0.f, 0.f, 0.5f }, inoutPos.z - 100.0f, cp, hitEntity, true, true, false, false, true, false, nullptr))
-        firstHitZ = cp.m_vecPoint.z;
-
-    float secondHitZ = MAP_Z_LOW_LIMIT;
-    if (CColPoint cp{}; CWorld::ProcessVerticalLine(inoutPos + CVector{ 0.1f, 0.1f, 0.5f }, inoutPos.z - 100.0f, cp, hitEntity, true, true, false, false, true, false, nullptr))
-        secondHitZ = cp.m_vecPoint.z;
-
-    const auto highestZ = std::max(firstHitZ, secondHitZ);
-    if (highestZ <= MAP_Z_LOW_LIMIT + 1.0f) // -99.0f
-        return false;
-
-    inoutPos.z = highestZ + 1.0f;
-    return true;
+// 0x616920 - Refactored
+std::pair<CVector, bool> CPedPlacement::FindZCoorForPed(CVector pos) {
+    const auto FindZ = [&](CVector offset) {
+        CEntity*  hit{};
+        CColPoint cp{};
+        return CWorld::ProcessVerticalLine(pos + offset, pos.z - 100.0f, cp, hit, true, true, false, false, true, false, nullptr)
+            ? cp.m_vecPoint.z
+            : MAP_Z_LOW_LIMIT;
+    };
+    const auto highestZ = std::max(
+        FindZ({ 0.f, 0.f, 0.5f }),
+        FindZ({ 0.1f, 0.1f, 0.5f })
+    );
+    if (highestZ >= MAP_Z_LOW_LIMIT + 1.0f) {
+        return {CVector{pos, highestZ + 1.f}, true};
+    }
+    return {pos, false};
 }
 
 // 0x616860
@@ -57,6 +56,30 @@ bool CPedPlacement::IsPositionClearForPed(const CVector& pos, float radius, int3
     return hitCount == 0;
 }
 
+//! NOTSA
+bool CPedPlacement::IsPositionClearForPed(
+    const CVector&                  pos,
+    float                           radius,
+    std::initializer_list<CEntity*> ignoreEntities,
+    bool                            bCheckVehicles,
+    bool                            bCheckPeds,
+    bool                            bCheckObjects
+) {
+    const auto numHitEntitiesToStore = ignoreEntities.size() + 1;
+
+    CEntity* hitEntities[8]{};
+    assert(numHitEntitiesToStore <= std::size(hitEntities)); // If ever hit, increase array size
+
+    if (!IsPositionClearForPed(pos, radius, (int32)(numHitEntitiesToStore), hitEntities, bCheckVehicles, bCheckPeds, bCheckObjects)) {
+        for (const auto hitEntity : hitEntities | rng::views::take(numHitEntitiesToStore)) { // If anything was hit, check if it's in the ignored entities array
+            if (!notsa::contains(ignoreEntities, hitEntity)) {
+                return false; // Nope, we hit something else, so it's not clear.
+            }
+        }
+    }
+    return true;
+}
+
 // 0x6168E0
 CVehicle* CPedPlacement::IsPositionClearOfCars(const CVector* pos) {
     return CWorld::TestSphereAgainstWorld(*pos, 0.25, nullptr, false, true, false, false, false, false)->AsVehicle();
@@ -64,14 +87,14 @@ CVehicle* CPedPlacement::IsPositionClearOfCars(const CVector* pos) {
 
 // 0x616A40
 CVehicle* CPedPlacement::IsPositionClearOfCars(const CPed* ped) {
-    const auto pedPos = ped->GetPosition();
+    const auto& pedPos = ped->GetPosition();
     const auto vehHit = IsPositionClearOfCars(&pedPos);
 
     if (!vehHit)
         return nullptr;
 
     if (vehHit->IsAutomobile() || vehHit->vehicleFlags.bIsBig) {
-        static CColPoint unusedColPoint[32]; // 0xC102A0
+        std::array<CColPoint, 32> unused{}; // 0xC102A0 - Originally static, but this is fine too.
         if (CCollision::ProcessColModels(
             *ped->m_matrix,
             *CModelInfo::GetModelInfo(ped->m_nModelIndex)->GetColModel(),
@@ -79,7 +102,7 @@ CVehicle* CPedPlacement::IsPositionClearOfCars(const CPed* ped) {
             *vehHit->m_matrix,
             *CModelInfo::GetModelInfo(vehHit->m_nModelIndex)->GetColModel(),
 
-            unusedColPoint, nullptr, nullptr, false
+            unused, nullptr, nullptr, false
         )) {
             return vehHit;
         }

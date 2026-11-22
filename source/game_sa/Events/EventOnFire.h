@@ -2,7 +2,9 @@
 
 #include "Event.h"
 
-class CEventOnFire : public CEvent {
+#include "Event.h"
+
+class NOTSA_EXPORT_VTABLE CEventOnFire : public CEvent {
 public:
     CEventOnFire() = default;
     ~CEventOnFire() override = default;
@@ -10,13 +12,12 @@ public:
     eEventType GetEventType() const override { return EVENT_ON_FIRE; }
     int32 GetEventPriority() const override { return 66; }
     int32 GetLifeTime() override { return 0; }
-    CEventOnFire* Clone() override { return new CEventOnFire(); }
+    CEventOnFire* Clone() const noexcept override { return new CEventOnFire(); }
     bool AffectsPed(CPed* ped) override;
     float GetLocalSoundLevel() override { return 60.0f; }
 
 private:
     friend void InjectHooksMain();
     static void InjectHooks();
-    bool AffectsPed_Reversed(CPed* ped);
 };
 VALIDATE_SIZE(CEventOnFire, 0xC);

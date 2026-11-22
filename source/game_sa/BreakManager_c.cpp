@@ -2,7 +2,7 @@
 
 #include "BreakManager_c.h"
 
-BreakManager_c& g_breakMan = *(BreakManager_c*)0xBB4240;
+auto& g_breakMan = StaticRef<BreakManager_c>(0xBB4240);
 
 void BreakManager_c::InjectHooks() {
     RH_ScopedClass(BreakManager_c);
@@ -53,6 +53,8 @@ BreakObject_c* BreakManager_c::GetFirstFreeSlot() {
 
 // 0x59E670
 void BreakManager_c::Update(float timeStep) {
+    ZoneScoped;
+
     for (BreakObject_c& object : m_aObjects) {
         if (object.m_bActive) {
             object.Update(timeStep);

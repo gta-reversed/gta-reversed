@@ -4,22 +4,23 @@
 #include "PedAtmAttractor.h"
 
 void CTaskComplexGoToAttractor::InjectHooks() {
-    RH_ScopedClass(CTaskComplexGoToAttractor);
+    RH_ScopedVirtualClass(CTaskComplexGoToAttractor, 0x86FF3C, 11);
     RH_ScopedCategory("Tasks/TaskTypes");
 
     RH_ScopedInstall(Constructor, 0x66B640);
     RH_ScopedInstall(Destructor, 0x66B6A0);
-    // RH_ScopedInstall(Clone_Reversed, 0x66D130);
-    // RH_ScopedInstall(CreateNextSubTask_Reversed, 0x66B6C0);
-    // RH_ScopedInstall(CreateFirstSubTask_Reversed, 0x670420);
+
+    RH_ScopedVMTInstall(Clone, 0x66D130, { .Reversed = false });
+    RH_ScopedVMTInstall(CreateNextSubTask, 0x66B6C0, { .Reversed = false });
+    RH_ScopedVMTInstall(CreateFirstSubTask, 0x670420, { .Reversed = false });
 }
 
 // 0x66B640
-CTaskComplexGoToAttractor::CTaskComplexGoToAttractor(CPedAttractor* attractor, const CVector& pos, float heading, float attrTime, int32 queueNumber, int32 a7) : CTaskComplex() {
+CTaskComplexGoToAttractor::CTaskComplexGoToAttractor(CPedAttractor* attractor, const CVector& pos, float heading, float attrTime, int32 queueNumber, eMoveState ms) : CTaskComplex() {
     m_Attractor = attractor;
     m_vecAttrPosn = pos;
     m_fAttrHeading = heading;
-    field_28 = a7;
+    m_MoveState = ms;
     m_fAttrTime = attrTime;
     m_nQueueNumber = queueNumber;
 }

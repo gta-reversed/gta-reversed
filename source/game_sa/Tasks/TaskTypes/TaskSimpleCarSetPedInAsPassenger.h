@@ -8,28 +8,37 @@
 
 #include "TaskSimple.h"
 #include "TaskUtilityLineUpPedWithCar.h"
-class Vehicle;
 
-class CTaskSimpleCarSetPedInAsPassenger : public CTaskSimple {
+class CVehicle;
+class CAnimBlendAssociation;
+class CTaskUtilityLineUpPedWithCar;
+
+
+class NOTSA_EXPORT_VTABLE CTaskSimpleCarSetPedInAsPassenger : public CTaskSimple {
 public:
-    bool                          m_bIsFinished;
-    CAnimBlendAssociation*        m_pAnim;
-    CVehicle*                     m_pTargetVehicle;
-    int32                         m_nTargetDoor;
-    CTaskUtilityLineUpPedWithCar* m_pUtility;
-    bool                          m_bWarpingInToCar;
-    uint8                         m_nDoorFlagsToClear;
-    uint8                         m_nNumGettingInToClear;
+    bool                          m_bIsFinished{};
+    CAnimBlendAssociation*        m_pAnim{};
+    CVehicle*                     m_pTargetVehicle{};
+    eTargetDoor                   m_nTargetDoor{};
+    CTaskUtilityLineUpPedWithCar* m_pUtility{};
+    bool                          m_bWarpingInToCar{};
+    uint8                         m_nDoorFlagsToClear{};
+    uint8                         m_nNumGettingInToClear{};
 
 public:
     static constexpr auto Type = TASK_SIMPLE_CAR_SET_PED_IN_AS_PASSENGER;
 
-    CTaskSimpleCarSetPedInAsPassenger(CVehicle* targetVehicle, int32 nTargetDoor, CTaskUtilityLineUpPedWithCar* utility);
+    CTaskSimpleCarSetPedInAsPassenger(CVehicle* targetVehicle, eTargetDoor nTargetDoor, bool warpingInToCar /* notsa arg */, CTaskUtilityLineUpPedWithCar* utility = nullptr);
+    CTaskSimpleCarSetPedInAsPassenger(CVehicle* targetVehicle, eTargetDoor nTargetDoor, CTaskUtilityLineUpPedWithCar* utility = nullptr); /* Original constructor, used for hooks */
+    CTaskSimpleCarSetPedInAsPassenger(const CTaskSimpleCarSetPedInAsPassenger&);
     ~CTaskSimpleCarSetPedInAsPassenger() override;
 
-    eTaskType GetTaskType() override { return Type; }
-    CTask* Clone() override;
-    bool MakeAbortable(CPed* ped, eAbortPriority priority, const CEvent* event) override { return false; }
+    eTaskType GetTaskType() const override { return Type; }
+    CTask* Clone() const override { return new CTaskSimpleCarSetPedInAsPassenger{*this}; }  // 0x649D90
+    bool MakeAbortable(CPed* ped, eAbortPriority priority = ABORT_PRIORITY_URGENT, const CEvent* event = nullptr) override { return false; }
     bool ProcessPed(CPed* ped) override;
+
+public:
+    static void InjectHooks();
 };
 VALIDATE_SIZE(CTaskSimpleCarSetPedInAsPassenger, 0x20);

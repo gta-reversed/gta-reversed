@@ -9,22 +9,17 @@
 #include "Vector.h"
 #include "ePedType.h"
 
-enum ePedGroupPlacerType {
-    GROUP_PLACER_FORMATION1 = 0,
-    GROUP_PLACER_FORMATION2 = 0x1, //!< same as FORMATION1
-    GROUP_PLACER_CHAT1 = 0x2,
-    GROUP_PLACER_CHAT2 = 0x3, //!< same as CHAT1
-    GROUP_PLACER_RANDOM = 0x4
-};
-
+//! To use functions from this class, just default construct (Eg.: `CPedGroupPlacer{}`) an object of this type
 class CPedGroupPlacer {
 public:
     static const int32& ms_minGangSize; // 1
     static const int32& ms_maxGangSize; // 5
 
-    bool PlaceChatGroup(ePedType type, int32 numOfPeds, const CVector* origin, int32 unused);
-    bool PlaceFormationGroup(ePedType type, int32 numOfPeds, const CVector* origin, int32 unused);
-    //! see ePedGroupPlacerType
-    bool PlaceGroup(ePedType type, int32 numOfPeds, const CVector* origin, int32 nGroupPlacerType);
-    bool PlaceRandomGroup(ePedType type, int32 numOfPeds, CVector* origin, int32 unused);
+public:
+    static void InjectHooks();
+
+    bool PlaceChatGroup     (ePedType type, uint32 numOfPeds, const CVector& origin, ePedGroupDefaultTaskAllocatorType = {});
+    bool PlaceFormationGroup(ePedType type, uint32 numOfPeds, const CVector& origin, ePedGroupDefaultTaskAllocatorType = {});
+    bool PlaceGroup         (ePedType type, uint32 numOfPeds, const CVector& origin, ePedGroupDefaultTaskAllocatorType nGroupPlacerType);
+    bool PlaceRandomGroup   (ePedType type, uint32 numOfPeds, const CVector& origin, ePedGroupDefaultTaskAllocatorType = {});
 };

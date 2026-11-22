@@ -3,7 +3,7 @@
 #include "GridRef.h"
 
 // todo: remove magic numbers
-char (&GridRefList)[10][10][32] = *reinterpret_cast<char (*)[10][10][32]>(0xC72FB0);
+auto& GridRefList = StaticRef<char[10][10][32]>(0xC72FB0);
 
 void CGridRef::InjectHooks() {
     RH_ScopedClass(CGridRef);
@@ -25,13 +25,14 @@ void CGridRef::Init() {
         if (*line == '#' || !*line)
             continue;
 
-        uint8 x = 0;
+        char x_ch = 0;
         int32 y = 0;
-        (void)sscanf(line, "%c%d %s", &x, &y, str);
-        auto lowstr = _strlwr(str);
-        x -= 65; // - 'A'
+        VERIFY(sscanf_s(line, "%c%d %s", &x_ch, 1u, &y, SCANF_S_STR(str)) == 3);
+        _strlwr_s(str);
+        int8 x = x_ch - 'A'; // Get alphabetical index
         y -= 1;
-        strcpy(&GridRefList[x][y][0], lowstr);
+        assert(x >= 0 && y >= 0);
+        strcpy_s(GridRefList[x][y], str);
     }
     CFileMgr::CloseFile(file);
 }

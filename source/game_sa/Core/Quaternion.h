@@ -24,11 +24,12 @@ public:
 public:
     static void InjectHooks();
 
-    constexpr CQuaternion() {};
+    constexpr CQuaternion(const RtQuat& q) : imag{q.imag}, real{q.real} {}
+    constexpr CQuaternion() : x{}, y{}, z{}, w{} {}
     constexpr CQuaternion(float x, float y, float z, float w) : x(x), y(y), z(z), w(w) {}
 
     // Quat to matrix
-    void Get(RwMatrix* out);
+    void Get(RwMatrix* out) const;
 
     // Quat to euler angles
     void Get(float *x, float *y, float *z);
@@ -56,9 +57,10 @@ public:
 
     // Conjugate of a quat
     void Conjugate();
+    CQuaternion Conjugated() const { CQuaternion c = *this; c.Conjugate(); return c; }
 
     // Squared length of a quat
-    float GetLengthSquared();
+    float GetLengthSquared() const;
 
     // Multiplies quat by a floating point value
     void Scale(float multiplier);
@@ -67,7 +69,7 @@ public:
     void Copy(const CQuaternion& from);
 
     // Gets a dot product for quats
-    void Dot(const CQuaternion& a);
+    float Dot(const CQuaternion& a);
 
     // Normalises a quat
     void Normalise();
@@ -108,6 +110,11 @@ public:
     CQuaternion operator-() const {
         return { -x, -y, -z, -w };
     }
+
+    // NOTSA
+    RtQuat* AsRtQuat() { return (RtQuat*)this; }
+
+    operator RtQuat() const { return RtQuat{x, y, z, w}; }
 };
 
 VALIDATE_SIZE(CQuaternion, 0x10);

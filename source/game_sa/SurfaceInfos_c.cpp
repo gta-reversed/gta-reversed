@@ -3,8 +3,6 @@
 #include "SurfaceInfos_c.h"
 #include "Skidmark.h"
 
-SurfaceInfos_c* g_surfaceInfos = reinterpret_cast<SurfaceInfos_c*>(0xB79538);
-
 void SurfaceInfos_c::InjectHooks()
 {
     RH_ScopedClass(SurfaceInfos_c);
@@ -12,6 +10,7 @@ void SurfaceInfos_c::InjectHooks()
 
     RH_ScopedInstall(GetSurfaceIdFromName, 0x55D220);
     RH_ScopedInstall(Init, 0x55F420);
+    RH_ScopedInstall(LoadSurfaceInfos, 0x55EB90);
 
     RH_ScopedInstall(GetAdhesionGroup, 0x55E5C0);
     RH_ScopedInstall(GetTyreGrip, 0x55E5E0);
@@ -58,6 +57,7 @@ void SurfaceInfos_c::InjectHooks()
     RH_ScopedInstall(IsAudioLongGrass, 0x55EB10);
     RH_ScopedInstall(IsAudioTile, 0x55EB30);
     RH_ScopedInstall(GetAdhesiveLimit, 0x55EB50);
+    RH_ScopedInstall(LoadAdhesiveLimits, 0x55D0E0);
 }
 
 // 0x55D220
@@ -254,27 +254,46 @@ SurfaceId SurfaceInfos_c::GetSurfaceIdFromName(Const char* cName)
 // 0x55D0E0
 void SurfaceInfos_c::LoadAdhesiveLimits()
 {
-    return plugin::CallMethod<0x55D0E0, SurfaceInfos_c*>(this);
-
     CFileMgr::SetDir("");
     auto* file = CFileMgr::OpenFile("data\\surface.dat", "rb");
 #if FIX_BUGS
     if (!file) {
-        DEV_LOG("[SurfaceInfos_c] Failed to open surface.dat");
-        CFileMgr::CloseFile(file);
+        NOTSA_LOG_DEBUG("[SurfaceInfos_c] Failed to open surface.dat");
         return;
     }
 #endif
+
+    const auto SkipToSpace = [](const char*& it) {
+        while (*it != ' ' && *it != '\t' && *it) {
+            it++;
+        }
+    };
+
+    auto row = 0;
     for (const char* line = CFileLoader::LoadLine(file); line; line = CFileLoader::LoadLine(file)) {
         if (*line == ';' || !*line)
             continue;
 
-        char value[4];
-        sscanf(line, "%3s", value); // FIX_BUGS: buffer overflow
-        for (auto i = *line; i != ' '; i = *++line) {
-            if (i == '\t')
-                break;
+        char name[256];
+        VERIFY(sscanf_s(line, "%s", SCANF_S_STR(name)) == 1);
+        SkipToSpace(line);
+
+        // The file only has the lower half of the table (row `n` has `n + 1` values), the upper half is mirrored
+        for (auto col = 0; col <= row; col++) {
+            while (*line == ' ' || *line == '\t') {
+                line++;
+            }
+
+            float limit = 0.f;
+            if (*line != '-') {
+                VERIFY(sscanf_s(line, "%f", &limit) == 1);
+            }
+            SkipToSpace(line);
+
+            m_adhesiveLimits[row][col] = limit;
+            m_adhesiveLimits[col][row] = limit;
         }
+        row++;
     }
     CFileMgr::CloseFile(file);
 }
@@ -285,8 +304,7 @@ void SurfaceInfos_c::LoadSurfaceInfos()
     auto* file = CFileMgr::OpenFile("data\\surfinfo.dat", "r");
 #if FIX_BUGS
     if (!file) {
-        DEV_LOG("[SurfaceInfos_c] Failed to open surfinfo.dat");
-        CFileMgr::CloseFile(file);
+        NOTSA_LOG_DEBUG("[SurfaceInfos_c] Failed to open surfinfo.dat");
         return;
     }
 #endif
@@ -310,9 +328,9 @@ void SurfaceInfos_c::LoadSurfaceInfos()
         surface.tyreGrip = uint32(si.TyreGrip * 10.0f);
         surface.wetGrip  = uint32(si.WetGrip  * 100.0f); // BUG:? Data has negative values, with *original* conversion we loose sign
 
-        if (!strcmp(si.SkidMark, "DEFAULT")) surface.ucSkidmarkType = static_cast<uint32>(eSkidMarkType::DEFAULT);
-        if (!strcmp(si.SkidMark, "SANDY"))   surface.ucSkidmarkType = static_cast<uint32>(eSkidMarkType::SANDY);
-        if (!strcmp(si.SkidMark, "MUDDY"))   surface.ucSkidmarkType = static_cast<uint32>(eSkidMarkType::MUDDY);
+        if (!strcmp(si.SkidMark, "DEFAULT")) surface.ucSkidmarkType = static_cast<uint32>(eSkidmarkType::DEFAULT);
+        if (!strcmp(si.SkidMark, "SANDY"))   surface.ucSkidmarkType = static_cast<uint32>(eSkidmarkType::SANDY);
+        if (!strcmp(si.SkidMark, "MUDDY"))   surface.ucSkidmarkType = static_cast<uint32>(eSkidmarkType::MUDDY);
 
         if      (!strcmp(si.FrictionEffect, "NONE"))   surface.ucFrictionEffect = FRICTION_EFFECT_NONE;
         else if (!strcmp(si.FrictionEffect, "SPARKS")) surface.ucFrictionEffect = FRICTION_EFFECT_SPARKS;
@@ -362,9 +380,9 @@ void SurfaceInfos_c::LoadSurfaceAudioInfos()
     auto* file = CFileMgr::OpenFile("data\\surfaud.dat", "r");
 #if FIX_BUGS
     if (!file) {
-        DEV_LOG("[SurfaceInfos_c] Failed to open surfaud.dat");
+        NOTSA_LOG_DEBUG("[SurfaceInfos_c] Failed to open surfaud.dat");
         CFileMgr::CloseFile(file);
-        return;;
+        return;
     }
 #endif
     for (const char* line = CFileLoader::LoadLine(file); line; line = CFileLoader::LoadLine(file)) {
@@ -373,7 +391,7 @@ void SurfaceInfos_c::LoadSurfaceAudioInfos()
 
         char  name[64];
         int32 concrete, grass, sand, gravel, wood, water, metal, longGrass, tile;
-        (void)sscanf(line, "%31s %d %d %d %d %d %d %d %d %d", name, &concrete, &grass, &sand, &gravel, &wood, &water, &metal, &longGrass, &tile); // FIX_BUGS: buffer overflow
+        VERIFY(sscanf_s(line, "%s %d %d %d %d %d %d %d %d %d", SCANF_S_STR(name), &concrete, &grass, &sand, &gravel, &wood, &water, &metal, &longGrass, &tile) == 10);
 
         auto id = GetSurfaceIdFromName(name);
         auto& surface = m_surfaces[id];

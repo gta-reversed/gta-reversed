@@ -5,15 +5,13 @@
 #include "dshow.h"
 #pragma comment(lib, "strmiids.lib") // Class identifiers (CLSIDs) and interface identifiers (IIDs).
 
-int32& gGameState = *(int32*)0xC8D4C0;
-
 namespace VideoPlayer {
 
-IGraphBuilder*& pvGraphBuilder = *(IGraphBuilder**)0xC920D4;
-IMediaControl*& pvMediaControl = *(IMediaControl**)0xC920D8;
-IMediaEventEx*& pvMediaEvent   = *(IMediaEventEx**)0xC920DC;
-IVideoWindow*&  pvVideoWindow  = *(IVideoWindow**)0xC920E0;
-IMediaSeeking*& pvMediaSeeking = *(IMediaSeeking**)0xC920E4;
+auto& pvGraphBuilder = StaticRef<IGraphBuilder*>(0xC920D4);
+auto& pvMediaControl = StaticRef<IMediaControl*>(0xC920D8);
+auto& pvMediaEvent = StaticRef<IMediaEventEx*>(0xC920DC);
+auto& pvVideoWindow = StaticRef<IVideoWindow*>(0xC920E0);
+auto& pvMediaSeeking = StaticRef<IMediaSeeking*>(0xC920E4);
 
 void InjectHooks() {
     RH_ScopedNamespace(VideoPlayer);
@@ -64,12 +62,18 @@ void OnGraphNotify() {
 
     while (!FAILED(pvMediaEvent->GetEvent(&code, &param1, &param2, 0))) {
         pvMediaEvent->FreeEventParams(code, param1, param2);
-        if (code == EC_COMPLETE) {
-            if (gGameState == GAME_STATE_PLAYING_LOGO || gGameState == GAME_STATE_PLAYING_INTRO) {
-                gGameState = eGameState(gGameState + 1);
-            }
-            pvMediaEvent->SetNotifyWindow(NULL, 0, 0);
+        if (code != EC_COMPLETE) {
+            continue;
         }
+        // Possibly advance game state
+        ChangeGameStateTo([] {
+            switch (gGameState) {
+            case GAME_STATE_PLAYING_LOGO:  return GAME_STATE_TITLE;
+            case GAME_STATE_PLAYING_INTRO: return GAME_STATE_FRONTEND_LOADING;
+            }
+            return (eGameState)gGameState; // No change
+        }());
+        pvMediaEvent->SetNotifyWindow(NULL, 0, 0);
     }
 }
 
@@ -80,12 +84,12 @@ void UpdateWindow() {
     HRESULT hr;
 
     if (FAILED(hr = pvVideoWindow->SetWindowPosition(rect.left, rect.top, rect.right, rect.bottom))) {
-        DEV_LOG("FAILED(hr=0x%x) in pvVideoWindow->SetWindowPosition() failed/n", hr);
+        NOTSA_LOG_DEBUG("FAILED(hr=0x{:x}) in pvVideoWindow->SetWindowPosition() failed/n", hr);
         return;
     }
 
     if (FAILED(hr = pvVideoWindow->put_MessageDrain((OAHWND) PSGLOBAL(window)))) {
-        DEV_LOG("FAILED(hr=0x%x) in (pvVideoWindow->put_MessageDrain((OAHWND) PSGLOBAL(window)))\n", hr);
+        NOTSA_LOG_DEBUG("FAILED(hr=0x{:x}) in (pvVideoWindow->put_MessageDrain((OAHWND) PSGLOBAL(window)))\n", hr);
         return;
     }
 
@@ -95,68 +99,84 @@ void UpdateWindow() {
 // 0x747660
 void Play(int32 nCmdShow, const char* path) {
     UpdateWindow(PSGLOBAL(window));
+
+#ifdef FIX_BUGS
+    const auto size = MultiByteToWideChar(0, 0, path, -1, nullptr, 0);
+    WCHAR* fileName = new WCHAR[size];
+    MultiByteToWideChar(0, 0, path, -1, fileName, size);
+#else
+    // Buffer overflow may happen in MultiByteToWideChar.
     WCHAR fileName[256] = { 0 };
     MultiByteToWideChar(0, 0, path, -1, fileName, sizeof(fileName) - 1);
+#endif
     HRESULT hr;
 
     if (FAILED(hr = CoInitialize(nullptr))) {
-        DEV_LOG("FAILED(hr=0x%x) in CoInitialize(NULL)\n", hr);
+        NOTSA_LOG_DEBUG("FAILED(hr=0x{:x}) in CoInitialize(NULL)\n", hr);
         return;
     }
 
     if (FAILED(hr = CoCreateInstance(CLSID_FilterGraph, nullptr, CLSCTX_INPROC, IID_IGraphBuilder, (void**)&pvGraphBuilder))) {
-        DEV_LOG("FAILED(hr=0x%x) in CoCreateInstance(CLSID_FilterGraph, NULL, CLSCTX_INPROC, IID_IGraphBuilder, (void **)&pvGraphBuilder)\n", hr);
+        NOTSA_LOG_DEBUG("FAILED(hr=0x{:x}) in CoCreateInstance(CLSID_FilterGraph, NULL, CLSCTX_INPROC, IID_IGraphBuilder, (void **)&pvGraphBuilder)\n", hr);
         return;
     }
 
     if (FAILED(hr = pvGraphBuilder->RenderFile(&fileName[0], nullptr))) {
-        DEV_LOG("FAILED(hr=0x%x) in pvGraphBuilder->RenderFile(&wFileName[0], NULL)\n", hr);
+        NOTSA_LOG_DEBUG("FAILED(hr=0x{:x}) in pvGraphBuilder->RenderFile(&wFileName[0], NULL)\n", hr);
         return;
     }
 
     if (FAILED(hr = pvGraphBuilder->QueryInterface(IID_IMediaControl, (void**)&pvMediaControl))) {
-        DEV_LOG("FAILED(hr=0x%x) in pvGraphBuilder->QueryInterface(IID_IMediaControl, (void **)&pvMediaControl)\n", hr);
+        NOTSA_LOG_DEBUG("FAILED(hr=0x{:x}) in pvGraphBuilder->QueryInterface(IID_IMediaControl, (void **)&pvMediaControl)\n", hr);
         return;
     }
 
     if (FAILED(hr = pvGraphBuilder->QueryInterface(IID_IMediaEventEx, (void**)&pvMediaEvent))) {
-        DEV_LOG("FAILED(hr=0x%x) in pvGraphBuilder->QueryInterface(IID_IMediaEventEx, (void **)&pvMediaEvent)\n", hr);
+        NOTSA_LOG_DEBUG("FAILED(hr=0x{:x}) in pvGraphBuilder->QueryInterface(IID_IMediaEventEx, (void **)&pvMediaEvent)\n", hr);
         return;
     }
 
     if (FAILED(hr = pvGraphBuilder->QueryInterface(IID_IMediaSeeking, (void**)&pvMediaSeeking))) {
-        DEV_LOG("FAILED(hr=0x%x) in pvGraphBuilder->QueryInterface(IID_IMediaSeeking, (void **)&pMS)\n", hr);
+        NOTSA_LOG_DEBUG("FAILED(hr=0x{:x}) in pvGraphBuilder->QueryInterface(IID_IMediaSeeking, (void **)&pMS)\n", hr);
         return;
     }
 
     if (FAILED(hr = pvGraphBuilder->QueryInterface(IID_IVideoWindow, (void**)&pvVideoWindow))) {
-        DEV_LOG("FAILED(hr=0x%x) in pvGraphBuilder->QueryInterface(IID_IVideoWindow, (void **)&pvVideoWindow)\n", hr);
+        NOTSA_LOG_DEBUG("FAILED(hr=0x{:x}) in pvGraphBuilder->QueryInterface(IID_IVideoWindow, (void **)&pvVideoWindow)\n", hr);
         return;
     }
 
     if (FAILED(hr = pvVideoWindow->put_Owner((OAHWND)PSGLOBAL(window)))) {
-        DEV_LOG("FAILED(hr=0x%x) in pvVideoWindow->put_Owner((OAHWND) PSGLOBAL(window))\n", hr);
+        NOTSA_LOG_DEBUG("FAILED(hr=0x{:x}) in pvVideoWindow->put_Owner((OAHWND) PSGLOBAL(window))\n", hr);
         return;
     }
 
     if (FAILED(hr = pvVideoWindow->put_WindowStyle(WS_CHILD | WS_CLIPSIBLINGS | WS_CLIPCHILDREN))) {
-        DEV_LOG("FAILED(hr=0x%x) in pvVideoWindow->put_WindowStyle(WS_CHILD | WS_CLIPSIBLINGS | WS_CLIPCHILDREN)\n", hr);
+        NOTSA_LOG_DEBUG("FAILED(hr=0x{:x}) in pvVideoWindow->put_WindowStyle(WS_CHILD | WS_CLIPSIBLINGS | WS_CLIPCHILDREN)\n", hr);
         return;
     }
 
-    if (FAILED(hr = pvMediaEvent->SetNotifyWindow((OAHWND)PSGLOBAL(window), 1037, 0))) {
-        DEV_LOG("FAILED(hr=0x%x) in pvMediaEvent->SetNotifyWindow((OAHWND)PSGLOBAL(window), WM_GRAPHNOTIFY, 0)\n", hr);
+    if (FAILED(hr = pvMediaEvent->SetNotifyWindow((OAHWND)PSGLOBAL(window), WM_GRAPHNOTIFY, 0))) {
+        NOTSA_LOG_DEBUG("FAILED(hr=0x{:x}) in pvMediaEvent->SetNotifyWindow((OAHWND)PSGLOBAL(window), WM_GRAPHNOTIFY, 0)\n", hr);
         return;
     }
 
     UpdateWindow();
 
     if (FAILED(hr = pvMediaControl->Run())) {
-        DEV_LOG("FAILED(hr=0x%x) in pvMediaControl->Run()\n", hr);
+        NOTSA_LOG_DEBUG("FAILED(hr=0x{:x}) in pvMediaControl->Run()\n", hr);
         return;
     }
 
     SetFocus(PSGLOBAL(window));
+
+#ifdef FIX_BUGS
+    delete[] fileName;
+#endif
 };
+
+auto GetMediaControl() -> IMediaControl* {
+    return pvMediaControl;
+}
 
 } // namespace VideoPlayer

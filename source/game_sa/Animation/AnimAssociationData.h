@@ -21,7 +21,7 @@ public:
     float                m_fBlendAmount;
     float                m_fBlendDelta;
     float                m_fCurrentTime;
-    float                m_fSpeed;
+    float                m_Speed;
     float                fTimeStep;
     int16                m_nAnimId;
     uint16               m_nFlags;

@@ -8,11 +8,9 @@
 
 #include "PlaneTrail.h"
 
-#define NUM_PLANE_TRAILS 3
-
 class CPlaneTrails {
 public:
-    static CPlaneTrail (&aArray)[NUM_PLANE_TRAILS];
+    static inline auto& aArray = StaticRef<std::array<CPlaneTrail, 3>>(0xC713A8);
 
 public:
     static void InjectHooks();

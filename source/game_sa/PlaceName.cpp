@@ -32,9 +32,9 @@ void CPlaceName::ProcessAfterFrontEndShutDown() {
 }
 
 // 0x571D90
-const char* CPlaceName::GetForMap(float x, float y) {
+const GxtChar* CPlaceName::GetForMap(const CVector2D pos) {
     CVector posn = CalcPosition();
-    CZone* zone = CTheZones::FindSmallestZoneForPosition({ x, y, posn.z }, false);
+    CZone* zone = CTheZones::FindSmallestZoneForPosition({ pos.x, pos.y, posn.z }, false);
     return zone->GetTranslatedName();
 }
 
@@ -46,11 +46,11 @@ void CPlaceName::Process() {
         Init();
     }
 
-    if ((smallestZone == m_pZone || CGame::currArea == AREA_CODE_1) // todo: !CGame::CanSeeOutSideFromCurrArea() ?
+    if ((smallestZone == m_pZone || CGame::currArea == AREA_CODE_1) 
             && m_pZone
             || smallestZone
-            && m_pZone // yep, checked twice
-            && memcmp(smallestZone->m_szTextKey, m_pZone->m_szTextKey, sizeof(smallestZone->m_szTextKey)) == 0
+            && m_pZone // yep, checked twice (Pirulax: gotta account for those cosmis bit flipping rays?)
+            && memcmp(smallestZone->m_TextLabel, m_pZone->m_TextLabel, sizeof(smallestZone->m_TextLabel)) == 0
     ) {
         if (m_nAdditionalTimer) {
             m_nAdditionalTimer -= 1;
@@ -66,7 +66,7 @@ void CPlaceName::Process() {
 // 0x571E60
 void CPlaceName::Display() const {
     if (m_pZone) {
-        CHud::SetZoneName(const_cast<char*>(m_pZone->GetTranslatedName()), false);
+        CHud::SetZoneName(m_pZone->GetTranslatedName(), false);
     } else {
         CHud::SetZoneName(nullptr, false);
     }

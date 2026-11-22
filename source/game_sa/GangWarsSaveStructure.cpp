@@ -48,7 +48,7 @@ void CGangWarsSaveStructure::Extract() const {
     CGangWars::pZoneInfoToFightOver = (GangWarZoneInfoIndex != -1) ? &CTheZones::ZoneInfoArray[GangWarZoneInfoIndex] : nullptr;
     CGangWars::pZoneToFightOver = (GangWarNavigationZoneIndex != -1) ? &CTheZones::NavigationZoneArray[GangWarNavigationZoneIndex] : nullptr;
     CGangWars::CoorsOfPlayerAtStartOfWar = CoorsOfPlayerAtStartOfWar;
-    CGangWars::Gang1 = Gang1;
+    CGangWars::Gang1 = (eGangID)Gang1;
     CGangWars::Gang2 = Gang2;
     CGangWars::WarFerocity = WarFerocity;
     CGangWars::LastTimeInArea = LastTimeInArea;

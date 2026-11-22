@@ -30,12 +30,16 @@ void CMovingThings::Shutdown() {
 
 // 0x7185B0
 void CMovingThings::Update() {
+    ZoneScoped;
+
     CPlaneTrails::Update();
     CEscalators::Update();
 }
 
 // 0x717150
 void CMovingThings::Render() {
+    ZoneScoped;
+
     // NOP
 }
 

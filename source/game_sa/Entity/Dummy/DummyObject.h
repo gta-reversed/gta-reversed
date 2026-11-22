@@ -8,7 +8,7 @@
 
 #include "Dummy.h"
 
-class CDummyObject : public CDummy {
+class NOTSA_EXPORT_VTABLE CDummyObject : public CDummy {
 public:
     CDummyObject();
     explicit CDummyObject(CObject* obj);

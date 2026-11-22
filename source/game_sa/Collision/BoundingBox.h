@@ -10,9 +10,9 @@
 
 class CBoundingBox : public CBox {
 public:
-    CBoundingBox();
-    CBoundingBox(CVector vecMin, CVector vecMax);
-    explicit CBoundingBox(const CBox& box) : CBox(box) { }
+    constexpr CBoundingBox() : CBox(CVector{1.0f}, CVector{-1.0f}) {}
+    constexpr CBoundingBox(CVector min, CVector max) : CBox(min, max) {}
+    constexpr explicit CBoundingBox(const CBox& box) : CBox(box) {}
 
     [[nodiscard]] bool IsPointWithin(const CVector& point) const;
     inline void SetMinMax(CVector min, CVector max);
@@ -20,4 +20,5 @@ public:
 
 VALIDATE_SIZE(CBoundingBox, 0x18);
 
-extern int32& numBBFailed;
+// in entity.cpp
+static auto& numBBFailed = StaticRef<int32>(0xB71808); // 0xB71808

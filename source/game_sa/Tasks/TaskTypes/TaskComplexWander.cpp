@@ -18,15 +18,15 @@
 #include "TaskComplexLeaveCar.h"
 
 void CTaskComplexWander::InjectHooks() {
-    RH_ScopedClass(CTaskComplexWander);
+    RH_ScopedVirtualClass(CTaskComplexWander, 0x86FE84, 15);
     RH_ScopedCategory("Tasks/TaskTypes");
 
     RH_ScopedInstall(Constructor, 0x66F450);
-    // RH_ScopedInstall(CreateNextSubTask_Reversed, 0x674140);
-    RH_ScopedInstall(CreateFirstSubTask_Reversed, 0x6740E0);
-    RH_ScopedInstall(ControlSubTask_Reversed, 0x674C30);
-    RH_ScopedInstall(UpdateDir_Reversed, 0x669DA0);
-    RH_ScopedInstall(UpdatePathNodes_Reversed, 0x669ED0);
+    RH_ScopedVMTInstall(CreateNextSubTask, 0x674140);
+    RH_ScopedVMTInstall(CreateFirstSubTask, 0x6740E0);
+    RH_ScopedVMTInstall(ControlSubTask, 0x674C30);
+    RH_ScopedVMTInstall(UpdateDir, 0x669DA0);
+    RH_ScopedVMTInstall(UpdatePathNodes, 0x669ED0);
     RH_ScopedInstall(CreateSubTask, 0x671CB0);
     RH_ScopedInstall(ComputeTargetPos, 0x669F60);
     RH_ScopedInstall(ComputeTargetHeading, 0x66F530);
@@ -36,26 +36,22 @@ void CTaskComplexWander::InjectHooks() {
     RH_ScopedOverloadedInstall(ScanForBlockedNode, "1", 0x66F4C0, bool(CTaskComplexWander::*)(const CVector&, CEntity*));
     RH_ScopedInstall(GetWanderTaskByPedType, 0x673D00);
 }
-CTaskComplexWander* CTaskComplexWander::Constructor(int32 moveState, uint8 dir, bool bWanderSensibly, float fTargetRadius) { this->CTaskComplexWander::CTaskComplexWander(moveState, dir, bWanderSensibly, fTargetRadius); return this; }
-CTask* CTaskComplexWander::CreateNextSubTask(CPed* ped) { return CreateNextSubTask_Reversed(ped); }
-CTask* CTaskComplexWander::CreateFirstSubTask(CPed* ped) { return CreateFirstSubTask_Reversed(ped); }
-CTask* CTaskComplexWander::ControlSubTask(CPed* ped) { return ControlSubTask_Reversed(ped); }
-void CTaskComplexWander::UpdateDir(CPed* ped) { return UpdateDir_Reversed(ped); }
-void CTaskComplexWander::UpdatePathNodes(const CPed* ped, uint8 dir, CNodeAddress& originNode, CNodeAddress& targetNode, uint8& outDir) { return UpdatePathNodes_Reversed(ped, dir, originNode, targetNode, outDir); }
+CTaskComplexWander* CTaskComplexWander::Constructor(eMoveState moveState, uint8 dir, bool bWanderSensibly, float fTargetRadius) { this->CTaskComplexWander::CTaskComplexWander(moveState, dir, bWanderSensibly, fTargetRadius); return this; }
 
 // 0x66F450
-CTaskComplexWander::CTaskComplexWander(int32 moveState, uint8 dir, bool bWanderSensibly, float fTargetRadius) : CTaskComplex() {
-    m_nMoveState = static_cast<eMoveState>(moveState); // todo: change signature
+CTaskComplexWander::CTaskComplexWander(eMoveState moveState, uint8 dir, bool bWanderSensibly, float fTargetRadius) : CTaskComplex() {
+    m_nMoveState = moveState;
     m_nDir = dir;
     m_fTargetRadius = fTargetRadius;
     m_bWanderSensibly = bWanderSensibly;
+    m_bNewDir = false;
+    m_bNewNodes = false;
+    m_bAllNodesBlocked = false;
     m_nLastUpdateDirFrameCount = 0;
 }
 
 // 0x674140
-CTask* CTaskComplexWander::CreateNextSubTask_Reversed(CPed* ped) {
-    return plugin::CallMethodAndReturn<CTask*, 0x674140, CTaskComplexWander*, CPed*>(this, ped); // untested
-
+CTask* CTaskComplexWander::CreateNextSubTask(CPed* ped) {
     switch (m_pSubTask->GetTaskType()) {
     case TASK_SIMPLE_SCRATCH_HEAD: {
         m_nDir++;
@@ -69,7 +65,6 @@ CTask* CTaskComplexWander::CreateNextSubTask_Reversed(CPed* ped) {
     }
     case TASK_COMPLEX_CROSS_ROAD_LOOK_AND_ACHIEVE_HEADING:
     case TASK_COMPLEX_OBSERVE_TRAFFIC_LIGHTS_AND_ACHIEVE_HEADING:
-    case TASK_COMPLEX_SIT_DOWN_THEN_IDLE_THEN_STAND_UP:
         return CreateSubTask(ped, TASK_SIMPLE_GO_TO_POINT);
 
     case TASK_SIMPLE_CAR_DRIVE_TIMED:
@@ -82,41 +77,42 @@ CTask* CTaskComplexWander::CreateNextSubTask_Reversed(CPed* ped) {
         return CreateFirstSubTask(ped);
 
     case TASK_COMPLEX_SEQUENCE:
-    case TASK_SIMPLE_GO_TO_POINT:
+    case TASK_SIMPLE_GO_TO_POINT: {
         if (m_bAllNodesBlocked) {
             m_bAllNodesBlocked = false;
             return new CTaskSimpleScratchHead();
         }
 
         UpdateDir(ped);
+        const auto prevLastNode = m_LastNode;
         UpdatePathNodes(ped, m_nDir, m_LastNode, m_NextNode, m_nDir);
 
-        if (m_NextNode.m_wAreaId == m_LastNode.m_wAreaId || m_NextNode.m_wNodeId == m_LastNode.m_wNodeId) {
+        if (m_NextNode == prevLastNode) { // Turning back the way we came
             CVector outTargetPos;
-            ComputeTargetPos(ped, outTargetPos, m_NextNode);
-
-            auto* sequence = new CTaskComplexSequence();
-            sequence->AddTask(new CTaskSimpleStandStill(500, false, false, 8.0f));
-            sequence->AddTask(new CTaskSimpleRunAnim(ped->m_nAnimGroup, ANIM_ID_ROADCROSS, 4.0F, false));
-            sequence->AddTask(new CTaskSimpleScratchHead());
-            sequence->AddTask(new CTaskSimpleGoToPoint(m_nMoveState, outTargetPos, m_fTargetRadius, false, false));
-            return sequence;
+            ComputeTargetPos(ped, outTargetPos, m_NextNode); // 0x6743C8 (this is here out-of-order, but I guess it doesn't matter)
+            return new CTaskComplexSequence{ // 0x6742DA
+                new CTaskSimpleStandStill(500, false, false, 8.0f),
+                new CTaskSimpleRunAnim(ped->m_nAnimGroup, ANIM_ID_ROADCROSS, 4.0F, false),
+                new CTaskSimpleScratchHead(),
+                new CTaskSimpleGoToPoint(m_nMoveState, outTargetPos, m_fTargetRadius, false, false),
+            };
         }
 
-        if (!ValidNodes())
+        if (!ValidNodes()) {
             return new CTaskSimpleScratchHead();
+        }
 
         if (m_bWanderSensibly) {
             if (ThePaths.TestForPedTrafficLight(m_LastNode, m_NextNode)) {
                 return CreateSubTask(ped, TASK_COMPLEX_OBSERVE_TRAFFIC_LIGHTS_AND_ACHIEVE_HEADING);
             }
-
             if (ThePaths.TestCrossesRoad(m_LastNode, m_NextNode)) {
-                return new CTaskComplexCrossRoadLookAndAchieveHeading(2000, ComputeTargetHeading(ped));
+                return CreateSubTask(ped, TASK_COMPLEX_CROSS_ROAD_LOOK_AND_ACHIEVE_HEADING);
             }
         }
-        return CreateSubTask(ped, TASK_SIMPLE_GO_TO_POINT);
 
+        return CreateSubTask(ped, TASK_SIMPLE_GO_TO_POINT);
+    }
     case TASK_COMPLEX_IN_AIR_AND_LAND:
     default:
         return nullptr;
@@ -124,7 +120,9 @@ CTask* CTaskComplexWander::CreateNextSubTask_Reversed(CPed* ped) {
 }
 
 // 0x6740E0
-CTask* CTaskComplexWander::CreateFirstSubTask_Reversed(CPed* ped) {
+
+
+CTask* CTaskComplexWander::CreateFirstSubTask(CPed* ped) {
     if (ped->bInVehicle) {
         return CreateSubTask(ped, TASK_COMPLEX_LEAVE_CAR);
     }
@@ -135,7 +133,9 @@ CTask* CTaskComplexWander::CreateFirstSubTask_Reversed(CPed* ped) {
 }
 
 // 0x674C30
-CTask* CTaskComplexWander::ControlSubTask_Reversed(CPed* ped) {
+
+
+CTask* CTaskComplexWander::ControlSubTask(CPed* ped) {
     auto subTaskId = m_pSubTask->GetTaskType();
     if (subTaskId == TASK_COMPLEX_LEAVE_CAR || subTaskId == TASK_SIMPLE_CAR_DRIVE_TIMED) {
         return m_pSubTask;
@@ -160,12 +160,12 @@ CTask* CTaskComplexWander::ControlSubTask_Reversed(CPed* ped) {
         if (subTaskId == TASK_SIMPLE_GO_TO_POINT) {
             static_cast<CTaskSimpleGoToPoint*>(m_pSubTask)->m_moveState = m_nMoveState;
             if (m_nMoveState <= PEDMOVE_WALK) {
-                ped->Say(45);
+                ped->Say(CTX_GLOBAL_CHAT);
             }
         }
 
-        if (ped->m_pIntelligence->m_AnotherStaticCounter > 30) {
-            if (m_pSubTask->MakeAbortable(ped, ABORT_PRIORITY_URGENT, nullptr)) {
+        if (ped->GetIntelligence()->m_AnotherStaticCounter > 30) {
+            if (m_pSubTask->MakeAbortable(ped)) {
                 return CreateSubTask(ped, TASK_SIMPLE_SCRATCH_HEAD);
             }
         }
@@ -174,7 +174,9 @@ CTask* CTaskComplexWander::ControlSubTask_Reversed(CPed* ped) {
 }
 
 // 0x669DA0
-void CTaskComplexWander::UpdateDir_Reversed(CPed* ped) {
+
+
+void CTaskComplexWander::UpdateDir(CPed* ped) {
     uint8 newDir = m_nDir;
     if (m_NextNode.IsAreaValid()) {
         const CPathNode* pathNodes = ThePaths.m_pPathNodes[m_NextNode.m_wAreaId];
@@ -217,11 +219,13 @@ void CTaskComplexWander::UpdateDir_Reversed(CPed* ped) {
 }
 
 // 0x669ED0
-void CTaskComplexWander::UpdatePathNodes_Reversed(const CPed* ped, uint8 dir, CNodeAddress& originNode, CNodeAddress& targetNode, uint8& outDir) {
+
+// 0x0
+void CTaskComplexWander::UpdatePathNodes(const CPed* ped, uint8 dir, CNodeAddress& originNode, CNodeAddress& targetNode, uint8& outDir) {
     originNode = targetNode;
     targetNode.m_wAreaId = (uint16)-1;
     const CVector& pos = ped->GetPosition();
-    ThePaths.FindNextNodeWandering(PATH_TYPE_BOATS, pos, &originNode, &targetNode, dir, &outDir);
+    ThePaths.FindNextNodeWandering(PATH_TYPE_PED, pos, &originNode, &targetNode, dir, &outDir);
 }
 
 // 0x671CB0
@@ -272,17 +276,12 @@ void CTaskComplexWander::ComputeTargetPos(const CPed* ped, CVector& outTargetPos
 
 // 0x669F30
 bool CTaskComplexWander::ValidNodes() const {
-    if (m_NextNode.IsAreaValid() && m_LastNode.IsAreaValid()) {
-        if (m_NextNode.m_wAreaId != m_LastNode.m_wAreaId || m_NextNode.m_wNodeId != m_LastNode.m_wNodeId) {
-            return true;
-        }
-    }
-    return false;
+    return m_NextNode.IsValid() && m_LastNode.IsValid() && m_NextNode != m_LastNode;
 }
 
 // 0x674560
 void CTaskComplexWander::ScanForBlockedNodes(CPed* ped) {
-    if (m_pSubTask->GetTaskType() == TASK_SIMPLE_GO_TO_POINT && m_NextNode.IsAreaValid()) {
+    if (m_pSubTask->GetTaskType() == TASK_SIMPLE_GO_TO_POINT && m_NextNode.IsValid()) {
         if (ScanForBlockedNode(ped, m_NextNode)) {
             m_pSubTask->MakeAbortable(ped, ABORT_PRIORITY_LEISURE, nullptr);
 
@@ -334,4 +333,17 @@ CTaskComplexWander* CTaskComplexWander::GetWanderTaskByPedType(CPed* ped) {
     case PED_TYPE_PROSTITUTE: return new CTaskComplexWanderProstitute(PEDMOVE_WALK, randomDir);
     default:                  return new CTaskComplexWanderStandard(PEDMOVE_WALK, randomDir);
     }
+}
+
+// 0x669FF0 - OG name unknown
+float CTaskComplexWander::GetDistSqOfClosestPathNodeToPed(CPed* ped) {
+    return rng::min(
+        std::array{ m_NextNode, m_LastNode }
+     | rng::views::transform([ped](CNodeAddress node) {
+            if (node.IsValid() && ThePaths.IsAreaNodesAvailable(node)) {
+                return (ped->GetPosition() - ThePaths.GetPathNode(node)->GetPosition()).SquaredMagnitude();
+            }
+            return 999'999.f;
+        })
+    );
 }

@@ -1,3 +1,99 @@
 #include "StdInc.h"
-
 #include "TaskComplexSunbathe.h"
+#include "Event.h"
+
+void CTaskComplexSunbathe::InjectHooks() {
+    RH_ScopedVirtualClass(CTaskComplexSunbathe, 0x86e0ac, 11);
+    RH_ScopedCategory("Tasks/TaskTypes");
+
+    RH_ScopedInstall(Constructor, 0x631F80);
+    RH_ScopedInstall(Destructor, 0x632050);
+
+    //RH_ScopedGlobalInstall(CanSunbathe, 0x632140, { .Reversed = false });
+    //RH_ScopedGlobalInstall(ShouldLoadSunbatheAnims, 0x632190, { .Reversed = false });
+
+    //RH_ScopedInstall(CreateSubTask, 0x638290, { .Reversed = false });
+
+    RH_ScopedVMTInstall(Clone, 0x6366A0, { .Reversed = false });
+    RH_ScopedVMTInstall(GetTaskType, 0x632040);
+    RH_ScopedVMTInstall(MakeAbortable, 0x6320F0);
+    RH_ScopedVMTInstall(CreateNextSubTask, 0x6399F0, { .Reversed = false });
+    RH_ScopedVMTInstall(CreateFirstSubTask, 0x639CB0, { .Reversed = false });
+    RH_ScopedVMTInstall(ControlSubTask, 0x6381A0, { .Reversed = false });
+
+}
+
+// 0x631f80
+CTaskComplexSunbathe::CTaskComplexSunbathe(CObject* towel, bool bStartStanding) :
+    m_pTowel{towel},
+    m_bStartStanding{bStartStanding}
+{
+    if (m_pTowel) {
+        CEntity::SafeRegisterRef(m_pTowel);
+        m_pTowel->m_nObjectType = OBJECT_TYPE_DECORATION;
+    }
+
+    const auto LoadAnim = [](int32& idx, CAnimBlock*& blk, const char* name) {
+        idx = CAnimManager::GetAnimationBlockIndex(name);
+        blk = CAnimManager::GetAnimationBlock(name);
+    };
+    LoadAnim(m_BeachAnimBlockIndex, m_pBeachAnimBlock, "beach");
+    LoadAnim(m_SunbatheAnimBlockIndex, m_pSunbatheAnimBlock, "sunbathe");
+
+    // Refs added later in another function
+}
+
+CTaskComplexSunbathe::CTaskComplexSunbathe(const CTaskComplexSunbathe& o) :
+    CTaskComplexSunbathe{ o.m_pTowel, o.m_bStartStanding }
+{
+}
+
+// 0x632050
+CTaskComplexSunbathe::~CTaskComplexSunbathe() {
+    if (m_pTowel) {
+        m_pTowel->m_nObjectType = OBJECT_TEMPORARY;
+        CEntity::SafeCleanUpRef(m_pTowel);
+    }
+
+    const auto UnrefAnimBlock = [](bool& refed, int32 blkIdx) {
+        if (refed) {
+            CAnimManager::RemoveAnimBlockRef(blkIdx);
+            refed = false;
+        }
+    };
+    UnrefAnimBlock(m_bBeachAnimsReferenced, m_BeachAnimBlockIndex);
+    UnrefAnimBlock(m_bSunbatheAnimsReferenced, m_SunbatheAnimBlockIndex);
+}
+
+// 0x6320F0
+bool CTaskComplexSunbathe::MakeAbortable(CPed* ped, eAbortPriority priority, CEvent const* event) {
+    if (event) {
+        switch (event->GetEventType()) {
+        case EVENT_PED_COLLISION_WITH_PED:
+        case EVENT_PED_COLLISION_WITH_PLAYER:
+            return false;
+        default:
+            break;
+        }
+    }
+    if (!m_pSubTask->MakeAbortable(ped, priority, event)) {
+        return false;
+    }
+    m_bAborted = true;
+    return true;
+}
+
+// 0x6399F0
+CTask* CTaskComplexSunbathe::CreateNextSubTask(CPed* ped) {
+    return plugin::CallMethodAndReturn<CTask*, 0x6399F0, CTaskComplexSunbathe*, CPed*>(this, ped);
+}
+
+// 0x639CB0
+CTask* CTaskComplexSunbathe::CreateFirstSubTask(CPed* ped) {
+    return plugin::CallMethodAndReturn<CTask*, 0x639CB0, CTaskComplexSunbathe*, CPed*>(this, ped);
+}
+
+// 0x6381A0
+CTask* CTaskComplexSunbathe::ControlSubTask(CPed* ped) {
+    return plugin::CallMethodAndReturn<CTask*, 0x6381A0, CTaskComplexSunbathe*, CPed*>(this, ped);
+}

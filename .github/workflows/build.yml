@@ -1,35 +1,44 @@
 name: Build
-on: [ push, pull_request ]
+
+env:
+  # Compile in parallel where possible.
+  CL: /MP
+
+  # Path to the CMake build directory.
+  build: "${{ github.workspace }}/build"
+
+# Triggers the workflow on push or pull request events for all branches.
+on: [push, pull_request]
+
+permissions:
+  contents: read
 
 jobs:
   build:
-    runs-on: windows-2022
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2025-vs2026]
+        arch: [x86]
+        conf: [Debug, Release]
+        unity: [Unity, NoUnity]
+    runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup and build project using Conan
+        uses: ./.github/actions/conan
         with:
-          fetch-depth: 1
-          submodules: recursive
+          arch: ${{ matrix.arch }}
+          conf: ${{ matrix.conf }}
+          unity_build: ${{ matrix.unity == 'Unity' && 'true' || 'false' }}
+          build: true
 
-      - name: Configure
-        shell: cmd
-        run: cmake -Bbuild -H. -A Win32
-
-      - name: Build Debug
-        shell: cmd
-        run: cmake --build build --config Debug
-
-      - name: Artifact Debug
-        uses: actions/upload-artifact@v2
+      - name: Upload artifacts
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: gta_reversed-debug
-          path: bin/Debug
-
-      - name: Build Release
-        run: cmake --build build --config Release
-
-      - name: Artifact Release
-        uses: actions/upload-artifact@v2
-        with:
-          name: gta_reversed-release
-          path: bin/Release
+          name: gta_reversed-${{ matrix.conf }}-${{ matrix.unity }}
+          path: bin/${{ matrix.conf }}

@@ -1,19 +1,58 @@
 #pragma once
 
+#include <chrono>
 #include <imgui.h>
+#include "DebugModule.h"
 
 class DebugModules {
+    static constexpr time_t MODULE_SERIALIZATION_INTERVAL_MS = 5000; //!< How often to serialize the debug module states and save them to the disk
+
 public:
-    static bool m_ShowFPS;
-    static bool m_ShowExtraDebugFeatures;
-    static bool m_ShowPlayerInfo;
+    DebugModules(ImGuiContext* ctx);
+    ~DebugModules();
 
-    static void Initialise(ImGuiContext* ctx);
-    static void DisplayMainWindow();
-    static void DisplayFramePerSecond();
-    static void DisplayExtraDebugFeatures();
-    static void ProcessRenderTool();
-    static void ProcessExtraDebugFeatures();
+    //! Pre-Render updates
+    void PreRenderUpdate();
 
-    static void Display(bool showMenu);
+    //! Process stuff (Including rendering)
+    void Render2D();
+
+    //! Process 3D rendering
+    void Render3D();
+
+    //! Get a debug module by type
+    template<typename T>
+    T* GetModule() {
+        for (auto& m : m_Modules) {
+            if (auto* module = dynamic_cast<T*>(m.get())) {
+                return module;
+            }
+        }
+        return nullptr;
+    }
+
+private:
+    //! Creates all modules
+    void CreateModules();
+
+    //! Render menu bar stuff (FPS, etc)
+    void RenderMenuBarInfo();
+
+    //! Add a new module
+    template<std::derived_from<DebugModule> T>
+    void Add() {
+        auto& m = m_Modules.emplace_back(std::make_unique<T>());
+        m->OnImGuiInitialised(m_ImCtx);
+    }
+
+    //! Serialize the state of all debug modules
+    void DoSerializeModules();
+
+    //! Restore state of modules from serialized state
+    void DoDeserializeModules();
+
+private:
+    std::vector<std::unique_ptr<DebugModule>> m_Modules{};
+    ImGuiContext*                             m_ImCtx{};
+    time_t                                    m_LastSerializationTimeMs{};
 };

@@ -1,16 +1,13 @@
 #include "StdInc.h"
 #include "BouncingPanel.h"
 
-float& CBouncingPanel::BOUNCE_SPRING_DAMP_MULT = *(float*)0x8D3954;
-float& CBouncingPanel::BOUNCE_SPRING_RETURN_MULT = *(float*)0x8D3958;
-float& CBouncingPanel::BOUNCE_VEL_CHANGE_LIMIT = *(float*)0x8D395C;
-float& CBouncingPanel::BOUNCE_HANGING_DAMP_MULT = *(float*)0x8D3960;
-float& CBouncingPanel::BOUNCE_HANGING_RETURN_MULT = *(float*)0x8D3964;
-
 void CBouncingPanel::InjectHooks() {
-    ReversibleHooks::Install("CBouncingPanel", "ResetPanel", 0x6F4910, &CBouncingPanel::ResetPanel);
-    ReversibleHooks::Install("CBouncingPanel", "SetPanel", 0x6F4920, &CBouncingPanel::SetPanel);
-    ReversibleHooks::Install("CBouncingPanel", "ProcessPanel", 0x6F49A0, &CBouncingPanel::ProcessPanel);
+    RH_ScopedClass(CBouncingPanel);
+    RH_ScopedCategoryGlobal();
+
+    RH_ScopedInstall(ResetPanel, 0x6F4910);
+    RH_ScopedInstall(SetPanel, 0x6F4920);
+    RH_ScopedInstall(ProcessPanel, 0x6F49A0);
 }
 
 // 0x6F4910
@@ -28,15 +25,15 @@ void CBouncingPanel::SetPanel(int16 frameId, int16 axis, float angleLimit) {
 }
 
 float CBouncingPanel::GetAngleChange(float velocity) const {
-    return clamp(velocity, -BOUNCE_VEL_CHANGE_LIMIT, BOUNCE_VEL_CHANGE_LIMIT) * m_fAngleLimit;
+    return std::clamp(velocity, -BOUNCE_VEL_CHANGE_LIMIT, BOUNCE_VEL_CHANGE_LIMIT) * m_fAngleLimit;
 }
 
 // 0x6F49A0
 void CBouncingPanel::ProcessPanel(CVehicle* vehicle, RwFrame* frame, CVector moveForce, CVector turnForce, float fReturnMultiplier, float fDampMultiplier) {
     CMatrix  frameMat{RwFrameGetMatrix(frame)};
     CMatrix& vehMat = vehicle->GetMatrix();
-    CVector  compPos = Multiply3x3(vehMat, frameMat.GetPosition());
-    CVector  angularVelocity = Multiply3x3(vehicle->GetSpeed(compPos) - moveForce + CrossProduct(compPos, turnForce), vehMat);
+    CVector  compPos = vehMat.TransformVector(frameMat.GetPosition());
+    CVector  angularVelocity = vehMat.InverseTransformVector(vehicle->GetSpeed(compPos) - moveForce + CrossProduct(compPos, turnForce));
 
     switch (m_nAxis) {
     case 0: {
@@ -62,16 +59,16 @@ void CBouncingPanel::ProcessPanel(CVehicle* vehicle, RwFrame* frame, CVector mov
             ? fReturnMultiplier
             : m_nAxis == 2 ? BOUNCE_HANGING_RETURN_MULT : BOUNCE_SPRING_RETURN_MULT;
 
-        m_vecPos -= rtnMult * m_vecRotation * CTimer::ms_fTimeStep;
+        m_vecPos -= rtnMult * m_vecRotation * CTimer::GetTimeStep();
     }
     {
         const float dampMult = areMultsSet
             ? fDampMultiplier
             : m_nAxis == 2 ? BOUNCE_HANGING_DAMP_MULT : BOUNCE_SPRING_DAMP_MULT;
 
-        m_vecPos *= pow(dampMult, CTimer::ms_fTimeStep);
+        m_vecPos *= pow(dampMult, CTimer::GetTimeStep());
     }
-    m_vecRotation += m_vecPos * CTimer::ms_fTimeStep;
+    m_vecRotation += m_vecPos * CTimer::GetTimeStep();
 
     switch (m_nAxis) {
     case 0: {

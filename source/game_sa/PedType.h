@@ -1,10 +1,11 @@
 #pragma once
 
 #include "ePedType.h"
+#include "Acquaintance.h"
 
 class CPedType {
 public:
-    static CAcquaintance*& ms_apPedTypes;
+    static inline auto& ms_apPedTypes = StaticRef<CAcquaintance*>(0xC0BBE8);
     static CAcquaintance*  ms_apPedTypesOld;
 
 public:

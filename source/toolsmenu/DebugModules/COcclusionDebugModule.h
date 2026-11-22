@@ -1,14 +1,16 @@
-#ifdef EXTRA_DEBUG_FEATURES
 #pragma once
 
-class COcclusionDebugModule
-{
-public:
-    static bool DrawActiveOcclusions;
-    static int NumEntitiesSkipped;
+#include "DebugModule.h"
 
+class COcclusionDebugModule final : public DebugModule {
 public:
-    static void ProcessImGui();
-    static void ProcessRender();
+    void RenderWindow() override final;
+    void RenderMenuEntry() override final;
+    void Render3D() override final;
+
+    NOTSA_IMPLEMENT_DEBUG_MODULE_SERIALIZATION(COcclusionDebugModule, m_IsOpen, m_DrawActiveOcclusions);
+
+private:
+    bool m_IsOpen{};
+    bool m_DrawActiveOcclusions;
 };
-#endif

@@ -1,25 +1,24 @@
-/*
-    Plugin-SDK file
-    Authors: GTA Community. See more here
-    https://github.com/DK22Pac/plugin-sdk
-    Do not delete this comment block. Respect others' work!
-*/
 #pragma once
 
 class CGamma {
 public:
-    uint32 field_0;
-    float  field_4;
-    float  field_8;
-    float  field_C;
+    inline static auto& ms_SavedGamma = StaticRef<D3DGAMMARAMP>(0xC8D4C8);
+    inline static auto& ms_GammaTable = StaticRef<D3DGAMMARAMP>(0xC8DAC8);
+
+public:
+    bool  m_IsEnabled;
+    float m_CurrentLevel;
+    float m_TargetLevel;
+    float m_PrevLevel;
 
 public:
     static void InjectHooks();
 
     void Init();
-    void SetGamma(float arg1, bool arg2);
+    void SetGamma(float gammaLevel, bool fade);
 };
 
 VALIDATE_SIZE(CGamma, 0x10);
 
-extern CGamma& gamma;
+inline static auto& gbGammaChanged = StaticRef<bool>(0xC920C8);
+inline static auto& gamma          = StaticRef<CGamma>(0xC92134);

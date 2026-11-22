@@ -11,27 +11,21 @@
 #include "ClothesBuilder.h"
 #include "PedClothesDesc.h"
 
-int32& CClothes::ms_clothesImageId = *(int32*)0xBC12F8;
-int32& CClothes::ms_numRuleTags = *(int32*)0xBC12FC;
-int32 (&CClothes::ms_clothesRules)[600] = *(int32(*)[600])0xBC1300;
-
-CPedClothesDesc& PlayerClothes = *(CPedClothesDesc*)0xBC1C78;
+auto& PlayerClothes = StaticRef<CPedClothesDesc>(0xBC1C78);
 
 void CClothes::InjectHooks() {
     RH_ScopedClass(CClothes);
     RH_ScopedCategoryGlobal();
 
     RH_ScopedInstall(Init, 0x5A80D0);
-    // RH_ScopedInstall(LoadClothesFile, 0x5A7B30);
+    RH_ScopedInstall(LoadClothesFile, 0x5A7B30);
     RH_ScopedInstall(ConstructPedModel, 0x5A81E0);
     RH_ScopedInstall(RequestMotionGroupAnims, 0x5A8120);
     RH_ScopedInstall(RebuildPlayerIfNeeded, 0x5A8390);
     RH_ScopedInstall(RebuildPlayer, 0x5A82C0);
     RH_ScopedInstall(RebuildCutscenePlayer, 0x5A8270);
-    /* crashes, incompatible registers?
-    RH_ScopedInstall(GetTextureDependency, 0x5A7EA0);
+    RH_ScopedInstall(GetTextureDependency, 0x5A7EA0, { .StackArgumentsToPreserve = 1, .PreserveRegisters = true }); // Callers keep values in ECX/EDX across the call
     RH_ScopedInstall(GetDependentTexture, 0x5A7F30);
-    */
     RH_ScopedInstall(GetPlayerMotionGroupToLoad, 0x5A7FB0);
     RH_ScopedInstall(GetDefaultPlayerMotionGroup, 0x5A81B0);
 }
@@ -67,7 +61,84 @@ int32 GetClothesModelFromName(const char* name) {
 
 // 0x5A7B30
 void CClothes::LoadClothesFile() {
-    plugin::Call<0x5A7B30>();
+    bool isRuleStarted = false;
+    auto* file = CFileMgr::OpenFile("DATA\\CLOTHES.DAT", "r");
+
+    for (auto line = CFileLoader::LoadLine(file); line; line = CFileLoader::LoadLine(file)) {
+        if (line[0] == '\0' || line[0] == '#') {
+            continue;
+        }
+
+        if (!isRuleStarted) {
+            isRuleStarted = !strncmp("rule", line, 4);
+            continue;
+        }
+        if (!strncmp("end", line, 3)) {
+            isRuleStarted = false;
+            continue;
+        }
+
+        char* nextToken{};
+        char* strTag = strtok_s(line, " \t,", &nextToken);
+        if (strTag == nullptr) {
+            continue;
+        }
+
+        const eClothRule ruleTag = [&](){
+            constexpr struct {const char* name; eClothRule rule;} map[]{
+                {"CUTS", eClothRule::TAG_CUTS},
+                {"SETC", eClothRule::TAG_SETC},
+                {"TEX", eClothRule::TAG_TEX},
+                {"HIDE", eClothRule::TAG_HIDE},
+                {"ENDIGNORE", eClothRule::TAG_END_IGNORE},
+                {"IGNORE", eClothRule::TAG_IGNORE},
+                {"ENDEXCLUSIVE", eClothRule::TAG_END_EXCLUSIVE},
+                {"EXCLUSIVE", eClothRule::TAG_EXCLUSIVE}
+            };
+            for (const auto& [name, rule] : map) {
+                if (!strcmp(strTag, name)) {
+                    return rule;
+                }
+            }
+            NOTSA_UNREACHABLE("Invalid rule tag: {}", strTag);
+        }();
+        AddRule(static_cast<uint32>(ruleTag));
+
+        const auto GetNextArg = [&nextToken]{
+            return strtok_s(NULL, " \t,", &nextToken);
+        };
+        switch (ruleTag) {
+        case eClothRule::TAG_CUTS:
+        case eClothRule::TAG_TEX: {
+            for (auto i = 0u; i < 2u; i++) {
+                AddRule(CKeyGen::GetUppercaseKey(GetNextArg()));
+            }
+            break;
+        }
+        case eClothRule::TAG_SETC: {
+            AddRule(CKeyGen::GetUppercaseKey(GetNextArg()));
+            AddRule(GetClothesModelFromName(GetNextArg()));
+            for (auto i = 0u; i < 2u; i++) {
+                const auto rule = GetNextArg();
+                AddRule(!strcmp("-", rule) ? 0 : CKeyGen::GetUppercaseKey(rule));
+            }
+            break;
+        }
+        case eClothRule::TAG_HIDE: {
+            AddRule(CKeyGen::GetUppercaseKey(GetNextArg()));
+            AddRule(GetClothesModelFromName(GetNextArg()));
+            break;
+        }
+        case eClothRule::TAG_END_IGNORE:
+        case eClothRule::TAG_IGNORE:
+        case eClothRule::TAG_END_EXCLUSIVE:
+        case eClothRule::TAG_EXCLUSIVE: 
+            AddRule(CKeyGen::GetUppercaseKey(GetNextArg()));
+            break;
+        }
+    }
+
+    CFileMgr::CloseFile(file);
 }
 
 // 0x5A81E0
@@ -76,7 +147,7 @@ void CClothes::ConstructPedModel(uint32 modelId, CPedClothesDesc& newClothes, co
 
     auto modelInfo = CModelInfo::GetModelInfo(modelId)->AsPedModelInfoPtr();
     auto txd = CTxdStore::ms_pTxdPool->GetAt(modelInfo->m_nTxdIndex);
-    auto skinnedClump = CClothesBuilder::CreateSkinnedClump(modelInfo->m_pRwClump, txd->m_pRwDictionary, newClothes, oldClothes, bCutscenePlayer);
+    auto skinnedClump = CClothesBuilder::CreateSkinnedClump(modelInfo->GetRpClump(), txd->m_pRwDictionary, newClothes, oldClothes, bCutscenePlayer);
     if (skinnedClump) {
         RequestMotionGroupAnims();
         modelInfo->AddTexDictionaryRef();
@@ -111,8 +182,8 @@ void CClothes::RequestMotionGroupAnims() {
 
 // 0x5A8390
 void CClothes::RebuildPlayerIfNeeded(CPlayerPed* player) {
-    const auto& fat = player->m_pPlayerData->m_pPedClothesDesc->m_fFatStat;
-    const auto& muscle = player->m_pPlayerData->m_pPedClothesDesc->m_fMuscleStat;
+    const auto& fat = player->GetPlayerData()->m_pPedClothesDesc->m_fFatStat;
+    const auto& muscle = player->GetPlayerData()->m_pPedClothesDesc->m_fMuscleStat;
 
     if (CStats::GetStatValue(STAT_FAT) != fat || CStats::GetStatValue(STAT_MUSCLE) != muscle) {
         RebuildPlayer(player, 0);
@@ -121,27 +192,27 @@ void CClothes::RebuildPlayerIfNeeded(CPlayerPed* player) {
 
 // 0x5A82C0
 void CClothes::RebuildPlayer(CPlayerPed* player, bool bIgnoreFatAndMuscle) {
-    auto assoc = RpAnimBlendClumpExtractAssociations(player->m_pRwClump);
-    auto task = player->m_pIntelligence->m_TaskMgr.GetTaskSecondary(TASK_SECONDARY_IK);
+    auto assoc = RpAnimBlendClumpExtractAssociations(player->GetRpClump());
+    auto task = player->GetIntelligence()->GetTaskManager().GetTaskSecondary(TASK_SECONDARY_IK);
     if (task)
         task->MakeAbortable(player, ABORT_PRIORITY_IMMEDIATE, nullptr);
 
     player->DeleteRwObject();
     CWorld::Remove(player);
     if (!bIgnoreFatAndMuscle) {
-        player->m_pPlayerData->m_pPedClothesDesc->m_fFatStat = CStats::GetStatValue(STAT_FAT);
-        player->m_pPlayerData->m_pPedClothesDesc->m_fMuscleStat = CStats::GetStatValue(STAT_MUSCLE);
+        player->GetPlayerData()->m_pPedClothesDesc->m_fFatStat = CStats::GetStatValue(STAT_FAT);
+        player->GetPlayerData()->m_pPedClothesDesc->m_fMuscleStat = CStats::GetStatValue(STAT_MUSCLE);
     }
 
-    ConstructPedModel(player->m_nModelIndex, *player->m_pPlayerData->m_pPedClothesDesc, &PlayerClothes, 0);
+    ConstructPedModel(player->GetModelIndex(), *player->GetPlayerData()->m_pPedClothesDesc, &PlayerClothes, 0);
     player->Dress();
-    RpAnimBlendClumpGiveAssociations(player->m_pRwClump, assoc);
-    PlayerClothes = player->m_pPlayerData->m_pPedClothesDesc;
+    RpAnimBlendClumpGiveAssociations(player->GetRpClump(), assoc);
+    PlayerClothes = *player->GetPlayerData()->m_pPedClothesDesc;
 }
 
 // 0x5A8270
 void CClothes::RebuildCutscenePlayer(CPlayerPed* player, int32 modelId) {
-    const auto& clothesDesc    = player->m_pPlayerData->m_pPedClothesDesc;
+    const auto& clothesDesc    = player->GetPlayerData()->m_pPedClothesDesc;
     clothesDesc->m_fFatStat    = CStats::GetStatValue(STAT_FAT);
     clothesDesc->m_fMuscleStat = CStats::GetStatValue(STAT_MUSCLE);
     ConstructPedModel(modelId, *clothesDesc, nullptr, true);
@@ -200,7 +271,7 @@ AssocGroupId CClothes::GetDefaultPlayerMotionGroup() {
         return ANIM_GROUP_PLAYER;
 
     CAnimBlock* animBlock = CAnimManager::GetAnimationBlock(group);
-    if (!animBlock || !animBlock->bLoaded)
+    if (!animBlock || !animBlock->IsLoaded)
         return ANIM_GROUP_PLAYER;
 
     return group;

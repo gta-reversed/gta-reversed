@@ -12,7 +12,7 @@ CTaskComplexObserveTrafficLightsAndAchieveHeading::CTaskComplexObserveTrafficLig
 }
 
 // 0x636490
-CTask* CTaskComplexObserveTrafficLightsAndAchieveHeading::Clone() {
+CTask* CTaskComplexObserveTrafficLightsAndAchieveHeading::Clone() const {
     return new CTaskComplexObserveTrafficLightsAndAchieveHeading(m_nDurationInMs, m_fTargetHeading);
 }
 

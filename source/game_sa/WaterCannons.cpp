@@ -3,8 +3,6 @@
 #include "WaterCannons.h"
 #include "WaterCannon.h"
 
-CWaterCannon (&CWaterCannons::aCannons)[3] = *(CWaterCannon (*)[3])0xC80740;
-
 void CWaterCannons::InjectHooks() {
     RH_ScopedClass(CWaterCannons);
     RH_ScopedCategoryGlobal();
@@ -46,6 +44,8 @@ void CWaterCannons::UpdateOne(uint32 vehicle, CVector* start, CVector* end) {
 
 // 0x72A3C0
 void CWaterCannons::Update() {
+    ZoneScoped;
+
     int16 index = 0;
     for (auto& cannon : aCannons) {
         cannon.m_Audio.Service();
@@ -58,6 +58,8 @@ void CWaterCannons::Update() {
 
 // 0x729B30
 void CWaterCannons::Render() {
+    ZoneScoped;
+
     for (auto& cannon : aCannons) {
         cannon.Render();
     }

@@ -12,35 +12,35 @@ class CCarAI {
 public:
     static void InjectHooks();
 
-    static void AddAmbulanceOccupants(CVehicle* vehicle);
-    static void AddFiretruckOccupants(CVehicle* vehicle);
-    static void AddPoliceCarOccupants(CVehicle* vehicle, bool a2);
+    static void AddAmbulanceOccupants(CVehicle* veh);
+    static void AddFiretruckOccupants(CVehicle* veh);
+    static void AddPoliceCarOccupants(CVehicle* veh, bool bAlwaysCreatePassenger);
 
-    static void BackToCruisingIfNoWantedLevel(CVehicle* vehicle);
-    static void CarHasReasonToStop(CVehicle* vehicle);
-    static void EntitiesGoHeadOn(CEntity* entity1, CEntity* entity2);
+    static void BackToCruisingIfNoWantedLevel(CVehicle* veh);
+    static void CarHasReasonToStop(CVehicle* veh);
+    static bool EntitiesGoHeadOn(CEntity* entity1, CEntity* entity2);
 
     static eCarMission FindPoliceBikeMissionForWantedLevel();
     static eCarMission FindPoliceBoatMissionForWantedLevel();
-    static int8 FindPoliceCarMissionForWantedLevel();
-    static int32 FindPoliceCarSpeedForWantedLevel(CVehicle* vehicle);
-    static float FindSwitchDistanceClose(CVehicle* vehicle);
-    static float FindSwitchDistanceFar(CVehicle* vehicle);
+    static eCarMission FindPoliceCarMissionForWantedLevel();
+    static int32 FindPoliceCarSpeedForWantedLevel(CVehicle* veh);
+    static float FindSwitchDistanceClose(CVehicle* veh);
+    static float FindSwitchDistanceFar(CVehicle* veh);
 
-    static float GetCarToGoToCoors(CVehicle* vehicle, CVector* vec, int32 drivingStyle, bool bSpeedLimit20);
-    static float GetCarToGoToCoorsAccurate(CVehicle* vehicle, CVector* vec, int32 drivingStyle, bool bSpeedLimit20);
-    static float GetCarToGoToCoorsRacing(CVehicle* vehicle, CVector* vec, int32 drivingStyle, bool bSpeedLimit20);
-    static float GetCarToGoToCoorsStraightLine(CVehicle* vehicle, CVector* vec, int32 drivingStyle, bool bSpeedLimit20);
-    static float GetCarToParkAtCoors(CVehicle* vehicle, CVector* vec);
+    static float GetCarToGoToCoors(CVehicle* veh, const CVector& coors, eCarDrivingStyle drivingStyle, bool setCruiseSpeed);
+    static float GetCarToGoToCoorsAccurate(CVehicle* veh, const CVector& coors, eCarDrivingStyle drivingStyle, bool setCruiseSpeed);
+    static float GetCarToGoToCoorsRacing(CVehicle* veh, const CVector& coors, eCarDrivingStyle drivingStyle, bool setCruiseSpeed);
+    static float GetCarToGoToCoorsStraightLine(CVehicle* veh, const CVector& coors, eCarDrivingStyle drivingStyle, bool setCruiseSpeed);
+    static float GetCarToParkAtCoors(CVehicle* veh, const CVector& coors);
 
-    static void MakeWayForCarWithSiren(CVehicle* vehicle);
-    static void MellowOutChaseSpeed(CVehicle* vehicle);
-    static void MellowOutChaseSpeedBoat(CVehicle* vehicle);
+    static void MakeWayForCarWithSiren(CVehicle* veh);
+    static void MellowOutChaseSpeed(CVehicle* veh);
+    static void MellowOutChaseSpeedBoat(CVehicle* veh);
 
-    static void TellCarToBlockOtherCar(CVehicle* vehicle1, CVehicle* vehicle2);
-    static void TellCarToFollowOtherCar(CVehicle* vehicle1, CVehicle* vehicle2, float radius);
-    static void TellCarToRamOtherCar(CVehicle* vehicle1, CVehicle* vehicle2);
-    static void TellOccupantsToLeaveCar(CVehicle* vehicle);
+    static void TellCarToBlockOtherCar(CVehicle* veh1, CVehicle* veh2);
+    static void TellCarToFollowOtherCar(CVehicle* veh1, CVehicle* veh2, float radius);
+    static void TellCarToRamOtherCar(CVehicle* veh1, CVehicle* veh2);
+    static void TellOccupantsToLeaveCar(CVehicle* veh);
 
-    static void UpdateCarAI(CVehicle* vehicle);
+    static void UpdateCarAI(CVehicle* veh);
 };

@@ -4,7 +4,7 @@
 
 class CVehicle;
 
-class CEventVehicleDied : public CEvent {
+class NOTSA_EXPORT_VTABLE CEventVehicleDied : public CEvent {
 public:
     CVehicle* m_vehicle;
     bool      m_IsOccupantLeavingCar;
@@ -16,7 +16,7 @@ public:
     eEventType GetEventType() const override { return EVENT_VEHICLE_DIED; }
     int32 GetEventPriority() const override { return 72; }
     int32 GetLifeTime() override { return 0; }
-    CEvent* Clone() override;
+    CEvent* Clone() const noexcept override { return new CEventVehicleDied(m_vehicle); } // 0x4B76D0
     bool AffectsPed(CPed* ped) override;
 
 private:
@@ -25,8 +25,6 @@ private:
 
     CEventVehicleDied* Constructor(CVehicle* vehicle);
 
-    CEvent* Clone_Reversed();
-    bool AffectsPed_Reversed(CPed* ped);
 };
 
 VALIDATE_SIZE(CEventVehicleDied, 0x14);

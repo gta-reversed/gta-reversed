@@ -1,28 +1,40 @@
 #pragma once
 
+enum class eStencilShadowObjType : uint8 {
+    NONE,
+    OBJECT,
+    VEHICLE
+};
+
 class CStencilShadowObject {
 public:
     CEntity*              m_pOwner;
     int16                 m_NumShadowFaces;
-    char                  m_Type;
+    eStencilShadowObjType m_Type;
     uint32                m_FaceID;
     uint32                m_SizeOfShadowFacesData;
-    uint32                m_ShadowFacesData;
+    CVector*              m_ShadowFacesData;
     CStencilShadowObject* m_pNext;
     CStencilShadowObject* m_pPrev;
 
 public:
     static void InjectHooks();
 
-    CStencilShadowObject();
-    ~CStencilShadowObject();
+    CStencilShadowObject() = default; // 0x70F8D0
+    ~CStencilShadowObject() = default; // 0x70F8E0
 
-    static void Shutdown();
-    static void Render(CRGBA* color);
-    static void RenderForVehicle(CDummy* dummy);
-    static void RenderForObject(CStencilShadowObject* object);
+    void Destroy();
+
+private:
+    CStencilShadowObject* Constructor() {
+        this->CStencilShadowObject::CStencilShadowObject();
+        return this;
+    }
+
+    CStencilShadowObject* Destructor() {
+        this->CStencilShadowObject::~CStencilShadowObject();
+        return this;
+    }
 };
 
 VALIDATE_SIZE(CStencilShadowObject, 0x1C);
-
-bool gRenderStencil();

@@ -6,28 +6,20 @@
 */
 #pragma once
 
+#include <Base.h>
 #include <string>
+#include <initializer_list>
 #include <RenderWare.h>
-
+#include <GxtChar.h>
+#include "AnimationEnums.h"
 #include "Vector.h"
 #include "Vector2D.h"
 #include "Matrix.h"
 #include "Draw.h"
 
-class CAnimBlendClumpData;
-class CEntity;
-class CPlayerPed;
-class CWanted;
-class CPlayerInfo;
-class CVehicle;
-class CTrain;
-class CSimpleTransform;
-class AnimBlendFrameData;
 class CAnimBlendAssociation;
-class CAnimBlendHierarchy;
-class CEventGlobalGroup;
-struct RtAnimAnimation;
-class CPedGroup;
+class CAnimBlendClumpData;
+class CSimpleTransform;
 
 constexpr float DegreesToRadians(float angleInDegrees); // forward declaration
 
@@ -44,14 +36,12 @@ constexpr auto DEFAULT_VIEW_WINDOW        = 0.7f;
 #define SCREEN_HEIGHT ((float)RsGlobal.maximumHeight)
 #define SCREEN_ASPECT_RATIO (CDraw::ms_fAspectRatio)
 #define SCREEN_VIEW_WINDOW (std::tan(DegreesToRadians(CDraw::GetFOV() / (2.0f)))) // todo: GetScaledFov
-#define SCREEN_WIDTH_UNIT (SCREEN_WIDTH / 640.0f)
-#define SCREEN_HEIGHT_UNIT (SCREEN_HEIGHT / 448.0f)
 
 // This scales from PS2 pixel coordinates to the real resolution
-constexpr float SCREEN_STRETCH_X(float a)           { return a * SCREEN_WIDTH  / (float)DEFAULT_SCREEN_WIDTH; } // RsGlobal.maximumWidth * 0.0015625 * value
-constexpr float SCREEN_STRETCH_Y(float a)           { return a * SCREEN_HEIGHT / (float)DEFAULT_SCREEN_HEIGHT; }
-constexpr float SCREEN_STRETCH_FROM_RIGHT(float a)  { return SCREEN_WIDTH  - SCREEN_STRETCH_X(a); }
-constexpr float SCREEN_STRETCH_FROM_BOTTOM(float a) { return SCREEN_HEIGHT - SCREEN_STRETCH_Y(a); }
+inline float SCREEN_STRETCH_X(float a)           { return a * SCREEN_WIDTH  / (float)DEFAULT_SCREEN_WIDTH; } // RsGlobal.maximumWidth * 0.0015625 * value
+inline float SCREEN_STRETCH_Y(float a)           { return a * SCREEN_HEIGHT / (float)DEFAULT_SCREEN_HEIGHT; }
+inline float SCREEN_STRETCH_FROM_RIGHT(float a)  { return SCREEN_WIDTH  - SCREEN_STRETCH_X(a); }
+inline float SCREEN_STRETCH_FROM_BOTTOM(float a) { return SCREEN_HEIGHT - SCREEN_STRETCH_Y(a); }
 
 #define ASPECT_RATIO_SCALE
 #ifdef ASPECT_RATIO_SCALE
@@ -61,77 +51,75 @@ constexpr float SCREEN_STRETCH_FROM_BOTTOM(float a) { return SCREEN_HEIGHT - SCR
 #endif
 
 // This scales from PS2 pixel coordinates while optionally maintaining the aspect ratio
-constexpr float SCREEN_SCALE_X(float a)           { return SCREEN_SCALE_AR(SCREEN_STRETCH_X(a)); }
-constexpr float SCREEN_SCALE_Y(float a)           { return SCREEN_STRETCH_Y(a); } // RsGlobal.maximumHeight * 0.  * value
-constexpr float SCREEN_SCALE_FROM_RIGHT(float a)  { return SCREEN_WIDTH  - SCREEN_SCALE_X(a); }
-constexpr float SCREEN_SCALE_FROM_BOTTOM(float a) { return SCREEN_HEIGHT - SCREEN_SCALE_Y(a); }
+inline float SCREEN_SCALE_X(float a)           { return SCREEN_SCALE_AR(SCREEN_STRETCH_X(a)); }
+inline float SCREEN_SCALE_Y(float a)           { return SCREEN_STRETCH_Y(a); } // RsGlobal.maximumHeight * 0.  * value
+inline float SCREEN_SCALE_FROM_RIGHT(float a)  { return SCREEN_WIDTH  - SCREEN_SCALE_X(a); }
+inline float SCREEN_SCALE_FROM_BOTTOM(float a) { return SCREEN_HEIGHT - SCREEN_SCALE_Y(a); }
 
-#define PUSH_RENDERGROUP(str) 0
-#define POP_RENDERGROUP() 0
+constexpr auto BUILD_NAME_FULL = "TEST"; // NOTSA
 
-constexpr auto BUILD_NAME_FULL = "TEST";
+static inline int32 gDefaultTaskTime = 9'999'999; // or 0x98967F a.k.a (ten million - 1)
 
-extern int32 gDefaultTaskTime;
+static inline auto& gString = StaticRef<char[352]>(0xB71670);
+static inline auto& gString2 = StaticRef<char[352]>(0xB71510);
 
-extern RpLight*& pDirect;
+static inline auto& gGxtString = StaticRef<GxtChar[552]>(0xC1B100);
+static inline auto& gGxtString2 = StaticRef<GxtChar[552]>(0xC1AED8);
+static inline auto& GxtErrorString = StaticRef<GxtChar[32]>(0xC1AEB8);
 
-static inline char (&gString)[352] = *(char(*)[352])0xB71670;
-static inline char (&gString2)[352] = *(char(*)[352])0xB71510;
+static inline auto& g_nNumIm3dDrawCalls = StaticRef<int32>(0xB73708);
 
-static inline char (&gGxtString)[552] = *(char(*)[552])0xC1B100;
-static inline char (&gGxtString2)[552] = *(char(*)[552])0xC1AED8;
-static inline char (&GxtErrorString)[32] = *(char(*)[32])0xC1AEB8;
+static inline auto& PC_Scratch = StaticRef<char[16384]>(0xC8E0C8);
 
-extern float &GAME_GRAVITY; // default 0.008f
-
-extern char(&PC_Scratch)[16384];
-
-extern float& gfLaRiotsLightMult;
+extern RwRGBAReal& AmbientLightColour;
+extern RwRGBAReal& AmbientLightColourForFrame;
 
 // taken from rpplugin.h
 #define rwVENDORID_DEVELOPER 0x0253F2
 
-extern uint32 &ClumpOffset;
-
-#define RpClumpGetAnimBlendClumpData(clump) (*(CAnimBlendClumpData **)(((uint32)(clump) + ClumpOffset)))
-
 #define RpGeometryGetMesh(_geometry, _index) (&((RpMesh*)(((char*)(_geometry)->mesh) + sizeof(RpMeshHeader) + ((_geometry)->mesh->firstMeshOffset)))[_index])
 
-constexpr float E              = 2.71828f;          // e
-constexpr float E_CONST        = 0.577f;            // Euler-Mascheroni constant
-constexpr float FRAC_1_TAU     = 0.159154f;         // 1 / τ
-constexpr float FRAC_1_PI      = 0.318309f;         // 1 / π
-constexpr float FRAC_2_TAU     = 0.318309f;         // 2 / τ
-constexpr float FRAC_2_PI      = 0.636619f;         // 2 / π
-constexpr float FRAC_2_SQRT_PI = 1.12837f;          // 2 / √π
-constexpr float FRAC_4_TAU     = 0.636619f;         // 4 / τ
-constexpr float FRAC_1_SQRT_2  = 0.707106f;         // 1 / √2
-constexpr float FRAC_PI_2      = 1.57079f;          // π / 2
-constexpr float FRAC_PI_3      = 1.04719f;          // π / 3
-constexpr float FRAC_PI_4      = 0.785398f;         // π / 4
-constexpr float FRAC_PI_6      = 0.523598f;         // π / 6
-constexpr float FRAC_PI_8      = 0.392699f;         // π / 8
-constexpr float FRAC_TAU_2     = 3.14159f;          // τ / 2
-constexpr float FRAC_TAU_3     = 2.09439f;          // τ / 3
-constexpr float FRAC_TAU_4     = 1.57079f;          // τ / 4
-constexpr float FRAC_TAU_6     = 1.04719f;          // τ / 6
-constexpr float FRAC_TAU_8     = 0.785398f;         // τ / 8
-constexpr float FRAC_TAU_12    = 0.523598f;         // τ / 12
-constexpr float LN_2           = 0.693147f;         // ln(2)
-constexpr float LN_10          = 2.30258f;          // ln(10)
-constexpr float LOG2_E         = 1.44269f;          // log2(e)
-constexpr float LOG10_E        = 0.434294f;         // log10(e)
-constexpr float LOG10_2        = 0.301029f;         // log10(2)
-constexpr float LOG2_10        = 3.32192f;          // log2(10)
-constexpr float PI             = 3.14159f;          // π
-constexpr float HALF_PI        = PI / 2.0f;         // π / 2
-constexpr float SQRT_2         = 1.41421f;          // √2
-constexpr float SQRT_3         = 1.73205f;          // √3
-constexpr float SIN_PI         = 0.0f;              // sin(π);
-constexpr float COS_PI         = -1.0f;             // cos(π);
-constexpr float TWO_PI         = 6.28318f;          // τ (TAU)
+constexpr float E               = 2.71828f;          // e
+constexpr float E_CONST         = 0.577f;            // Euler-Mascheroni constant
+constexpr float FRAC_1_TAU      = 0.159154f;         // 1 / τ
+constexpr float FRAC_1_PI       = 0.318309f;         // 1 / π
+constexpr float FRAC_2_TAU      = 0.318309f;         // 2 / τ
+constexpr float FRAC_2_PI       = 0.636619f;         // 2 / π
+constexpr float FRAC_2_SQRT_PI  = 1.12837f;          // 2 / √π
+constexpr float FRAC_4_TAU      = 0.636619f;         // 4 / τ
+constexpr float FRAC_1_SQRT_2   = 0.707106f;         // 1 / √2
+constexpr float FRAC_PI_2       = 1.57079f;          // π / 2
+constexpr float FRAC_PI_3       = 1.04719f;          // π / 3
+constexpr float FRAC_PI_4       = 0.785398f;         // π / 4
+constexpr float FRAC_PI_6       = 0.523598f;         // π / 6
+constexpr float FRAC_PI_8       = 0.392699f;         // π / 8
+constexpr float FRAC_PI_9       = 0.349066f;         // π / 9
+constexpr float FRAC_TAU_2      = 3.14159f;          // τ / 2 = π
+constexpr float FRAC_TAU_3      = 2.09439f;          // τ / 3
+constexpr float FRAC_TAU_4      = 1.57079f;          // τ / 4
+constexpr float FRAC_TAU_6      = 1.04719f;          // τ / 6
+constexpr float FRAC_TAU_8      = 0.785398f;         // τ / 8
+constexpr float FRAC_TAU_12     = 0.523598f;         // τ / 12
+constexpr float LN_2            = 0.693147f;         // ln(2)
+constexpr float LN_10           = 2.30258f;          // ln(10)
+constexpr float LOG2_E          = 1.44269f;          // log2(e)
+constexpr float LOG10_E         = 0.434294f;         // log10(e)
+constexpr float LOG10_2         = 0.301029f;         // log10(2)
+constexpr float LOG2_10         = 3.32192f;          // log2(10)
+constexpr float PI              = 3.14159f;          // π
+constexpr float HALF_PI         = PI / 2.0f;         // π / 2
+constexpr float PI_6            = PI / 6.0f;         // π / 6
+constexpr float SQRT_2          = 1.41421f;          // √2
+constexpr float SQRT_3          = 1.73205f;          // √3
+constexpr float TWO_PI          = 6.28318f;          // τ (TAU)
+constexpr float TWO_PI_OVER_256 = TWO_PI / 256.0F;   // Here because the compiler shits itself when this it put into FixedFloat's template
+constexpr float DEG_TO_RAD     = 0.01745329252f;    // π / 180
 
-constexpr float sq(float x) { return x * x; }
+
+constexpr float COS_45         = SQRT_2 / 2.f;      // cos(45°)
+
+template<typename T>
+NOTSA_FORCEINLINE constexpr T sq(T x) { return x * x; }
 
 struct SpriteFileName {
     const char* name;
@@ -140,43 +128,13 @@ struct SpriteFileName {
 
 void InjectCommonHooks();
 
-// returns player coors
-CVector FindPlayerCoors(int32 playerId = -1);
-// returns player speed
-CVector& FindPlayerSpeed(int32 playerId = -1);
-// returns player ped or player vehicle if he's driving
-CEntity * FindPlayerEntity(int32 playerId = -1);
-// returns player train
-CTrain* FindPlayerTrain(int32 playerId = -1);
-// gets player coords
-const CVector& FindPlayerCentreOfWorld(int32 playerId = -1);
-// gets player coords with skipping sniper shift
-const CVector& FindPlayerCentreOfWorld_NoSniperShift(int32 playerId = -1);
-// returns player coords with skipping interior shift
-CVector FindPlayerCentreOfWorld_NoInteriorShift(int32 playerId = -1);
-// returns player angle in radians
-float FindPlayerHeading(int32 playerId = -1);
-// returns Z coord for active player
-float FindPlayerHeight();
-// returns player ped
-CPlayerPed * FindPlayerPed(int32 playerId = -1);
-CVehicle* FindPlayerVehicle(int32 playerId = -1, bool bIncludeRemote = false);
-// returns player wanted
-CWanted * FindPlayerWanted(int32 playerId = -1);
-// returns player's group
-CPedGroup& FindPlayerGroup(int32 playerId = -1); // NOTSA
-CPlayerInfo& FindPlayerInfo(int playerId = -1);
-
-CVector Multiply3x3(const CMatrix& m, const CVector& v);
-CVector Multiply3x3(const CVector& v, const CMatrix& m);
-CVector MultiplyMatrixWithVector(const CMatrix& mat, const CVector& vec);
-
 void TransformPoint(RwV3d& point, const CSimpleTransform& placement, const RwV3d& vecPos);
 void TransformVectors(RwV3d* vecsOut, int32 numVectors, const CMatrix& matrix, const RwV3d* vecsin);
 void TransformVectors(RwV3d* vecsOut, int32 numVectors, const CSimpleTransform& transform, const RwV3d* vecsin);
+void TransformPoints(RwV3d* pointOut, int count, const CMatrix& transformMatrix, RwV3d* pointIn);
 
 // Check point is within 2D rectangle
-static bool IsPointInRect2D(CVector2D point, CVector2D min, CVector2D max) {
+static bool IsPointInRect2D(const CVector2D& point, const CVector2D& min, const CVector2D& max) {
     return point.x >= min.x && point.x <= max.x &&
            point.y >= min.y && point.y <= max.y;
 }
@@ -192,7 +150,41 @@ static bool IsPointInSphere(const CVector& point, const CVector& center, float r
 // Converts degrees to radians
 // keywords: 0.017453292 flt_8595EC
 constexpr float DegreesToRadians(float angleInDegrees) {
-    return angleInDegrees * PI / 180.0F;
+    return angleInDegrees * DEG_TO_RAD;
+}
+
+//! @notsa
+inline RwTexCoords operator*(RwTexCoords lhs, float rhs) {
+    return { lhs.u * rhs, lhs.v * rhs };
+}
+
+//! @notsa
+inline RwTexCoords operator+(RwTexCoords lhs, RwTexCoords rhs) {
+    return { lhs.u + rhs.u, lhs.v + rhs.v };
+}
+
+template<typename T, typename Y = float>
+struct WeightedValue {
+    using value_type = T;
+
+    T v;
+    Y w;
+};
+
+template<rng::input_range R> // Range of WeightedValue`s
+auto multiply_weighted(R&& r) {
+    using T = rng::range_value_t<R>::value_type;
+
+    T a{};
+    for (const auto& vw : r) {
+        a = a + (T)(vw.v * vw.w);
+    }
+    return a;
+}
+
+template<typename T, typename Y = float, size_t N>
+auto multiply_weighted(WeightedValue<T, Y> (&&values)[N]) {
+    return multiply_weighted(values);
 }
 
 // Converts radians to degrees
@@ -201,27 +193,28 @@ constexpr float RadiansToDegrees(float angleInRadians) {
     return angleInRadians * 180.0F / PI;
 }
 
-template <typename T>
-T clamp(T value, T low, T high)
-{
-    return std::min(std::max(value, low), high);
+template<typename T>
+T lerp(const T& from, const T& to, float t) {
+    // Same as `from + (to - from) * t` (Or `from + t * (to - from)`
+    return static_cast<T>(to * t + from * (1.f - t));
 }
 
-inline const CVector lerp(const CVector& fMin, const CVector& fMax, float fProgress) {
-    return fMin * (1.0F - fProgress) + fMax * fProgress;
+template<>
+inline RwRGBA lerp<RwRGBA>(const RwRGBA& from, const RwRGBA& to, float t) {
+    return RwRGBA{
+        .red   = lerp(from.red, to.red, t),
+        .green = lerp(from.green, to.green, t),
+        .blue  = lerp(from.blue, to.blue, t),
+        .alpha = lerp(from.alpha, to.alpha, t),
+    };
 }
 
-inline const float lerp(float fMin, float fMax, float fProgress) {
-    return fMin * (1.0F - fProgress) + fMax * fProgress;
-}
-
-inline const float invLerp(float fMin, float fMax, float fVal) {
+constexpr float invLerp(float fMin, float fMax, float fVal) {
     return (fVal - fMin) / (fMax - fMin);
 }
 
 // 0x4EEA80 - And inlined helluvalot
-inline bool approxEqual(float f1, float f2, float epsilon)
-{
+inline bool approxEqual(float f1, float f2, float epsilon) {
     return fabs(f1 - f2) < epsilon;
 }
 
@@ -231,160 +224,65 @@ inline bool approxEqual2(float f1, float f2, float epsilon = 0.01F)
     return f1 == f2 || fabs(f1 - f2) < epsilon;
 }
 
-extern constexpr bool make_fourcc3(const char* line, const char abc[3]) {
-    return line[0] == abc[0] &&
-           line[1] == abc[1] &&
-           line[2] == abc[2];
+// shit
+constexpr bool make_fourcc3(const char* line, const char abc[3]) {
+    return line[0] == abc[0] && line[1] == abc[1] && line[2] == abc[2];
 }
 
-extern constexpr bool make_fourcc4(const char* line, const char abcd[4]) {
-    return line[0] == abcd[0] &&
-           line[1] == abcd[1] &&
-           line[2] == abcd[2] &&
-           line[3] == abcd[3];
+// shit
+constexpr bool make_fourcc4(const char* line, const char abcd[4]) {
+    return line[0] == abcd[0] && line[1] == abcd[1] && line[2] == abcd[2] && line[3] == abcd[3];
 }
 
-extern constexpr uint32 make_fourcc4(const char fourcc[4]) {
-    return fourcc[0] << 0 |
-           fourcc[1] << 8 |
-           fourcc[2] << 16 |
-           fourcc[3] << 24;
+// shit
+constexpr uint32 MakeFourCC(const char fourcc[4]) {
+    return fourcc[0] << 0 | fourcc[1] << 8 | fourcc[2] << 16 | fourcc[3] << 24;
 }
 
-AnimBlendFrameData *RpAnimBlendClumpFindFrame(RpClump *clump, char *name);
-
-char *MakeUpperCase(char *dest, const char *src);
+char* MakeUpperCase(char *dest, const char *src);
+char* MakeUpperCase(char* dest);
 bool EndsWith(const char* str, const char* with, bool caseSensitive = true);
-
-class CEventGlobalGroup* GetEventGlobalGroup();
-void DefinedState();
-void DefinedState2d();
-
-void GetNameAndDamage(const char* nodeName, char* outName, bool& outDamage);
-RpAtomic* GetFirstAtomicCallback(RpAtomic* atomic, void* data);
-RpAtomic* GetFirstAtomic(RpClump* clump);
-RpAtomic* Get2DEffectAtomicCallback(RpAtomic* atomic, void* data);
-RpAtomic* Get2DEffectAtomic(RpClump* clump);
-RwObject* GetFirstObjectCallback(RwObject* object, void* data);
-RwObject* GetFirstObject(RwFrame* frame);
-RwFrame* GetFirstFrameCallback(RwFrame* frame, void* data);
-RwFrame* GetFirstChild(RwFrame* frame);
-RpAtomic* SkinAtomicGetHAnimHierarchCB(RpAtomic* atomic, void* data);
-RpHAnimHierarchy* GetAnimHierarchyFromSkinClump(RpClump* clump);
-RpHAnimHierarchy* GetAnimHierarchyFromFrame(RwFrame* frame);
-RpHAnimHierarchy* GetAnimHierarchyFromClump(RpClump* clump);
-RpAtomic* AtomicRemoveAnimFromSkinCB(RpAtomic* atomic, void* data);
-bool RpAtomicConvertGeometryToTL(RpAtomic* atomic);
-bool RpAtomicConvertGeometryToTS(RpAtomic* atomic);
-RpAtomic* atomicConvertGeometryToTL(RpAtomic* atomic, void* data);
-bool RpClumpConvertGeometryToTL(RpClump* clump);
-RpAtomic* atomicConvertGeometryToTS(RpAtomic* atomic, void* data);
-bool RpClumpConvertGeometryToTS(RpClump* clump);
-RpMaterial* forceLinearFilteringMatTexturesCB(RpMaterial* material, void* data);
-bool SetFilterModeOnAtomicsTextures(RpAtomic* atomic, RwTextureFilterMode filtering);
-RpAtomic* forceLinearFilteringAtomicsCB(RpAtomic* atomic, void* data);
-bool SetFilterModeOnClumpsTextures(RpClump* clump, RwTextureFilterMode filtering);
-bool RpGeometryReplaceOldMaterialWithNewMaterial(RpGeometry* geometry, RpMaterial* oldMaterial, RpMaterial* newMaterial);
-RwTexture* RwTexDictionaryFindHashNamedTexture(RwTexDictionary* txd, uint32 hash);
-RpClump* RpClumpGetBoundingSphere(RpClump* clump, RwSphere* bound, bool arg2);
-void SkinGetBonePositions(RpClump* clump);
-void SkinSetBonePositions(RpClump* clump);
-void SkinGetBonePositionsToTable(RpClump* clump, RwV3d* table);
-void SetLightsWithTimeOfDayColour(RpWorld* world);
-void LightsEnable(int32 arg0);
-void LightsCreate(RpWorld* world);
-void LightsDestroy(RpWorld* world);
-void WorldReplaceNormalLightsWithScorched(RpWorld* world, float lighting);
-void WorldReplaceScorchedLightsWithNormal(RpWorld* world);
-void AddAnExtraDirectionalLight(RpWorld* world, float x, float y, float z, float red, float green, float blue);
-void RemoveExtraDirectionalLights(RpWorld* world);
-void SetAmbientAndDirectionalColours(float fMult);
-void SetFlashyColours(float fMult);
-void SetFlashyColours_Mild(float fMult);
-void SetBrightMarkerColours(float lighting);
-void ReSetAmbientAndDirectionalColours();
-void DeActivateDirectional();
-void ActivateDirectional();
-void SetAmbientColoursToIndicateRoadGroup(int32 idx);
-void SetFullAmbient();
-void SetAmbientColours();
-void SetAmbientColours(RwRGBAReal* color);
-void SetDirectionalColours(RwRGBAReal* color);
-void SetLightColoursForPedsCarsAndObjects(float fMult);
-void SetLightsForInfraredVisionHeatObjects();
-void StoreAndSetLightsForInfraredVisionHeatObjects();
-void RestoreLightsForInfraredVisionHeatObjects();
-void SetLightsForInfraredVisionDefaultObjects();
-void SetLightsForNightVision();
-float GetDayNightBalance();
 
 RpAtomic* RemoveRefsCB(RpAtomic* atomic, void* _IGNORED_ data);
 void RemoveRefsForAtomic(RpClump* clump);
 
-bool IsGlassModel(CEntity* entity);
-
-CAnimBlendClumpData* RpAnimBlendAllocateData(RpClump* clump);
-CAnimBlendAssociation* RpAnimBlendClumpAddAssociation(RpClump* clump, CAnimBlendAssociation* association, uint32 flags, float startTime, float blendAmount);
-CAnimBlendAssociation* RpAnimBlendClumpExtractAssociations(RpClump* clump);
-void RpAnimBlendClumpFillFrameArray(RpClump* clump, AnimBlendFrameData** frameData);
-AnimBlendFrameData* RpAnimBlendClumpFindBone(RpClump* clump, uint32 id);
-AnimBlendFrameData* RpAnimBlendClumpFindFrame(RpClump* clump, const char* name);
-AnimBlendFrameData* RpAnimBlendClumpFindFrameFromHashKey(RpClump* clump, uint32 key);
-CAnimBlendAssociation* RpAnimBlendClumpGetAssociation(RpClump* clump, bool arg1, CAnimBlendHierarchy* hierarchy);
-CAnimBlendAssociation* RpAnimBlendClumpGetAssociation(RpClump* clump, const char* name);
-CAnimBlendAssociation* RpAnimBlendClumpGetAssociation(RpClump* clump, uint32 animId);
-CAnimBlendAssociation* RpAnimBlendClumpGetFirstAssociation(RpClump* clump);
-CAnimBlendAssociation* RpAnimBlendClumpGetFirstAssociation(RpClump* clump, uint32 flags);
-CAnimBlendAssociation* RpAnimBlendClumpGetMainAssociation(RpClump* clump, CAnimBlendAssociation** pAssociation, float* blendAmount);
-CAnimBlendAssociation* RpAnimBlendClumpGetMainAssociation_N(RpClump* clump, int32 n);
-CAnimBlendAssociation* RpAnimBlendClumpGetMainPartialAssociation(RpClump* clump);
-CAnimBlendAssociation* RpAnimBlendClumpGetMainPartialAssociation_N(RpClump* clump, int32 n);
-uint32 RpAnimBlendClumpGetNumAssociations(RpClump* clump);
-uint32 RpAnimBlendClumpGetNumNonPartialAssociations(RpClump* clump);
-uint32 RpAnimBlendClumpGetNumPartialAssociations(RpClump* clump);
-void RpAnimBlendClumpGiveAssociations(RpClump* clump, CAnimBlendAssociation* association);
-void RpAnimBlendClumpInit(RpClump* clump);
-bool RpAnimBlendClumpIsInitialized(RpClump* clump);
-void RpAnimBlendClumpPauseAllAnimations(RpClump* clump);
-void RpAnimBlendClumpRemoveAllAssociations(RpClump* clump);
-void RpAnimBlendClumpRemoveAssociations(RpClump* clump, uint32 flags);
-void RpAnimBlendClumpSetBlendDeltas(RpClump* clump, uint32 flags, float delta);
-void RpAnimBlendClumpUnPauseAllAnimations(RpClump* clump);
-void RpAnimBlendClumpUpdateAnimations(RpClump* clump, float step, bool onScreen);
-RtAnimAnimation* RpAnimBlendCreateAnimationForHierarchy(RpHAnimHierarchy* hierarchy);
-char* RpAnimBlendFrameGetName(RwFrame* frame);
-void RpAnimBlendFrameSetName(RwFrame* frame, char* name);
-CAnimBlendAssociation* RpAnimBlendGetNextAssociation(CAnimBlendAssociation* association);
-CAnimBlendAssociation* RpAnimBlendGetNextAssociation(CAnimBlendAssociation* association, uint32 flags);
-void RpAnimBlendKeyFrameInterpolate(void* voidOut, void* voidIn1, void* voidIn2, float time, void* customData);
-bool RpAnimBlendPluginAttach();
-
-bool GraphicsLowQuality();
+bool GraphicsHighQuality();
 
 /**
  * Writes given raster to PNG file using RtPNGImageWrite
  */
-void Render2dStuff();
-void WriteRaster(RwRaster* raster, const char* path);
-bool CalcScreenCoors(const CVector& vecPoint, CVector* vecOutPos, float* screenX, float* screenY);
-bool CalcScreenCoors(const CVector& vecPoint, CVector* vecOutPos);
-bool DoesInfiniteLineTouchScreen(float fX, float fY, float fXDir, float fYDir);
-bool IsPointInsideLine(float fLineX, float fLineY, float fXDir, float fYDir, float fPointX, float fPointY, float fTolerance);
+void WriteRaster(RwRaster* raster, const char* filename);
+bool CalcScreenCoors(const CVector& in, CVector& out, float& screenX, float& screenY);
+bool CalcScreenCoors(const CVector& in, CVector& out);
+bool DoesInfiniteLineTouchScreen(CVector2D origin, CVector2D dir);
+bool IsPointInsideLine(
+    CVector2D origin,
+    CVector2D dir,
+    CVector2D pt,
+    float     radius
+);
 
 void LittleTest();
 
-/* Convert UTF-8 string to Windows Unicode. Free pointer using delete[] */
+CAnimBlendAssociation* RpAnimBlendClumpGetAssociation(RpClump* clump, std::initializer_list<enum AnimationId> ids);
+
 std::wstring UTF8ToUnicode(const std::string& str);
-/* Convert Windows Unicode to UTF-8. Free pointer using delete[] */
 std::string UnicodeToUTF8(const std::wstring& str);
 
-extern int32 WindowsCharset;
-
-extern uint16& uiTempBufferIndicesStored;
-extern uint16& uiTempBufferVerticesStored;
 constexpr int32 TOTAL_TEMP_BUFFER_INDICES = 4096;
-extern RxVertexIndex (&aTempBufferIndices)[TOTAL_TEMP_BUFFER_INDICES]; // size 4096
-constexpr int32 TOTAL_TEMP_BUFFER_VERTICES = 2048;
-extern RxObjSpace3DVertex (&aTempBufferVertices)[TOTAL_TEMP_BUFFER_VERTICES];
+constexpr int32 TOTAL_TEMP_BUFFER_3DVERTICES = 2048;
+constexpr int32 TOTAL_TEMP_BUFFER_2DVERTICES = 1024;
 constexpr int32 TOTAL_RADIOSITY_VERTEX_BUFFER = 1532;
-extern RwD3D9Vertex (&aRadiosityVertexBuffer)[TOTAL_RADIOSITY_VERTEX_BUFFER];
+
+static inline int32 WindowsCharset = static_cast<int32>(GetACP());
+
+struct TempVertexBuffer {
+    RwIm3DVertex m_3d[TOTAL_TEMP_BUFFER_3DVERTICES]; // For Im3D rendering
+    RwIm2DVertex m_2d[TOTAL_TEMP_BUFFER_2DVERTICES]; // For Im2D rendering
+};
+
+static inline auto& uiTempBufferIndicesStored = StaticRef<int32>(0xC4B954);
+static inline auto& uiTempBufferVerticesStored = StaticRef<int32>(0xC4B950);
+static inline auto& aTempBufferIndices = StaticRef<RxVertexIndex[TOTAL_TEMP_BUFFER_INDICES]>(0xC4B958);
+static inline auto& TempBufferVertices = StaticRef<TempVertexBuffer>(0xC4D958);
+static inline auto& aRadiosityVertexBuffer = StaticRef<RwD3D9Vertex[TOTAL_RADIOSITY_VERTEX_BUFFER]>(0xC5F958);

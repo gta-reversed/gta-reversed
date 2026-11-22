@@ -4,8 +4,8 @@
 #include "GxtChar.h"
 
 CKeyArray::CKeyArray() {
-    data = nullptr;
-    size = 0;
+    m_data = nullptr;
+    m_size = 0;
 }
 
 CKeyArray::~CKeyArray() {
@@ -14,33 +14,37 @@ CKeyArray::~CKeyArray() {
 
 // 0x69F510
 void CKeyArray::Unload() {
-    delete[] data;
-    data = nullptr;
-    size = 0;
+    delete[] m_data;
+    m_data = nullptr;
+    m_size = 0;
 }
 
-// nSkipBytes always 0
+// unknown always 0
 // 0x69F490
-void CKeyArray::Load(uint32 length, FILESTREAM file, uint32* offset, uint8 nSkipBytes) {
-    return plugin::CallMethod<0x69F490, CKeyArray*, uint32, FILESTREAM, uint32*, uint8>(this, length, file, offset, nSkipBytes);
+bool CKeyArray::Load(uint32 length, FILESTREAM file, uint32* offset, uint8 unknown) {
+    // todo: add OG code
+    m_size = length / sizeof(CKeyEntry);
+    m_data = new CKeyEntry[m_size];
 
-#ifdef USE_ORIGINAL_CODE
-    // todo: add original code
-#else
-    // taken from re3
-    size = length / sizeof(CKeyEntry);
-    data = new CKeyEntry[size];
-
-    CFileMgr::Read(file, data, length);
+    CFileMgr::Read(file, m_data, length);
     *offset += length;
-#endif
+
+    return true;
 }
 
 // 0x69F540
 void CKeyArray::Update(char* offset) {
-    for (uint32 i = 0; i < size; ++i) {
-        data[i].string = (GxtChar*)((uint8*)offset + (uint32)(data[i].string));
+    for (uint32 i = 0; i < m_size; ++i) {
+        m_data[i].string = (GxtChar*)((uint8*)offset + (uint32)(m_data[i].string));
     }
+}
+
+// 0x6A0000
+const GxtChar* CKeyArray::Search(const char* key, bool& found) {
+    const auto entry = BinarySearch(CKeyGen::GetUppercaseKey(key), m_data, 0, m_size - 1);
+    found = entry != nullptr;
+
+    return entry ? entry->string : nullptr;
 }
 
 // 0x69F570
@@ -62,18 +66,5 @@ CKeyEntry* CKeyArray::BinarySearch(uint32 hash, CKeyEntry* entries, int16 firstI
 
         if (firstIndex > lastIndex)
             return nullptr;
-    }
-}
-
-// 0x6A0000
-char* CKeyArray::Search(const char* key, bool* found) {
-    uint32 hash = CKeyGen::GetUppercaseKey(key);
-    CKeyEntry* entry = BinarySearch(hash, data, 0, size - 1);
-    if (entry) {
-        *found = true;
-        return entry->string;
-    } else {
-        *found = false;
-        return nullptr;
     }
 }

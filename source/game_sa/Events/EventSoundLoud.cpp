@@ -1,14 +1,8 @@
 #include "StdInc.h"
-
 #include "EventSoundLoud.h"
 
-CEventSoundLoud::CEventSoundLoud(CEntity* entity) {
-    m_Entity = entity;
-    CEntity::SafeRegisterRef(m_Entity);
-}
-
-CEventSoundLoud::~CEventSoundLoud() {
-    CEntity::SafeCleanUpRef(m_Entity);
+CEventSoundLoud::CEventSoundLoud(CEntity* entity) :
+    m_Entity{ entity } {
 }
 
 bool CEventSoundLoud::AffectsPed(CPed* ped) {

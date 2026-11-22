@@ -6,21 +6,29 @@
 class CPedGroup;
 class CPed;
 
-class CTaskComplexFollowLeaderInFormation : public CTaskComplex {
+class NOTSA_EXPORT_VTABLE CTaskComplexFollowLeaderInFormation : public CTaskComplex {
     CPedGroup* m_Group;
     CPed*      m_Leader;
     CVector    m_Pos;
-    uint32     m_Int;
+    eMoveState m_MoveState;
     float      m_Dist; // Max distance between m_pos and some point, not sure. See `ControlSubTask`. Ignored if < 0
 
 public:
     static constexpr auto Type = TASK_COMPLEX_FOLLOW_LEADER_IN_FORMATION;
 
-    CTaskComplexFollowLeaderInFormation(CPedGroup* pedGroup, CPed* ped, const CVector& posn, float dist);
+    struct Offsets {
+        std::array<CVector2D, TOTAL_PED_GROUP_MEMBERS> Offsets;
+        std::array<CVector2D, TOTAL_PED_GROUP_MEMBERS> MovingOffsets;
+        float                                          Scale;
+    };
+    static inline auto& ms_offsets = StaticRef<Offsets>(0xC196E8);
+
+    CTaskComplexFollowLeaderInFormation(CPedGroup* pedGroup, CPed* ped, const CVector& posn, float dist = -1.f);
+    CTaskComplexFollowLeaderInFormation(const CTaskComplexFollowLeaderInFormation&);
     ~CTaskComplexFollowLeaderInFormation() override;
 
-    eTaskType GetTaskType() override { return Type; }
-    CTask*    Clone() override { return plugin::CallMethodAndReturn<CTask*, 0x695740, CTaskComplexFollowLeaderInFormation*>(this); } // 0x695740
+    eTaskType GetTaskType() const override { return Type; }
+    CTask*    Clone() const override { return new CTaskComplexFollowLeaderInFormation{*this}; }
     CTask*    CreateNextSubTask(CPed* ped) override;
     CTask*    CreateFirstSubTask(CPed* ped) override;
     CTask*    ControlSubTask(CPed* ped) override;
@@ -29,13 +37,12 @@ private:
     friend void InjectHooksMain();
     static void InjectHooks();
 
-    CTaskComplexFollowLeaderInFormation* Constructor(CPedGroup* pedGroup, CPed* ped, CVector const& posn, float a5) { return this; }
-    CTaskComplexFollowLeaderInFormation* Destructor() { this->CTaskComplexFollowLeaderInFormation::~CTaskComplexFollowLeaderInFormation(); return this; }
+    CTask* CreateSubTask(eTaskType taskType, CPed* ped);
 
-    CTask*    Clone_Reversed() { return CTaskComplexFollowLeaderInFormation::Clone(); }
-    eTaskType GetTaskType_Reversed() { return CTaskComplexFollowLeaderInFormation::GetTaskType(); }
-    CTask*    CreateNextSubTask_Reversed(CPed* ped) { return CTaskComplexFollowLeaderInFormation::CreateNextSubTask(ped); }
-    CTask*    CreateFirstSubTask_Reversed(CPed* ped) { return CTaskComplexFollowLeaderInFormation::CreateFirstSubTask(ped); }
-    CTask*    ControlSubTask_Reversed(CPed* ped) { return CTaskComplexFollowLeaderInFormation::ControlSubTask(ped); }
+    CTaskComplexFollowLeaderInFormation* Constructor(CPedGroup* pedGroup, CPed* ped, CVector const& posn, float dist) {
+        this->CTaskComplexFollowLeaderInFormation::CTaskComplexFollowLeaderInFormation(pedGroup, ped, posn, dist);
+        return this;
+    }
+    CTaskComplexFollowLeaderInFormation* Destructor() { this->CTaskComplexFollowLeaderInFormation::~CTaskComplexFollowLeaderInFormation(); return this; }
 };
 VALIDATE_SIZE(CTaskComplexFollowLeaderInFormation, 0x28);

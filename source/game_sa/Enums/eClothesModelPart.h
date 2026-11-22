@@ -18,4 +18,9 @@ enum eClothesModelPart : int32 {
     CLOTHES_MODEL_HATS         = 8,
     CLOTHES_MODEL_SPECIAL      = 9, // extra1
     CLOTHES_MODEL_UNAVAILABLE  = 10,
+
+    //
+    // Add above
+    //
+    CLOTHES_MODEL_TOTAL = CLOTHES_MODEL_UNAVAILABLE
 };

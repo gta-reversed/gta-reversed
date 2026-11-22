@@ -1,8 +1,8 @@
 #include "StdInc.h"
 
-#include "ObjectData.h"
+#include <reversiblebugfixes/Bugs.hpp>
 
-CObjectData(&CObjectData::ms_aObjectInfo)[NUM_OBJECT_INFOS] = *(CObjectData(*)[NUM_OBJECT_INFOS])0xBB4A90;
+#include "ObjectData.h"
 
 void CObjectData::InjectHooks()
 {
@@ -14,8 +14,10 @@ void CObjectData::InjectHooks()
 }
 
 // 0x5B5360
-void CObjectData::Initialise(const char* fileName)
-{
+void CObjectData::Initialise(const char* fileName) {
+    ZoneScoped;
+    ZoneText(fileName, strlen(fileName));
+
     auto& default0 = CObjectData::GetDefault();
     default0.m_fMass = 99999.0F;
     default0.m_fTurnMass = 99999.0F;
@@ -57,13 +59,16 @@ void CObjectData::Initialise(const char* fileName)
         if (line[0] == '*')
             break;
 
+        if (line[0] == '#') // NOTSA: Skip comments so we can use a sanity check for sscanf.
+            continue;
+
         auto& curInfo = CObjectData::GetAtIndex(iFirstFreeInd);
         memset(&curInfo, 0, sizeof(CObjectData));
         char modelName[256], effectName[256];
         float fPercentSubmerged;
         int32 iColDamEffect, iSpecialColResp, iCameraAvoid, iCausesExplosion, iFxType; // Have to be read as 32-bit integers and later assigned to 8 bit int32
-        sscanf(line, "%s %f %f %f %f %f %f %f %d %d %d %d %d %f %f %f %s %f %f %f %f %f %d %d",
-            modelName,
+        VERIFY(sscanf_s(line, "%s %f %f %f %f %f %f %f %d %d %d %d %d %f %f %f %s %f %f %f %f %f %d %d", // FIX_BUGS: Sized string read
+            SCANF_S_STR(modelName),
             &curInfo.m_fMass,
             &curInfo.m_fTurnMass,
             &curInfo.m_fAirResistance,
@@ -76,17 +81,18 @@ void CObjectData::Initialise(const char* fileName)
             &iCameraAvoid,
             &iCausesExplosion,
             &iFxType,
-            &curInfo.m_vFxOffset.x,
-            &curInfo.m_vFxOffset.y,
-            &curInfo.m_vFxOffset.z,
-            effectName,
-            &curInfo.m_fSmashMultiplier,
-            &curInfo.m_vecBreakVelocity.x,
-            &curInfo.m_vecBreakVelocity.y,
-            &curInfo.m_vecBreakVelocity.z,
-            &curInfo.m_fBreakVelocityRand,
-            &curInfo.m_nGunBreakMode,
-            &curInfo.m_nSparksOnImpact);
+            &curInfo.m_vFxOffset.x,        // optional
+            &curInfo.m_vFxOffset.y,        // optional
+            &curInfo.m_vFxOffset.z,        // optional
+            SCANF_S_STR(effectName),      // optional
+            &curInfo.m_fSmashMultiplier,   // optional (Breakable Info)
+            &curInfo.m_vecBreakVelocity.x, // optional (Breakable Info)
+            &curInfo.m_vecBreakVelocity.y, // optional (Breakable Info)
+            &curInfo.m_vecBreakVelocity.z, // optional (Breakable Info)
+            &curInfo.m_fBreakVelocityRand, // optional (Breakable Info)
+            &curInfo.m_nGunBreakMode,      // optional (Breakable Info)
+            &curInfo.m_nSparksOnImpact     // optional (Breakable Info)
+        ) >= 13);
 
         curInfo.m_pFxSystemBP = nullptr;
         curInfo.m_nFxType = iFxType;
@@ -160,6 +166,11 @@ void CObjectData::SetObjectData(int32 dwModelIndex, CObject& obj)
         obj.physicalFlags.bDisableCollisionForce = true;
 
         obj.m_pObjectInfo = &CObjectData::GetDefault();
+        
+        if (notsa::bugfixes::CObjectData_SetObjectData_UninitializedPhysics) {
+            obj.m_fElasticity       = CObjectData::GetDefault().m_fElasticity;
+            obj.m_fBuoyancyConstant = CObjectData::GetDefault().m_fBuoyancyConstant;
+        }
         return;
     }
 

@@ -9,7 +9,25 @@
 #include "TaskSimple.h"
 #include "AnimBlendAssociation.h"
 
-class CTaskSimpleChoking : public CTaskSimple {
+class NOTSA_EXPORT_VTABLE CTaskSimpleChoking : public CTaskSimple {
+public:
+    static constexpr auto Type = TASK_SIMPLE_CHOKING;
+
+    static CTaskSimpleChoking* DeleteAnimChokeCB(CAnimBlendAssociation*, void*);
+
+    CTaskSimpleChoking(CPed* attacker, bool bIsTeargas);
+    CTaskSimpleChoking(const CTaskSimpleChoking&);
+
+    CTask*    Clone() const override { return new CTaskSimpleChoking{*this}; }
+    eTaskType GetTaskType() const override { return Type; }
+    bool      MakeAbortable(CPed* ped, eAbortPriority priority = ABORT_PRIORITY_URGENT, const CEvent* event = nullptr) override;
+    bool      ProcessPed(CPed* ped) override;
+
+    void UpdateChoke(CPed* victim, CPed* attacker, bool bIsTeargas);
+
+public:
+    static void InjectHooks();
+
 public:
     CPed*                  m_pAttacker;
     CAnimBlendAssociation* m_pAnim;
@@ -17,12 +35,5 @@ public:
     uint32                 m_nTimeStarted;
     bool                   m_bIsTeargas;
     bool                   m_bIsFinished;
-
-public:
-    static constexpr auto Type = TASK_SIMPLE_CHOKING;
-
-    CTaskSimpleChoking(CPed* attacker, bool bIsTeargas);
-    void UpdateChoke(CPed* victim, CPed* attacker, bool bIsTeargas);
 };
-
 VALIDATE_SIZE(CTaskSimpleChoking, 0x1C);

@@ -9,17 +9,36 @@
 
 #include "SimpleTransform.h"
 
+// 0x54EF40
 void CSimpleTransform::UpdateRwMatrix(RwMatrix* out)
 {
-    ((void(__thiscall*)(CSimpleTransform*, RwMatrix*))0x54EF40)(this, out);
+    const float sinHeading = std::sin(m_fHeading);
+    const float cosHeading = std::cos(m_fHeading);
+
+    out->right = { cosHeading, sinHeading, 0.0f };
+    out->up = { -sinHeading, cosHeading, 0.0f };
+    out->at = { 0.0f, 0.0f, 1.0f };
+    out->pos = m_vPosn;
+
+    RwMatrixUpdate(out);
+
 }
 
+// 0x54EF90
 void CSimpleTransform::Invert(const CSimpleTransform& base)
 {
-    ((void(__thiscall*)(CSimpleTransform*, const CSimpleTransform&))0x54EF90)(this, base);
+    const float cosHeading = cosf(base.m_fHeading);
+    const float sinHeading = sinf(base.m_fHeading);
+
+    m_vPosn.x = -(cosHeading * base.m_vPosn.x) - (sinHeading * base.m_vPosn.y);
+    m_vPosn.y = (sinHeading * base.m_vPosn.x) - (cosHeading * base.m_vPosn.y);
+    m_vPosn.z = -base.m_vPosn.z;
+    m_fHeading = -base.m_fHeading;
 }
 
+// 0x54F1B0
 void CSimpleTransform::UpdateMatrix(CMatrix* out)
 {
-    ((void(__thiscall*)(CSimpleTransform*, class CMatrix*))0x54F1B0)(this, out);
+    out->SetTranslate(m_vPosn);
+    out->SetRotateZOnly(m_fHeading);
 }

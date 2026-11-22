@@ -18,12 +18,17 @@ public:
     ePedStuckState m_state;
 
 public:
+    static void InjectHooks();
+
+public:
     CPedStuckChecker() { // inlined 0x607292
         m_radius = 0;
         m_state = PED_STUCK_STATE_NONE;
     }
 
     bool TestPedStuck(CPed* ped, CEventGroup* eventGroup);
+
+    auto GetState() const { return m_state; }
 };
 
 VALIDATE_SIZE(CPedStuckChecker, 0x10);

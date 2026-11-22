@@ -1,3 +1,4 @@
+
 /***************************************************************************
  *                                                                         *
  * Module  : rtBMP.h                                                       *
@@ -25,13 +26,26 @@
 /*--- Include files ---*/
 #include "rwcore.h"
 
-#include "rtbmp.rpe"   /* automatically generated header file */
+//#include "rtbmp.rpe"   /* automatically generated header file */
 
 /****************************************************************************
  Function prototypes
  */
 
-RwImage* RtBMPImageWrite(RwImage* image, const RwChar* imageName); // 0x7CE990
-RwImage* RtBMPImageRead(const RwChar* imageName);                  // 0x7CDF60
+#ifdef    __cplusplus
+extern "C"
+{
+#endif                          /* __cplusplus */
+
+extern RwImage *RtBMPImageWrite(RwImage * image,
+                                const RwChar * imageName);
+extern RwImage *RtBMPImageRead(const RwChar * imageName);
+
+
+#ifdef    __cplusplus
+}
+#endif                          /* __cplusplus */
+
+/* RWPUBLICEND */
 
 #endif /* RTBMP_H */

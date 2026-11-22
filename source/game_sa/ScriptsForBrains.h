@@ -12,25 +12,19 @@ class CEntity;
 class CObject;
 
 struct tScriptForBrains {
-    int16  m_nIMGindex;
-    int8   m_nAttachType;
-    int8   m_nType;
-    int8   m_ucStatus;
-    float  m_fRadius;
-    uint16 m_nModelID;
-    uint16 m_nPriority;
-    int32  field_10;
-
-    tScriptForBrains() {
-        m_nIMGindex   = -1;
-        m_nModelID    = 0;
-        m_nPriority   = 0;
-        field_10      = 0;
-        m_nAttachType = -1;
-        m_nType       = -1;
-        m_ucStatus    = 1;
-        m_fRadius     = 5.0f;
-    }
+    int16 m_StreamedScriptIndex{-1}; /// SCM ID for `CStreaming` (Translated using SCMToModelId)
+    int8  m_TypeOfBrain{ -1 };
+    int8  m_ObjectGroupingId{ -1 };
+    bool  m_bBrainActive{ true };
+    float m_ObjectBrainActivationRadius{ 5.f };
+    union {
+        struct {
+            int16  m_PedModelOrPedGeneratorIndex;
+            uint16 m_PercentageChance;
+            uint32 m_Pad;
+        };
+        char m_ScriptName[8]{};
+    };
 };
 
 class CScriptsForBrains {
@@ -47,15 +41,15 @@ public:
 
     void CheckIfNewEntityNeedsScript(CEntity* entity, int8 attachType, void* unused);
 
-    int16 GetIndexOfScriptBrainWithThisName(const char* name, int8 attachType);
+    int16 GetIndexOfScriptBrainWithThisName(const char* name, int8 type);
 
     bool HasAttractorScriptBrainWithThisNameLoaded(const char* name);
-    bool IsObjectWithinBrainActivationRange(CObject* entity, CVector const* point);
+    bool IsObjectWithinBrainActivationRange(CObject* entity, const CVector& point);
 
     void MarkAttractorScriptBrainWithThisNameAsNoLongerNeeded(const char* name);
     void RequestAttractorScriptBrainWithThisName(const char* name);
 
-    void StartAttractorScriptBrainWithThisName(const char* name, CEntity* entity, bool bHasAScriptBrain);
+    void StartAttractorScriptBrainWithThisName(const char* name, CPed* ped, bool bHasAScriptBrain);
     void StartNewStreamedScriptBrain(uint8 index, CEntity* entity, bool bHasAScriptBrain);
     void StartOrRequestNewStreamedScriptBrain(uint8 index, CEntity* entity, int8 attachType, bool bAddToWaitingArray);
     void StartOrRequestNewStreamedScriptBrainWithThisName(const char* name, CEntity* entity, int8 attachType);

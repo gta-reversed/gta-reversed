@@ -2,7 +2,7 @@
 
 #include "eModelID.h"
 
-typedef uint16 ModelIndex;
+using ModelIndex = notsa::WEnumU16<eModelID>;
 
 namespace ModelIndices {
     extern ModelIndex& MI_TRAFFICLIGHTS;
@@ -189,6 +189,7 @@ namespace ModelIndices {
     inline bool IsSandKing(int32 modelId) { return modelId == MODEL_SANDKING; }
     inline bool IsBFInjection(int32 modelId) { return modelId == MODEL_BFINJECT; }
     inline bool IsSwatVan(int32 modelId) { return modelId == MODEL_SWATVAN; }
+    inline bool IsNevada(int32 modelId) { return modelId == MODEL_NEVADA; }
 
     inline bool IsSkimmer(int32 modelId) { return modelId == MODEL_SKIMMER; }
 

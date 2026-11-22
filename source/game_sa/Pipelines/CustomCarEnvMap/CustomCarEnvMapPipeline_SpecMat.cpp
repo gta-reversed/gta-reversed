@@ -12,9 +12,9 @@ void* CCustomCarEnvMapPipeline::pluginSpecMatConstructorCB(void* object, int32 o
 void* CCustomCarEnvMapPipeline::pluginSpecMatDestructorCB(void* object, int32 offsetInObject, int32 sizeInObject) {
     auto* data = *RWPLUGINOFFSET(CustomSpecMapPipeMaterialData*, object, ms_specularMapPluginOffset);
     if (data) {
-        if (data->texture) {
-            RwTextureDestroy(data->texture);
-            data->texture = nullptr;
+        if (data->Texture) {
+            RwTextureDestroy(data->Texture);
+            data->Texture = nullptr;
         }
         m_gSpecMapPipeMatDataPool->Delete(data);
         data = nullptr;
@@ -24,87 +24,101 @@ void* CCustomCarEnvMapPipeline::pluginSpecMatDestructorCB(void* object, int32 of
 
 // 0x5D9830
 void* CCustomCarEnvMapPipeline::pluginSpecMatCopyConstructorCB(void* dstObject, const void* srcObject, int32 offsetInObject, int32 sizeInObject) {
-    auto src = *RWPLUGINOFFSET(CustomSpecMapPipeMaterialData*, srcObject, ms_specularMapPluginOffset);
-    auto dst = *RWPLUGINOFFSET(CustomSpecMapPipeMaterialData*, dstObject, ms_specularMapPluginOffset);
+    auto* const srcMat = static_cast<const RpMaterial*>(srcObject);
+    auto* const dstMat = static_cast<RpMaterial*>(dstObject);
+
+    auto* const  src = SpecMapPlGetData(srcMat);
+    auto*& dst = SpecMapPlGetData(dstMat);
     if (src) {
         if (!dst) {
             dst = m_gSpecMapPipeMatDataPool->New();
         }
-        dst->specularity = src->specularity;
-        dst->texture = src->texture;
-        if (src->texture) {
-            src->texture->refCount++;
+        dst->Specularity = src->Specularity;
+        RwTextureAddRef(src->Texture);
+        if (auto* const t = std::exchange(dst->Texture, src->Texture)) {
+            if (notsa::IsFixBugs()) { // Memory leak
+                RwTextureDestroy(t);
+            }
         }
     }
-    return  dst;
+    return dst;
 }
 
 // 0x5D9880
 RwStream* CCustomCarEnvMapPipeline::pluginSpecMatStreamReadCB(RwStream* stream, int32 binaryLength, void* object, int32 offsetInObject, int32 sizeInObject) {
-    auto data = *RWPLUGINOFFSET(CustomSpecMapPipeMaterialData*, object, ms_specularMapPluginOffset);
-    SpecMatBuffer buffer{};
+    auto* const mat = static_cast<const RpMaterial*>(object);
+
+    assert(!SpecMapPlGetData(mat));
+
+    SpecMapPipeMaterialDataBuffer buffer{};
+    assert(binaryLength == sizeof(SpecMapPipeMaterialDataBuffer));
     RwStreamRead(stream, &buffer, binaryLength);
-    if (buffer.specularity != 0.0f) {
-        auto texture = RwTextureRead(buffer.name, nullptr);
-        if (texture) {
-            data = m_gSpecMapPipeMatDataPool->New();
-            if (data) {
-                data->texture = texture;
-                data->specularity = buffer.specularity;
-            }
+
+    if (buffer.Specularity != 0.f) {
+        const auto data = CustomSpecMapPipeMaterialData::FromBuffer(buffer);
+        if (data.Texture) {
+            SpecMapPlGetData(mat) = new (m_gSpecMapPipeMatDataPool->New()) CustomSpecMapPipeMaterialData{data};
         }
     }
+
     return stream;
 }
 
 // 0x5D8D60
-// unsupported
 RwStream* CCustomCarEnvMapPipeline::pluginSpecMatStreamWriteCB(RwStream* stream, int32 binaryLength, const void* object, int32 offsetInObject, int32 sizeInObject) {
-    return plugin::CallAndReturn<RwStream*, 0x5D8D60, RwStream*, int32, const void*, int32, int32>(stream, binaryLength, object, offsetInObject, sizeInObject);
+    auto* const mat = static_cast<const RpMaterial*>(object);
+
+    auto* const data = SpecMapPlGetData(mat);
+    const auto buffer = data
+        ? data->ToBuffer()
+        : SpecMapPipeMaterialDataBuffer{};
+    assert(binaryLength == sizeof(buffer));
+    RwStreamWrite(stream, &buffer, binaryLength);
+
+    return stream;
 }
 
 // 0x5D8DD0
 int32 CCustomCarEnvMapPipeline::pluginSpecMatStreamGetSizeCB(const void* object, int32 offsetInObject, int32 sizeInObject) {
-    return ms_specularMapPluginOffset == -1 ? -1 : sizeof(SpecMatBuffer);
+    return ms_specularMapPluginOffset == -1 ? -1 : sizeof(SpecMapPipeMaterialDataBuffer);
 }
 
 // 0x5D8B90
-float CCustomCarEnvMapPipeline::GetFxSpecSpecularity(RpMaterial* material) {
-    auto data = *RWPLUGINOFFSET(CustomSpecMapPipeMaterialData*, material, ms_specularMapPluginOffset);
-    return data ? data->specularity : 0.0f;
+float CCustomCarEnvMapPipeline::GetFxSpecSpecularity(const RpMaterial* material) {
+    auto* const data = SpecMapPlGetData(material);
+    return data ? data->Specularity : 0.0f;
 }
 
 // 0x5D8B50
-RwTexture* CCustomCarEnvMapPipeline::GetFxSpecTexture(RpMaterial* material) {
-    auto data = *RWPLUGINOFFSET(CustomSpecMapPipeMaterialData*, material, ms_specularMapPluginOffset);
-    return data ? data->texture : nullptr;
+RwTexture* CCustomCarEnvMapPipeline::GetFxSpecTexture(const RpMaterial* material) {
+    auto* const data = SpecMapPlGetData(material);
+    return data ? data->Texture : nullptr;
 }
 
 // 0x5D8B00
 void CCustomCarEnvMapPipeline::SetFxSpecTexture(RpMaterial* material, RwTexture* texture) {
-    auto* data = *RWPLUGINOFFSET(CustomSpecMapPipeMaterialData*, material, ms_specularMapPluginOffset);
-    if (!data)
+    auto* const data = SpecMapPlGetData(material);
+    if (!data) {
         return;
-
-    if (texture) {
-        if (data->texture) {
-            RwTextureDestroy(data->texture);
-            data->texture = nullptr;
-        }
-        data->texture = texture;
-        texture->refCount++;
     }
 
-    if (data->texture) {
-        RwTextureSetAddressing(data->texture, rwTEXTUREADDRESSCLAMP);
-        RwTextureSetFilterMode(data->texture, rwFILTERLINEAR);
+    if (texture) {
+        if (auto* const tex = std::exchange(data->Texture, texture)) {
+            RwTextureDestroy(tex);
+        }
+        RwTextureAddRef(texture);
+    }
+
+    if (auto* const t = data->Texture) {
+        RwTextureSetAddressing(t, rwTEXTUREADDRESSCLAMP);
+        RwTextureSetFilterMode(t, rwFILTERLINEAR);
     }
 }
 
 // 0x5D8B70
 void CCustomCarEnvMapPipeline::SetFxSpecSpecularity(RpMaterial* material, float value) {
-    auto data = *RWPLUGINOFFSET(CustomSpecMapPipeMaterialData*, material, ms_specularMapPluginOffset);
+    auto* const data = SpecMapPlGetData(material);
     if (data) {
-        data->specularity = value;
+        data->Specularity = value;
     }
 }

@@ -7,6 +7,7 @@
 #pragma once
 
 #include "Vehicle.h"
+#include "Skidmark.h"
 
 struct tBikeHandlingData;
 
@@ -25,74 +26,69 @@ enum eBikeNodes {
     BIKE_NUM_NODES
 };
 
-class CBike : public CVehicle {
+class NOTSA_EXPORT_VTABLE CBike : public CVehicle {
+    static constexpr auto NUM_SUSP_LINES = 4;
 public:
-    RwFrame* m_aBikeNodes[BIKE_NUM_NODES];
+    std::array<RwFrame*, BIKE_NUM_NODES>           m_aBikeNodes;
     bool     m_bLeanMatrixCalculated;
     CMatrix  m_mLeanMatrix;
     union {
         struct {
-            uint8 bDamageFlag1     : 1;
-            uint8 bDamageFlag2     : 1;
-            uint8 bIgnoreWater     : 1; // bWaterTight
-            uint8 bIsBeingPickedUp : 1;
-            uint8 bIsStanding      : 1;
-            uint8 bExtraSpeed      : 1;
-            uint8 bIsOnFire        : 1;
-            uint8 bWheelieCam      : 1;
+            uint8 bShouldNotChangeColour : 1;
+            uint8 bPanelsAreThougher : 1;
+            uint8 bWaterTight : 1; // Ignores water
+            uint8 bGettingPickedUp : 1;
+            uint8 bOnSideStand : 1; // Is Standing
+            uint8 bPlayerBoost : 1;
+            uint8 bEngineOnFire : 1;
+            uint8 bWheelieForCamera : 1;
         } bikeFlags;
         uint8 nBikeFlags;
     };
-    CVector            f618;
-    CVector            m_vecAvgSurfaceNormal; // sued
-    CVector            m_vecAvgSurfaceRight;  // sued
-    tBikeHandlingData* m_pBikeHandlingData;
-    CRideAnimData      m_rideAnimData;
-    uint8              m_anWheelDamageState[2];
+    CVector m_vecAveGroundNormal;
+    CVector m_vecGroundRight;
+    CVector m_vecOldSpeedForPlayback;
+    tBikeHandlingData* m_BikeHandling;
+    CRideAnimData m_RideAnimData;
+    std::array<uint8, 2>          m_nWheelStatus;
+    std::array<CColPoint, NUM_SUSP_LINES> m_aWheelColPoints;
+    std::array<float, NUM_SUSP_LINES>     m_aWheelRatios;
+    std::array<float, NUM_SUSP_LINES>     m_aRatioHistory;
+    std::array<float, NUM_SUSP_LINES>     m_WheelCounts;
+    float m_fBrakeCount;
+    std::array<eSkidmarkType, 2>  m_aWheelSkidmarkType;
+    std::array<bool, 2>           m_bWheelBloody;
+    std::array<bool, 2>           m_bMoreSkidMarks;
+    std::array<float, 2>          m_aWheelPitchAngles;
+    std::array<float, 2>          m_aWheelAngularVelocity;
+    std::array<float, 2>          m_aWheelSuspensionHeights;
+    std::array<float, 2>          m_aWheelOrigHeights;
+    std::array<float, NUM_SUSP_LINES> m_fSuspensionLength;
+    std::array<float, NUM_SUSP_LINES> m_fLineLength;
+    float m_fHeightAboveRoad;
+    float m_fExtraTractionMult;
+    float m_fSwingArmLength;
+    float m_fForkYOffset;
+    float m_fForkZOffset;
+    float m_fSteerAngleTan;
+    uint16 m_nBrakesOn;
+    float m_fTyreTemp;
+    float m_fBrakingSlide;
+    uint8 m_nFixLeftHand;
+    uint8 m_nFixRightHand;
+    uint8 m_nTestPedCollision;
+    float m_PrevSpeed;
+    float m_BlowUpTimer;
+    std::array<CPhysical*, 4>     m_aGroundPhysicalPtrs;
+    std::array<CVector, 4>        m_aGroundOffsets;
+    CEntity* m_Damager; // Entity That Set Us On Fire
+    uint8 m_nNoOfContactWheels;
+    uint8 m_NumDriveWheelsOnGround;
+    uint8 m_NumDriveWheelsOnGroundLastFrame;
+    float m_GasPedalAudioRevs;
+    std::array<tWheelState, 2>    m_WheelStates;
 
-    CColPoint     m_aWheelColPoint[4];
-    float         m_fWheelsSuspensionCompression[4];
-    float         m_fWheelsSuspensionCompressionPrev[4];
-    float         m_aWheelTimer[4];
-    float         field_740; // sued unused
-    int32         m_anWheelSurfaceType[2];
-    bool          m_abBloodState[2];
-    bool          m_aWheelSkidmarkUnk[2]; // sued
-    float         m_afWheelRotationX[2];
-    float         m_fWheelSpeed[2];
-
-    float         m_aWheelFrontPosition;     // sued m_aWheelPosition[2]
-    float         m_aWheelRearPosition;
-    float         m_aWheelBaseFrontPosition; // sued m_aWheelBasePosition[2]
-    float         m_aWheelBaseRearPosition;
-
-    float         field_770[4]; // sued m_aSuspensionSpringLength[4]
-    float         field_780[4]; // sued m_aSuspensionLineLength[4]
-    float         m_fHeightAboveRoad;
-    float         m_fTraction;
-
-    float         m_fRearForkLength;
-    float         m_fFrontForkY;
-    float         m_fFrontForkZ;
-    float         m_fFrontForkSlope;
-
-    int16         m_bDoingBurnout;
-    float         m_fTireTemperature;
-    float         m_fBrakeDestabilization;
-    bool          m_bPedLeftHandFixed;
-    bool          m_bPedRightHandFixed;
-    char          field_7B6[2];
-    cTransmission* field_7B8; // sued float m_fVelocityChangeForAudio
-    float         m_fFireBlowUpTimer;
-    CEntity*      m_apWheelCollisionEntity[4];  // sued m_aGroundPhysical
-    CVector       m_avTouchPointsLocalSpace[4]; // sued m_aGroundOffset
-    CEntity*      m_pDamager;
-    uint8         m_nNumContactWheels;
-    uint8         m_nNumWheelsOnGround;
-    uint8         m_nDriveWheelsOnGround;     // sued
-    uint8         m_nDriveWheelsOnGroundPrev; // sued
-    float         m_fGasPedalAudio;           // sued
-    tWheelState   m_anWheelState[2];
+    static constexpr auto Type = VEHICLE_TYPE_BIKE;
 
 public:
     CBike(int32 modelIndex, eVehicleCreatedBy createdBy); // 0x6BF430
@@ -124,23 +120,23 @@ public:
     bool IsDoorFullyOpen(eDoors door) override { return false; } // 0x6B58F0
     bool IsDoorClosed(eDoors door) override { return false; }    // 0x6B5900
     bool IsDoorMissing(eDoors door) override { return true; }    // 0x6B5910
-    bool IsDoorReady(uint32 door) override { return true; }      // 0x6B5920
-    bool IsDoorFullyOpen(uint32 door) override { return false; } // 0x6B5930
-    bool IsDoorClosed(uint32 door) override { return false; }    // 0x6B5940
-    bool IsDoorMissing(uint32 door) override { return true; }    // 0x6B5950
+    bool IsDoorReadyU32(uint32 door) override { return true; }      // 0x6B5920
+    bool IsDoorFullyOpenU32(uint32 door) override { return false; } // 0x6B5930
+    bool IsDoorClosedU32(uint32 door) override { return false; }    // 0x6B5940
+    bool IsDoorMissingU32(uint32 door) override { return true; }    // 0x6B5950
 
-    bool IsRoomForPedToLeaveCar(uint32 a1, CVector* a2) override { return true; }                        // 0x6B7270
-    inline bool IsComponentPresent(int32 componentId) override { return m_aBikeNodes[componentId] != nullptr; } // 0x6B59E0
-    CRideAnimData* GetRideAnimData() override { return &m_rideAnimData; }                                // 0x6B58C0
-    float GetHeightAboveRoad() override { return m_fHeightAboveRoad; }                                   // 0x6B58B0
-    int32 GetNumContactWheels() override { return m_nNumContactWheels; }                                 // 0x6B58A0
-    float FindWheelWidth(bool bRear) override { return 0.15f; }                                          // 0x6B8940
+    bool IsRoomForPedToLeaveCar(uint32 door, CVector* pvecCarJackOffset) override { return true; }                    // 0x6B7270
+    inline bool IsComponentPresent(int32 componentId) const override { return m_aBikeNodes[componentId] != nullptr; } // 0x6B59E0
+    CRideAnimData* GetRideAnimData() override { return &m_RideAnimData; }                                             // 0x6B58C0
+    float GetHeightAboveRoad() override { return m_fHeightAboveRoad; }                                                // 0x6B58B0
+    int32 GetNumContactWheels() override { return m_nNoOfContactWheels; }                                             // 0x6B58A0
+    float FindWheelWidth(bool bRear) override { return 0.15f; }                                                       // 0x6B8940
 
     virtual bool ProcessAI(uint32& extraHandlingFlags);
 
     void SetupModelNodes();
     void dmgDrawCarCollidingParticles(const CVector& position, float power, eWeaponType weaponType);
-    static bool DamageKnockOffRider(CVehicle* arg0, float arg1, uint16 arg2, CEntity* arg3, CVector& arg4, CVector& arg5);
+    static bool DamageKnockOffRider(CVehicle* vehicle, float damageIntensity, uint16 pieceType, CEntity* damager, const CVector& collisionPos, const CVector& collisionImpactVelocity);
     CPed* KnockOffRider(eWeaponType arg0, uint8 arg1, CPed* ped, bool arg3);
     void SetRemoveAnimFlags(CPed* ped);
     void ReduceHornCounter();
@@ -158,48 +154,12 @@ public:
     void GetCorrectedWorldDoorPosition(CVector& out, CVector arg1, CVector arg2);
 
 public: // NOTSA
-    inline bool IsAnyWheelMakingContactWithGround() {
-        return m_fWheelsSuspensionCompression[0] != 1.0F
-               || m_fWheelsSuspensionCompression[1] != 1.0F
-               || m_fWheelsSuspensionCompression[2] != 1.0F
-               || m_fWheelsSuspensionCompression[3] != 1.0F;
-    };
+    [[nodiscard]] bool IsAnyWheelMakingContactWithGround()  const { return std::ranges::any_of(m_aWheelRatios, [](const auto& r) { return r != 1.0F; }); };
+    [[nodiscard]] bool IsAnyWheelNotMakingContactWithGround() const { return std::ranges::any_of(m_aWheelRatios, [](const auto& r) { return r == 1.0F; }); };
 
-    inline bool IsAnyWheelNotMakingContactWithGround() {
-        return m_fWheelsSuspensionCompression[0] == 1.0F
-               || m_fWheelsSuspensionCompression[1] == 1.0F
-               || m_fWheelsSuspensionCompression[2] == 1.0F
-               || m_fWheelsSuspensionCompression[3] == 1.0F;
-    };
-
-private:
-    friend void InjectHooksMain();
     static void InjectHooks();
-
     CBike* Constructor(int32 modelIndex, eVehicleCreatedBy createdBy) { this->CBike::CBike(modelIndex, createdBy); return this; }
     CBike* Destructor() {this->CBike::~CBike(); return this; }
-
-    void Fix_Reversed() { CBike::Fix(); }
-    void BlowUpCar_Reversed(CEntity* damager, bool bHideExplosion) { CBike::BlowUpCar(damager, bHideExplosion); }
-    void ProcessDrivingAnims_Reversed(CPed* driver, bool blend) { CBike::ProcessDrivingAnims(driver, blend); }
-    bool BurstTyre_Reversed(uint8 tyreComponentId, bool bPhysicalEffect) { return CBike::BurstTyre(tyreComponentId, bPhysicalEffect); }
-    void ProcessControlInputs_Reversed(uint8 playerNum) { CBike::ProcessControlInputs(playerNum); }
-    int32 ProcessEntityCollision_Reversed(CEntity* entity, CColPoint* colPoint) { return CBike::ProcessEntityCollision(entity, colPoint); }
-    void Render_Reversed() { CBike::Render(); }
-    void PreRender_Reversed() { CBike::PreRender(); }
-    void Teleport_Reversed(CVector destination, bool resetRotation) { CBike::Teleport(destination, resetRotation); }
-    void ProcessControl_Reversed() { CBike::ProcessControl(); }
-    void VehicleDamage_Reversed(float damageIntensity, eVehicleCollisionComponent component, CEntity* damager, CVector* vecCollisionCoors, CVector* vecCollisionDirection, eWeaponType weapon) { CBike::VehicleDamage(damageIntensity, component, damager, vecCollisionCoors, vecCollisionDirection, weapon); }
-    void SetupSuspensionLines_Reversed() { CBike::SetupSuspensionLines(); }
-    void SetModelIndex_Reversed(uint32 index) { CBike::SetModelIndex(index); }
-    void PlayCarHorn_Reversed() { CBike::PlayCarHorn(); }
-    void SetupDamageAfterLoad_Reversed() { CBike::SetupDamageAfterLoad(); }
-    void DoBurstAndSoftGroundRatios_Reversed() { CBike::DoBurstAndSoftGroundRatios(); }
-    bool SetUpWheelColModel_Reversed(CColModel* wheelCol) { return CBike::SetUpWheelColModel(wheelCol); }
-    void RemoveRefsToVehicle_Reversed(CEntity* entityToRemove) { CBike::RemoveRefsToVehicle(entityToRemove); }
-    void ProcessControlCollisionCheck_Reversed(bool applySpeed) { CBike::ProcessControlCollisionCheck(applySpeed); }
-    void GetComponentWorldPosition_Reversed(int32 componentId, CVector& outPos) { CBike::GetComponentWorldPosition(componentId, outPos); }
-    void ProcessOpenDoor_Reversed(CPed* ped, uint32 doorComponentId, uint32 animGroup, uint32 animId, float fTime) { CBike::ProcessOpenDoor(ped, doorComponentId, animGroup, animId, fTime); }
-};
+                                                                                    };
 VALIDATE_SIZE(CBike, 0x814);
-VALIDATE_OFFSET(CBike, m_fGasPedalAudio, 0x808);
+VALIDATE_OFFSET(CBike, m_GasPedalAudioRevs, 0x808);

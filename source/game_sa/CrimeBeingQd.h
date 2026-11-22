@@ -8,7 +8,7 @@
 
 #include "Vector.h"
 
-#include "eCrimeType.h"
+#include "Enums/eCrimeType.h"
 
 class CCrimeBeingQd {
 public:

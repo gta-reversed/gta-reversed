@@ -2,17 +2,6 @@
 
 #include "ColAccel.h"
 
-CColAccelColBound*& CColAccel::m_colBounds = *(CColAccelColBound**)0xBC4090;
-IplDef*& CColAccel::m_iplDefs = *(IplDef**)0xBC4094;
-int32*& CColAccel::m_iSectionSize = *(int32**)0xBC4098;
-int32& CColAccel::m_iCachingColSize = *(int32*)0xBC409C;
-eColAccelState& CColAccel::m_iCacheState = *(eColAccelState*)0xBC40A0;
-CColAccelColEntry*& CColAccel::mp_caccColItems = *(CColAccelColEntry**)0xBC40A4;
-int32& CColAccel::m_iNumColItems = *(int32*)0xBC40A8;
-CColAccelIPLEntry*& CColAccel::mp_caccIPLItems = *(CColAccelIPLEntry**)0xBC40AC;
-int32& CColAccel::m_iNumIPLItems = *(int32*)0xBC40B0;
-int32& CColAccel::m_iNumSections = *(int32*)0xBC40B4;
-int32& CColAccel::m_iNumColBounds = *(int32*)0xBC40B8;
 const char* CColAccel::mp_cCacheName = "MODELS\\CINFO.BIN"; // 0x8D0F84
 
 void CColAccel::InjectHooks() {
@@ -39,6 +28,8 @@ bool CColAccel::isCacheLoading() {
 
 // 0x5B31A0
 void CColAccel::startCache() {
+    ZoneScoped;
+
     m_iCachingColSize = GetColModelPool()->GetSize();
     m_iSectionSize    = new int32[64];
     m_iplDefs         = new IplDef[TOTAL_IPL_MODEL_IDS]();
@@ -47,6 +38,8 @@ void CColAccel::startCache() {
 
 // 0x5B2AD0
 void CColAccel::endCache() {
+    ZoneScoped;
+
     if (m_iCacheState == eColAccelState::COLACCEL_STARTED) {
         auto* file = CFileMgr::OpenFileForWriting(mp_cCacheName);
         CFileMgr::Write(file, &m_iNumColItems,  sizeof(m_iNumColItems));
@@ -91,7 +84,7 @@ void CColAccel::addCacheCol(PackedModelStartEnd startEnd, const CColModel& colMo
     colEntry.m_boundBox = colModel.m_boundBox;
     colEntry.m_boundSphere = colModel.m_boundSphere;
     colEntry.m_nColSlot = colModel.m_nColSlot;
-    colEntry.m_bColModelNotEmpty = colModel.m_bNotEmpty;
+    colEntry.m_bColModelNotEmpty = colModel.m_bHasCollisionVolumes;
 
     ++m_iNumColItems;
 }
@@ -108,7 +101,7 @@ void CColAccel::cacheLoadCol() {
         cm->m_boundBox = colEntry.m_boundBox;
         cm->m_boundSphere = colEntry.m_boundSphere;
         cm->m_nColSlot = colEntry.m_nColSlot;
-        cm->m_bNotEmpty = colEntry.m_bColModelNotEmpty;
+        cm->m_bHasCollisionVolumes = colEntry.m_bColModelNotEmpty;
 
         mi->SetColModel(cm, true);
         CColStore::IncludeModelIndex(colEntry.m_nColSlot, colEntry.m_wModelStart);
@@ -186,20 +179,20 @@ void CColAccel::addIPLEntity(CEntity** ppEntities, int32 entitiesCount, int32 en
         return;
 
     auto& entity = ppEntities[entityIndex];
-    auto* entModelInfo = CModelInfo::GetModelInfo(entity->m_nModelIndex);
+    auto* entModelInfo = CModelInfo::GetModelInfo(entity->GetModelIndex());
 
     CColAccelIPLEntry iplEntry;
     iplEntry.m_nFlags = 0;
     iplEntry.m_nEntityIndex = entityIndex;
-    iplEntry.m_nModelId = entity->m_nModelIndex;
-    iplEntry.m_nLodModelId = entity->m_pLod->m_nModelIndex;
+    iplEntry.m_nModelId = entity->GetModelIndex();
+    iplEntry.m_nLodModelId = entity->GetLod()->GetModelIndex();
     iplEntry.m_nLodIndex = -1;
 
-    if (entity->m_nNumLodChildren || TheCamera.m_fLODDistMultiplier * entModelInfo->m_fDrawDistance > 300.0F)
+    if (entity->GetNumLodChildren() || TheCamera.m_fLODDistMultiplier * entModelInfo->m_fDrawDistance > 300.0F)
         iplEntry.m_bIsFarDrawDist = true;
 
     for (auto i = 0; i < entitiesCount; ++i) {
-        if (ppEntities[i] != entity->m_pLod)
+        if (ppEntities[i] != entity->GetLod())
             continue;
 
         iplEntry.m_nLodIndex = i;
@@ -207,7 +200,7 @@ void CColAccel::addIPLEntity(CEntity** ppEntities, int32 entitiesCount, int32 en
     }
 
     auto* lodModelInfo = CModelInfo::GetModelInfo(iplEntry.m_nLodModelId);
-    if (entity->m_pLod->m_nNumLodChildren == 1) {
+    if (entity->GetLod()->GetNumLodChildren() == 1) {
         if (entity->m_bUnderwater)
             iplEntry.m_bIsUnderwater = true;
 

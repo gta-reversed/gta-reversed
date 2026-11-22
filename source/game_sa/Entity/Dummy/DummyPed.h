@@ -8,7 +8,7 @@
 
 #include "Dummy.h"
 
-class CDummyPed : public CDummy {
+class NOTSA_EXPORT_VTABLE CDummyPed : public CDummy {
 public:
 };
 

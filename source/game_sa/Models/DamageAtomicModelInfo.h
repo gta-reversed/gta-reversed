@@ -2,11 +2,11 @@
 
 #include "AtomicModelInfo.h"
 
-class CDamageAtomicModelInfo : public CAtomicModelInfo {
+class NOTSA_EXPORT_VTABLE CDamageAtomicModelInfo : public CAtomicModelInfo {
 public:
     RpAtomic* m_pDamagedAtomic;
 
-    static bool& ms_bCreateDamagedVersion;
+    static inline auto& ms_bCreateDamagedVersion = StaticRef<bool>(0xA9B0B0);
 
 public:
     CDamageAtomicModelInfo() : CAtomicModelInfo() {}
@@ -22,12 +22,6 @@ public:
 private:
     friend void InjectHooksMain();
     static void InjectHooks();
-
-    CDamageAtomicModelInfo* AsDamageAtomicModelInfoPtr_Reversed();
-    void Init_Reversed();
-    void DeleteRwObject_Reversed();
-    struct RwObject* CreateInstance_Reversed();
-    struct RwObject* CreateInstance_Reversed(RwMatrix* matrix);
 };
 
 VALIDATE_SIZE(CDamageAtomicModelInfo, 0x24);

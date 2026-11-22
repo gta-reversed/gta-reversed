@@ -14,7 +14,7 @@ public:
     uint8  m_nSexiness;
     float  m_fAttackStrength;
     float  m_fDefendWeakness;
-    int16  m_wShootingRate;
+    uint16 m_flags;
     char   m_nDefaultDecisionMaker;
 };
 
@@ -22,7 +22,7 @@ VALIDATE_SIZE(CPedStat, 0x34);
 
 class CPedStats {
 public:
-    static CPedStat*& ms_apPedStats;
+    static inline auto& ms_apPedStats = StaticRef<CPedStat*>(0xC0BBEC);
 
 public:
     static void InjectHooks();
@@ -33,5 +33,5 @@ public:
     static ePedStats GetPedStatType(const char* statName);
     static CPedStat* GetPedStatInfo(const char* statName);
     static CPedStat* GetPedStatByArrayIndex(uint32 statIndex);
-    static void FindIndexWithPedStat(void* a1);
+    static int32     FindIndexWithPedStat(const CPedStat* pedStat);
 };

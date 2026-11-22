@@ -8,7 +8,7 @@
 
 #include "Ped.h"
 
-class CEmergencyPed : public CPed {
+class NOTSA_EXPORT_VTABLE CEmergencyPed : public CPed {
 public:
     CEmergencyPed(ePedType pedType, uint32 modelIndex);
     ~CEmergencyPed() override = default;

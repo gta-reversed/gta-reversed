@@ -3,9 +3,6 @@
 #include "ShinyTexts.h"
 #include "Shadows.h"
 
-uint32& CShinyTexts::NumShinyTexts = *(uint32*)0xC7C6F8;
-CRegisteredShinyText(&CShinyTexts::aShinyTexts)[32] = *(CRegisteredShinyText(*)[32])0xC7D258;
-
 void CShinyTexts::InjectHooks() {
     RH_ScopedClass(CShinyTexts);
     RH_ScopedCategoryGlobal();
@@ -25,7 +22,7 @@ void CShinyTexts::Init() {
 void CShinyTexts::RenderOutGeometryBuffer() {
     if (uiTempBufferIndicesStored) {
         LittleTest();
-        if (RwIm3DTransform(aTempBufferVertices, uiTempBufferVerticesStored, nullptr, rwIM3D_VERTEXUV))
+        if (RwIm3DTransform(TempBufferVertices.m_3d, uiTempBufferVerticesStored, nullptr, rwIM3D_VERTEXUV))
         {
             RwIm3DRenderIndexedPrimitive(rwPRIMTYPETRILIST, aTempBufferIndices, uiTempBufferIndicesStored);
             RwIm3DEnd();
@@ -37,6 +34,8 @@ void CShinyTexts::RenderOutGeometryBuffer() {
 
 // 0x724890
 void CShinyTexts::Render() {
+    ZoneScoped;
+
     if (NumShinyTexts == 0)
         return;
 
@@ -49,9 +48,9 @@ void CShinyTexts::Render() {
     uiTempBufferVerticesStored = 0;
 
     RwTexture* texture{};
-    for (CRegisteredShinyText& text : std::span{ aShinyTexts, NumShinyTexts }) {
+    for (CRegisteredShinyText& text : GetShinyTexts()) {
         if (uiTempBufferIndicesStored > TOTAL_TEMP_BUFFER_INDICES - 64u ||
-            uiTempBufferVerticesStored > TOTAL_TEMP_BUFFER_VERTICES - 64u
+            uiTempBufferVerticesStored > TOTAL_TEMP_BUFFER_3DVERTICES - 64u
         )
         {
             RenderOutGeometryBuffer();
@@ -72,7 +71,7 @@ void CShinyTexts::Render() {
         const CVector*     posn[] = { &text.m_vecCornerAA, &text.m_vecCornerAB, &text.m_vecCornerBA, &text.m_vecCornerBB };
         const RwTexCoords* uvs[]  = { &text.m_texCoorsAA, &text.m_texCoorsAB, &text.m_texCoorsBA, &text.m_texCoorsBB };
         for (unsigned i = 0u; i < 4u; i++) {
-            RxObjSpace3DVertex* vertex = &aTempBufferVertices[GetRealVertexIndex(i)];
+            auto* vertex = &TempBufferVertices.m_3d[GetRealVertexIndex(i)];
 
             RxObjSpace3DVertexSetPreLitColor(vertex, &color);
             RxObjSpace3DVertexSetPos(vertex, posn[i]);

@@ -6,21 +6,33 @@
 */
 #pragma once
 
-class CPtrNodeDoubleLink {
-public:
-    void*               m_item;
-    CPtrNodeDoubleLink* m_next;
-    CPtrNodeDoubleLink* m_prev;
+#include "PtrNode.h"
 
-public:
-    static void InjectHooks();
-
-    CPtrNodeDoubleLink(void* item) { m_item = item; }
-
-    static void* operator new(unsigned size);
-    static void  operator delete(void* ptr, size_t sz);
-
-    void AddToList(class CPtrListDoubleLink* list);
+// Doing it like this because including `Pools.h` here is a suicide
+namespace details {
+void* CPtrNodeDoubleLink__operator_new(size_t sz);
+void  CPtrNodeDoubleLink__operator_delete(void* data, size_t sz);
 };
 
-VALIDATE_SIZE(CPtrNodeDoubleLink, 0xC);
+template<typename TItemType>
+class CPtrNodeDoubleLink : public CPtrNode<TItemType, CPtrNodeDoubleLink<TItemType>> {
+public:
+    using ItemType = TItemType;
+    using RawItemType = std::remove_cvref_t<std::remove_pointer_t<ItemType>>;
+
+public:
+    static void* operator new(size_t sz) {
+        return details::CPtrNodeDoubleLink__operator_new(sz);
+    }
+
+    static void operator delete(void* data, size_t sz) {
+        return details::CPtrNodeDoubleLink__operator_delete(data, sz);
+    }
+
+public:
+    using CPtrNode<ItemType, CPtrNodeDoubleLink<ItemType>>::CPtrNode;
+
+public:
+    CPtrNodeDoubleLink<ItemType>* Prev{};
+};
+VALIDATE_SIZE(CPtrNodeDoubleLink<void*>, 0xC);

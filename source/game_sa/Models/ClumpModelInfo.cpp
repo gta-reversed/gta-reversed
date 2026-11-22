@@ -13,21 +13,21 @@
 
 void CClumpModelInfo::InjectHooks()
 {
-    RH_ScopedClass(CClumpModelInfo);
+    RH_ScopedVirtualClass(CClumpModelInfo, 0x85BD30, 17);
     RH_ScopedCategory("Models");
 
-    RH_ScopedVirtualInstall(GetModelType, 0x4C5720);
-    RH_ScopedVirtualInstall(Init, 0x4C4E40);
-    RH_ScopedVirtualInstall(Shutdown, 0x4C4E60);
-    RH_ScopedVirtualInstall(DeleteRwObject, 0x4C4E70);
-    RH_ScopedVirtualInstall(GetRwModelType, 0x4C5730);
-    // clang moment: RH_ScopedVirtualOverloadedInstall(CreateInstance, "void", 0x4C5140, RwObject * (CClumpModelInfo::*)());
-    // clang moment: RH_ScopedVirtualOverloadedInstall(CreateInstance, "mat", 0x4C5110, RwObject * (CClumpModelInfo::*)(RwMatrix*));
-    RH_ScopedVirtualInstall(SetAnimFile, 0x4C5200);
-    RH_ScopedVirtualInstall(ConvertAnimFileIndex, 0x4C5250);
-    RH_ScopedVirtualInstall(GetAnimFileIndex, 0x4C5740);
-    RH_ScopedVirtualInstall(GetBoundingBox, 0x4C5710);
-    RH_ScopedVirtualInstall(SetClump, 0x4C4F70);
+    RH_ScopedVMTInstall(GetModelType, 0x4C5720);
+    RH_ScopedVMTInstall(Init, 0x4C4E40);
+    RH_ScopedVMTInstall(Shutdown, 0x4C4E60);
+    RH_ScopedVMTInstall(DeleteRwObject, 0x4C4E70);
+    RH_ScopedVMTInstall(GetRwModelType, 0x4C5730);
+    RH_ScopedVMTOverloadedInstall(CreateInstance, "void", 0x4C5140, RwObject * (CClumpModelInfo::*)());
+    RH_ScopedVMTOverloadedInstall(CreateInstance, "mat", 0x4C5110, RwObject * (CClumpModelInfo::*)(RwMatrix*));
+    RH_ScopedVMTInstall(SetAnimFile, 0x4C5200);
+    RH_ScopedVMTInstall(ConvertAnimFileIndex, 0x4C5250);
+    RH_ScopedVMTInstall(GetAnimFileIndex, 0x4C5740);
+    RH_ScopedVMTInstall(GetBoundingBox, 0x4C5710);
+    RH_ScopedVMTInstall(SetClump, 0x4C4F70);
     RH_ScopedInstall(SetFrameIds, 0x4C5460);
     RH_ScopedInstall(SetHierarchyForSkinAtomic, 0x4C4EF0);
     RH_ScopedInstall(AtomicSetupLightingCB, 0x4C4F30);
@@ -43,48 +43,36 @@ void CClumpModelInfo::InjectHooks()
     RH_ScopedInstall(SetClumpModelInfoFlags, 0x5B3C30);
 }
 
+// 0x4C5720
 ModelInfoType CClumpModelInfo::GetModelType()
-{
-    return CClumpModelInfo::GetModelType_Reversed();
-}
-ModelInfoType CClumpModelInfo::GetModelType_Reversed()
 {
     return ModelInfoType::MODEL_INFO_CLUMP;
 }
 
+// 0x4C4E40
 void CClumpModelInfo::Init()
-{
-    CClumpModelInfo::Init_Reversed();
-}
-void CClumpModelInfo::Init_Reversed()
 {
     CBaseModelInfo::Init();
     m_nAnimFileIndex = -1;
 }
 
+// 0x4C4E60
 void CClumpModelInfo::Shutdown()
-{
-    return CClumpModelInfo::Shutdown_Reversed();
-}
-void CClumpModelInfo::Shutdown_Reversed()
 {
     CBaseModelInfo::Shutdown();
 }
 
+// 0x4C4E70
 void CClumpModelInfo::DeleteRwObject()
 {
-    CClumpModelInfo::DeleteRwObject_Reversed();
-}
-void CClumpModelInfo::DeleteRwObject_Reversed()
-{
-    if (!m_pRwObject)
+    if (!GetRwObject())
         return;
 
-    auto atomic = Get2DEffectAtomic(m_pRwClump);
-    if (atomic)
+    if (auto* const atomic = Get2DEffectAtomic(GetRpClump())) {
         m_n2dfxCount -= RpGeometryGet2dFxCount(RpAtomicGetGeometry(atomic));
+    }
 
-    RpClumpDestroy(m_pRwClump);
+    RpClumpDestroy(GetRpClump());
     m_pRwObject = nullptr;
 
     CBaseModelInfo::RemoveTexDictionaryRef();
@@ -96,26 +84,13 @@ void CClumpModelInfo::DeleteRwObject_Reversed()
         CBaseModelInfo::DeleteCollisionModel();
 }
 
-uint32 CClumpModelInfo::GetRwModelType()
-{
-    return CClumpModelInfo::GetRwModelType_Reversed();
-}
-uint32 CClumpModelInfo::GetRwModelType_Reversed()
-{
-    return rpCLUMP;
-}
-
 RwObject* CClumpModelInfo::CreateInstance()
 {
-    return CClumpModelInfo::CreateInstance_Reversed();
-}
-RwObject* CClumpModelInfo::CreateInstance_Reversed()
-{
-    if (!m_pRwObject)
+    if (!GetRwObject())
         return nullptr;
 
     CBaseModelInfo::AddRef();
-    auto clonedClump = RpClumpClone(m_pRwClump);
+    auto clonedClump = RpClumpClone(GetRpClump());
     auto atomic = GetFirstAtomic(clonedClump);
     if (atomic && RpSkinGeometryGetSkin(RpAtomicGetGeometry(atomic)) && !bHasComplexHierarchy) {
         auto hierarchy = GetAnimHierarchyFromClump(clonedClump);
@@ -127,9 +102,8 @@ RwObject* CClumpModelInfo::CreateInstance_Reversed()
 
     if (bHasAnimBlend) {
         RpAnimBlendClumpInit(clonedClump);
-        auto animBlend = CAnimManager::GetAnimation(m_nKey, &CAnimManager::ms_aAnimBlocks[m_nAnimFileIndex]);
-        if (animBlend) {
-            CAnimManager::BlendAnimation(clonedClump, animBlend, ANIMATION_LOOPED, 1.0F);
+        if (const auto anim = CAnimManager::GetAnimation(m_nKey, &CAnimManager::GetAnimBlocks()[m_nAnimFileIndex])) {
+            CAnimManager::BlendAnimation(clonedClump, anim, ANIMATION_IS_LOOPED, 1.0F);
         }
     }
 
@@ -139,11 +113,7 @@ RwObject* CClumpModelInfo::CreateInstance_Reversed()
 
 RwObject* CClumpModelInfo::CreateInstance(RwMatrix* matrix)
 {
-    return CClumpModelInfo::CreateInstance_Reversed(matrix);
-}
-RwObject* CClumpModelInfo::CreateInstance_Reversed(RwMatrix* matrix)
-{
-    if (!m_pRwObject)
+    if (!GetRwObject())
         return nullptr;
 
     auto clump = CreateInstance();
@@ -151,25 +121,20 @@ RwObject* CClumpModelInfo::CreateInstance_Reversed(RwMatrix* matrix)
     return clump;
 }
 
+// 0x4C5200
 void CClumpModelInfo::SetAnimFile(const char* filename)
-{
-    CClumpModelInfo::SetAnimFile_Reversed(filename);
-}
-void CClumpModelInfo::SetAnimFile_Reversed(const char* filename)
 {
     if (!strcmp(filename, "null"))
         return;
 
-    auto name = new char[strlen(filename) + 1];
-    strcpy(name, filename);
+    const auto size = strlen(filename) + 1;
+    auto name = new char[size];
+    strcpy_s(name, size, filename);
     m_animFileName = name;
 }
 
+// 0x4C5250
 void CClumpModelInfo::ConvertAnimFileIndex()
-{
-    CClumpModelInfo::ConvertAnimFileIndex_Reversed();
-}
-void CClumpModelInfo::ConvertAnimFileIndex_Reversed()
 {
     if (m_nAnimFileIndex == -1)
         return;
@@ -179,20 +144,14 @@ void CClumpModelInfo::ConvertAnimFileIndex_Reversed()
     m_nAnimFileIndex = iIndex;
 }
 
+// 0x4C5740
 int32 CClumpModelInfo::GetAnimFileIndex()
-{
-    return CClumpModelInfo::GetAnimFileIndex_Reversed();
-}
-int32 CClumpModelInfo::GetAnimFileIndex_Reversed()
 {
     return m_nAnimFileIndex;
 }
 
+// 0x4C5710
 CBox* CClumpModelInfo::GetBoundingBox()
-{
-    return CClumpModelInfo::GetBoundingBox_Reversed();
-}
-CBox* CClumpModelInfo::GetBoundingBox_Reversed()
 {
     return &GetColModel()->GetBoundingBox();
 }
@@ -200,45 +159,41 @@ CBox* CClumpModelInfo::GetBoundingBox_Reversed()
 // 0x4C4F70
 void CClumpModelInfo::SetClump(RpClump* clump)
 {
-    CClumpModelInfo::SetClump_Reversed(clump);
-}
-void CClumpModelInfo::SetClump_Reversed(RpClump* clump)
-{
-    if (m_pRwObject) {
-        if (auto atomic = Get2DEffectAtomic(m_pRwClump))
+    if (GetRwObject()) {
+        if (auto atomic = Get2DEffectAtomic(GetRpClump()))
             m_n2dfxCount -= RpGeometryGet2dFxCount(RpAtomicGetGeometry(atomic));
     }
 
-    m_pRwClump = clump;
-    if (m_pRwClump) {
-        if (auto atomic = Get2DEffectAtomic(m_pRwClump))
+    m_pRwObject = reinterpret_cast<RwObject*>(clump);
+    if (GetRpClump()) {
+        if (auto atomic = Get2DEffectAtomic(GetRpClump()))
             m_n2dfxCount += RpGeometryGet2dFxCount(RpAtomicGetGeometry(atomic));
     }
 
-    CVisibilityPlugins::SetClumpModelInfo(m_pRwClump, this);
+    CVisibilityPlugins::SetClumpModelInfo(GetRpClump(), this);
     CBaseModelInfo::AddTexDictionaryRef();
 
     auto iAnimIndex = GetAnimFileIndex();
     if (iAnimIndex != -1)
         CAnimManager::AddAnimBlockRef(iAnimIndex);
 
-    RpClumpForAllAtomics(m_pRwClump, AtomicSetupLightingCB, this);
-    auto firstAtomic = GetFirstAtomic(m_pRwClump);
+    RpClumpForAllAtomics(GetRpClump(), AtomicSetupLightingCB, this);
+    auto firstAtomic = GetFirstAtomic(GetRpClump());
     if (firstAtomic && RpSkinGeometryGetSkin(RpAtomicGetGeometry(firstAtomic))) {
         if (bHasComplexHierarchy) {
-            RpClumpForAllAtomics(m_pRwClump, SetHierarchyForSkinAtomic, nullptr);
+            RpClumpForAllAtomics(GetRpClump(), SetHierarchyForSkinAtomic, nullptr);
         }
         else {
             auto sphere = RpMorphTargetGetBoundingSphere(RpGeometryGetMorphTarget(RpAtomicGetGeometry(firstAtomic), 0));
             sphere->radius *= 1.2F;
 
-            auto hierarchy = GetAnimHierarchyFromClump(m_pRwClump);
-            RpClumpForAllAtomics(m_pRwClump, SetHierarchyForSkinAtomic, hierarchy);
+            auto hierarchy = GetAnimHierarchyFromClump(GetRpClump());
+            RpClumpForAllAtomics(GetRpClump(), SetHierarchyForSkinAtomic, hierarchy);
 
             auto geometry = RpAtomicGetGeometry(firstAtomic);
             auto skin = RpSkinGeometryGetSkin(geometry);
             for (int32 i = 0; i < RpGeometryGetNumVertices(geometry); ++i) {
-                auto& weight = RpSkinGetVertexBoneWeights(skin)[i]; // todoL: originally RpSkinGetVertexBoneWeights returns const obj*
+                auto& weight = const_cast<RwMatrixWeights*>(RpSkinGetVertexBoneWeights(skin))[i]; // Average R* dev from 2003
                 auto fRecip = 1.0F / (weight.w0 + weight.w1 + weight.w2 + weight.w3);
                 weight.w0 *= fRecip;
                 weight.w1 *= fRecip;
@@ -260,7 +215,7 @@ void CClumpModelInfo::SetFrameIds(RwObjectNameIdAssocation* data) {
     while (curComponent->m_pName) {
         if ((curComponent->m_dwFlags & 1) == 0) {
             auto searchInfo = tCompSearchStructByName(curComponent->m_pName, nullptr);
-            RwFrameForAllChildren(RpClumpGetFrame(m_pRwClump), FindFrameFromNameWithoutIdCB, &searchInfo);
+            RwFrameForAllChildren(RpClumpGetFrame(GetRpClump()), FindFrameFromNameWithoutIdCB, &searchInfo);
             if (searchInfo.m_pFrame)
                 CVisibilityPlugins::SetFrameHierarchyId(searchInfo.m_pFrame, curComponent->m_dwHierarchyId);
         }
@@ -329,7 +284,6 @@ RwFrame* CClumpModelInfo::FindFrameFromNameWithoutIdCB(RwFrame* frame, void* sea
         searchInfo->m_pFrame = frame;
         return nullptr;
     }
-
     RwFrameForAllChildren(frame, FindFrameFromNameWithoutIdCB, searchData);
     if (searchInfo->m_pFrame)
         return nullptr;
@@ -364,9 +318,9 @@ RwFrame* CClumpModelInfo::FillFrameArrayCB(RwFrame* frame, void* data)
 
 RwFrame* CClumpModelInfo::GetFrameFromId(RpClump* clump, int32 id)
 {
-    auto searchInfo = tCompSearchStructById(id, nullptr);
-    RwFrameForAllChildren(RpClumpGetFrame(clump), FindFrameFromIdCB, &searchInfo);
-    return searchInfo.m_pFrame;
+    tCompSearchStructById assoc = { id, nullptr };
+    RwFrameForAllChildren(RpClumpGetFrame(clump), FindFrameFromIdCB, &assoc);
+    return assoc.m_pFrame;
 }
 
 RwFrame* CClumpModelInfo::GetFrameFromName(RpClump* clump, const char* name)

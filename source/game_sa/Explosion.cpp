@@ -6,9 +6,6 @@
 #include "InterestingEvents.h"
 #include "Shadows.h"
 
-CAEExplosionAudioEntity& CExplosion::m_ExplosionAudioEntity = *(CAEExplosionAudioEntity*)0xC888D0;
-CExplosion (&CExplosion::aExplosions)[16] = *(CExplosion(*)[16])0xC88950;
-
 void CExplosion::InjectHooks() {
     RH_ScopedClass(CExplosion);
     RH_ScopedCategoryGlobal();
@@ -126,15 +123,15 @@ CExplosion* CExplosion::GetFree() {
 // NOTSA
 void CExplosion::SetCreator(CEntity* newCreator) noexcept {
     CEntity::SafeCleanUpRef(m_pCreator);
-    CEntity::SafeRegisterRef(newCreator);
     m_pCreator = newCreator;
+    CEntity::SafeRegisterRef(m_pCreator);
 }
 
 // NOTSA
 void CExplosion::SetVictim(CEntity* newVictim) noexcept {
     CEntity::SafeCleanUpRef(m_pVictim);
-    CEntity::SafeRegisterRef(newVictim);
     m_pVictim = newVictim;
+    CEntity::SafeRegisterRef(m_pVictim);
 }
 
 bool DoesNeedToVehProcessBombTimer(eExplosionType type) {
@@ -194,28 +191,28 @@ void CExplosion::AddExplosion(CEntity* victim, CEntity* creator, eExplosionType 
 
     exp->m_nParticlesExpireTime = lifetime ? CTimer::GetTimeInMS() + lifetime : 0;
 
-    const auto PlaySoundIfEnabled = [&]() {
+    const auto PlaySoundIfEnabled = [&](float volume = .0f) {
         if (exp->m_bMakeSound) {
-            m_ExplosionAudioEntity.AddAudioEvent(eAudioEvents::AE_EXPLOSION, exp->m_vecPosition, -36.0f);
+            m_ExplosionAudioEntity.AddAudioEvent(eAudioEvents::AE_EXPLOSION, exp->m_vecPosition, volume);
         }
     };
 
     // Originally most likely a separate function
     // but this way its nicer
-    const auto CreateAndPlayFxWithSound = [&](const char* name) {
+    const auto CreateAndPlayFxWithSound = [&](const char* name, float volume = .0f) {
         FxSystem_c* fx{nullptr};
         if (exp->m_pVictim) {
-            if (exp->m_pVictim->m_pRwObject) {
+            if (exp->m_pVictim->GetRwObject()) {
                 if (RwMatrix* matrix = exp->m_pVictim->GetModellingMatrix()) {
                     CVector expToVictimDir = pos - exp->m_pVictim->GetPosition();
-                    fx = g_fxMan.CreateFxSystem(name, &expToVictimDir, matrix, false);
+                    fx = g_fxMan.CreateFxSystem(name, expToVictimDir, matrix, false);
                 }
             }
         } else {
-            fx = g_fxMan.CreateFxSystem(name, &exp->m_vecPosition, nullptr, false);
+            fx = g_fxMan.CreateFxSystem(name, exp->m_vecPosition, nullptr, false);
         }
         if (fx) {
-            PlaySoundIfEnabled();
+            PlaySoundIfEnabled(volume);
             fx->PlayAndKill();
         }
     };
@@ -253,7 +250,7 @@ void CExplosion::AddExplosion(CEntity* victim, CEntity* creator, eExplosionType 
             pos.z = fGroundPos;
 
         float fWaterLevel{};
-        if (CWaterLevel::GetWaterLevelNoWaves(pos.x, pos.y, pos.z, &fWaterLevel, nullptr, nullptr)) {
+        if (CWaterLevel::GetWaterLevelNoWaves(pos, &fWaterLevel, nullptr, nullptr)) {
             /* must be done like this because of call order */
             if (pos.z < fWaterLevel) {
                 bNoFire = true;
@@ -261,7 +258,7 @@ void CExplosion::AddExplosion(CEntity* victim, CEntity* creator, eExplosionType 
             }
         }
 
-        CreateAndPlayFxWithSound("explosion_molotov");
+        CreateAndPlayFxWithSound("explosion_molotov", -36.f);
 
         break;
     }
@@ -384,7 +381,7 @@ void CExplosion::AddExplosion(CEntity* victim, CEntity* creator, eExplosionType 
                         gFireManager.StartFire(firePos, 0.8f, 0, exp->m_pCreator, (uint32)(CGeneral::GetRandomNumberInRange(5'600.0f, 12'600.0f) * 0.4f), 3, 1);
                     }
                 }
-                if (creator && creator->IsPed() && creator->AsPed()->IsPlayer()) {
+                if (creator && creator->GetIsTypePed() && creator->AsPed()->IsPlayer()) {
                     CStats::IncrementStat(eStats::STAT_FIRES_STARTED, 1.0f);
                 }
             }
@@ -458,8 +455,8 @@ void CExplosion::Update() {
             case eExplosionType::EXPLOSION_MOLOTOV: {
                 const CVector& pos = exp.m_vecPosition;
                 CWorld::SetPedsOnFire(pos.x, pos.y, pos.z, 6.0f, exp.m_pCreator);
-                CWorld::SetWorldOnFire(pos.x, pos.y, pos.z, 6.0f, exp.m_pCreator);
-                CWorld::SetCarsOnFire(pos.x, pos.y, pos.z, 0.1f, exp.m_pCreator);
+                CWorld::SetWorldOnFire(pos, 6.0f, exp.m_pCreator);
+                CWorld::SetCarsOnFire(pos, 0.1f, exp.m_pCreator);
 
                 if (exp.m_nActiveCounter < 10 && exp.m_nActiveCounter == 1) {
                     CEntity* hitEntity;
@@ -473,10 +470,10 @@ void CExplosion::Update() {
             case eExplosionType::EXPLOSION_QUICK_CAR:
             case eExplosionType::EXPLOSION_BOAT: {
                 if (exp.m_pVictim && CGeneral::GetRandomNumber() % 32 == 0) {
-                    CVector rndOffset = {CGeneral::GetRandomNumberInRange(-0.5f, 0.5f), CGeneral::GetRandomNumberInRange(-0.5f, 0.5f), 0.0f};
-                    rndOffset.Normalise();
-                    rndOffset *= CGeneral::GetRandomNumberInRange(1.0f, 2.0f);
-                    CCreepingFire::TryToStartFireAtCoors(exp.m_vecPosition + rndOffset, 0, true, false, 10.0f);
+                    CCreepingFire::TryToStartFireAtCoors(exp.m_vecPosition + CVector::Random(
+                        {-0.5f, -0.5f, 0.0f}, 
+                        {0.5f, 0.5f, 0.0f}
+                    ).Normalized() * CGeneral::GetRandomNumberInRange(1.0f, 2.0f), 0, true, false, 10.0f);
                 }
                 if (CTimer::GetFrameCounter() % 2) {
                     CPointLights::AddLight(ePointLightType::PLTYPE_POINTLIGHT, exp.m_vecPosition, {}, 15.0f, 1.0f, 0.7f, 0.5f, 0, true, nullptr);
@@ -505,7 +502,7 @@ void CExplosion::Update() {
                     const float& fOffsetDistance = exp.m_fFuelOffsetDistance[i];
                     if (fOffsetDistance > 0.0f) {
                         CVector fxPos = exp.m_vecPosition + exp.m_vecFuelDirection[i] * (fOffsetDistance + fFuelTimerProgress * exp.m_fFuelSpeed[i]);
-                        if (auto fx = g_fxMan.CreateFxSystem("explosion_fuel_car", &fxPos, nullptr, false)) {
+                        if (auto fx = g_fxMan.CreateFxSystem("explosion_fuel_car", fxPos, nullptr, false)) {
                             fx->PlayAndKill();
                         }
                     }

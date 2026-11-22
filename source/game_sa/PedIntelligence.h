@@ -7,6 +7,7 @@
 #pragma once
 
 #include "eEventType.h"
+#include "Enums/eMoveState.h"
 #include "TaskManager.h"
 #include "EventHandler.h"
 #include "EventGroup.h"
@@ -15,8 +16,10 @@
 #include "PedStuckChecker.h"
 #include "VehicleScanner.h"
 #include "PedScanner.h"
-#include "MentalHealth.h"
+#include "MentalState.h"
 #include "PedScanner.h"
+#include "Collision/CollisionEventScanner.h"
+#include "Enums/eMoveState.h"
 
 class CPed;
 class CEntity;
@@ -34,37 +37,37 @@ class CTaskSimpleInAir;
 
 class CPedIntelligence {
 public:
-    CPed*            m_pPed;
-    CTaskManager     m_TaskMgr;
-    CEventHandler    m_eventHandler;
-    CEventGroup      m_eventGroup;
-    int32            m_nDecisionMakerType;
-    int32            m_nDecisionMakerTypeInGroup;
-    float            m_fHearingRange;
-    float            m_fSeeingRange;
-    uint32           m_nDmNumPedsToScan;
-    float            m_fDmRadius;
-    float            field_CC;
-    char             field_D0;
-    uint8            m_nEventId;
-    uint8            m_nEventPriority;
-    char             field_D3;
-    CVehicleScanner  m_vehicleScanner;
-    CPedScanner      m_pedScanner;
-    CMentalState     m_mentalState;
-    char             field_188;
-    CEventScanner    m_eventScanner;
-    bool             field_260;
-    CPedStuckChecker m_pedStuckChecker;
-    int32            m_AnotherStaticCounter;
-    int32            m_StaticCounter;
-    CVector          m_vecLastPedPosDuringDamageEntity;
-    CEntity*         m_apInterestingEntities[3];
+    CPed*                  m_pPed;
+    CTaskManager           m_TaskMgr;
+    CEventHandler          m_eventHandler;
+    CEventGroup            m_eventGroup;
+    int32                  m_nDecisionMakerType;
+    int32                  m_nDecisionMakerTypeInGroup;
+    float                  m_fHearingRange;
+    float                  m_fSeeingRange;
+    uint32                 m_nDmNumPedsToScan;
+    float                  m_fDmRadius;
+    float                  m_FollowNodeThresholdDistance;
+    char                   m_NextEventResponseSequence;
+    uint8                  m_nEventId;
+    uint8                  m_nEventPriority;
+    char                   field_D3;
+    CVehicleScanner        m_vehicleScanner;
+    CPedScanner            m_pedScanner;
+    CMentalState           m_mentalState;
+    char                   field_188;
+    CEventScanner          m_eventScanner;
+    CCollisionEventScanner m_collisionScanner;
+    CPedStuckChecker       m_pedStuckChecker;
+    int32                  m_AnotherStaticCounter;
+    int32                  m_StaticCounter;
+    CVector                m_vecLastPedPosDuringDamageEntity;
+    CEntity*               m_apInterestingEntities[3];
 
-    static float& STEALTH_KILL_RANGE;
-    static float& LIGHT_AI_LEVEL_MAX;
-    static float& flt_8D2384;
-    static float& flt_8D2388;
+    static inline auto& STEALTH_KILL_RANGE = StaticRef<float>(0x8D2398); // 2.5f
+    static inline auto& LIGHT_AI_LEVEL_MAX = StaticRef<float>(0x8D2380); // 0.3f
+    static inline auto& flt_8D2384 = StaticRef<float>(0x8D2384); // 30.0f
+    static inline auto& flt_8D2388 = StaticRef<float>(0x8D2388); // 50.0f
 
 public:
     static void InjectHooks();
@@ -85,26 +88,29 @@ public:
     bool IsInSeeingRange(const CVector& posn) const;
     bool FindRespectedFriendInInformRange();
     bool IsRespondingToEvent(eEventType eventType);
-    void AddTaskPhysResponse(CTask* task, int32 unUsed);
+    void AddTaskPhysResponse(CTask* task, int32 unUsed = 1);
     void AddTaskEventResponseTemp(CTask* task, int32 unUsed);
     void AddTaskEventResponseNonTemp(CTask* task, int32 unUsed);
     void AddTaskPrimaryMaybeInGroup(CTask* task, bool bAffectsPed);
-    CTask* FindTaskByType(int32 taskId);
+
+    //!< Can be replaced using `CTaskManager::Find<T>(false);`
+    CTask* FindTaskByType(eTaskType taskId);
     CTaskSimpleFight* GetTaskFighting();
     CTaskSimpleUseGun* GetTaskUseGun();
     CTaskSimpleThrowProjectile* GetTaskThrow();
-    CTask* GetTaskHold(bool bIgnoreCheckingForSimplestActiveTask);
+    CTaskSimpleHoldEntity* GetTaskHold(bool bIgnoreCheckingForSimplestActiveTask = true);
     CTaskSimpleSwim* GetTaskSwim();
-    CTaskSimpleDuck* GetTaskDuck(bool bIgnoreCheckingForSimplestActiveTask);
+    CTaskSimpleDuck* GetTaskDuck(bool bIgnoreCheckingForSimplestActiveTask = true);
     CTaskSimpleJetPack* GetTaskJetPack();
     CTaskSimpleInAir* GetTaskInAir();
     CTaskSimpleClimb* GetTaskClimb();
+    CTaskSimpleDuck* GetTaskSecondaryDuck();
     bool GetUsingParachute();
     void SetTaskDuckSecondary(uint16 nLengthOfDuck);
     void ClearTaskDuckSecondary();
     void ClearTasks(bool bClearPrimaryTasks, bool bClearSecondaryTasks);
     void FlushImmediately(bool bSetPrimaryDefaultTask);
-    C2dEffect* GetEffectInUse();
+    C2dEffect* GetEffectInUse() const;
     void SetEffectInUse(C2dEffect* effect);
     void ProcessAfterProcCol();
     void ProcessAfterPreRender();
@@ -115,7 +121,7 @@ public:
     bool IsInACarOrEnteringOne();
     static bool AreFriends(const CPed& ped1, const CPed& ped2);
     bool IsPedGoingSomewhereOnFoot();
-    int32 GetMoveStateFromGoToTask();
+    eMoveState GetMoveStateFromGoToTask();
     void FlushIntelligence();
     bool TestForStealthKill(CPed* pTarget, bool bFullTest);
     void RecordEventForScript(int32 eventId, int32 eventPriority);
@@ -128,8 +134,9 @@ public:
     void ProcessStaticCounter();
     void ProcessFirst();
     void Process();
-    CTask* GetActivePrimaryTask();
+    CTask* GetActivePrimaryTask() const;
     float GetPedFOVRange() const;
+    void IncrementAngerAtPlayer(uint8 anger);
 
     void SetDmRadius(float r) { m_fDmRadius = r; }
     void SetNumPedsToScan(uint32 n) { m_nDmNumPedsToScan = n; }
@@ -147,12 +154,19 @@ public:
         return false;
     }
 
-    CEventScanner&   GetEventScanner()    { return m_eventScanner; }
-    CPedScanner&     GetPedScanner()      { return m_pedScanner; }
-    CVehicleScanner& GetVehicleScanner()  { return m_vehicleScanner; }
-    CEntity**        GetPedEntities()     { return m_pedScanner.m_apEntities; }     // 0x4893E0
-    CEntity*         GetPedEntity(uint32 index) { return GetPedEntities()[index]; } // todo: GetPedEntity or degrades readability?
-    CEntity**        GetVehicleEntities() { return m_vehicleScanner.m_apEntities; }
+    //! Get the vehicle the ped is entering now (If any)
+    CVehicle* GetEnteringVehicle();
+
+    CTaskManager&    GetTaskManager()                  { return m_TaskMgr; }
+    CEventHandler&   GetEventHandler()                 { return m_eventHandler; }
+    CEventGroup&     GetEventGroup()                   { return m_eventGroup; }
+    CEventScanner&   GetEventScanner()                 { return m_eventScanner; }
+    CPedScanner&     GetPedScanner()                   { return m_pedScanner; }
+    CVehicleScanner& GetVehicleScanner()               { return m_vehicleScanner; }
+    CEntity**        GetPedEntities()                  { return m_pedScanner.m_apEntities.data(); }     // 0x4893E0
+    CEntity*         GetPedEntity(uint32 index)        { return GetPedEntities()[index]; } // todo: GetPedEntity or degrades readability?
+    CEntity**        GetVehicleEntities()              { return m_vehicleScanner.m_apEntities.data(); }
+    auto&            GetStuckChecker(this auto&& self) { return self.m_pedStuckChecker; }
 
 private:
     CPedIntelligence* Constructor(CPed* ped);
@@ -160,3 +174,4 @@ private:
 };
 
 VALIDATE_SIZE(CPedIntelligence, 0x294);
+VALIDATE_OFFSET(CPedIntelligence, m_AnotherStaticCounter, 0x274);

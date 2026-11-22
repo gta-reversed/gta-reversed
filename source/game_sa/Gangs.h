@@ -6,40 +6,28 @@
 */
 #pragma once
 
-#include "ePedType.h"
+#include <Base.h>
+#include <Enums/ePedType.h>
+#include <Enums/eWeaponType.h>
+#include <Enums/eModelID.h>
 
 class CPed;
-class GangInfo;
-
-enum eGangID {
-    GANG_BALLAS = 0,
-    GANG_GROVE = 1,
-    GANG_VAGOS = 2,
-    GANG_RIFA = 3,
-    GANG_DANANGBOYS = 4,
-    GANG_MAFIA = 5,
-    GANG_TRIAD = 6,
-    GANG_AZTECAS = 7,
-    GANG_UNUSED1 = 8, // RUSSIAN_MAFIA
-    GANG_UNUSED2 = 9, // BIKERS
-
-    TOTAL_GANGS
-};
+class CGangInfo;
 
 class CGangs {
 public:
-    inline static std::array<bool, TOTAL_GANGS>& GangAttackWithCops = *reinterpret_cast<std::array<bool, 10>*>(0xC091D9);
-    inline static std::array<CGangInfo, TOTAL_GANGS>& Gang = *reinterpret_cast<std::array<CGangInfo, 10>*>(0xC091F0);
+    static inline auto& GangAttackWithCops = StaticRef<std::array<bool, 10>>(0xC091E0);
+    static inline auto& Gang               = StaticRef<std::array<CGangInfo, 10>>(0xC091F0);
 
 public:
     static void InjectHooks();
 
     static void Initialise();
 
-    static bool Load();
-    static bool Save();
-    static void SetGangWeapons(int16 gangId, int32 weapId1, int32 weapId2, int32 weapId3);
-    static int32 ChooseGangPedModel(int16 gangId);
+    static bool     Load();
+    static bool     Save();
+    static void     SetGangWeapons(int16 gangId, eWeaponType weapId1, eWeaponType weapId2, eWeaponType weapId3);
+    static eModelID ChooseGangPedModel(eGangID gangId);
 
     static bool GetWillAttackPlayerWithCops(ePedType pedType);
     static void SetWillAttackPlayerWithCops(ePedType pedType, bool bAttackPlayerWithCops);

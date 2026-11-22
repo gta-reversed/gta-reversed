@@ -1,10 +1,11 @@
 #include "StdInc.h"
 
 #include "Data.h"
+#include "GxtChar.h"
 
 CData::CData() {
-    data = nullptr;
-    size = 0;
+    m_data = nullptr;
+    m_size = 0;
 }
 
 CData::~CData() {
@@ -13,23 +14,35 @@ CData::~CData() {
 
 // 0x69F640
 void CData::Unload() {
-    delete[] data;
-    data = nullptr;
-    size = 0;
+    delete[] m_data;
+    m_data = nullptr;
+    m_size = 0;
 }
 
-// nSkipBytes always 0
+// unknown always 0
 // 0x69F5D0
-void CData::Load(uint32 length, FILESTREAM file, uint32* offset, uint8 nSkipBytes) {
-    return plugin::CallMethod<0x69F5D0, CData*, uint32, FILESTREAM, uint32*, uint8>(this, length, file, offset, nSkipBytes);
+bool CData::Load(uint32 length, FILESTREAM file, uint32* offset, uint8 unknown) {
+#if 0
+    uint32 temp = 0;
 
-#ifdef USE_ORIGINAL_CODE
-    // todo: add original code
-#else
-    size = length / sizeof(char);
-    data = new char[size];
+    if (!length)
+        return true;
 
-    CFileMgr::Read(file, data, length);
-    *offset += length;
+    for (uint32 i = 0; i < m_size; ++i) {
+        if (!unknown)
+            if (sizeof(GxtChar) != CFileMgr::Read(file, &temp, sizeof(GxtChar)))
+                return false;
+
+        m_data[i] = (GxtChar)temp;
+        ++*offset;
+    }
 #endif
+
+    m_size = length / sizeof(char);
+    m_data = new char[m_size];
+
+    CFileMgr::Read(file, m_data, length);
+    *offset += length;
+
+    return true;
 }

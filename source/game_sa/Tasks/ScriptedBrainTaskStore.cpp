@@ -1,7 +1,5 @@
 #include "StdInc.h"
 
-CScriptedBrainTaskEntry(&CScriptedBrainTaskStore::ms_entries)[TOTAL_SCRIPTED_BRAIN_TASK_ENTRIES] = *(CScriptedBrainTaskEntry(*)[TOTAL_SCRIPTED_BRAIN_TASK_ENTRIES])0xC188F0;
-
 void CScriptedBrainTaskEntry::InjectHooks()
 {
     RH_ScopedClass(CScriptedBrainTaskEntry);
@@ -69,11 +67,9 @@ CTask* CScriptedBrainTaskStore::SetTask(CPed* ped, CTask* task)
 }
 
 // 0x6357C0
-CTask* CScriptedBrainTaskStore::GetTask(CPed* ped)
-{
-    for (auto& entry : ms_entries) {
-        if (entry.m_ped == ped)
-            return entry.m_task;
+CTask* CScriptedBrainTaskStore::GetTask(CPed* ped) {
+    if (const auto brain = GetOf(ped)) {
+        return brain->m_task;
     }
     return nullptr;
 }
@@ -104,4 +100,9 @@ void CScriptedBrainTaskStore::Clear(CTask* task)
         CEntity::ClearReference(entry.m_ped);
         return;
     }
+}
+
+auto CScriptedBrainTaskStore::GetOf(CPed* ped) -> CScriptedBrainTaskEntry* {
+    const auto it = rng::find_if(ms_entries, [ped](CScriptedBrainTaskEntry& entry) { return entry.m_ped == ped; });
+    return it != rng::end(ms_entries) ? &*it : nullptr;
 }

@@ -11,14 +11,25 @@
 
 class CAutomobile;
 
+// Seems like there is some kind of generic damage state enum. look at gComponentDamageState
+// and CShopping::StoreVehicleMods.
+enum eDamageState : int8 {
+    DAMAGE_STATE_OK      = 0,
+    DAMAGE_STATE_NOT_OK1 = 1,
+    DAMAGE_STATE_NOT_OK2 = 2,
+    DAMAGE_STATE_NOT_OK3 = 3,
+    DAMAGE_STATE_NOT_OK4 = 4
+};
+
 // TODO: Seems like these are the damage states for doors only.
 //       Panel's seems to be different, more like: DAMSTATE_OK, DAMSTATE_DAMAGED, DAMSTATE_MISSING
+// TODO(yukani): change prefix to something else?
 enum ePanelDamageState : uint8 {
-    DAMSTATE_OK             = 0, // Closed
-    DAMSTATE_OPENED         = 1, // Open
-    DAMSTATE_DAMAGED        = 2, // Closed
-    DAMSTATE_OPENED_DAMAGED = 3, // Open
-    DAMSTATE_NOTPRESENT     = 4  // Missing
+    DAMSTATE_OK             = 0, // Closed, DT_DOOR_INTACT 
+    DAMSTATE_OPENED         = 1, // Open, DT_DOOR_SWINGING_FREE
+    DAMSTATE_DAMAGED        = 2, // Closed, DT_DOOR_BASHED
+    DAMSTATE_OPENED_DAMAGED = 3, // Open, DT_DOOR_BASHED_AND_SWINGING_FREE
+    DAMSTATE_NOTPRESENT     = 4  // Missing, DT_DOOR_MISSING
 };
 
 // original name
@@ -34,6 +45,8 @@ enum tComponent : uint8 {
     COMPONENT_DOOR_RF    = 8,
     COMPONENT_DOOR_LR    = 9,
     COMPONENT_DOOR_RR    = 10,
+
+    // ----- CT_PANEL_
     COMPONENT_WING_LF    = 11,
     COMPONENT_WING_RF    = 12,
     COMPONENT_WING_LR    = 13,
@@ -41,6 +54,7 @@ enum tComponent : uint8 {
     COMPONENT_WINDSCREEN = 15,
     COMPONENT_BUMP_FRONT = 16,
     COMPONENT_BUMP_REAR  = 17,
+    // -----
 
     MAX_COMPONENTS = COMPONENT_BUMP_REAR /* cause it starts at 1, not 0 */
 };
@@ -108,8 +122,8 @@ class CDamageManager {
 public:
     float           m_fWheelDamageEffect;
     uint8           m_nEngineStatus; // 0 - 250
-    eCarWheelStatus m_anWheelsStatus[eCarWheel::MAX_CARWHEELS];
-    eDoorStatus     m_aDoorsStatus[eDoors::MAX_DOORS];
+    std::array<eCarWheelStatus, eCarWheel::MAX_CARWHEELS> m_anWheelsStatus;
+    std::array<eDoorStatus, eDoors::MAX_DOORS>            m_aDoorsStatus;
     union {
         /* Great job R*, really could've just used an array here... Ends up to be the same size... */
 
@@ -159,7 +173,7 @@ public:
     void SetAeroplaneCompStatus(uint8 frame, ePanelDamageState status);
 
     uint32 GetEngineStatus();
-    void SetEngineStatus(uint8 status);
+    void SetEngineStatus(uint32 status);
 
     // There are 2 door functions, one takes `tComponent` the other `eDoors`.
     // To select the correct version to call look at the called function's address when you are REing code
@@ -188,8 +202,11 @@ public:
     void SetAllWheelsState(eCarWheelStatus state);
     void SetDoorStatus(std::initializer_list<eDoors> doors, eDoorStatus status); 
     void SetDoorOpen(eDoors door);
+    void SetDoorOpen_Component(tComponent door);
     void SetDoorClosed(eDoors door);
+    void SetDoorClosed_Component(tComponent door);
     [[nodiscard]] auto GetAllLightsState() const -> std::array<eLightsState, 4>;
+    [[nodiscard]] auto GetAllDoorsStatus() const -> std::array<eDoorStatus, MAX_DOORS>;
     [[nodiscard]] bool IsDoorOpen(eDoors door) const;
     [[nodiscard]] bool IsDoorClosed(eDoors door) const;
     [[nodiscard]] bool IsDoorPresent(eDoors door) const;

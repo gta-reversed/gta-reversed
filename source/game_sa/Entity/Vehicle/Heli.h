@@ -43,7 +43,7 @@ struct tHeliLight {
     uint32  m_nCoronaIndex;
     bool    field_24; // unknown flag
     bool    m_bDrawShadow;
-    CVector m_vecUseless[3]; // m_aSearchLightHistory
+    std::array<CVector, 3> m_vecUseless; // m_aSearchLightHistory
 
     void Init() {
         m_vecOrigin = CVector{};
@@ -57,7 +57,7 @@ VALIDATE_SIZE(tHeliLight, 0x4C);
 
 class FxSystem_c;
 
-class CHeli : public CAutomobile {
+class NOTSA_EXPORT_VTABLE CHeli : public CAutomobile {
 public:
     uint8        m_nHeliFlags;
     float        m_fLeftRightSkid;
@@ -77,7 +77,7 @@ public:
     CVector      field_9C0;
     int32        f9CC; // unused?
     int32        f9D0; // unused?
-    FxSystem_c** m_pParticlesList;
+    int32        f9D4; // unused?
     std::array<float, 3> m_aSearchLightHistoryX;
     std::array<float, 3> m_aSearchLightHistoryY;
     uint32       m_nSearchLightTimer;
@@ -90,12 +90,14 @@ public:
     bool         m_bSearchLightEnabled;
     float        field_A14;
 
-    static inline bool& bPoliceHelisAllowed                   = *(bool*)0x8D338C; // 1
-    static inline uint32& TestForNewRandomHelisTimer          = *(uint32*)0xC1C960;
-    static inline std::array<CHeli*, 2>& pHelis               = *(std::array<CHeli*, 2>*)0xC1C964;
-    static inline uint32& NumberOfSearchLights                = *(uint32*)0xC1C96C;
-    static inline bool& bHeliControlsCheat                    = *(bool*)0xC1C970;
-    static inline std::array<tHeliLight, 4>& HeliSearchLights = *(std::array<tHeliLight, 4>*)0xC1C990;
+    static inline auto& bPoliceHelisAllowed = StaticRef<bool>(0x8D338C); // 1
+    static inline auto& TestForNewRandomHelisTimer = StaticRef<uint32>(0xC1C960);
+    static inline auto& pHelis = StaticRef<std::array<CHeli*, 2>>(0xC1C964);
+    static inline auto& NumberOfSearchLights = StaticRef<uint32>(0xC1C96C);
+    static inline auto& bHeliControlsCheat = StaticRef<bool>(0xC1C970);
+    static inline auto& HeliSearchLights = StaticRef<std::array<tHeliLight, 4>>(0xC1C990);
+
+    static constexpr auto Type = VEHICLE_TYPE_HELI;
 
 public:
     CHeli(int32 modelIndex, eVehicleCreatedBy createdBy);
@@ -125,12 +127,20 @@ public:
     static void SpecialHeliPreRender(); // dummy function
     static void SwitchPoliceHelis(bool enable);
     static void SearchLightCone(int32 coronaIndex,
-                                CVector origin, CVector target,
+                                CVector origin,
+                                CVector target,
                                 float targetRadius,
                                 float power,
-                                uint8 unknownFlag, uint8 drawShadow,
-                                CVector* useless0, CVector* useless1, CVector* useless2,
-                                bool a11, float baseRadius, float a13, float a14, float a15);
+                                uint8 clipIfColliding,
+                                uint8 drawShadow,
+                                CVector& useless0,
+                                CVector& useless1,
+                                CVector& useless2,
+                                bool a11,
+                                float baseRadius,
+                                float a13,
+                                float a14,
+                                float a15);
     static CHeli* GenerateHeli(CPed* target, bool newsHeli);
     static void TestSniperCollision(CVector* origin, CVector* target);
     static void UpdateHelis();
@@ -141,16 +151,6 @@ private:
     static void InjectHooks();
 
     CHeli* Constructor(int32 modelIndex, eVehicleCreatedBy createdBy) { this->CHeli::CHeli(modelIndex, createdBy); return this;}
-    void BlowUpCar_Reversed(CEntity* damager, bool bHideExplosion) { return CHeli::BlowUpCar(damager, bHideExplosion); }
-    void Fix_Reversed() { CHeli::Fix(); }
-    bool BurstTyre_Reversed(uint8 tyreComponentId, bool bPhysicalEffect) { return CHeli::BurstTyre(tyreComponentId, bPhysicalEffect); }
-    bool SetUpWheelColModel_Reversed(CColModel* wheelCol) { return CHeli::SetUpWheelColModel(wheelCol); }
-    void ProcessControlInputs_Reversed(uint8 playerNum) { return CHeli::ProcessControlInputs(playerNum); }
-    void Render_Reversed() { CHeli::Render(); }
-    void SetupDamageAfterLoad_Reversed() { CHeli::SetupDamageAfterLoad(); }
-    void ProcessFlyingCarStuff_Reversed() { CHeli::ProcessFlyingCarStuff(); }
-    void PreRender_Reversed() { CHeli::PreRender(); }
-    void ProcessControl_Reversed() { CHeli::ProcessControl(); }
 };
 
 VALIDATE_SIZE(CHeli, 0xA18);

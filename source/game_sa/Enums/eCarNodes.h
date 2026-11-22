@@ -9,10 +9,10 @@ enum eCarNodes {
     CAR_WHEEL_LF   = 5,
     CAR_WHEEL_LM   = 6,
     CAR_WHEEL_LB   = 7,
-    CAR_DOOR_RF    = 8,
-    CAR_DOOR_RR    = 9,
-    CAR_DOOR_LF    = 10,
-    CAR_DOOR_LR    = 11,
+    CAR_DOOR_RF    = 8,  // Right Front
+    CAR_DOOR_RR    = 9,  // Right Rear
+    CAR_DOOR_LF    = 10, // Left Front
+    CAR_DOOR_LR    = 11, // Left Rear
     CAR_BUMP_FRONT = 12,
     CAR_BUMP_REAR  = 13,
     CAR_WING_RF    = 14,

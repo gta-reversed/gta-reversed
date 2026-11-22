@@ -2,33 +2,24 @@
 
 #include "TaskSimpleGoTo.h"
 
-#include "IKChainManager_c.h"
-
-float& CTaskSimpleGoTo::ms_fLookAtThresholdDotProduct = *(float*)0xC18D48;
+#include "Ragdoll/IKChainManager.h"
 
 void CTaskSimpleGoTo::InjectHooks() {
-    RH_ScopedClass(CTaskSimpleGoTo);
+    RH_ScopedVirtualClass(CTaskSimpleGoTo, 0x86fd1c, 9);
     RH_ScopedCategory("Tasks/TaskTypes");
 
     RH_ScopedInstall(Constructor, 0x6679C0);
+
     RH_ScopedInstall(HasCircledTarget, 0x667A10);
     RH_ScopedInstall(SetUpIK, 0x667AD0);
     RH_ScopedInstall(QuitIK, 0x667CA0);
 }
 
-CTaskSimpleGoTo::CTaskSimpleGoTo(int32 moveState, const CVector& targetPoint, float fRadius)
-{
+CTaskSimpleGoTo::CTaskSimpleGoTo(eMoveState moveState, const CVector& targetPoint, float fRadius) {
     m_moveState = moveState;
     m_vecTargetPoint = targetPoint;
     m_fRadius = fRadius;
     m_GoToFlags = 0;
-}
-
-// 0x6679C0
-CTaskSimpleGoTo* CTaskSimpleGoTo::Constructor(int32 moveState, const CVector& targetPoint, float fRadius)
-{
-    this->CTaskSimpleGoTo::CTaskSimpleGoTo(moveState, targetPoint, fRadius);
-    return this;
 }
 
 // 0x667A10
@@ -39,19 +30,16 @@ bool CTaskSimpleGoTo::HasCircledTarget(CPed* ped)
         return false;
 
     if (m_vecTargetPoint.x > pedPos.x)
-        gotoFlags.m_b01 = true;
+        gotoFlags.m_targetCircledFlags |= 1;
     else if (m_vecTargetPoint.x < pedPos.x)
-        gotoFlags.m_b02 = true;
+        gotoFlags.m_targetCircledFlags |= 1 << 1;
 
     if (m_vecTargetPoint.y > pedPos.y)
-        gotoFlags.m_b03 = true;
+        gotoFlags.m_targetCircledFlags |= 1 << 2;
     else if (m_vecTargetPoint.y < pedPos.y) 
-        gotoFlags.m_b04 = true;
+        gotoFlags.m_targetCircledFlags |= 1 << 3;
 
-    if (gotoFlags.m_b01 && gotoFlags.m_b02 && gotoFlags.m_b03 && gotoFlags.m_b04)
-        return true;
-
-    return false;
+    return gotoFlags.m_targetCircledFlags == 0b1111;
 }
 
 // 0x667AD0
@@ -61,12 +49,11 @@ void CTaskSimpleGoTo::SetUpIK(CPed* ped)
         && !g_ikChainMan.GetLookAtEntity(ped)
         && !ped->GetTaskManager().GetTaskSecondary(TASK_SECONDARY_IK)
         && (ped != FindPlayerPed() || CPad::GetPad(0)->DisablePlayerControls)) {
-        if (!m_pParentTask || m_pParentTask->GetTaskType() != TASK_COMPLEX_AVOID_OTHER_PED_WHILE_WANDERING && m_pParentTask->GetTaskType() != TASK_COMPLEX_AVOID_ENTITY) {
+        if (!m_Parent || m_Parent->GetTaskType() != TASK_COMPLEX_AVOID_OTHER_PED_WHILE_WANDERING && m_Parent->GetTaskType() != TASK_COMPLEX_AVOID_ENTITY) {
             CVector vecDistance = m_vecTargetPoint - ped->GetPosition();
             if (vecDistance.SquaredMagnitude() > 9.0f) {
-                CVector direction(vecDistance);
-                direction.Normalise();
-                if (DotProduct(&direction, &ped->GetForward()) < ms_fLookAtThresholdDotProduct) {
+                const auto direction = vecDistance.Normalized();
+                if (direction.Dot(ped->GetForward()) < ms_fLookAtThresholdDotProduct) {
                     CVector position = direction + direction;
                     position.x += m_vecTargetPoint.x;
                     position.y += m_vecTargetPoint.y;

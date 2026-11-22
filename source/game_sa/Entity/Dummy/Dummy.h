@@ -8,7 +8,7 @@
 
 #include "Entity.h"
 
-class CDummy : public CEntity {
+class NOTSA_EXPORT_VTABLE CDummy : public CEntity {
 public:
     CDummy();
     ~CDummy() override = default;

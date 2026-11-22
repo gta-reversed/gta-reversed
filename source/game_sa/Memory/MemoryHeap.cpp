@@ -85,7 +85,7 @@ void CMemoryHeap::Shutdown() {
 
 // 0x72EB10
 void CMemoryHeap::RegisterFree(HeapFreeBlockDesc* desc) {
-    m_nMemUsed += -sizeof(HeapBlockDesc) - desc->m_nSize;
+    m_nMemUsed -= desc->m_nSize + sizeof(HeapBlockDesc);
 }
 
 // 0x72EAF0
@@ -105,6 +105,7 @@ HeapFreeBlockDesc* CMemoryHeap::_JoinFreeBlocks(HeapFreeBlockDesc* desc) {
         next->RemoveHeapFreeBlock();
         next = (HeapFreeBlockDesc*)((uint8*)next + next->m_nSize + sizeof(HeapBlockDesc));
     }
+    assert(next);
 
     // join prev located block
     auto* prev = (HeapFreeBlockDesc*)desc->m_PrevBlock;
@@ -215,7 +216,7 @@ void* CMemoryHeap::Malloc(uint32 size) {
     while (blockSize > uint32(block->m_nSize)) {
         block = block->m_Next;
         if (block == &m_FreeListEnd) {
-            DEV_LOG("CMemoryHeap[%02d]: !!! failed to allocate %d bytes !!!", m_nMemId, block->m_nSize);
+            NOTSA_LOG_DEBUG("CMemoryHeap[{:02d}]: !!! failed to allocate {} bytes !!!", m_nMemId, block->m_nSize);
             return nullptr;
         }
     }
@@ -235,7 +236,7 @@ void* CMemoryHeap::Malloc(uint32 size) {
 // 0x72EC80
 void CMemoryHeap::FillInBlockData(HeapBlockDesc* desc, HeapBlockDesc* nextDesc, uint32 size) {
     // __DUMMY();
-    // DEV_LOG("CMemoryHeap[MemID:%02d]: requesting %d bytes from %dK block", m_nMemId, _nSize, (uint32)(_pDesc->_iSize / 1024.0));
+    // NOTSA_LOG_DEBUG("CMemoryHeap[MemID:{:02d}]: requesting {} bytes from {}K block", m_nMemId, _nSize, (uint32)(_pDesc->_iSize / 1024.0));
 
     desc->m_nSize = size; // setup size
 
@@ -277,8 +278,8 @@ void CMemoryHeap::PrintMemoryLeaks() {
         return;
     }
 
-    DEV_LOG("MemoryHeap 0x%08x LEAKS (used %d bytes out of %d bytes total)\n", m_FirstBlock, m_nMemUsed, _GetHeapSize());
-    DEV_LOG("-----------------------------------------------------------------------------------------------------------\n");
+    NOTSA_LOG_DEBUG("MemoryHeap 0x{:08x} LEAKS (used {} bytes out of {} bytes total)\n", m_FirstBlock, m_nMemUsed, _GetHeapSize());
+    NOTSA_LOG_DEBUG("-----------------------------------------------------------------------------------------------------------\n");
 
     HeapBlockDesc* p = m_FirstBlock;
     while (p < m_LastBlock) {
@@ -381,7 +382,7 @@ void CMemoryHeap::ParseHeap() {
         }
 
         if ((k & 63) == 0) { // '?'
-            sprintf(buffer, "\n%5dK:", k / 64);
+            sprintf_s(buffer, "\n%5dK:", k / 64);
             CFileMgr::Write(file, buffer, 8);
         }
 
@@ -390,7 +391,7 @@ void CMemoryHeap::ParseHeap() {
 
         for (uint32 size = block->m_nSize >> 4; size; --size) {
             if ((k & 63) == 0) {
-                sprintf(buffer, "\n%5dK:", k / 64);
+                sprintf_s(buffer, "\n%5dK:", k / 64);
                 CFileMgr::Write(file, buffer, 8);
             }
             CFileMgr::Write(file, &cState, sizeof(char));
@@ -405,16 +406,16 @@ void CMemoryHeap::ParseHeap() {
 }
 
 void CMemoryHeap::_DumpHeapStatus(bool bCommonSizes) {
-    DEV_LOG("MemoryHeap 0x%08x STATUS (used %d bytes out of %d bytes total)", m_FirstBlock, m_nMemUsed, GetHeapSize());
+    NOTSA_LOG_DEBUG("MemoryHeap 0x{:08x} STATUS (used {} bytes out of {} bytes total)", LOG_PTR(m_FirstBlock), m_nMemUsed, GetHeapSize());
 
-    DEV_LOG(" - Block map");
+    NOTSA_LOG_DEBUG(" - Block map");
     HeapBlockDesc* p = m_FirstBlock;
     while (p != m_LastBlock) {
         p->_DumpBlockInfo();
         p = p->_GetNextLocatedBlock();
     }
 
-    DEV_LOG(" - Free list");
+    NOTSA_LOG_DEBUG(" - Free list");
     HeapFreeBlockDesc* pF = &m_FreeListBegin;
     do {
         pF->_DumpBlockInfo();
@@ -422,7 +423,7 @@ void CMemoryHeap::_DumpHeapStatus(bool bCommonSizes) {
     } while (pF != m_FreeListEnd.m_Next);
 
     if (m_paCommonSizes && bCommonSizes) {
-        DEV_LOG(" - CommonSizes");
+        NOTSA_LOG_DEBUG(" - CommonSizes");
         for (auto i = 0; i < CORE_COMMON_SIZE_COUNT; ++i) {
             if (m_paCommonSizes[i].m_NumFreeBlocks) {
                 m_paCommonSizes[i]._DumpInfo();
@@ -430,9 +431,9 @@ void CMemoryHeap::_DumpHeapStatus(bool bCommonSizes) {
         }
     }
 
-    DEV_LOG(" Percentage used:    %0.1f%%", 100.f * float(m_nMemUsed) / float(GetHeapSize()));
-    DEV_LOG(" Largest free block: %d bytes", GetLargestFreeBlock());
-    DEV_LOG(" Holes size:         %d bytes", GetSizeOfHoles());
+    NOTSA_LOG_DEBUG(" Percentage used:    {:0.1f}%", 100.f * float(m_nMemUsed) / float(GetHeapSize()));
+    NOTSA_LOG_DEBUG(" Largest free block: {} bytes", GetLargestFreeBlock());
+    NOTSA_LOG_DEBUG(" Holes size:         {} bytes", GetSizeOfHoles());
 }
 
 HeapBlockDesc* CMemoryHeap::_FindBlockDesc(void* memory) {

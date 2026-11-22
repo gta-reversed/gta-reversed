@@ -1,11 +1,7 @@
 #include "StdInc.h"
 
 #include "OctTree.h"
-
-bool& COctTree::ms_bFailed = *(bool*)0xBC12DC;
-uint32& COctTree::ms_level = *(uint32*)0xBC12E0;
-COctTreePool& COctTree::ms_octTreePool = *(COctTreePool*)0xBC12E4;
-COctTree*& gpTmpOctTree = *(COctTree**)0xBC12D8;
+auto& gpTmpOctTree = StaticRef<COctTree*>(0xBC12D8);
 
 // 0x5A6DB0
 COctTree::COctTree() {
@@ -34,13 +30,13 @@ void COctTree::operator delete(void* data) {
 
 // 0x5A7460
 void COctTree::InitPool(void* data, int32 dataSize) {
-    const int32 size = sizeof(COctTree) + 1;
-    ms_octTreePool.Init(
-        dataSize / size,
+    const auto cap = dataSize / (sizeof(COctTree) + 1);
+    ms_octTreePool = {
+        cap,
         data,
-        (uint8*)data + sizeof(COctTree) * (dataSize / size)
-    );
-    ms_octTreePool.m_bIsLocked = true;
+        (uint8*)(data) + sizeof(COctTree) * cap
+    };
+    ms_octTreePool.SetDealWithNoMemory(true);
 }
 
 // 0x5A6F70

@@ -2,7 +2,7 @@
 
 #include "TaskSimple.h"
 
-class CTaskSimpleHitHead : public CTaskSimple {
+class NOTSA_EXPORT_VTABLE CTaskSimpleHitHead : public CTaskSimple {
 public:
     bool m_bIsFinished;
     CAnimBlendAssociation* m_pAnim;
@@ -13,15 +13,13 @@ public:
     CTaskSimpleHitHead();
     ~CTaskSimpleHitHead() override;
 
-    eTaskType GetTaskType() override { return Type; }
-    CTask* Clone() override { return new CTaskSimpleHitHead(); }
-    bool MakeAbortable(CPed* ped, eAbortPriority priority, const CEvent* event) override;
+    eTaskType GetTaskType() const override { return Type; }
+    CTask* Clone() const override { return new CTaskSimpleHitHead(); }
+    bool MakeAbortable(CPed* ped, eAbortPriority priority = ABORT_PRIORITY_URGENT, const CEvent* event = nullptr) override;
     bool ProcessPed(CPed* ped) override;
     static void FinishAnimCB(CAnimBlendAssociation* anim, void* data);
 
     static void InjectHooks();
     CTaskSimpleHitHead* Constructor();
-    bool MakeAbortable_Reversed(CPed* ped, eAbortPriority priority, const CEvent* event);
-    bool ProcessPed_Reversed(CPed* ped);
 };
 VALIDATE_SIZE(CTaskSimpleHitHead, 0x10);

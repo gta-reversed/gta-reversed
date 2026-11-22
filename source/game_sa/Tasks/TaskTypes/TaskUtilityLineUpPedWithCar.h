@@ -31,5 +31,7 @@ private:
 
     CTaskUtilityLineUpPedWithCar* Constructor(const CVector& offsets, int32 nTime, int32 doorOpenPosType, int32 doorIdx) { this->CTaskUtilityLineUpPedWithCar::CTaskUtilityLineUpPedWithCar(offsets, nTime, doorOpenPosType, doorIdx); return this; }
     CTaskUtilityLineUpPedWithCar* Destructor() { this->CTaskUtilityLineUpPedWithCar::~CTaskUtilityLineUpPedWithCar(); return this; }
+
+    friend class CTaskComplexEnterCar;
 };
 VALIDATE_SIZE(CTaskUtilityLineUpPedWithCar, 0x1C);

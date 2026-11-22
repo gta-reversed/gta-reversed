@@ -1,10 +1,10 @@
 #include "StdInc.h"
 #include "TaskSimpleCarDrive.h"
 #include "TaskUtilityLineUpPedWithCar.h"
-#include "IKChainManager_c.h"
+#include "Ragdoll/IKChainManager.h"
 
 void CTaskSimpleCarDrive::InjectHooks() {
-    RH_ScopedClass(CTaskSimpleCarDrive);
+    RH_ScopedVirtualClass(CTaskSimpleCarDrive, 0x86E904, 9);
     RH_ScopedCategory("Tasks/TaskTypes");
 
     RH_ScopedInstall(Constructor, 0x63C340);
@@ -12,15 +12,15 @@ void CTaskSimpleCarDrive::InjectHooks() {
 
     RH_ScopedInstall(TriggerIK, 0x63C500);
     RH_ScopedInstall(UpdateBopping, 0x63C900);
-    //RH_ScopedInstall(StartBopping, 0x642760);
-    //RH_ScopedInstall(ProcessHeadBopping, 0x6428C0);
-    //RH_ScopedInstall(ProcessArmBopping, 0x642AE0);
+    RH_ScopedInstall(StartBopping, 0x642760, { .Reversed = false });
+    RH_ScopedInstall(ProcessHeadBopping, 0x6428C0, { .Reversed = false });
+    RH_ScopedInstall(ProcessArmBopping, 0x642AE0, { .Reversed = false });
     RH_ScopedInstall(ProcessBopping, 0x642E70);
-    RH_ScopedInstall(Clone_Reversed, 0x63DC20);
-    RH_ScopedInstall(GetTaskType_Reversed, 0x63C450);
-    //RH_ScopedInstall(MakeAbortable_Reversed, 0x63C670);
-    //RH_ScopedInstall(ProcessPed_Reversed, 0x644470);
-    //RH_ScopedInstall(SetPedPosition_Reversed, 0x63C770);
+    RH_ScopedVMTInstall(Clone, 0x63DC20);
+    RH_ScopedVMTInstall(GetTaskType, 0x63C450);
+    RH_ScopedVMTInstall(MakeAbortable, 0x63C670, { .Reversed = false });
+    RH_ScopedVMTInstall(ProcessPed, 0x644470, { .Reversed = false });
+    RH_ScopedVMTInstall(SetPedPosition, 0x63C770, { .Reversed = false });
 }
 
 // 0x63C340
@@ -58,8 +58,10 @@ CTaskSimpleCarDrive::~CTaskSimpleCarDrive() {
         m_pTaskUtilityLineUpPedWithCar = nullptr;
     }
 
-    if (m_b20) {
-        assert(m_pAnimCloseDoorRolling);
+    if (m_b20 && m_pAnimCloseDoorRolling) {
+        // TODO: FIX ME: Keeps triggering, annoying as fuck
+        // Seemingly happens when getting of a motorbike (like cops getting off)
+        //assert(m_pAnimCloseDoorRolling);
         m_pAnimCloseDoorRolling->SetFinishCallback(CDefaultAnimCallback::DefaultAnimCB, nullptr);
         if (m_pVehicle) {
             m_pVehicle->ClearGettingOutFlags(1);
@@ -89,8 +91,8 @@ void CTaskSimpleCarDrive::TriggerIK(CPed* ped) const {
     }
     case MISSION_RAMCAR_FARAWAY:
     case MISSION_RAMCAR_CLOSE: {
-        if (const auto vehTargetCar = m_pVehicle->m_autoPilot.m_pTargetCar) {
-            if (vehTargetCar->IsVehicle()) {
+        if (const auto vehTargetCar = m_pVehicle->m_autoPilot.m_TargetEntity) {
+            if (vehTargetCar->GetIsTypeVehicle()) {
                 if (const auto driver = vehTargetCar->m_pDriver) { // Make ped look at target car or it's driver (if any)
                     g_ikChainMan.LookAt("DriveCar", ped, driver, 3000, BONE_HEAD, nullptr, false, 0.25f, 500, 3, false);
                 } else {
@@ -150,23 +152,32 @@ void CTaskSimpleCarDrive::ProcessBopping(CPed* ped, bool a3) {
 }
 
 // 0x63DC20
-CTask* CTaskSimpleCarDrive::Clone() {
+
+
+CTask* CTaskSimpleCarDrive::Clone() const {
     auto task = new CTaskSimpleCarDrive(m_pVehicle);
     task->m_bUpdateCurrentVehicle = m_bUpdateCurrentVehicle;
     return task;
 }
 
 // 0x63C670
+
+
 bool CTaskSimpleCarDrive::MakeAbortable(CPed* ped, eAbortPriority priority, CEvent const* event) {
     return plugin::CallMethodAndReturn<bool, 0x63C670, CTaskSimpleCarDrive*, CPed*, eAbortPriority, CEvent const*>(this, ped, priority, event);
 }
 
 // 0x644470
+
+
 bool CTaskSimpleCarDrive::ProcessPed(CPed* ped) {
     return plugin::CallMethodAndReturn<bool, 0x644470, CTaskSimpleCarDrive*, CPed*>(this, ped);
 }
 
 // 0x63C770
+
+// 0x0
 bool CTaskSimpleCarDrive::SetPedPosition(CPed* ped) {
     return plugin::CallMethodAndReturn<bool, 0x63C770, CTaskSimpleCarDrive*, CPed*>(this, ped);
 }
+

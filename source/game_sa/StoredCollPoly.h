@@ -8,12 +8,10 @@
 
 #include "Vector.h"
 
-class CStoredCollPoly {
-public:
-    CVector      m_aMeshVertices[3]; // triangle vertices
-    bool         m_bIsActual;
+struct CStoredCollPoly {
+    CVector      verts[3]{}; // triangle vertices
+    bool         valid{};
     char         _pad[3];
-    tColLighting m_nLighting;
+    tColLighting ligthing{};
 };
-
 VALIDATE_SIZE(CStoredCollPoly, 0x2C);

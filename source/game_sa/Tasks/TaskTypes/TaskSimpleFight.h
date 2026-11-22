@@ -20,26 +20,26 @@ enum eFightAttackType : int8 {
     FIGHT_ATTACK_FIGHTIDLE = 4,
 };
 
-class CMeleeInfo {
+class NOTSA_EXPORT_VTABLE CMeleeInfo {
 public:
     AssocGroupId m_nAnimGroup;
     float  m_fRanges;
-    float  m_fHit[5];
-    float  m_fChain[5];
-    float  m_fRadius[5];
+    std::array<float, 5> m_fHit;
+    std::array<float, 5> m_fChain;
+    std::array<float, 5> m_fRadius;
     float  m_fGroundLoop;
     int32  ABlockHit;
     int32  ABlockChain;
     uint8  m_nHitLevel;
     int32  m_nDamage;
     int32  field_58;
-    int32  m_Hit[5];
-    int32  m_AltHit[5];
+    std::array<int32, 5> m_Hit;
+    std::array<int32, 5> m_AltHit;
     uint16 m_wFlags;
 };
 VALIDATE_SIZE(CMeleeInfo, 0x88);
 
-class CTaskSimpleFight : public CTaskSimple {
+class NOTSA_EXPORT_VTABLE CTaskSimpleFight : public CTaskSimple {
 public:
     bool                   m_bIsFinished;
     bool                   m_bIsInControl;
@@ -52,22 +52,22 @@ public:
     CEntity*               m_pTargetEntity;
     CAnimBlendAssociation* m_pAnim;
     CAnimBlendAssociation* m_pIdleAnim;
-    uint8                  m_nComboSet;
+    int8                   m_nComboSet;
     eFightAttackType       m_nCurrentMove;
     uint8                  m_nNextCommand;
     uint8                  m_nLastCommand;
 
-    static inline CMeleeInfo (&m_aComboData)[12] = *(CMeleeInfo(*)[12])0xC170D0;
+    static inline auto& m_aComboData = StaticRef<std::array<CMeleeInfo, MELEE_COMBO_NUM - MELEE_COMBO_UNARMED_1>>(0xC170D0); // One for each combo in `melee.dat`, `MELEE_COMBO_UNARMED_1` being the first
 
 public:
-    static constexpr auto Type = TASK_SIMPLE_FIGHT_CTRL;
+    static constexpr auto Type = eTaskType::TASK_SIMPLE_FIGHT;
 
     CTaskSimpleFight(CEntity* entity, int32 nCommand, uint32 nIdlePeriod = 10000);
     ~CTaskSimpleFight() override;
 
-    eTaskType GetTaskType() override { return Type; }
-    CTask* Clone() override { return new CTaskSimpleFight(m_pTargetEntity, m_nLastCommand, m_nIdlePeriod); } // 0x622E40
-    bool MakeAbortable(CPed* ped, eAbortPriority priority, const CEvent* event) override;
+    eTaskType GetTaskType() const override { return Type; }
+    CTask* Clone() const override { return new CTaskSimpleFight(m_pTargetEntity, m_nLastCommand, m_nIdlePeriod); }
+    bool MakeAbortable(CPed* ped, eAbortPriority priority = ABORT_PRIORITY_URGENT, const CEvent* event = nullptr) override;
     bool ProcessPed(CPed* ped) override;
 
     static void LoadMeleeData();
@@ -91,7 +91,7 @@ public:
 
     void GetAvailableComboSet(CPed* ped, int8);
     void GetComboType(char*);
-    int32 GetComboAnimGroupID();
+    AssocGroupId GetComboAnimGroupID();
     void GetHitLevel(const char*);
     void GetHitSound(int32);
     void GetRange();
@@ -107,11 +107,5 @@ private:
     CTaskSimpleFight* Constructor(CEntity* entity, int32 nCommand, uint32 nIdlePeriod);
     CTaskSimpleFight* Destructor();
 
-    CTask* Clone_Reversed();
-    bool MakeAbortable_Reversed(CPed* ped, eAbortPriority priority, const CEvent* event);
-    bool ProcessPed_Reversed(CPed* ped);
 };
-
 VALIDATE_SIZE(CTaskSimpleFight, 0x28);
-
-

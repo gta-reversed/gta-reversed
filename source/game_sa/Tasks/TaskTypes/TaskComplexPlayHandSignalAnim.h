@@ -11,28 +11,48 @@
 
 //typedef int32 AnimationId;
 
-class CTaskComplexPlayHandSignalAnim : public CTaskComplex {
+class NOTSA_EXPORT_VTABLE CTaskComplexPlayHandSignalAnim : public CTaskComplex {
 public:
-    int32   m_animationId;
-    float m_fBlendFactor;
-    union {
-        uint8 m_nFlags;
-        struct
-        {
-            uint8 m_bLeftHandLoaded : 1;
-            uint8 m_bRightHandLoaded : 1;
-            uint8 m_bAnimationLoaded : 1;
-            uint8 m_bUseFatHands : 1;
-        };
-    };
-    uint8 _pad[3];
+    static inline auto& ms_animBlock = StaticRef<uint32>(0x8D2E38);
+
+public:
+    AnimationId m_animationId{};
+    float       m_AnimBlenDelta{};
+    bool        m_bLeftHandLoaded : 1{};
+    bool        m_bRightHandLoaded : 1{};
+    bool        m_bAnimationLoaded : 1{};
+    bool        m_DoUseFatHands : 1{};
 
 public:
     static constexpr auto Type = TASK_COMPLEX_HANDSIGNAL_ANIM;
 
-    CTaskComplexPlayHandSignalAnim(AnimationId animationId, float blendFactor);
-    CTask* CreateSubTask(int32 taskType);
-    int32 GetAnimIdForPed(CPed* ped);
+    static void InjectHooks();
+
+    explicit CTaskComplexPlayHandSignalAnim(AnimationId animationId = ANIM_ID_UNDEFINED, float blendFactor = 4.f);
+    CTaskComplexPlayHandSignalAnim(const CTaskComplexPlayHandSignalAnim&);
+    ~CTaskComplexPlayHandSignalAnim();
+
+    static AnimationId GetAnimIdForPed(CPed* ped);
+
+    CTask* CreateSubTask(eTaskType taskType);
+
+    CTask*    Clone() const override;
+    eTaskType GetTaskType() const override { return Type; }
+    CTask*    CreateNextSubTask(CPed* ped) override;
+    CTask*    CreateFirstSubTask(CPed* ped) override;
+    CTask*    ControlSubTask(CPed* ped) override;
+private:
+    // 0x61B2B0
+    CTaskComplexPlayHandSignalAnim* Constructor(AnimationId animationId, float blendFactor) {
+        this->CTaskComplexPlayHandSignalAnim::CTaskComplexPlayHandSignalAnim(animationId, blendFactor);
+        return this;
+    }
+
+    // 0x61BDF0
+    CTaskComplexPlayHandSignalAnim* Destructor() {
+        this->CTaskComplexPlayHandSignalAnim::~CTaskComplexPlayHandSignalAnim();
+        return this;
+    }
 };
 
 VALIDATE_SIZE(CTaskComplexPlayHandSignalAnim, 0x18);

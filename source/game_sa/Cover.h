@@ -7,38 +7,42 @@
 #pragma once
 
 #include "Vector.h"
+#include "PtrListDoubleLink.h"
+#include "CoverPoint.h"
 
 class CEntity;
-class CPtrListDoubleLink;
-class CCoverPoint;
 class CColTriangle;
 class CBuilding;
 class CPed;
 
 class CCover {
 public:
-    static uint32& m_NumPoints;
-    static CCoverPoint (&m_aPoints)[100]; // static CCoverPoint m_aPoints[100]
-    static CPtrListDoubleLink& m_ListOfProcessedBuildings;
+    static inline auto& m_NumPoints = StaticRef<uint32>(0xC197A4);
+    static inline auto& m_Points = StaticRef<std::array<CCoverPoint, 100>>(0xC197C8);
+    inline static auto&                          m_ListOfProcessedBuildings = StaticRef<CPtrListDoubleLink<CBuilding*>>(0xC1A2B8);
 
 public:
     static void InjectHooks();
 
-    static void AddCoverPoint(int32 maxPeds, CEntity* coverEntity, CVector* position, char coverType, uint8 direction);
-    static float CalculateHorizontalSize(CColTriangle* triangle, CVector* vertPositions);
-    static char DoLineCheckWithinObject(CColTriangle* triangle, int32 a2, CVector* a3, CVector* a4, CVector a5, CVector a6);
-    static bool DoesCoverPointStillProvideCover(CCoverPoint* point, CVector position);
-    static void Find2HighestPoints(CColTriangle* triangle, CVector* vertPositions, int32& outPoint1, int32& outPoint2);
-    static CCoverPoint* FindAndReserveCoverPoint(CPed* ped, CVector& position, bool a3);
-    static bool FindCoordinatesCoverPoint(CCoverPoint* point, CPed* ped, CVector& position, CVector& outCoordinates);
-    static void FindCoverPointsForThisBuilding(CBuilding* building);
-    static uint8 FindDirFromVector(float x, float y);
-    static CVector FindVectorFromDir(uint8 direction);
-    static CVector FindVectorFromFirstToMissingVertex(CColTriangle* triangle, int32* a3, CVector* vertPositions);
-
     static void Init();
-    static void RemoveCoverPointIfEntityLost(CCoverPoint* point);
+    static void RemoveCoverPointIfEntityLost(CCoverPoint& point);
     static void RemoveCoverPointsForThisEntity(CEntity* entity);
     static bool ShouldThisBuildingHaveItsCoverPointsCreated(CBuilding* building);
     static void Update();
+
+    static CCoverPoint* GetFree();
+
+    static CCoverPoint* AddCoverPoint(CCoverPoint::eType type, CEntity* coverEntity, const CVector* position, CCoverPoint::eUsage usage, CCoverPoint::Dir dir);
+    static float CalculateHorizontalSize(CColTriangle* triangle, CVector* vertPositions);
+    static bool DoLineCheckWithinObject(CColTriangle* triangle, int32 a2, CVector* a3, CVector* a4, CVector a5, CVector a6);
+    static bool DoesCoverPointStillProvideCover(CCoverPoint* point, CVector position);
+    static void Find2HighestPoints(CColTriangle* triangle, CVector* vertPositions, int32& outPoint1, int32& outPoint2);
+    static CCoverPoint* FindAndReserveCoverPoint(CPed* ped, const CVector& position, bool isForAttack);
+    static bool FindCoordinatesCoverPoint(const CCoverPoint& point, CPed* ped, const CVector& position, CVector& outCoordinates);
+    static void FindCoverPointsForThisBuilding(CBuilding* building);
+    static CCoverPoint::Dir FindDirFromVector(CVector dir);
+    static CVector FindVectorFromDir(CCoverPoint::Dir direction);
+    static CVector FindVectorFromFirstToMissingVertex(CColTriangle* triangle, int32* a3, CVector* vertPositions);
+
+    static auto& GetCoverPoints() { return m_Points; }
 };

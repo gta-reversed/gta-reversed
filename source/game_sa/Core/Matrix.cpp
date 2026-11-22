@@ -11,8 +11,8 @@
 
 uint8* CMatrix::EulerIndices1 = (uint8*)0x866D9C;
 uint8* CMatrix::EulerIndices2 = (uint8*)0x866D94;
-int32& numMatrices = *(int32*)0xB74238;
-CMatrix& gDummyMatrix = *(CMatrix*)0xB74240;
+auto& numMatrices = StaticRef<int32>(0xB74238);
+auto& gDummyMatrix = StaticRef<CMatrix>(0xB74240);
 
 
 void CMatrix::InjectHooks()
@@ -36,17 +36,17 @@ void CMatrix::InjectHooks()
     RH_ScopedInstall(SetRotateXOnly, 0x59AFA0);
     RH_ScopedInstall(SetRotateYOnly, 0x59AFE0);
     RH_ScopedInstall(SetRotateZOnly, 0x59B020);
+    RH_ScopedOverloadedInstall(SetRotate, "xyz", 0x59B120, void(CMatrix::*)(float, float, float));
     RH_ScopedInstall(SetRotateX, 0x59B060);
     RH_ScopedInstall(SetRotateY, 0x59B0A0);
     RH_ScopedInstall(SetRotateZ, 0x59B0E0);
-    RH_ScopedOverloadedInstall(SetRotate, "xyz", 0x59B120, void(CMatrix::*)(float, float, float));
-    RH_ScopedInstall(RotateX, 0x59B1E0);
-    RH_ScopedInstall(RotateY, 0x59B2C0);
-    RH_ScopedInstall(RotateZ, 0x59B390);
+    //RH_ScopedInstall(RotateX, 0x59B1E0, {.enabled }); // has NOTSA args, cant hook
+    //RH_ScopedInstall(RotateY, 0x59B2C0, {.enabled }); // has NOTSA args, cant hook
+    //RH_ScopedInstall(RotateZ, 0x59B390, {.enabled }); // has NOTSA args, cant hook
     RH_ScopedInstall(Rotate, 0x59B460);
     RH_ScopedInstall(Reorthogonalise, 0x59B6A0);
     RH_ScopedInstall(CopyToRwMatrix, 0x59B8B0);
-    RH_ScopedOverloadedInstall(SetRotate, "quat", 0x59BBF0, void(CMatrix::*)(CQuaternion&));
+    RH_ScopedOverloadedInstall(SetRotate, "quat", 0x59BBF0, void(CMatrix::*)(const CQuaternion&));
     RH_ScopedInstall(Scale, 0x459350);
     RH_ScopedInstall(ForceUpVector, 0x59B7E0);
     RH_ScopedInstall(ConvertToEulerAngles, 0x59A840);
@@ -55,23 +55,18 @@ void CMatrix::InjectHooks()
     RH_ScopedInstall(operator+=, 0x59ADF0);
     RH_ScopedInstall(operator*=, 0x411A80);
     RH_ScopedGlobalOverloadedInstall(operator*, "Mat", 0x59BE30, CMatrix(*)(const CMatrix&, const CMatrix&));
-    RH_ScopedGlobalOverloadedInstall(operator*, "Vec", 0x59C890, CVector(*)(const CMatrix&, const CVector&));
+    //RH_ScopedGlobalOverloadedInstall(operator*, "Vec", 0x59C890, CVector(*)(const CMatrix&, const CVector&));
     RH_ScopedGlobalOverloadedInstall(operator+, "", 0x59BFA0, CMatrix(*)(const CMatrix&, const CMatrix&));
     RH_ScopedGlobalOverloadedInstall(Invert, "1", 0x59B920, CMatrix&(*)(CMatrix&, CMatrix&));
     RH_ScopedGlobalOverloadedInstall(Invert, "2", 0x59BDD0, CMatrix(*)(const CMatrix&));
 }
 
-CMatrix::CMatrix(const CMatrix& matrix)
-{
-    m_pAttachMatrix = nullptr;
-    m_bOwnsAttachedMatrix = false;
+CMatrix::CMatrix(const CMatrix& matrix) {
     CMatrix::CopyOnlyMatrix(matrix);
 }
 
 // like previous + attach
-CMatrix::CMatrix(RwMatrix* matrix, bool temporary)
-{
-    m_pAttachMatrix = nullptr;
+CMatrix::CMatrix(RwMatrix* matrix, bool temporary) {
     CMatrix::Attach(matrix, temporary);
 }
 
@@ -121,7 +116,7 @@ void CMatrix::UpdateRW()
 }
 
 // update RwMatrix with this matrix
-void CMatrix::UpdateRwMatrix(RwMatrix* matrix)
+void CMatrix::UpdateRwMatrix(RwMatrix* matrix) const
 {
     *RwMatrixGetRight(matrix) = m_right;
     *RwMatrixGetUp(matrix) = m_forward;
@@ -245,34 +240,40 @@ void CMatrix::SetRotate(float x, float y, float z)
     m_pos.Set(0.0F, 0.0F, 0.0F);
 }
 
-void CMatrix::RotateX(float angle)
+void CMatrix::RotateX(float angle, bool bKeepPos)
 {
     auto rotMat = CMatrix();
     rotMat.SetRotateX(angle);
-    m_right =   rotMat * m_right;
-    m_forward = rotMat * m_forward;
-    m_up =      rotMat * m_up;
-    m_pos =     rotMat * m_pos;
+    m_right =   rotMat.TransformVector(m_right);
+    m_forward = rotMat.TransformVector(m_forward);
+    m_up =      rotMat.TransformVector(m_up);
+    if (!bKeepPos) {
+        m_pos = rotMat.TransformVector(m_pos);
+    }
 }
 
-void CMatrix::RotateY(float angle)
+void CMatrix::RotateY(float angle, bool bKeepPos)
 {
     auto rotMat = CMatrix();
     rotMat.SetRotateY(angle);
-    m_right =   rotMat * m_right;
-    m_forward = rotMat * m_forward;
-    m_up =      rotMat * m_up;
-    m_pos =     rotMat * m_pos;
+    m_right =   rotMat.TransformVector(m_right);
+    m_forward = rotMat.TransformVector(m_forward);
+    m_up =      rotMat.TransformVector(m_up);
+    if (!bKeepPos) {
+        m_pos = rotMat.TransformVector(m_pos);
+    }
 }
 
-void CMatrix::RotateZ(float angle)
+void CMatrix::RotateZ(float angle, bool bKeepPos)
 {
     auto rotMat = CMatrix();
     rotMat.SetRotateZ(angle);
-    m_right =   rotMat * m_right;
-    m_forward = rotMat * m_forward;
-    m_up =      rotMat * m_up;
-    m_pos =     rotMat * m_pos;
+    m_right =   rotMat.TransformVector(m_right);
+    m_forward = rotMat.TransformVector(m_forward);
+    m_up =      rotMat.TransformVector(m_up);
+    if (!bKeepPos) {
+        m_pos = rotMat.TransformVector(m_pos);
+    }
 }
 
 // rotate on 3 axes
@@ -280,19 +281,17 @@ void CMatrix::Rotate(CVector rotation)
 {
     auto rotMat = CMatrix();
     rotMat.SetRotate(rotation.x, rotation.y, rotation.z);
-    m_right =   rotMat * m_right;
-    m_forward = rotMat * m_forward;
-    m_up =      rotMat * m_up;
-    m_pos =     rotMat * m_pos;
+    m_right =   rotMat.TransformVector(m_right);
+    m_forward = rotMat.TransformVector(m_forward);
+    m_up =      rotMat.TransformVector(m_up);
+    m_pos =     rotMat.TransformVector(m_pos);
 }
 
 void CMatrix::Reorthogonalise()
 {
-    auto vecCross = CrossProduct(m_right, m_forward);
-    vecCross.Normalise();
+    const auto vecCross = CrossProduct(m_right, m_forward).Normalized();
 
-    auto vecCross2 = CrossProduct(m_forward, vecCross);
-    vecCross2.Normalise();
+    const auto vecCross2 = CrossProduct(m_forward, vecCross).Normalized();
 
     auto vecCross3 = CrossProduct(vecCross, vecCross2);
 
@@ -302,13 +301,13 @@ void CMatrix::Reorthogonalise()
 }
 
 // similar to UpdateRW(RwMatrixTag *)
-void CMatrix::CopyToRwMatrix(RwMatrix* matrix)
+void CMatrix::CopyToRwMatrix(RwMatrix* matrix) const
 {
-    CMatrix::UpdateRwMatrix(matrix);
+    UpdateRwMatrix(matrix);
     RwMatrixUpdate(matrix);
 }
 
-void CMatrix::SetRotate(CQuaternion& quat)
+void CMatrix::SetRotate(const CQuaternion& quat)
 {
     auto vecImag2 = quat.imag + quat.imag;
     auto x2x = vecImag2.x * quat.imag.x;
@@ -329,22 +328,25 @@ void CMatrix::SetRotate(CQuaternion& quat)
 }
 
 void CMatrix::Scale(float scale) {
-    m_right *= scale;
-    m_forward *= scale;
-    m_up *= scale;
+    ScaleXYZ(scale, scale, scale);
+}
+
+void CMatrix::ScaleXYZ(float x, float y, float z) {
+    m_right   *= x;
+    m_forward *= y;
+    m_up      *= z;
 }
 
 void CMatrix::ForceUpVector(CVector vecUp) {
-    auto vecCross = CrossProduct(m_forward, vecUp);
-    auto vecCross2 = CrossProduct(vecUp, vecCross);
-
-    m_right = vecCross;
-    m_forward = vecCross2;
-    m_up = vecUp;
+    m_right   = CrossProduct(m_forward, vecUp);
+    m_forward = CrossProduct(vecUp, m_right);
+    m_up      = vecUp;
 }
 
 void CMatrix::ConvertToEulerAngles(float* pX, float* pY, float* pZ, uint32 uiFlags)
 {
+    const auto EPSILON = std::scalbn(1.0f, -19);
+    
     float fArr[3][3];
 
     fArr[0][0] = m_right.x;
@@ -389,10 +391,10 @@ void CMatrix::ConvertToEulerAngles(float* pX, float* pY, float* pZ, uint32 uiFla
         auto r13 = fArr[iInd1][iInd3];
         auto r12 = fArr[iInd1][iInd2];
         auto cy = sqrt(r12 * r12 + r13 * r13);
-        if (cy > 0.0000019073486) { // Some epsilon?
+        if (cy > EPSILON) {
             *pX = atan2(r12, r13);
             *pY = atan2(cy, fArr[iInd1][iInd1]);
-            *pZ = atan2(fArr[iInd2][iInd3], -fArr[iInd3][iInd1]);
+            *pZ = atan2(fArr[iInd2][iInd1], -fArr[iInd3][iInd1]);
         }
         else {
             *pX = atan2(-fArr[iInd2][iInd3], fArr[iInd2][iInd2]);
@@ -404,7 +406,7 @@ void CMatrix::ConvertToEulerAngles(float* pX, float* pY, float* pZ, uint32 uiFla
         auto r21 = fArr[iInd2][iInd1];
         auto r11 = fArr[iInd1][iInd1];
         auto cy = sqrt(r11 * r11 + r21 * r21);
-        if (cy > 0.0000019073486) { // Some epsilon?
+        if (cy > EPSILON) {
             *pX = atan2(fArr[iInd3][iInd2], fArr[iInd3][iInd3]);
             *pY = atan2(-fArr[iInd3][iInd1], cy);
             *pZ = atan2(r21, r11);
@@ -484,8 +486,7 @@ void CMatrix::ConvertFromEulerAngles(float x, float y, float z, uint32 uiFlags)
         fArr[iInd3][iInd1] = -(fCosZ*fSinY);
         fArr[iInd3][iInd2] =   fCosX*fSinZ  + fCosY*fCosZ*fSinX;
         fArr[iInd3][iInd3] = -(fSinX*fSinZ) + fCosX*fCosY*fCosZ;
-    }
-    else { // Use Tait-Bryan angles
+    } else { // Use Tait-Bryan angles
         fArr[iInd1][iInd1] =   fCosY*fCosZ;
         fArr[iInd1][iInd2] = -(fCosX*fSinZ) + fCosZ*fSinX*fSinY;
         fArr[iInd1][iInd3] =   fSinX*fSinZ  + fCosX*fCosZ*fSinY;
@@ -504,10 +505,9 @@ void CMatrix::ConvertFromEulerAngles(float x, float y, float z, uint32 uiFlags)
     m_up.Set     (fArr[2][0], fArr[2][1], fArr[2][2]);
 }
 
-void CMatrix::operator=(const CMatrix& rvalue)
-{
-    CMatrix::CopyOnlyMatrix(rvalue);
-    CMatrix::UpdateRW();
+void CMatrix::operator=(const CMatrix& other) {
+    CopyOnlyMatrix(other);
+    UpdateRW();
 }
 
 void CMatrix::operator+=(const CMatrix& rvalue)
@@ -523,6 +523,15 @@ void CMatrix::operator*=(const CMatrix& rvalue)
     *this = (*this * rvalue);
 }
 
+CMatrix CMatrix::GetIdentity() {
+    CMatrix m;
+    m.m_right   = CVector{ 1.f, 0.f, 0.f };
+    m.m_forward = CVector{ 0.f, 1.f, 0.f };
+    m.m_up      = CVector{ 0.f, 0.f, 1.f };
+    m.m_pos     = CVector{ 0.f, 0.f, 0.f };
+    return m;
+}
+
 CMatrix operator*(const CMatrix& a, const CMatrix& b)
 {
     auto result = CMatrix();
@@ -533,14 +542,10 @@ CMatrix operator*(const CMatrix& a, const CMatrix& b)
     return result;
 }
 
-CVector operator*(const CMatrix& a, const CVector& b)
-{
-    CVector result;
-    result.x = a.m_pos.x + a.m_right.x * b.x + a.m_forward.x * b.y + a.m_up.x * b.z;
-    result.y = a.m_pos.y + a.m_right.y * b.x + a.m_forward.y * b.y + a.m_up.y * b.z;
-    result.z = a.m_pos.z + a.m_right.z * b.x + a.m_forward.z * b.y + a.m_up.z * b.z;
-    return result;
+CVector operator*(const CMatrix& a, const CVector& b) {
+    return a.TransformPoint(b);
 }
+
 CMatrix operator+(const CMatrix& a, const CMatrix& b)
 {
     CMatrix result;
@@ -553,23 +558,22 @@ CMatrix operator+(const CMatrix& a, const CMatrix& b)
 
 CMatrix& Invert(CMatrix& in, CMatrix& out)
 {
-    out.GetPosition().Set(0.0F, 0.0F, 0.0F);
-
-    out.GetRight().Set(in.GetRight().x, in.GetForward().x, in.GetUp().x);
-    out.GetForward().Set(in.GetRight().y, in.GetForward().y, in.GetUp().y);
-    out.GetUp().Set(in.GetRight().z, in.GetForward().z, in.GetUp().z);
-
-    out.GetPosition() += in.GetPosition().x * out.GetRight();
-    out.GetPosition() += in.GetPosition().y * out.GetForward();
-    out.GetPosition() += in.GetPosition().z * out.GetUp();
-    out.GetPosition() *= -1.0F;
-
+    // NOTE: Not `out = ...`: `out` may not be constructed yet, so like the original only set the matrix itself (See #1012)
+    const auto inv = in.Inverted();
+    out.GetRight()    = inv.GetRight();
+    out.GetForward()  = inv.GetForward();
+    out.GetUp()       = inv.GetUp();
+    out.GetPosition() = inv.GetPosition();
     return out;
 }
 
 CMatrix Invert(const CMatrix& in)
 {
-    CMatrix result;
-    Invert(const_cast<CMatrix&>(in), result); // const cast necessary because it's fucked - but it wont be modified.
-    return result;
+    return in.Inverted();
+}
+
+CMatrix Lerp(CMatrix from, CMatrix to, float t) {
+    from.ScaleAll(1.0f - t);
+    to.ScaleAll(t);
+    return from + to;
 }

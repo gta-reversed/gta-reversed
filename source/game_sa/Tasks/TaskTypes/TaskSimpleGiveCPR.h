@@ -3,7 +3,7 @@
 #include "TaskSimple.h"
 class CAccident;
 
-class CTaskSimpleGiveCPR : public CTaskSimple {
+class NOTSA_EXPORT_VTABLE CTaskSimpleGiveCPR : public CTaskSimple {
 public:
     union {
         struct {
@@ -22,10 +22,10 @@ public:
     explicit CTaskSimpleGiveCPR(CAccident* accident);
     ~CTaskSimpleGiveCPR() override;
 
-    eTaskType GetTaskType() override { return Type; }
-    CTask* Clone() override;
+    eTaskType GetTaskType() const override { return Type; }
+    CTask* Clone() const override;
     bool ProcessPed(CPed* ped) override;
-    bool MakeAbortable(class CPed* ped, eAbortPriority priority, const CEvent* event) override;
+    bool MakeAbortable(class CPed* ped, eAbortPriority priority = ABORT_PRIORITY_URGENT, const CEvent* event = nullptr) override;
 
     void ReviveDeadPed(CPed* ped);
     static void FinishGiveCPRAnimCB(CAnimBlendAssociation* anim, void* ptask);
@@ -36,8 +36,5 @@ private:
 
     CTaskSimpleGiveCPR* Constructor(CAccident* pAccident);
 
-    CTask* Clone_Reversed();
-    bool ProcessPed_Reversed(CPed* ped);
-    bool MakeAbortable_Reversed(class CPed* ped, eAbortPriority priority, const CEvent* event);
 };
 VALIDATE_SIZE(CTaskSimpleGiveCPR, 0x18);

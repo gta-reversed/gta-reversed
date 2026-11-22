@@ -9,16 +9,17 @@
 #include "Placeable.h"
 
 void CPlaceable::InjectHooks() {
-    RH_ScopedClass(CPlaceable);
+    RH_ScopedVirtualClass(CPlaceable, 0x863C40, 1);
     RH_ScopedCategory("Entity");
 
     RH_ScopedOverloadedInstall(SetPosn, "xyz", 0x420B80, void(CPlaceable::*)(float, float, float));
     RH_ScopedOverloadedInstall(SetPosn, "vector", 0x4241C0, void(CPlaceable::*)(const CVector&));
-    RH_ScopedInstall(SetOrientation, 0x439A80);
+    RH_ScopedOverloadedInstall(SetOrientation, "xyz", 0x439A80, void(CPlaceable::*)(float, float, float));
     RH_ScopedInstall(SetHeading, 0x43E0C0);
     RH_ScopedInstall(GetHeading, 0x441DB0);
-    RH_ScopedOverloadedInstall(IsWithinArea, "xy", 0x54F200, bool(CPlaceable::*)(float, float, float, float));
-    RH_ScopedOverloadedInstall(IsWithinArea, "xyz", 0x54F2B0, bool(CPlaceable::*)(float, float, float, float, float, float));
+    RH_ScopedInstall(GetRoll, 0x420B30);
+    RH_ScopedOverloadedInstall(IsWithinArea, "xy", 0x54F200, bool(CPlaceable::*)(float, float, float, float) const);
+    RH_ScopedOverloadedInstall(IsWithinArea, "xyz", 0x54F2B0, bool(CPlaceable::*)(float, float, float, float, float, float) const);
     RH_ScopedInstall(RemoveMatrix, 0x54F3B0);
     RH_ScopedInstall(AllocateStaticMatrix, 0x54F4C0);
     RH_ScopedInstall(AllocateMatrix, 0x54F560);
@@ -42,19 +43,19 @@ CPlaceable::~CPlaceable() {
     m_matrix = reinterpret_cast<CMatrixLink*>(&gDummyMatrix);
 }
 
-CVector CPlaceable::GetRightVector() {
+CVector CPlaceable::GetRightVector() const noexcept {
     if (m_matrix)
         return m_matrix->GetRight();
     return { std::cos(m_placement.m_fHeading), std::sin(m_placement.m_fHeading), 0.0f };
 }
 
-CVector CPlaceable::GetForwardVector() {
+CVector CPlaceable::GetForwardVector() const noexcept {
     if (m_matrix)
         return m_matrix->GetForward();
     return { -std::sin(m_placement.m_fHeading), std::cos(m_placement.m_fHeading), 0.0f };
 }
 
-CVector CPlaceable::GetUpVector() {
+CVector CPlaceable::GetUpVector() const noexcept {
     if (m_matrix)
         return m_matrix->GetUp();
     return {0.0f, 0.0f, 1.0f};
@@ -88,15 +89,24 @@ void CPlaceable::SetHeading(float heading) {
         m_placement.m_fHeading = heading;
 }
 
-float CPlaceable::GetHeading() {
-    if (!m_matrix)
-        return m_placement.m_fHeading;
-
-    const auto& vecForward = m_matrix->GetForward();
-    return std::atan2(-vecForward.x, vecForward.y);
+float CPlaceable::GetHeading() const {
+    return m_matrix
+        ? m_matrix->GetForward().Heading()
+        : m_placement.m_fHeading;
 }
 
-bool CPlaceable::IsWithinArea(float x1, float y1, float x2, float y2) {
+// 0x420B30
+float CPlaceable::GetRoll() const {
+    if (!m_matrix) {
+        return 0.f;
+    }
+
+    const auto& right = m_matrix->GetRight();
+    const auto  xymag = CVector2D{ right }.SquaredMagnitude(); // NOTE: We're using sqmag here because it doesn't matter, and we save a sqrt this way.
+    return std::atan2(right.z, m_matrix->GetUp().z < 0.f ? -xymag : xymag);
+}
+
+bool CPlaceable::IsWithinArea(float x1, float y1, float x2, float y2) const {
     const auto& vecPos = GetPosition();
     if (x1 > x2)
         std::swap(x1, x2);
@@ -107,7 +117,8 @@ bool CPlaceable::IsWithinArea(float x1, float y1, float x2, float y2) {
     return vecPos.x >= x1 && vecPos.x <= x2 && vecPos.y >= y1 && vecPos.y <= y2;
 }
 
-bool CPlaceable::IsWithinArea(float x1, float y1, float z1, float x2, float y2, float z2) {
+
+bool CPlaceable::IsWithinArea(float x1, float y1, float z1, float x2, float y2, float z2) const {
     const auto& vecPos = GetPosition();
     if (x1 > x2)
         std::swap(x1, x2);
@@ -181,7 +192,7 @@ bool CPlaceable::IsPointInRange(const CVector& point, float range) {
     return DistanceBetweenPointsSquared(point, GetPosition()) <= sq(range);
 }
 
-CMatrixLink& CPlaceable::GetMatrix() {
+CMatrix& CPlaceable::GetMatrix() {
     if (!m_matrix) {
         CPlaceable::AllocateMatrix();
         m_placement.UpdateMatrix(m_matrix);
@@ -195,6 +206,8 @@ void CPlaceable::ShutdownMatrixArray() {
 }
 
 void CPlaceable::InitMatrixArray() {
+    ZoneScoped;
+
     gMatrixList.Init(CPlaceable::NUM_MATRICES_TO_CREATE);
 }
 

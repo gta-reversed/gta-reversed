@@ -13,11 +13,11 @@ void CQuaternion::InjectHooks() {
     RH_ScopedClass(CQuaternion);
     RH_ScopedCategory("Core");
 
-    RH_ScopedOverloadedInstall(Get, "", 0x59C080, void(CQuaternion::*)(RwMatrix*));
+    RH_ScopedOverloadedInstall(Get, "", 0x59C080, void (CQuaternion::*)(RwMatrix*) const);
 }
 
 // Quat to matrix
-void CQuaternion::Get(RwMatrix* out) {
+void CQuaternion::Get(RwMatrix* out) const {
     auto vecImag2 = imag + imag;
     auto x2x = vecImag2.x * imag.x;
     auto y2x = vecImag2.y * imag.x;
@@ -83,8 +83,9 @@ void CQuaternion::Conjugate() {
 }
 
 // Squared length of a quat
-float CQuaternion::GetLengthSquared() {
-    return ((float(__thiscall*)(CQuaternion*))0x4D12C0)(this);
+float CQuaternion::GetLengthSquared() const {
+    // Originally NOP.
+    return sq(x) + sq(y) + sq(z) + sq(w);
 }
 
 // Multiplies quat by a floating point value
@@ -98,11 +99,16 @@ void CQuaternion::Copy(const CQuaternion& from) {
 }
 
 // Gets a dot product for quats
-void CQuaternion::Dot(const CQuaternion& a) {
-    ((void(__thiscall*)(CQuaternion*, const CQuaternion&))0x4CFA00)(this, a);
+float CQuaternion::Dot(const CQuaternion& rhs) {
+    return this->w * rhs.w + this->z * rhs.z + this->y * rhs.y + this->x * rhs.x;
 }
 
 // Normalises a quat
 void CQuaternion::Normalise() {
-    ((void(__thiscall*)(CQuaternion*))0x4D1610)(this);
+    const auto sqMag = GetLengthSquared();
+    if (sqMag == 0.f) {
+        w = 1.0;
+    } else {
+        *this = *this / std::sqrt(sqMag);
+    }
 }

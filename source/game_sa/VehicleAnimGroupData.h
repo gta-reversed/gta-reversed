@@ -68,17 +68,22 @@ public:
 };
 
 enum eInOutTimingMode : uint8 {
-    OPEN_OUT = 0,
-    CLOSE_IN = 1,
-    OPEN_IN = 2,
-    CLOSE_OUT = 3,
+    // TODO: Enum names are incorrect, but don't bother, this enum shit should be removed anyways.
+    OPEN_START = 0,
+    OPEN_STOP = 1,
+    CLOST_START = 2,
+    CLOSE_STOP = 3,
 };
 
-struct sVehAnimGroupInOutTiming {
-    float m_afTimings[4]; // access using eInOutTimingMode
-
+struct sVehAnimGroupInOutTiming { // TODO: Rename to `sVehAnimGroupOpenCloseTiming`
+    float OpenOut{};
+    float CloseIn{};
+    float OpenIn{};
+    float CloseOut{};
 public:
-    sVehAnimGroupInOutTiming() : m_afTimings{0.0F} {}
+    float operator[](eInOutTimingMode mode) { return reinterpret_cast<float*>(this)[(size_t)mode]; } // TODO: Get rid of this
+
+    sVehAnimGroupInOutTiming() = default;
 };
 
 enum eInOutTiming : uint8 {
@@ -107,6 +112,9 @@ public:
     uint8 m_ucSecondGroup; // see AssocGroupId
     char  _pad[2];
 
+    AssocGroupId GetFirstGroup()  const { return (AssocGroupId)m_ucFirstGroup; }
+    AssocGroupId GetSecondGroup() const { return (AssocGroupId)m_ucSecondGroup; }
+
 public:
     sVehicleAnimDataGroupFlags   m_animFlags;
     sVehicleAnimDataSpecialFlags m_specialFlags;
@@ -117,12 +125,14 @@ public:
 public:
     static void InjectHooks();
 
-    void    InitAnimGroup(uint8 firstGroup, uint8 secondGroup, int32 animFlags, int32 animSpecialFlags, sVehAnimGroupGeneralTiming* generalTiming, sVehAnimGroupInOutTiming* startTiming, sVehAnimGroupInOutTiming* endTiming);
-    void    CopyAnimGroup(CVehicleAnimGroup* src);
-    uint32  GetGroup(AnimationId animId);
-    float   ComputeCriticalBlendTime(AnimationId animId);
-    CVector ComputeAnimDoorOffsets(eVehAnimDoorOffset doorId);
+    void         InitAnimGroup(uint8 firstGroup, uint8 secondGroup, int32 animFlags, int32 animSpecialFlags, sVehAnimGroupGeneralTiming* generalTiming, sVehAnimGroupInOutTiming* startTiming, sVehAnimGroupInOutTiming* endTiming);
+    void         CopyAnimGroup(CVehicleAnimGroup* src);
+    AssocGroupId GetGroup(AnimationId animId) const;
+    float        ComputeCriticalBlendTime(AnimationId animId);
+    CVector      ComputeAnimDoorOffsets(eVehAnimDoorOffset doorId);
 
+    /// NOTSA: Helper of `CVehicleAnimGroupData::InitAGroupFromData`
+    int32 InitFromData(const char* line);
 public:
     // Helpers
     sVehAnimGroupInOutTiming& GetInOutTiming(const eInOutTiming timing) { return m_aInOutTiming[timing]; }
@@ -133,20 +143,22 @@ VALIDATE_SIZE(CVehicleAnimGroup, 0x94);
 class CVehicleAnimGroupData {
 public:
     static constexpr int32 NUM_VEH_ANIM_GROUPS = 30;
-    static CVehicleAnimGroup (&m_vehicleAnimGroups)[NUM_VEH_ANIM_GROUPS]; // Access using GetVehicleAnimGroup()
+    static inline auto& m_vehicleAnimGroups = StaticRef<CVehicleAnimGroup[NUM_VEH_ANIM_GROUPS]>(0xC1CDC0); // Access using GetVehicleAnimGroup()
 
 public:
     static void InjectHooks();
 
-    static void    GetInOutTimings(AssocGroupId groupId, eInOutTimingMode mode, float* pfAnimStart, float* pfAnimEnd);
-    static int32   GetGroupForAnim(AssocGroupId groupId, AnimationId animId);
-    static CVector GetAnimDoorOffset(AssocGroupId groupId, eVehAnimDoorOffset doorId);
-    static float   ComputeCriticalBlendTime(AssocGroupId groupId, AnimationId animId);
+    static void         GetInOutTimings(AssocGroupId groupId, eInOutTimingMode mode, float* pfAnimStart, float* pfAnimEnd);
+    static AssocGroupId GetGroupForAnim(AssocGroupId groupId, AnimationId animId);
+    static CVector      GetAnimDoorOffset(AssocGroupId groupId, eVehAnimDoorOffset doorId);
+    static float        ComputeCriticalBlendTime(AssocGroupId groupId, AnimationId animId);
 
     static bool UsesTruckDrivingAnims(AssocGroupId groupId);
     static bool UsesKartDrivingAnims(AssocGroupId groupId);
     static bool UsesHovercraftDrivingAnims(AssocGroupId groupId);
 
+    /// Helper function for `cHandlingDataMgr::LoadHandlingData`
+    static int32 LoadAGroupFromData(const char* line);
 public:
     // Helpers
     inline static CVehicleAnimGroup& GetVehicleAnimGroup(int32 iGroup) {

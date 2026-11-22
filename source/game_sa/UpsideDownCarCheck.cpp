@@ -7,7 +7,7 @@ void CUpsideDownCarCheck::InjectHooks() {
     RH_ScopedCategoryGlobal();
 
     // RH_ScopedOverloadedInstall(IsCarUpsideDown, "handle", 0x0);
-    RH_ScopedOverloadedInstall(IsCarUpsideDown, "vehicle", 0x463830, bool(CUpsideDownCarCheck::*)(CVehicle*));
+    RH_ScopedOverloadedInstall(IsCarUpsideDown, "vehicle", 0x463830, bool(CUpsideDownCarCheck::*)(const CVehicle*));
     RH_ScopedInstall(UpdateTimers, 0x4655E0);
     RH_ScopedInstall(AddCarToCheck, 0x4638D0);
     RH_ScopedInstall(RemoveCarFromCheck, 0x463910);
@@ -25,28 +25,29 @@ bool CUpsideDownCarCheck::IsCarUpsideDown(int32 carHandle) {
 }
 
 // 0x463830
-bool CUpsideDownCarCheck::IsCarUpsideDown(/* const */ CVehicle* vehicle) {
+bool CUpsideDownCarCheck::IsCarUpsideDown(const CVehicle* vehicle) {
     const auto GetNumContactWheels = [=]() -> uint32 {
         switch (vehicle->m_nVehicleType) {
-        case eVehicleType::VEHICLE_TYPE_BIKE:
-            return vehicle->AsBike()->m_nNumContactWheels;
-        case eVehicleType::VEHICLE_TYPE_AUTOMOBILE:
-            return vehicle->AsAutomobile()->m_nNumContactWheels;
-        default:
-            return 0u;
+        case eVehicleType::VEHICLE_TYPE_BIKE:       return static_cast<const CBike*>(vehicle)->m_nNoOfContactWheels;
+        case eVehicleType::VEHICLE_TYPE_AUTOMOBILE: return static_cast<const CAutomobile*>(vehicle)->m_nNumContactWheels;
+        default: return 0u;
         }
     };
+
     if (!vehicle->CanPedStepOutCar(false)) {
         const auto& up = vehicle->GetUp();
         return up.z < 0.3f && GetNumContactWheels() < 4  // Not totally up-side down
             || up.z < 0.f;                               // Literally up-side down
     }
+
     return false;
 }
 
 // Process
 // 0x4655E0
 void CUpsideDownCarCheck::UpdateTimers() {
+    ZoneScoped;
+
     for (auto& car : m_aUpsideDownCars) {
         if (!car.m_nHandle)
             continue;

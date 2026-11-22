@@ -1,18 +1,18 @@
 #include "StdInc.h"
 
-HANDLE(&gStreamFileHandles)[MAX_CD_STREAM_HANDLES] = *(HANDLE(*)[MAX_CD_STREAM_HANDLES])0x8E4010;
-char(&gCdImageNames)[MAX_CD_STREAM_HANDLES][MAX_CD_STREAM_IMAGE_NAME_SIZE] = *(char(*)[MAX_CD_STREAM_HANDLES][MAX_CD_STREAM_IMAGE_NAME_SIZE])0x8E4098;
-uint32& gStreamFileCreateFlags = *(uint32*)0x8E3FE0;
-CdStream*& gCdStreams = *(CdStream**)0x8E3FFC;
-int32& gStreamCount = *(int32*)0x8E4090;
-int32& gOpenStreamCount = *(int32*)0x8E4094;
-int32& gStreamingInitialized = *(int32*)0x8E3FE4;
-int32& gOverlappedIO = *(int32*)0x8E3FE8;
-Queue& gStreamQueue = *(Queue*)0x8E3FEC;
-HANDLE& gStreamSemaphore = *(HANDLE*)0x8E4004;
-HANDLE& gStreamingThread = *(HANDLE*)0x8E4008;
-DWORD& gStreamingThreadId = *(DWORD*)0x8E4000;
-uint32& gLastCdStreamPosn = *(uint32*)0x8E4898;
+auto& gStreamFileHandles = StaticRef<HANDLE[MAX_CD_STREAM_HANDLES]>(0x8E4010);
+auto& gCdImageNames = StaticRef<char[MAX_CD_STREAM_HANDLES][MAX_CD_STREAM_IMAGE_NAME_SIZE]>(0x8E4098);
+auto& gStreamFileCreateFlags = StaticRef<uint32>(0x8E3FE0);
+auto& gCdStreams = StaticRef<CdStream*>(0x8E3FFC);
+auto& gStreamCount = StaticRef<int32>(0x8E4090);
+auto& gOpenStreamCount = StaticRef<int32>(0x8E4094);
+auto& gStreamingInitialized = StaticRef<int32>(0x8E3FE4);
+auto& gOverlappedIO = StaticRef<int32>(0x8E3FE8);
+auto& gStreamQueue = StaticRef<Queue>(0x8E3FEC);
+auto& gStreamSemaphore = StaticRef<HANDLE>(0x8E4004);
+auto& gStreamingThread = StaticRef<HANDLE>(0x8E4008);
+auto& gStreamingThreadId = StaticRef<DWORD>(0x8E4000);
+auto& gLastCdStreamPosn = StaticRef<uint32>(0x8E4898);
 
 #define APPLY_CD_STREAM_DEADLOCK_FIX 1
 
@@ -46,6 +46,7 @@ public:
 
 static CSync cdStreamThreadSync;
 #endif
+#include "AEBankLoader.h"
 
 void InjectCdStreamHooks() {
     RH_ScopedNamespaceName("CdStream");
@@ -63,20 +64,29 @@ void InjectCdStreamHooks() {
 }
 
 // 0x4067B0
-int32 CdStreamOpen(const char* lpFileName) {
-    int32 freeHandleIndex = 0;
-    for (; freeHandleIndex < MAX_CD_STREAM_HANDLES; freeHandleIndex++) {
-        if (!gStreamFileHandles[freeHandleIndex])
+CdStreamHandle CdStreamOpen(const char* lpFileName) {
+    NOTSA_LOG_DEBUG("CdStreamOpen: {}", lpFileName);
+    int32 idx = 0;
+    for (; idx < MAX_CD_STREAM_HANDLES; idx++) {
+        if (!gStreamFileHandles[idx])
             break;
     }
     SetLastError(NO_ERROR);
-    const DWORD dwFlagsAndAttributes = gStreamFileCreateFlags | FILE_ATTRIBUTE_READONLY | FILE_FLAG_RANDOM_ACCESS;
-    HANDLE file = CreateFileA(lpFileName, GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, dwFlagsAndAttributes, nullptr);
-    gStreamFileHandles[freeHandleIndex] = file;
-    if (file == INVALID_HANDLE_VALUE)
+    HANDLE file = CreateFileA(
+        lpFileName,
+        GENERIC_READ,
+        FILE_SHARE_READ,
+        nullptr,
+        OPEN_EXISTING,
+        gStreamFileCreateFlags | FILE_ATTRIBUTE_READONLY | FILE_FLAG_RANDOM_ACCESS,
+        nullptr
+    );
+    gStreamFileHandles[idx] = file;
+    if (file == INVALID_HANDLE_VALUE) {
         return 0;
-    strncpy(gCdImageNames[freeHandleIndex], lpFileName, MAX_CD_STREAM_IMAGE_NAME_SIZE);
-    return freeHandleIndex << 24;
+    }
+    strncpy_s(gCdImageNames[idx], lpFileName, MAX_CD_STREAM_IMAGE_NAME_SIZE);
+    return (CdStreamHandle)(idx << CD_STREAM_HANDLE_BITS);
 }
 
 // This function halts the caller thread if CdStreamThread is still reading the file to "sync" it.
@@ -149,27 +159,26 @@ eCdStreamStatus CdStreamGetStatus(int32 streamId) {
 // When CdStreamThread is done reading the model, then CdStreamThread will set `stream.nSectorsToRead` and `stream.bInUse` to 0,
 // so the main thread can call CdStreamRead again to read more models.
 // 0x406A20
-bool CdStreamRead(int32 streamId, void* lpBuffer, uint32 offsetAndHandle, int32 sectorCount) {
+bool CdStreamRead(int32 streamId, void* lpBuffer, CdStreamPos pos, int32 sectorCount) {
     CdStream& stream = gCdStreams[streamId];
-    gLastCdStreamPosn = sectorCount + offsetAndHandle;
-    const uint32 sectorOffset = offsetAndHandle & 0xFFFFFF;
-    stream.hFile = gStreamFileHandles[offsetAndHandle >> 24];
+    gLastCdStreamPosn = sectorCount + (notsa::IsFixBugs() ? pos.Offset : pos.ToInt()); // CD_STREAM_READ_POS_FIX
+    stream.hFile = gStreamFileHandles[pos.FileID];
     SetLastError(NO_ERROR);
     if (gStreamingInitialized) {
         if (stream.nSectorsToRead || stream.bInUse)
             return false;
         stream.status = eCdStreamStatus::READING_SUCCESS;
-        stream.nSectorOffset = sectorOffset;
+        stream.nSectorOffset = pos.Offset;
         stream.nSectorsToRead = sectorCount;
         stream.lpBuffer = lpBuffer;
         stream.bLocked = false;
         AddToQueue(&gStreamQueue, streamId);
         if (!ReleaseSemaphore(gStreamSemaphore, 1, nullptr))
-            printf("Signal Sema Error\n");
+            NOTSA_LOG_DEBUG("Signal Sema Error");
         return true;
     }
     const DWORD numberOfBytesToRead = sectorCount * STREAMING_SECTOR_SIZE;
-    const DWORD overlappedOffset = sectorOffset * STREAMING_SECTOR_SIZE;
+    const DWORD overlappedOffset = pos.Offset * STREAMING_SECTOR_SIZE;
     if (gOverlappedIO) {
         LPOVERLAPPED overlapped = &gCdStreams[streamId].overlapped;
         overlapped->Offset = overlappedOffset;
@@ -183,9 +192,16 @@ bool CdStreamRead(int32 streamId, void* lpBuffer, uint32 offsetAndHandle, int32 
 }
 
 // 0x406560
-[[noreturn]] DWORD WINAPI CdStreamThread(LPVOID lpParam) {
+[[noreturn]] void WINAPI CdStreamThread(LPVOID lpParam) {
+#ifdef TRACY_ENABLE
+    tracy::SetThreadName("CdStreamThread");
+#endif
+
     while (true) {
         WaitForSingleObject(gStreamSemaphore, INFINITE);
+
+        ZoneScoped;
+
         const int32 streamId = GetFirstInQueue(&gStreamQueue);
         CdStream& stream = gCdStreams[streamId];
         stream.bInUse = true;
@@ -214,6 +230,7 @@ bool CdStreamRead(int32 streamId, void* lpBuffer, uint32 offsetAndHandle, int32 
                     stream.status = eCdStreamStatus::READING_FAILURE;
             }
         }
+
         RemoveFirstInQueue(&gStreamQueue);
 #ifdef APPLY_CD_STREAM_DEADLOCK_FIX
         CLockGuard lockGuard(cdStreamThreadSync);
@@ -234,22 +251,22 @@ void CdStreamInitThread() {
         HANDLE hSemaphore = OS_SemaphoreCreate(2, nullptr);
         stream.sync.hSemaphore = hSemaphore;
         if (!hSemaphore) {
-            printf("%s: failed to create sync semaphore\n", "cdvd_stream");
+            NOTSA_LOG_DEBUG("cdvd_stream: failed to create sync semaphore");
             return;
         }
     }
     InitialiseQueue(&gStreamQueue, gStreamCount + 1);
     gStreamSemaphore = OS_SemaphoreCreate(5, "CdStream");
     if (gStreamSemaphore) {
-        gStreamingThread = CreateThread(nullptr, 0x10000, CdStreamThread, nullptr, CREATE_SUSPENDED, &gStreamingThreadId);
+        gStreamingThread = CreateThread(nullptr, 0x10000, (LPTHREAD_START_ROUTINE)CdStreamThread, nullptr, CREATE_SUSPENDED, &gStreamingThreadId);
         if (gStreamingThread) {
             SetThreadPriority(gStreamingThread, GetThreadPriority(GetCurrentThread()));
             ResumeThread(gStreamingThread);
         } else {
-            printf("%s: failed to create streaming thread\n", "cdvd_stream");
+            NOTSA_LOG_DEBUG("cdvd_stream: failed to create streaming thread");
         }
     } else {
-        printf("%s: failed to create stream semaphore\n", "cdvd_stream");
+        NOTSA_LOG_DEBUG("cdvd_stream: failed to create stream semaphore");
     }
 }
 
@@ -280,7 +297,7 @@ void CdStreamInit(int32 streamCount) {
     gStreamCount = streamCount;
     gCdStreams = (CdStream*)LocalAlloc(LPTR, sizeof(CdStream) * streamCount);
     CdStreamOpen("MODELS\\GTA3.IMG");
-    bool bStreamRead = CdStreamRead(0, pAllocatedMemory, 0, 1);
+    bool bStreamRead = CdStreamRead(0, pAllocatedMemory, {}, 1);
     CdStreamRemoveImages();
     gStreamingInitialized = 1;
     if (!bStreamRead) {
@@ -318,4 +335,8 @@ void CdStreamShutdown() {
         }
     }
     LocalFree(gCdStreams);
+}
+
+uint32 CdStreamHandleToFileID(CdStreamHandle h) {
+    return h >> CD_STREAM_HANDLE_BITS;
 }

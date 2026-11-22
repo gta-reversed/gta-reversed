@@ -4,7 +4,7 @@
 
 #define NAME_LENGTH 23
 
-RwInt32& gNodeNamePluginOffset = *(RwInt32*)0xC87C5C;
+auto& gNodeNamePluginOffset = StaticRef<RwInt32>(0xC87C5C);
 
 /**
  * NodeName plugin structure
@@ -43,7 +43,7 @@ static void* NodeNameDestructor(void* object, RwInt32 offsetInObject, RwInt32 si
 // internal
 // 0x72F9F0
 static void* NodeNameCopy(void* dstObject, const void* srcObject, RwInt32 offsetInObject, RwInt32 sizeInObject) {
-    strncpy(RWPLUGINOFFSET(NodeNamePluginInstance, dstObject, gNodeNamePluginOffset)->name, RWPLUGINOFFSET(NodeNamePluginInstance, srcObject, gNodeNamePluginOffset)->name, NAME_LENGTH);
+    strncpy_s(RWPLUGINOFFSET(NodeNamePluginInstance, dstObject, gNodeNamePluginOffset)->name, RWPLUGINOFFSET(NodeNamePluginInstance, srcObject, gNodeNamePluginOffset)->name, NAME_LENGTH);
     return dstObject;
 }
 
@@ -90,7 +90,7 @@ const RwChar* GetFrameNodeName(RwFrame* frame) {
 
 void SetFrameNodeName(RwFrame* frame, const RwChar* name) {
     if (gNodeNamePluginOffset > 0) {
-        strncpy(RWPLUGINOFFSET(NodeNamePluginInstance, frame, gNodeNamePluginOffset)->name, name, NAME_LENGTH);
+        strncpy_s(RWPLUGINOFFSET(NodeNamePluginInstance, frame, gNodeNamePluginOffset)->name, name, NAME_LENGTH);
         RWPLUGINOFFSET(NodeNamePluginInstance, frame, gNodeNamePluginOffset)->name[NAME_LENGTH] = '\0';
     }
 }

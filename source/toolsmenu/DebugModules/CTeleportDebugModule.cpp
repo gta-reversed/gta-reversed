@@ -1,9 +1,9 @@
 #include "StdInc.h"
 
-#ifdef EXTRA_DEBUG_FEATURES
 #include "CTeleportDebugModule.h"
 #include "Utility.h"
-#include "CDebugMenu.h"
+#include "UIRenderer.h"
+#include "DebugModule.h"
 
 #include <imgui.h>
 #include <imgui_internal.h>
@@ -12,45 +12,52 @@
 #include <string_view>
 #include <chrono>
 #include "Radar.h"
-#include "extensions/enumerate.hpp"
 
-namespace rng = std::ranges;
 using namespace ImGui;
 
-struct SavedLocation {
-    std::string name{};
-    CVector     pos{};
-    eAreaCodes  areaCode{ eAreaCodes::AREA_CODE_NORMAL_WORLD };
-    bool        findGround{ true };
-    bool        selected{};
-
-    SavedLocation() = default;
-    SavedLocation(const char* iName, CVector vec, eAreaCodes code, bool bFindGround) : name(iName), pos(vec), areaCode(code), findGround(bFindGround) {}
-    SavedLocation(const char* iName, CVector vec) : name(iName), pos(vec) {}
-
-    static constexpr size_t GetSaveSize() {
-        return /*name*/30 + sizeof(pos) + sizeof(areaCode) + sizeof(findGround) + sizeof(selected);
+void TeleportDebugModule::RenderMenuEntry() {
+    if (BeginMenu("Tools")) {
+        if (MenuItem("Teleporter")) {
+            m_IsOpen = true;
+        }
+        ImGui::EndMenu();
     }
-};
+}
 
-static std::vector<SavedLocation> s_SavedLocations{};
-static bool                       s_findZGround{ true };
-static SavedLocation              s_prevLocation{};
-static char                       s_nameFilter[1024]{};
+void TeleportDebugModule::RenderWindow() {
+    if (m_IsOpen) {
+        if (Begin("Teleporter", &m_IsOpen)) {
+            SetNextWindowSize({ 415.f, 290.f }, ImGuiCond_FirstUseEver);
+            RenderTeleporterWindow();
+        }
+        End();
+    }
+}
 
-namespace TeleportDebugModule {
+void TeleportDebugModule::Update() {
+    ProcessShortcuts();
+}
 
-CVector GetPositionWithGroundHeight(const CVector2D& pos) {
+void TeleportDebugModule::Deserialize(const json& j) {
+    from_json(j, *this);
+    m_IsStateFromDeserialization = true;
+}
+
+void TeleportDebugModule::OnImGuiInitialised(ImGuiContext* ctx) {
+    AddSettingsHandler(ctx);
+}
+
+static CVector GetPositionWithGroundHeight(const CVector2D& pos) {
     return { pos.x, pos.y, CWorld::FindGroundZForCoord(pos.x, pos.y) + 2.f };
 }
 
 // Teleport to exact coordinates
-void TeleportTo(const CVector& pos, eAreaCodes areaCode) {
+void TeleportDebugModule::TeleportTo(const CVector& pos, eAreaCodes areaCode) {
     CStreaming::LoadSceneCollision(pos);
     CStreaming::LoadScene(pos);
 
     auto player = FindPlayerPed();
-    player->m_nAreaCode = areaCode;
+    player->SetAreaCode(areaCode);
     CGame::currArea = areaCode;
     CStreaming::RemoveBuildingsNotInArea(areaCode);
     CTimeCycle::StopExtraColour(false);
@@ -61,45 +68,122 @@ void TeleportTo(const CVector& pos, eAreaCodes areaCode) {
         player->Teleport(pos, true);
     }
 
-    CPedGroup* group = CPedGroups::GetPedsGroup(player);
-    if (group) {
-        auto& member = group->GetMembership();
-        if (member.CountMembersExcludingLeader())
-            group->Teleport(&pos);
+    // Teleport player's group too
+    if (auto group = CPedGroups::GetPedsGroup(player)) {
+        if (group->GetMembership().CountMembersExcludingLeader()) {
+            group->Teleport(pos);
+        }
     }
 }
 
-void DoTeleportTo(CVector pos, eAreaCodes areaCode = eAreaCodes::AREA_CODE_NORMAL_WORLD) {
+void TeleportDebugModule::DoTeleportTo(CVector pos, eAreaCodes areaCode) {
     // Save previous location for teleporting back.
-    s_prevLocation.pos = FindPlayerPed()->GetPosition();
-    s_prevLocation.areaCode = FindPlayerPed()->m_nAreaCode;
-    s_prevLocation.selected = true; // mark the position is saved.
+    m_PrevLocation.Pos      = FindPlayerPed()->GetPosition();
+    m_PrevLocation.AreaCode = FindPlayerPed()->GetAreaCode();
+    m_PrevLocation.IsSelected = true; // mark the position is saved.
 
-    TeleportTo(pos, areaCode);
+    TeleportDebugModule::TeleportTo(pos, areaCode);
 }
 
-void ProcessImGui() {
+void TeleportDebugModule::RenderSavedPositions() {
+    auto visibleItems = GetVisibleItems();
+
+    if (!BeginTable("Saved Positions", 5, ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable | ImGuiTableFlags_BordersInnerH | ImGuiTableFlags_ScrollY)) {
+        return;
+    }
+
+    TableSetupColumn("Index", ImGuiTableColumnFlags_WidthFixed);
+    TableSetupColumn("Name", ImGuiTableColumnFlags_WidthFixed);
+    TableSetupColumn("Position", ImGuiTableColumnFlags_WidthFixed);
+    TableSetupColumn("Area code", ImGuiTableColumnFlags_WidthFixed);
+    TableSetupColumn("Ground", ImGuiTableColumnFlags_WidthFixed);
+
+    TableHeadersRow();
+
+    // Draw visible items
+    for (auto it = visibleItems.begin(); it != visibleItems.end(); it++) {
+        auto& item = *it;
+
+        PushID(&item);
+        BeginGroup();
+
+        TableNextRow();
+        TableNextColumn();
+
+        Text("%d", std::distance(visibleItems.begin(), it) + 1); // Index
+
+        if (TableNextColumn(); Selectable(item.Name.c_str(), item.IsSelected, ImGuiSelectableFlags_SpanAllColumns)) {
+            // Here we implement the common Windows like select stuff
+            // Shift held  - Select everything in-between previous selected and this
+            // CTRL  held  - Mark this as selected, but don't unselect others
+            // no modifier - Usual behaviour, mark this as selected, but unselect others
+
+            if (GetIO().KeyShift) { // Select all visible items in-between
+                const auto other = rng::find_if(visibleItems, [](auto& l) { return l.IsSelected; }); // Find other selected
+                if (other != visibleItems.end()) {
+                    const auto [b, e] = std::minmax(other, it, [](auto ai, auto bi) {return ai.base() < bi.base(); });
+                    rng::for_each(b, e, [](auto& l) { l.IsSelected = true; }); // Select all in-between
+                }
+            } else if (!GetIO().KeyCtrl) { // Unselect all others
+                rng::for_each(m_SavedLocations, [](auto& l) { l.IsSelected = false; });
+            }
+            item.IsSelected = true;
+        }
+
+        // Teleport on double click
+        if (IsItemHovered() && IsMouseDoubleClicked(0)) {
+            DoTeleportTo(item.FindGroundZ ? GetPositionWithGroundHeight(item.Pos) : item.Pos, item.AreaCode);
+        }
+
+        // Position text
+        TableNextColumn();
+        if (item.FindGroundZ) {
+            Text("%.2f %.2f", item.Pos.x, item.Pos.y);
+        } else {
+            Text("%.2f %.2f %.2f", item.Pos.x, item.Pos.y, item.Pos.z);
+        }
+
+        // Area code ID text
+        TableNextColumn();
+        Text("%d %s", item.AreaCode, (item.AreaCode == AREA_CODE_NORMAL_WORLD) ? "(outside)" : "");
+
+        // Ground text
+        TableNextColumn();
+        Text("%s", item.FindGroundZ ? "Yes" : "No");
+
+        EndGroup();
+        PopID();
+    }
+
+    EndTable();
+
+    // Selected item deletion
+    if (ImGui::IsKeyChordPressed(ImGuiKey_Delete)) {
+        const auto [b, e] = rng::remove_if(visibleItems, [](auto& l) { return l.IsSelected; });
+        m_SavedLocations.erase(b.base(), e.base());
+    }
+}
+
+void TeleportDebugModule::RenderTeleporterWindow() {
     const auto& AlignRight = [&](float pad) {
         return GetWindowContentRegionMax().x - pad;
     };
 
-    static CVector pos{};
     PushItemWidth(140.f);
-    InputFloat3("Coords", reinterpret_cast<float(&)[3]>(pos), "%.3f"); // Kinda hacky, but it's okay, if this was to break, we'd have bigger problems anyways.
+    InputFloat3("Coords", reinterpret_cast<float(&)[3]>(m_Input.Pos), "%.3f");
     PopItemWidth();
 
-    static int areaCode{};
     PushItemWidth(30.f);
-    SameLine(); InputInt("Area", &areaCode, 0);
+    SameLine();
+    InputInt("Area", &m_Input.AreaCode, 0);
     PopItemWidth();
 
-    // Name input
-    static char name[1024]{};
     PushItemWidth(AlignRight(CalcTextSize("Name").x + 275.0f));
-    SameLine(); InputText("Name", name, std::size(name));
+    SameLine();
+    InputText("Name", m_Input.Name, std::size(m_Input.Name));
     PopItemWidth();
 
-    Checkbox("Ground for Z", &s_findZGround);
+    Checkbox("Z = Ground Z", &m_FindGroundZ);
 
     // Helper to draw tooltip over hovered item
     const auto HoveredItemTooltip = [](auto text) {
@@ -118,177 +202,126 @@ void ProcessImGui() {
 
         if (GetIO().KeyAlt) { // Random position
             forceGround = true;
-            areaCode = AREA_CODE_NORMAL_WORLD;
-            pos = CVector{ // todo: see CWorld::IsInWorldBounds
+            m_Input.AreaCode = AREA_CODE_NORMAL_WORLD;
+            m_Input.Pos = CVector{ // todo: see CWorld::IsInWorldBounds
                CGeneral::GetRandomNumberInRange(-3072.0f, 3072.0f),
                CGeneral::GetRandomNumberInRange(-3072.0f, 3072.0f),
                0.0f
             };
-        }
-        else if (GetIO().KeyShift) { // Teleport to marker set on the map
+        } else if (GetIO().KeyShift) { // Teleport to marker set on the map
             // Code from CLEO4 library
             auto hMarker = FrontEndMenuManager.m_nTargetBlipIndex;
             auto pMarker = &CRadar::ms_RadarTrace[LOWORD(hMarker)];
 
             if (hMarker && pMarker) {
                 forceGround = true;
-                areaCode = AREA_CODE_NORMAL_WORLD;
-                pos = CVector{
+                m_Input.AreaCode = AREA_CODE_NORMAL_WORLD;
+                m_Input.Pos = CVector{
                     pMarker->m_vPosition.x,
                     pMarker->m_vPosition.y,
                     0.0f
                 };
             }
         }
-        DoTeleportTo((s_findZGround || forceGround) ? GetPositionWithGroundHeight(pos) : pos, static_cast<eAreaCodes>(areaCode));
+        DoTeleportTo(
+            (m_FindGroundZ || forceGround)
+                ? GetPositionWithGroundHeight(m_Input.Pos)
+                : m_Input.Pos,
+            static_cast<eAreaCodes>(m_Input.AreaCode)
+        );
     }
     HoveredItemTooltip("Hold `ALT` to teleport to a random position\nHold `SHIFT` to teleport to marker marked on the map");
 
     // Save position button
     SameLine(AlignRight(36.0f));
     if (Button("Save", { 36.0f, 19.0f })) {
-        const auto posToSave{ GetIO().KeyCtrl ? FindPlayerPed()->GetPosition() : GetPositionWithGroundHeight(pos) };
-        const auto areaToSave{ GetIO().KeyCtrl ? FindPlayerPed()->m_nAreaCode : static_cast<eAreaCodes>(areaCode) };
-        const auto nameToSave{ name[0] ? name : ((areaToSave == AREA_CODE_NORMAL_WORLD) ? CTheZones::GetZoneName(posToSave) : "<Unnamed>")};
+        const auto posToSave{ GetIO().KeyCtrl ? FindPlayerPed()->GetPosition() : GetPositionWithGroundHeight(m_Input.Pos) };
+        const auto areaToSave{ GetIO().KeyCtrl ? FindPlayerPed()->GetAreaCode() : static_cast<eAreaCodes>(m_Input.AreaCode) };
+        const auto nameToSave{ m_Input.Name[0] ? m_Input.Name : ((areaToSave == AREA_CODE_NORMAL_WORLD) ? GxtCharToUTF8(CTheZones::GetZoneName(posToSave)) : "<Unnamed>")};
 
         // Either use given name or current zone name
-        s_SavedLocations.emplace(s_SavedLocations.begin(), nameToSave, posToSave, areaToSave, s_findZGround);
+        m_SavedLocations.emplace_back(nameToSave, posToSave, areaToSave, m_FindGroundZ);
 
         if (!GetIO().KeyAlt) {
-            name[0] = 0; // Clear input
+            m_Input.Name[0] = 0; // Clear input
         }
     }
     HoveredItemTooltip("Hold `ALT` to prevent name input from getting cleared\nHold `CTRL` to save current position");
 
-    if (!s_SavedLocations.empty()) {
+    // Current position display
+    {
+        const auto pos = FindPlayerCoors();
+        Text("Current Pos: %.3f, %.3f, %.3f", pos.x, pos.y, pos.z);
+        if (SameLine(); Button("Copy")) {
+            char buf[256];
+            sprintf_s(buf, "%.3f, %.3f, %.3f", pos.x, pos.y, pos.z);
+            SetClipboardText(buf);
+        }
+    }
+
+
+    if (!m_SavedLocations.empty()) {
         // Search tool input
         PushItemWidth(AlignRight(CalcTextSize("Search").x + 11.0f));
-        InputText("Search", s_nameFilter, std::size(s_nameFilter), ImGuiInputTextFlags_CharsUppercase | ImGuiInputTextFlags_AutoSelectAll);
-        const std::string_view searchInputSV{ s_nameFilter };
+        InputText("Search", m_Input.Search, std::size(m_Input.Search), ImGuiInputTextFlags_CharsUppercase | ImGuiInputTextFlags_AutoSelectAll);
 
-        // Filter views stuff
-        const auto IsItemVisible = [&](auto& l) { return searchInputSV.empty() || StringContainsString(l.name, searchInputSV, false); };
-        const auto visibleFilter = std::views::filter(IsItemVisible);
-        auto visibleItems = s_SavedLocations | visibleFilter;
-
-        // Saved positions table
-        if (BeginTable("Saved Positions", 5, ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable | ImGuiTableFlags_BordersInnerH | ImGuiTableFlags_ScrollY)) {
-            TableSetupColumn("Index", ImGuiTableColumnFlags_WidthFixed);
-            TableSetupColumn("Name", ImGuiTableColumnFlags_WidthFixed);
-            TableSetupColumn("Position", ImGuiTableColumnFlags_WidthFixed);
-            TableSetupColumn("Area code", ImGuiTableColumnFlags_WidthFixed);
-            TableSetupColumn("Ground", ImGuiTableColumnFlags_WidthFixed);
-            TableHeadersRow();
-
-            // Draw visible items
-            for (auto it = visibleItems.begin(); it != visibleItems.end(); it++) {
-                auto& v = *it;
-                auto idx = std::distance(visibleItems.begin(), it) + 1;
-
-                PushID(&v);
-                BeginGroup();
-                TableNextRow();
-                TableNextColumn(); Text("%d", idx);
-
-                if (TableNextColumn(); Selectable(v.name.c_str(), v.selected, ImGuiSelectableFlags_SpanAllColumns)) {
-                    // Here we implement the common Windows like select stuff
-                    // Shift held  - Select everything in-between previous selected and this
-                    // CTRL  held  - Mark this as selected, but don't unselect others
-                    // no modifier - Usual behaviour, mark this as selected, but unselect others
-
-                    if (GetIO().KeyShift) { // Select all visible items in-between
-                        const auto other = rng::find_if(visibleItems, [](auto& l) { return l.selected; }); // Find other selected
-                        if (other != visibleItems.end()) {
-                            const auto [b, e] = std::minmax(other, it, [](auto ai, auto bi) {return ai.base() < bi.base(); });
-                            rng::for_each(b, e, [](auto& l) { l.selected = true; }); // Select all in-between
-                        }
-                    } else if (!GetIO().KeyCtrl) { // Unselect all others
-                        rng::for_each(s_SavedLocations, [](auto& l) { l.selected = false; });
-                    }
-                    v.selected = true;
-                }
-
-                // Teleport on double click
-                if (IsItemHovered() && IsMouseDoubleClicked(0)) {
-                    DoTeleportTo(v.findGround ? GetPositionWithGroundHeight(v.pos) : v.pos, v.areaCode);
-                }
-
-                // Position text
-                TableNextColumn();
-                if (v.findGround)
-                    Text("%.2f %.2f", v.pos.x, v.pos.y);
-                else
-                    Text("%.2f %.2f %.2f", v.pos.x, v.pos.y, v.pos.z);
-
-                // Area code ID text
-                TableNextColumn(); Text("%d %s", v.areaCode, (v.areaCode == AREA_CODE_NORMAL_WORLD) ? "(outside)" : "");
-
-                // Ground text
-                TableNextColumn(); Text("%s", v.findGround ? "Yes" : "No");
-
-                EndGroup();
-                PopID();
-            }
-
-            EndTable();
-
-            // Selected item deletion
-            if (GetIO().KeysDown[VK_DELETE]) {
-                const auto [b, e] = rng::remove_if(visibleItems, [](auto& l) { return l.selected; });
-                s_SavedLocations.erase(b.base(), e.base());
-            }
-        }
+        // Finally, render saved positions
+        RenderSavedPositions();
     }
 }
 
-void ProcessInput() {
-    if (CDebugMenu::Visible() || !CPad::NewKeyState.lctrl)
+void TeleportDebugModule::ProcessShortcuts() { 
+    if (GetIO().MouseDrawCursor) { // Cursor visible => Ignore
         return;
-
-    CPad* pad = CPad::GetPad(0);
-    if (pad->IsStandardKeyJustDown('0') && s_prevLocation.selected)
-        DoTeleportTo(s_prevLocation.pos, s_prevLocation.areaCode);
-
-    // prepare filter stuff
-    const std::string_view searchInputSV{ s_nameFilter };
-    const auto IsItemVisible = [&](auto& l) { return searchInputSV.empty() || StringContainsString(l.name, searchInputSV, false); };
-    const auto visibleFilter = std::views::filter(IsItemVisible);
-
-    auto visibleItems = s_SavedLocations | visibleFilter;
-    auto posIdx{-1};
-
-    for (auto i = '1'; i < 'A'; i++) {
-        if (pad->IsStandardKeyJustDown(i)) {
-            posIdx = i - '1';
-            break;
-        }
     }
-    if (posIdx == -1) return;
 
-    for (auto&& [i, pos] : notsa::enumerate(visibleItems)) {
-        if (i == posIdx) {
-            DoTeleportTo(pos.findGround ? GetPositionWithGroundHeight(pos.pos) : pos.pos, pos.areaCode);
-            break;
+    const auto pad = CPad::GetPad(0);
+
+    if (!pad->IsCtrlJustDown()) {
+        return;
+    }
+
+    // Key `0` is previous location, so teleport to it (if set)
+    if (pad->IsStandardKeyJustDown('0') && m_PrevLocation.IsSelected) {
+        DoTeleportTo(m_PrevLocation.Pos, m_PrevLocation.AreaCode);
+    }
+
+    // Keys `1` - `9` are saved locations (Corresponding to the nth (currently) visible location (in the table))
+    for (auto k = 0; k < 9; k++) {
+        if (!pad->IsStandardKeyJustDown('1' + k)) {
+            continue;
         }
+
+        // Find `i`th visible element and teleport to it
+        for (auto&& [itemIdx, loc] : rngv::enumerate(GetVisibleItems())) {
+            if (k == itemIdx) {
+                DoTeleportTo(loc.FindGroundZ ? GetPositionWithGroundHeight(loc.Pos) : loc.Pos, loc.AreaCode);
+                break;
+            }
+        }
+
+        return;
     }
 }
 
-namespace SettingsHandler {
-    // Clear all settings
-    void ClearAll(ImGuiContext* ctx, ImGuiSettingsHandler* handler) {
+void TeleportDebugModule::AddSettingsHandler(ImGuiContext* ctx) {
+    ImGuiSettingsHandler ih;
+    ih.TypeName   = "SavedLocations";
+    ih.TypeHash   = ImHashStr("SavedLocations");
+    ih.UserData   = this;
+    ih.ClearAllFn = [](ImGuiContext* ctx, ImGuiSettingsHandler* handler) {};
+    ih.WriteAllFn = [](ImGuiContext* ctx, ImGuiSettingsHandler* handler, ImGuiTextBuffer* out_buf) {}; // We don't use imgui to save this data anymore
+    ih.ReadLineFn = [](ImGuiContext* ctx, ImGuiSettingsHandler* handler, void* entry, const char* line) {
         UNUSED(ctx);
-        UNUSED(handler);
 
-        //s_SavedLocations.clear();
-    }
-
-    // Called after every read entry line
-    // `entry` is a pointer returned from `ReadOpenFn` (we don't use it in this case)
-    void ReadLine(ImGuiContext* ctx, ImGuiSettingsHandler* handler, void* entry, const char* line) {
-        UNUSED(ctx);
-        UNUSED(handler);
-
+        const auto self    = (TeleportDebugModule*)handler->UserData;
         const auto version = reinterpret_cast<int>(entry);
+
+        // If already read from the JSON just skip this part
+        if (self->m_IsStateFromDeserialization) {
+            return;
+        }
+
         char name[1024]{};
         CVector pos{};
 
@@ -298,71 +331,51 @@ namespace SettingsHandler {
             int findGround{1};
 
             // [^\t\n] -> https://stackoverflow.com/questions/2854488
-            if (sscanf(line, "%f, %f, %f, %d, %d, %[^\t\n]", &pos.x, &pos.y, &pos.z, &area, &findGround, name) == 6) {
-                s_SavedLocations.emplace_back(name, pos, static_cast<eAreaCodes>(area), static_cast<bool>(findGround));
-            } else if (line[0] && line[0] != '\n') { // Report failed reads on non-empty lines only
-                std::cerr << "Failed to load saved location from ini: `" << line << "`\n";
+            if (sscanf_s(line, "%f, %f, %f, %d, %d, %[^\t\n]", &pos.x, &pos.y, &pos.z, &area, &findGround, SCANF_S_STR(name)) == 6) {
+                self->m_SavedLocations.emplace_back(name, pos, static_cast<eAreaCodes>(area), static_cast<bool>(findGround));
+                return;
             }
         } break;
         case 1: {
-            if (sscanf(line, "%f, %f, %f, %[^\t\n]", &pos.x, &pos.y, &pos.z, name) == 4) {
-                s_SavedLocations.emplace_back(name, pos);
-            } else if (line[0] && line[0] != '\n') {
-                std::cerr << "Failed to load saved location from ini: `" << line << "`\n";
+            if (sscanf_s(line, "%f, %f, %f, %[^\t\n]", &pos.x, &pos.y, &pos.z, SCANF_S_STR(name)) == 4) {
+                self->m_SavedLocations.emplace_back(name, pos);
+                return;
             }
             break;
         }
-        default:
-            std::cerr << "Invalid teleport tool version: " << version << std::endl;
-            break;
+        default: {
+            NOTSA_LOG_ERR("Invalid teleport tool version: {}", version);
+            return;
         }
-    }
-
-    // Write all settings to buffer (ini file)
-    void WriteAll(ImGuiContext* ctx, ImGuiSettingsHandler* handler, ImGuiTextBuffer* out_buf) {
-        UNUSED(ctx);
-        UNUSED(handler);
-
-        out_buf->reserve(s_SavedLocations.size() * SavedLocation::GetSaveSize());
-        out_buf->append("[SavedLocations][Version 2]\n");
-        for (const auto& l : s_SavedLocations) {
-            out_buf->appendf("%.3f, %.3f, %.3f, %d, %d, %s\n", l.pos.x, l.pos.y, l.pos.z, l.areaCode, l.findGround, l.name.c_str());
         }
-    }
 
-    void* ReadOpen(ImGuiContext* ctx, ImGuiSettingsHandler* handler, const char* name) {
+        if (line[0] && line[0] != '\n') { // Report failed reads on non-empty lines only
+            NOTSA_LOG_ERR("Failed to load saved location from ini: `{}`", line);
+        }
+    };
+    ih.ApplyAllFn = [](ImGuiContext* ctx, ImGuiSettingsHandler* handler) {
         UNUSED(ctx);
-        UNUSED(handler);
 
-        int version{2};
-        sscanf(name, "Version %d", &version);
-        return (void*)version; // Has to return a non-null value, otherwise `ReadLine` won't be called
-    }
+        const auto self = (TeleportDebugModule*)handler->UserData;
 
-    void ApplyAll(ImGuiContext* ctx, ImGuiSettingsHandler* handler) {
-        UNUSED(ctx);
-        UNUSED(handler);
-
-        if (s_SavedLocations.empty()) {
-            s_SavedLocations = {
-                { "Map centre", { 0.f,     0.f,      0.f   }, AREA_CODE_NORMAL_WORLD, true },
+        // Add some default locations if first ever use
+        if (self->m_SavedLocations.empty() && self->m_IsFirstUseEver) {
+            self->m_SavedLocations = {
+                { "Map Center", { 0.f,     0.f,      0.f   }, AREA_CODE_NORMAL_WORLD, true },
                 { "CJ's House", { 2495.2f, -1686.0f, 13.6f }, AREA_CODE_NORMAL_WORLD, true },
                 { "SF Airport", { 2495.1f, 1658.2f,  13.5f }, AREA_CODE_NORMAL_WORLD, true }
             };
         }
-    }
-}; // namespace SettingsHandler
 
-void Initialise(ImGuiContext& ctx) {
-    ImGuiSettingsHandler ini_handler;
-    ini_handler.TypeName = "SavedLocations";
-    ini_handler.TypeHash = ImHashStr("SavedLocations");
-    ini_handler.ClearAllFn = SettingsHandler::ClearAll;
-    ini_handler.ReadOpenFn = SettingsHandler::ReadOpen;
-    ini_handler.ReadLineFn = SettingsHandler::ReadLine;
-    ini_handler.ApplyAllFn = SettingsHandler::ApplyAll;
-    ini_handler.WriteAllFn = SettingsHandler::WriteAll;
-    ctx.SettingsHandlers.push_back(ini_handler);
+        self->m_IsFirstUseEver = false;
+    };
+    ih.ReadOpenFn = [](ImGuiContext* ctx, ImGuiSettingsHandler* handler, const char* name) {
+        UNUSED(ctx);
+        UNUSED(handler);
+
+        int version{2};
+        VERIFY(sscanf_s(name, "Version %d", &version) == 1);
+        return (void*)version; // Has to return a non-null value, otherwise `ReadLine` won't be called
+    };
+    ctx->SettingsHandlers.push_back(ih);
 }
-}; // namespace TeleportDebugModule
-#endif

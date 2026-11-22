@@ -8,7 +8,7 @@
 
 #include "OctTree.h"
 
-class COctTreeBase : public COctTree {
+class NOTSA_EXPORT_VTABLE COctTreeBase : public COctTree {
 public:
     uint32 m_nNumBranches;
     bool32 m_bHasTransparentPixels;

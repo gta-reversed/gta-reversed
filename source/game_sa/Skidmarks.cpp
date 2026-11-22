@@ -2,9 +2,6 @@
 
 #include "Skidmarks.h"
 
-RxVertexIndex (&CSkidmarks::m_aIndices)[96] = *reinterpret_cast<uint16 (*)[96]>(0xC799C8);
-RwTexture*& CSkidmarks::m_pTexture = *reinterpret_cast<RwTexture**>(0xC79A88);
-CSkidmark (&CSkidmarks::m_aSkidmarks)[SKIDMARKS_COUNT] = *reinterpret_cast<CSkidmark (*)[SKIDMARKS_COUNT]>(0xC79AA8);
 
 void CSkidmarks::InjectHooks() {
     RH_ScopedClass(CSkidmarks);
@@ -16,7 +13,7 @@ void CSkidmarks::InjectHooks() {
     RH_ScopedInstall(Update, 0x7205C0);
     RH_ScopedInstall(Render, 0x720640);
     RH_ScopedOverloadedInstall(RegisterOne, "EC0", 0x720EC0, void (*)(uint32, const CVector&, float, float, bool*, bool*, float));
-    RH_ScopedOverloadedInstall(RegisterOne, "", 0x720930, void (*)(uint32, const CVector&, float, float, eSkidMarkType, bool*, float));
+    RH_ScopedOverloadedInstall(RegisterOne, "", 0x720930, void (*)(uint32, const CVector&, float, float, eSkidmarkType, bool*, float));
 }
 
 // 0x7204E0
@@ -54,6 +51,8 @@ void CSkidmarks::Clear() {
 
 // 0x7205C0
 void CSkidmarks::Update() {
+    ZoneScoped;
+
     for (CSkidmark& mark : m_aSkidmarks) {
         mark.Update();
     }
@@ -61,6 +60,8 @@ void CSkidmarks::Update() {
 
 // 0x720640
 void CSkidmarks::Render() {
+    ZoneScoped;
+
     RwRenderStateSet(rwRENDERSTATEZWRITEENABLE,      RWRSTATE(FALSE));
     RwRenderStateSet(rwRENDERSTATEVERTEXALPHAENABLE, RWRSTATE(TRUE));
     RwRenderStateSet(rwRENDERSTATESRCBLEND,          RWRSTATE(rwBLENDSRCALPHA));
@@ -78,7 +79,7 @@ void CSkidmarks::Render() {
 }
 
 // 0x720930
-void CSkidmarks::RegisterOne(uint32 index, const CVector& posn, float dirX, float dirY, eSkidMarkType type, bool* bloodState, float length) {
+void CSkidmarks::RegisterOne(uint32 index, const CVector& posn, float dirX, float dirY, eSkidmarkType type, bool* bloodState, float length) {
     if (CReplay::Mode == MODE_PLAYBACK)
         return;
 
@@ -93,9 +94,9 @@ void CSkidmarks::RegisterOne(uint32 index, const CVector& posn, float dirX, floa
 // unused
 void CSkidmarks::RegisterOne(uint32 index, const CVector& posn, float dirX, float dirY, bool* isSandy, bool* bloodState, float length) {
     if (bloodState)
-        RegisterOne(index, posn, dirX, dirY, eSkidMarkType::BLOODY, bloodState, length);
+        RegisterOne(index, posn, dirX, dirY, eSkidmarkType::BLOODY, bloodState, length);
     else
-        RegisterOne(index, posn, dirX, dirY, isSandy ? eSkidMarkType::SANDY : eSkidMarkType::DEFAULT, bloodState, length);
+        RegisterOne(index, posn, dirX, dirY, isSandy ? eSkidmarkType::SANDY : eSkidmarkType::DEFAULT, bloodState, length);
 }
 
 // NOTSA

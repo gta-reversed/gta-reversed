@@ -3,8 +3,8 @@
 #include "Securom.h"
 #include "GxtChar.h"
 
-static int32 (&trapDisplay)[32]    = *(int32(*)[32])0xC8CDE8;
-static int32 (&triggerDisplay)[32] = *(int32(*)[32])0xC8CE68;
+static auto& trapDisplay = StaticRef<std::array<int32, 32>>(0xC8CDE8);
+static auto& triggerDisplay = StaticRef<std::array<int32, 32>>(0xC8CE68);
 
 namespace Securom {
     void InjectHooks() {
@@ -33,20 +33,20 @@ void SecuromStateDisplay() {
     CFont::SetRightJustifyWrap(0.0f);
     CFont::SetOrientation(eFontAlignment::ALIGN_LEFT);
 
-    char buffer[256];
-    char gxt[256];
+    char fmttmp[256];
+    GxtChar gxt[256];
 
     float y = 140.f;
     for (int32 i = 0; i < 16; i++) {
         if (triggerDisplay[i]) {
-            sprintf(buffer, "Trigger: %d", i);
-            AsciiToGxtChar(buffer, gxt);
+            notsa::format_to_sz(fmttmp, "Trigger {}", i);
+            AsciiToGxtChar(fmttmp, gxt);
             CFont::PrintString(30.f, y, gxt);
             --triggerDisplay[i];
         }
         if (triggerDisplay[i + 16]) {
-            sprintf(buffer, "Trigger: %d", i + 16);
-            AsciiToGxtChar(buffer, gxt);
+            notsa::format_to_sz(fmttmp, "Trigger {}", i + 16);
+            AsciiToGxtChar(fmttmp, gxt);
             CFont::PrintString(160.f, y, gxt);
             --triggerDisplay[i + 16];
         }
@@ -56,14 +56,14 @@ void SecuromStateDisplay() {
     y = 140.f;
     for (int32 i = 0; i < 16; i++) {
         if (trapDisplay[i]) {
-            sprintf(buffer, "Trap: %d", i);
-            AsciiToGxtChar(buffer, gxt);
+            notsa::format_to_sz(fmttmp, "Trap {}", i);
+            AsciiToGxtChar(fmttmp, gxt);
             CFont::PrintString(350.f, y, gxt);
             --trapDisplay[i];
         }
         if (trapDisplay[i + 16]) {
-            sprintf(buffer, "Trap: %d", i + 16);
-            AsciiToGxtChar(buffer, gxt);
+            notsa::format_to_sz(fmttmp, "Trap {}", i + 16);
+            AsciiToGxtChar(fmttmp, gxt);
             CFont::PrintString(450.f, y, gxt);
             --trapDisplay[i + 16];
         }

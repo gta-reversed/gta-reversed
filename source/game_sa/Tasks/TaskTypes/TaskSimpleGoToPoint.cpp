@@ -3,25 +3,25 @@
 #include "TaskSimpleGoToPoint.h"
 
 #include "TaskSimpleStandStill.h"
-#include "IKChainManager_c.h"
+#include "Ragdoll/IKChainManager.h"
 #include "TaskSimpleHoldEntity.h"
 #include "TaskSimpleDuck.h"
 
 void CTaskSimpleGoToPoint::InjectHooks() {
-    RH_ScopedClass(CTaskSimpleGoToPoint);
+    RH_ScopedVirtualClass(CTaskSimpleGoToPoint, 0x86fd50, 9);
     RH_ScopedCategory("Tasks/TaskTypes");
 
     RH_ScopedInstall(Constructor, 0x667CD0);
-    RH_ScopedVirtualInstall(MakeAbortable, 0x667D60);
-    RH_ScopedVirtualInstall(ProcessPed, 0x66D710);
+
     RH_ScopedInstall(UpdatePoint, 0x645700);
+    RH_ScopedVMTInstall(Clone, 0x66CC60);
+    RH_ScopedVMTInstall(GetTaskType, 0x667D40);
+    RH_ScopedVMTInstall(MakeAbortable, 0x667D60);
+    RH_ScopedVMTInstall(ProcessPed, 0x66D710);
 }
-CTaskSimpleGoToPoint* CTaskSimpleGoToPoint::Constructor(int32 moveState, const CVector& targetPoint, float fRadius, bool bMoveTowardsTargetPoint, bool a6) { this->CTaskSimpleGoToPoint::CTaskSimpleGoToPoint(moveState, targetPoint, fRadius, bMoveTowardsTargetPoint, a6); return this; }
-bool CTaskSimpleGoToPoint::MakeAbortable(CPed* ped, eAbortPriority priority, const CEvent* event) { return CTaskSimpleGoToPoint::MakeAbortable_Reversed(ped, priority, event); }
-bool CTaskSimpleGoToPoint::ProcessPed(CPed* ped) { return CTaskSimpleGoToPoint::ProcessPed_Reversed(ped); }
 
 // 0x667CD0
-CTaskSimpleGoToPoint::CTaskSimpleGoToPoint(int32 moveState, const CVector& targetPoint, float fRadius, bool bMoveTowardsTargetPoint, bool a6) :
+CTaskSimpleGoToPoint::CTaskSimpleGoToPoint(eMoveState moveState, const CVector& targetPoint, float fRadius, bool bMoveTowardsTargetPoint, bool a6) :
     CTaskSimpleGoTo(moveState, targetPoint, fRadius)
 {
     m_GoToPointFlags = 0;
@@ -30,7 +30,7 @@ CTaskSimpleGoToPoint::CTaskSimpleGoToPoint(int32 moveState, const CVector& targe
 }
 
 // 0x667D60
-bool CTaskSimpleGoToPoint::MakeAbortable_Reversed(CPed* ped, eAbortPriority priority, const CEvent* event) {
+bool CTaskSimpleGoToPoint::MakeAbortable(CPed* ped, eAbortPriority priority, const CEvent* event) {
     if (gotoFlags.m_bIsIKChainSet) {
         if (g_ikChainMan.IsLooking(ped))
             g_ikChainMan.AbortLookAt(ped, 250);
@@ -47,7 +47,7 @@ bool CTaskSimpleGoToPoint::MakeAbortable_Reversed(CPed* ped, eAbortPriority prio
 }
 
 // 0x66D710
-bool CTaskSimpleGoToPoint::ProcessPed_Reversed(CPed* ped) {
+bool CTaskSimpleGoToPoint::ProcessPed(CPed* ped) {
     CPlayerPed* player = ped->AsPlayer();
     ped->m_pedIK.bSlopePitch = true;
     if (HasCircledTarget(ped)) {
@@ -74,7 +74,7 @@ bool CTaskSimpleGoToPoint::ProcessPed_Reversed(CPed* ped) {
             float fMoveSpeedY = 1.1f;
             if (m_moveState == PEDMOVE_WALK)
                 fMoveSpeedY = 0.75f;
-            pDuckTask->ControlDuckMove(0.0f, -fMoveSpeedY);
+            pDuckTask->ControlDuckMove({ 0.0f, -fMoveSpeedY });
         }
         else {
             ped->SetMoveState(static_cast<eMoveState>(m_moveState));
@@ -85,15 +85,15 @@ bool CTaskSimpleGoToPoint::ProcessPed_Reversed(CPed* ped) {
                 }
                 else {
                     bool bSprinting = false;
-                    CWeaponInfo* pWeaponInfo = CWeaponInfo::GetWeaponInfo(ped->GetActiveWeapon().m_nType, eWeaponSkill::STD);
+                    CWeaponInfo* pWeaponInfo = CWeaponInfo::GetWeaponInfo(ped->GetActiveWeapon().m_Type, eWeaponSkill::STD);
                     if (!pWeaponInfo->flags.bHeavy) {
                         auto* task = static_cast<CTaskSimpleHoldEntity*>(ped->GetIntelligence()->GetTaskHold(false));
                         if (!task || !task->m_pAnimBlendAssociation) {
-                            CAnimBlendAssocGroup* animGroup = &CAnimManager::ms_aAnimAssocGroups[ped->m_nAnimGroup];
-                            if (!ped->m_pPlayerData->m_bPlayerSprintDisabled && !g_surfaceInfos->CantSprintOn(ped->m_nContactSurface)) {
+                            CAnimBlendAssocGroup* animGroup = &CAnimManager::GetAssocGroups()[ped->m_nAnimGroup];
+                            if (!ped->GetPlayerData()->m_bPlayerSprintDisabled && !g_surfaceInfos.CantSprintOn(ped->m_nContactSurface)) {
                                 auto assoc1 = animGroup->GetAnimation(ANIM_ID_RUN);
                                 auto assoc2 = animGroup->GetAnimation(ANIM_ID_SPRINT);
-                                if (assoc1->m_pHierarchy != assoc2->m_pHierarchy && player->ControlButtonSprint(SPRINT_GROUND) >= 1.0f)
+                                if (assoc1->m_BlendHier != assoc2->m_BlendHier && player->ControlButtonSprint(SPRINT_GROUND) >= 1.0f)
                                 {
                                     ped->SetMoveState(PEDMOVE_SPRINT);
                                     bSprinting = true;
@@ -117,8 +117,7 @@ bool CTaskSimpleGoToPoint::ProcessPed_Reversed(CPed* ped) {
         bool bAimingRotationSet = false;
         const CVector& pedPos = ped->GetPosition();
         CVector2D vecDistance = m_vecTargetPoint - pedPos;
-        CVector2D vecDirection(vecDistance);
-        vecDirection.Normalise();
+        const auto vecDirection = vecDistance.Normalized();
         CVector2D vecDistanceToTargetFromLastPoint = m_vecTargetPoint - m_vecLastPedPos;
         CVector2D vecDistanceToTargetFromPoint = m_vecTargetPoint - (CTimer::GetTimeStep() * ped->m_vecMoveSpeed + pedPos);
         m_vecLastPedPos = pedPos;
@@ -158,10 +157,13 @@ void CTaskSimpleGoToPoint::UpdatePoint(const CVector& targetPosition, float fRad
     if (bDontCheckRadius || m_vecTargetPoint != targetPosition || m_fRadius != fRadius)
     {
         m_vecTargetPoint = targetPosition;
-        gotoFlags.m_b01 = false;
-        gotoFlags.m_b02 = false;
-        gotoFlags.m_b03 = false;
-        gotoFlags.m_b04 = false;
+        m_fRadius = fRadius;
+
+        gotoFlags.m_targetCircledFlags = 0;
         gotoFlags.m_bTargetPointUpdated = true;
     }
+}
+
+bool CTaskSimpleGoToPoint::WasTaskSuccessful(CPed* ped) const {
+    return gotoPointFlags.m_b03 && std::abs(m_vecTargetPoint.z - ped->GetPosition().z) < 3.f;
 }

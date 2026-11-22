@@ -15,7 +15,7 @@
 struct RpAtomic;
 struct RpMaterial;
 
-enum e3dMarkerType {
+enum e3dMarkerType : uint16 {
     MARKER3D_ARROW = 0,
     MARKER3D_CYLINDER = 1,
     MARKER3D_TUBE = 2,
@@ -23,42 +23,53 @@ enum e3dMarkerType {
     MARKER3D_TORUS = 4,
     MARKER3D_CONE = 5,
     MARKER3D_CONE_NO_COLLISION = 6,
+
+    // Add stuff above this
+    MARKER3D_COUNT,
+
+    // Sentinel value (Used for markers not in use)
     MARKER3D_NA = 257
 };
 
 class C3dMarker {
 public:
-    CMatrix     m_mat;
-    RpAtomic*   m_pAtomic;
-    RpMaterial* m_pMaterial;
-    uint16      m_nType; // see e3dMarkerType
-    bool        m_bIsUsed;
-    bool        m_bMustBeRenderedThisFrame;
-    int32       m_nIdentifier;
-    CRGBA       m_colour;
-    int16       m_nPulsePeriod;
-    int16       m_nRotateRate;
-    int32       m_nStartTime;
-    float       m_fPulseFraction;
-    float       m_fStdSize;
-    float       m_fSize;
-    float       m_fBrightness;
-    float       m_fCameraRange;
-    CVector     m_vecNormal;
-    int16       m_nLastMapReadX; // float casted to int16
-    int16       m_nLastMapReadY; // float casted to int16
-    float       m_fLastMapReadResultZ;
-    float       m_fRoofHeight;
-    CVector     m_vecLastPosition;
-    int32       m_nOnScreenTestTime;
+    static void InjectHooks();
 
-public:
-    bool AddMarker(uint32 id, uint16 type, float size, uint8 red, uint8 green, uint8 blue, uint8 alpha, uint16 pulsePeriod, float pulseFraction, int16 rotateRate);
+    C3dMarker() = default;  // 0x720F60
+    ~C3dMarker() = default; // 0x720F70
+
+    bool AddMarker(uint32 id, e3dMarkerType type, float size, uint8 red, uint8 green, uint8 blue, uint8 alpha, uint16 pulsePeriod, float pulseFraction, int16 rotateRate);
     void DeleteMarkerObject();
     bool IsZCoordinateUpToDate();
     void Render();
     void SetZCoordinateIfNotUpToDate(float coordinate);
-    void UpdateZCoordinate(CVector arg0, float arg1);
+    void UpdateZCoordinate(CVector point, float zDistance);
+    void DeleteIfHasAtomic();
+
+public:
+    CMatrix       m_Mat{};
+    RpAtomic*     m_Atomic{};
+    RpMaterial*   m_Material{};
+    e3dMarkerType m_Type{ MARKER3D_NA };
+    bool          m_IsInUse{};
+    bool          m_IsActive{};
+    uint32        m_ID{};
+    CRGBA         m_Color{ 255, 255, 255, 255 };
+    uint16        m_PulsePeriod{ 1'024 };
+    int16         m_RotateRate{ 5 };
+    uint32        m_StartTime{};
+    float         m_PulseFraction{ 0.25f };
+    float         m_StdSize{ 1.f };
+    float         m_Size{ 1.f };
+    float         m_Brightness{ 1.f };
+    float         m_DistToCam2D{};
+    CVector       m_Normal{};
+    uint16        m_LastMapReadX{ 30'000 }; // float casted to uint16
+    uint16        m_LastMapReadY{ 30'000 }; // float casted to uint16
+    float         m_LastMapReadResultZ{};
+    float         m_RoofHeight{ 65535.0f };
+    CVector       m_LastPosition{};
+    uint32        m_OnScreenTestTime{};
 };
 
 VALIDATE_SIZE(C3dMarker, 0xA0);

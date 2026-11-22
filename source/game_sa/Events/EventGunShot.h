@@ -3,14 +3,14 @@
 #include "EventEditableResponse.h"
 #include "Ped.h"
 
-class CEventGunShot : public CEventEditableResponse {
+class NOTSA_EXPORT_VTABLE CEventGunShot : public CEventEditableResponse {
 public:
-    CEntity* m_entity;
+    CEntity* m_firedBy;
     CVector  m_startPoint;
     CVector  m_endPoint;
     bool     m_bHasNoSound;
 
-    static float& ms_fGunShotSenseRangeForRiot2;
+    static inline auto& ms_fGunShotSenseRangeForRiot2 = StaticRef<float>(0x8A625C);
     static void InjectHooks();
 
     CEventGunShot(CEntity* entity, CVector startPoint, CVector endPoint, bool bHasNoSound);
@@ -22,17 +22,13 @@ public:
     bool AffectsPed(CPed* ped) override;
     bool IsCriminalEvent() override;
     void ReportCriminalEvent(CPed* ped) override { } // empty
-    CEntity* GetSourceEntity() const override { return m_entity; }
+    CEntity* GetSourceEntity() const override { return m_firedBy; }
     bool TakesPriorityOver(const CEvent& refEvent) override;
     float GetLocalSoundLevel() override { return m_bHasNoSound ? 0.0f : 160.0f; }
     bool CanBeInterruptedBySameEvent() override { return true; }
-    CEventEditableResponse* CloneEditable() override;
+    CEventEditableResponse* CloneEditable() const noexcept override;
 
     CEventGunShot* Constructor(CEntity* entity, CVector startPoint, CVector endPoint, bool bHasNoSound);
-    bool AffectsPed_Reversed(CPed* ped);
-    bool IsCriminalEvent_Reversed();
-    bool TakesPriorityOver_Reversed(const CEvent& refEvent);
-    CEventEditableResponse* CloneEditable_Reversed();
 };
 
 VALIDATE_SIZE(CEventGunShot, 0x34);

@@ -5,73 +5,66 @@ void Interior_c::InjectHooks() {
     RH_ScopedClass(Interior_c);
     RH_ScopedCategory("Interior");
 
-    // RH_ScopedInstall(Constructor, 0x5921D0);
+    //RH_ScopedInstall(Constructor, 0x5921D0, { .Reversed = false });
+    //RH_ScopedInstall(Destructor, 0x591360, { .Reversed = false });
 
-    // RH_ScopedInstall(Destructor, 0x591360);
-
-    // RH_ScopedInstall(Bedroom_AddTableItem, 0x593F10);
-    // RH_ScopedInstall(FurnishBedroom, 0x593FC0);
-    // RH_ScopedInstall(Kitchen_FurnishEdges, 0x596930);
-    // RH_ScopedInstall(FurnishKitchen, 0x5970B0);
-    // RH_ScopedInstall(Lounge_AddTV, 0x597240);
-    // RH_ScopedInstall(Lounge_AddHifi, 0x597430);
-    // RH_ScopedInstall(Lounge_AddChairInfo, 0x5974E0);
-    // RH_ScopedInstall(Lounge_AddSofaInfo, 0x5975C0);
-    // RH_ScopedInstall(FurnishLounge, 0x597740);
-    // RH_ScopedInstall(Office_PlaceEdgeFillers, 0x599210);
-    // RH_ScopedInstall(Office_PlaceDesk, 0x5993E0);
-    // RH_ScopedInstall(Office_PlaceEdgeDesks, 0x5995B0);
-    // RH_ScopedInstall(Office_FurnishEdges, 0x599770);
-    // RH_ScopedInstall(Office_PlaceDeskQuad, 0x599960);
-    // RH_ScopedInstall(Office_FurnishCenter, 0x599A30);
-    // RH_ScopedInstall(FurnishOffice, 0x599AF0);
-    // RH_ScopedInstall(Shop_Place3PieceUnit, 0x599BB0);
-    // RH_ScopedInstall(Shop_PlaceEdgeUnits, 0x599DC0);
-    // RH_ScopedInstall(Shop_PlaceCounter, 0x599EF0);
-    // RH_ScopedInstall(Shop_PlaceFixedUnits, 0x59A030);
-    // RH_ScopedInstall(Shop_FurnishCeiling, 0x59A130);
-    // RH_ScopedInstall(Shop_AddShelfInfo, 0x59A140);
-    // RH_ScopedInstall(Shop_FurnishEdges, 0x59A1B0);
-    // RH_ScopedInstall(GetBoundingBox, 0x593DB0);
-    // RH_ScopedInstall(Init, 0x593BF0);
-    // RH_ScopedInstall(ResetTiles, 0x593910);
-    // RH_ScopedInstall(PlaceObject, 0x5934E0);
-    // RH_ScopedInstall(GetFurnitureEntity, 0x5913B0);
-    // RH_ScopedInstall(IsPtInside, 0x5913E0);
-    // RH_ScopedInstall(CalcMatrix, 0x5914D0);
-    // RH_ScopedInstall(Furnish, 0x591590);
-    // RH_ScopedInstall(Unfurnish, 0x5915D0);
-    // RH_ScopedInstall(CheckTilesEmpty, 0x591680);
-    // RH_ScopedInstall(SetTilesStatus, 0x591700);
-    // RH_ScopedInstall(SetCornerTiles, 0x5917C0);
-    // RH_ScopedInstall(GetTileStatus, 0x5918E0);
-    // RH_ScopedInstall(GetNumEmptyTiles, 0x591920);
-    // RH_ScopedInstall(GetRandomTile, 0x591B20);
-    // RH_ScopedInstall(Shop_FurnishAisles, 0x59A590);
-    // RH_ScopedInstall(GetTileCentre, 0x591BD0);
-    // RH_ScopedInstall(AddGotoPt, 0x591D20);
-    // RH_ScopedInstall(AddInteriorInfo, 0x591E40);
-    // RH_ScopedInstall(AddPickups, 0x591F90);
-    // RH_ScopedInstall(Exit, 0x592230);
-    // RH_ScopedInstall(FindBoundingBox, 0x5922C0);
-    // RH_ScopedInstall(CalcExitPts, 0x5924A0);
-    // RH_ScopedInstall(IsVisible, 0x5929F0);
-    // RH_ScopedInstall(PlaceFurniture, 0x592AA0);
-    // RH_ScopedInstall(PlaceFurnitureOnWall, 0x593120);
-    // RH_ScopedInstall(PlaceFurnitureInCorner, 0x593340);
-    // RH_ScopedInstall(FindEmptyTiles, 0x591C50);
-    // RH_ScopedInstall(FurnishShop, 0x59A790);
-}
-
-// 0x5921D0
-Interior_c::Interior_c() : ListItem_c() {
-    field_3EC = -1;
-    m_nodeAddress.m_wAreaId = (uint16)-1;
+    RH_ScopedInstall(Bedroom_AddTableItem, 0x593F10, { .Reversed = false });
+    RH_ScopedInstall(FurnishBedroom, 0x593FC0, { .Reversed = false });
+    RH_ScopedInstall(Kitchen_FurnishEdges, 0x596930, { .Reversed = false });
+    RH_ScopedInstall(FurnishKitchen, 0x5970B0, { .Reversed = false });
+    RH_ScopedInstall(Lounge_AddTV, 0x597240, { .Reversed = false });
+    RH_ScopedInstall(Lounge_AddHifi, 0x597430, { .Reversed = false });
+    RH_ScopedInstall(Lounge_AddChairInfo, 0x5974E0, { .Reversed = false });
+    RH_ScopedInstall(Lounge_AddSofaInfo, 0x5975C0, { .Reversed = false });
+    RH_ScopedInstall(FurnishLounge, 0x597740, { .Reversed = false });
+    RH_ScopedInstall(Office_PlaceEdgeFillers, 0x599210, { .Reversed = false });
+    RH_ScopedInstall(Office_PlaceDesk, 0x5993E0, { .Reversed = false });
+    RH_ScopedInstall(Office_PlaceEdgeDesks, 0x5995B0, { .Reversed = false });
+    RH_ScopedInstall(Office_FurnishEdges, 0x599770, { .Reversed = false });
+    RH_ScopedInstall(Office_PlaceDeskQuad, 0x599960, { .Reversed = false });
+    RH_ScopedInstall(Office_FurnishCenter, 0x599A30, { .Reversed = false });
+    RH_ScopedInstall(FurnishOffice, 0x599AF0, { .Reversed = false });
+    RH_ScopedInstall(Shop_Place3PieceUnit, 0x599BB0, { .Reversed = false });
+    RH_ScopedInstall(Shop_PlaceEdgeUnits, 0x599DC0, { .Reversed = false });
+    RH_ScopedInstall(Shop_PlaceCounter, 0x599EF0, { .Reversed = false });
+    RH_ScopedInstall(Shop_PlaceFixedUnits, 0x59A030, { .Reversed = false });
+    RH_ScopedInstall(Shop_FurnishCeiling, 0x59A130, { .Reversed = false });
+    RH_ScopedInstall(Shop_AddShelfInfo, 0x59A140, { .Reversed = false });
+    RH_ScopedInstall(Shop_FurnishEdges, 0x59A1B0, { .Reversed = false });
+    RH_ScopedInstall(GetBoundingBox, 0x593DB0, { .Reversed = false });
+    RH_ScopedInstall(Init, 0x593BF0, { .Reversed = false });
+    RH_ScopedInstall(ResetTiles, 0x593910, { .Reversed = false });
+    RH_ScopedInstall(PlaceObject, 0x5934E0, { .Reversed = false });
+    RH_ScopedInstall(GetFurnitureEntity, 0x5913B0, { .Reversed = false });
+    RH_ScopedInstall(IsPtInside, 0x5913E0, { .Reversed = false });
+    RH_ScopedInstall(CalcMatrix, 0x5914D0, { .Reversed = false });
+    RH_ScopedInstall(Furnish, 0x591590, { .Reversed = false });
+    RH_ScopedInstall(Unfurnish, 0x5915D0, { .Reversed = false });
+    RH_ScopedInstall(CheckTilesEmpty, 0x591680, { .Reversed = false });
+    RH_ScopedInstall(SetTilesStatus, 0x591700, { .Reversed = false });
+    RH_ScopedInstall(SetCornerTiles, 0x5917C0, { .Reversed = false });
+    RH_ScopedInstall(GetTileStatus, 0x5918E0, { .Reversed = false });
+    RH_ScopedInstall(GetNumEmptyTiles, 0x591920, { .Reversed = false });
+    RH_ScopedInstall(GetRandomTile, 0x591B20, { .Reversed = false });
+    RH_ScopedInstall(Shop_FurnishAisles, 0x59A590, { .Reversed = false });
+    RH_ScopedInstall(GetTileCentre, 0x591BD0, { .Reversed = false });
+    RH_ScopedInstall(AddGotoPt, 0x591D20, { .Reversed = false });
+    RH_ScopedInstall(AddInteriorInfo, 0x591E40, { .Reversed = false });
+    RH_ScopedInstall(AddPickups, 0x591F90, { .Reversed = false });
+    RH_ScopedInstall(Exit, 0x592230, { .Reversed = false });
+    RH_ScopedInstall(FindBoundingBox, 0x5922C0, { .Reversed = false });
+    RH_ScopedInstall(CalcExitPts, 0x5924A0, { .Reversed = false });
+    RH_ScopedInstall(IsVisible, 0x5929F0, { .Reversed = false });
+    RH_ScopedInstall(PlaceFurniture, 0x592AA0, { .Reversed = false });
+    RH_ScopedInstall(PlaceFurnitureOnWall, 0x593120, { .Reversed = false });
+    RH_ScopedInstall(PlaceFurnitureInCorner, 0x593340, { .Reversed = false });
+    RH_ScopedInstall(FindEmptyTiles, 0x591C50, { .Reversed = false });
+    RH_ScopedInstall(FurnishShop, 0x59A790, { .Reversed = false });
 }
 
 // 0x593BF0
-int32 Interior_c::Init(CVector* a2) {
-    return plugin::CallMethodAndReturn<int32, 0x593BF0, Interior_c*, CVector*>(this, a2);
+int32 Interior_c::Init(const CVector& pos) {
+    return plugin::CallMethodAndReturn<int32, 0x593BF0>(this, &pos);
 }
 
 // 0x592230
@@ -195,8 +188,8 @@ void Interior_c::Shop_FurnishEdges() {
 }
 
 // 0x593DB0
-int8 Interior_c::GetBoundingBox(FurnitureEntity_c* entity, CVector* a3) {
-    return plugin::CallMethodAndReturn<int8, 0x593DB0, Interior_c*, FurnitureEntity_c*, CVector*>(this, entity, a3);
+bool Interior_c::GetBoundingBox(FurnitureEntity_c* entity, CVector* a3) {
+    return plugin::CallMethodAndReturn<bool, 0x593DB0, Interior_c*, FurnitureEntity_c*, CVector*>(this, entity, a3);
 }
 
 // 0x593910
@@ -211,13 +204,13 @@ CObject* Interior_c::PlaceObject(uint8 isStealable, Furniture_c* furniture, floa
 }
 
 // 0x5913B0
-ListItem_c* Interior_c::GetFurnitureEntity(CEntity* entity) {
-    return plugin::CallMethodAndReturn<ListItem_c*, 0x5913B0, Interior_c*, CEntity*>(this, entity);
+FurnitureEntity_c* Interior_c::GetFurnitureEntity(const CEntity& entity) {
+    return plugin::CallMethodAndReturn<FurnitureEntity_c*, 0x5913B0>(this, &entity);
 }
 
 // 0x5913E0
-bool Interior_c::IsPtInside(CVector* a2, float a3, float a4, float a5) {
-    return plugin::CallMethodAndReturn<bool, 0x5913E0, Interior_c*, CVector*, float, float, float>(this, a2, a3, a4, a5);
+bool Interior_c::IsPtInside(const CVector& pt, CVector bias) {
+    return plugin::CallMethodAndReturn<bool, 0x5913E0, Interior_c*, const CVector&, CVector&>(this, pt, bias);
 }
 
 // 0x5914D0

@@ -28,8 +28,8 @@ constexpr auto NUM_ROPE_SEGMENTS{ 32u };
 
 class CRope {
 public:
-    CVector    m_aSegments[NUM_ROPE_SEGMENTS];
-    CVector    m_aSpeed[NUM_ROPE_SEGMENTS];
+    std::array<CVector, NUM_ROPE_SEGMENTS> m_aSegments;
+    std::array<CVector, NUM_ROPE_SEGMENTS> m_aSpeed;
     uintptr    m_nId;
     float      m_fGroundZ;
     float      m_fMass;

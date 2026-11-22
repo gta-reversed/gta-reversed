@@ -4,7 +4,7 @@
 #include "Vehicle.h"
 #include "Accident.h"
 
-class CTaskComplexMedicTreatInjuredPed : public CTaskComplex {
+class NOTSA_EXPORT_VTABLE CTaskComplexMedicTreatInjuredPed : public CTaskComplex {
 public:
     CVehicle*  m_pVehicle;
     CPed*      m_pPartnerMedic;
@@ -19,8 +19,8 @@ public:
     CTaskComplexMedicTreatInjuredPed(CVehicle* vehicle, CPed* ped, bool isDriver);
     ~CTaskComplexMedicTreatInjuredPed() override;
 
-    eTaskType GetTaskType() override { return Type; }
-    CTask* Clone() override;
+    eTaskType GetTaskType() const override { return Type; }
+    CTask* Clone() const override;
     CTask* CreateFirstSubTask(CPed* ped) override;
     CTask* CreateNextSubTask(CPed* ped) override;
     CTask* ControlSubTask(CPed* ped) override;
@@ -28,7 +28,7 @@ public:
     CTask* CreateSubTask(eTaskType taskType);
     CTask* CreateDealWithNextAccidentTask(CPed* ped, CAccident* accident);
     void   FindNearestAccident(CVector& posn);
-    void   FindAccidentPosition(CPed* ped, CPed* targetPed);
+    void   CalcTargetPosWithOffset(CPed* ped, CPed* targetPed);
 
 private:
     friend void InjectHooksMain();
@@ -36,10 +36,6 @@ private:
 
     CTaskComplexMedicTreatInjuredPed* Constructor(CVehicle* vehicle, CPed* ped, bool isDriver);
 
-    CTask* Clone_Reversed();
-    CTask* CreateFirstSubTask_Reversed(CPed* ped);
-    CTask* CreateNextSubTask_Reversed(CPed* ped);
-    CTask* ControlSubTask_Reversed(CPed* ped);
 };
 
 VALIDATE_SIZE(CTaskComplexMedicTreatInjuredPed, 0x2C);

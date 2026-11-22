@@ -6,7 +6,10 @@
 */
 #pragma once
 
+#include <Base.h>
 #include "ZoneInfo.h"
+#include "ePedRace.h"
+
 class CZone;
 
 enum ePedType : uint32;
@@ -78,42 +81,57 @@ enum ePopcyclePedGroup {
     POPCYCLE_PEDGROUP_WORKERS_LA,
     POPCYCLE_PEDGROUP_WORKERS_SF,
     POPCYCLE_PEDGROUP_WORKERS_VG,
+
     POPCYCLE_PEDGROUP_BUSINESS_LA,
     POPCYCLE_PEDGROUP_BUSINESS_SF,
     POPCYCLE_PEDGROUP_BUSINESS_VG,
+
     POPCYCLE_PEDGROUP_CLUBBERS_LA,
     POPCYCLE_PEDGROUP_CLUBBERS_SF,
     POPCYCLE_PEDGROUP_CLUBBERS_VG,
+
     POPCYCLE_PEDGROUP_FARMERS,
+
     POPCYCLE_PEDGROUP_BEACHFOLK,
+
     POPCYCLE_PEDGROUP_PARKFOLK_LA,
     POPCYCLE_PEDGROUP_PARKFOLK_SF,
     POPCYCLE_PEDGROUP_PARKFOLK_VG,
+
     POPCYCLE_PEDGROUP_CASUAL_RICH_LA,
     POPCYCLE_PEDGROUP_CASUAL_RICH_SF,
     POPCYCLE_PEDGROUP_CASUAL_RICH_VG,
+
     POPCYCLE_PEDGROUP_CASUAL_AVERAGE_LA,
     POPCYCLE_PEDGROUP_CASUAL_AVERAGE_SF,
     POPCYCLE_PEDGROUP_CASUAL_AVERAGE_VG,
+
     POPCYCLE_PEDGROUP_CASUAL_POOR_LA,
     POPCYCLE_PEDGROUP_CASUAL_POOR_SF,
     POPCYCLE_PEDGROUP_CASUAL_POOR_VG,
+
     POPCYCLE_PEDGROUP_PROSTITUTES_LA,
     POPCYCLE_PEDGROUP_PROSTITUTES_SF,
     POPCYCLE_PEDGROUP_PROSTITUTES_VG,
+
     POPCYCLE_PEDGROUP_CRIMINALS_LA,
     POPCYCLE_PEDGROUP_CRIMINALS_SF,
     POPCYCLE_PEDGROUP_CRIMINALS_VG,
+
     POPCYCLE_PEDGROUP_GOLFERS,
+
     POPCYCLE_PEDGROUP_SERVANTS_LA,
     POPCYCLE_PEDGROUP_SERVANTS_SF,
     POPCYCLE_PEDGROUP_SERVANTS_VG,
+
     POPCYCLE_PEDGROUP_AIRCREW_LA,
     POPCYCLE_PEDGROUP_AIRCREW_SF,
     POPCYCLE_PEDGROUP_AIRCREW_VG,
+
     POPCYCLE_PEDGROUP_ENTERTAINERS_LA,
     POPCYCLE_PEDGROUP_ENTERTAINERS_SF,
     POPCYCLE_PEDGROUP_ENTERTAINERS_VG,
+
     POPCYCLE_PEDGROUP_OUT_OF_TOWN_FACTORY_WORKERS,
     POPCYCLE_PEDGROUP_DESERT_FOLK,
     POPCYCLE_PEDGROUP_AIRCREW_RUNWAY,
@@ -130,6 +148,7 @@ enum ePopcyclePedGroup {
     POPCYCLE_PEDGROUP_OFFICE_WORKERS,
     POPCYCLE_PEDGROUP_HUSBANDS,
     POPCYCLE_PEDGROUP_WIVES,
+
     POPCYCLE_TOTAL_PEDGROUPS
 };
 
@@ -172,48 +191,105 @@ enum ePopcycleCarGroup {
 
 class CPopCycle {
 public:
-    static float&      m_NumOther_Cars;
-    static float&      m_NumCops_Cars;
-    static float&      m_NumGangs_Cars;
-    static float&      m_NumDealers_Cars;
-    static float&      m_NumOther_Peds;
-    static float&      m_NumCops_Peds;
-    static float&      m_NumGangs_Peds;
-    static float&      m_fPercOther;
-    static float&      m_fPercCops;
-    static float&      m_fPercGangs;
-    static float&      m_fPercDealers;
-    static bool&       m_bCurrentZoneIsGangArea;
-    static float&      m_fCurrentZoneDodgyness;
-    static CZone*&     m_pCurrZone;
-    static CZoneInfo*& m_pCurrZoneInfo;
-    static int32&      m_nCurrentZoneType;
-    static int32&      m_nCurrentTimeOfWeek;
-    static int32&      m_nCurrentTimeIndex;
-    static inline ePopcycleGroupPerc (&m_nPercTypeGroup)[12][2][20][POPCYCLE_TOTAL_GROUP_PERCS] = *(ePopcycleGroupPerc(*)[12][2][20][18])0xC0BC78;
-    static uint8*      m_nPercOther;     // uint8 m_nPercOther[480];
-    static uint8*      m_nPercCops;      // uint8 m_nPercCops[480];
-    static uint8*      m_nPercGang;      // uint8 m_nPercGang[480];
-    static uint8*      m_nPercDealers;   // uint8 m_nPercDealers[480];
-    static uint8*      m_nMaxNumCars;    // uint8 m_nMaxNumCars[480];
-    static uint8*      m_nMaxNumPeds;    // uint8 m_nMaxNumPeds[480];
-    static float&      m_NumDealers_Peds;
+    
+public:
+    static inline auto& m_NumOther_Cars = StaticRef<float>(0xC0BC30);
+    static inline auto& m_NumCops_Cars = StaticRef<float>(0xC0BC34);
+    static inline auto& m_NumGangs_Cars = StaticRef<float>(0xC0BC38);
+    static inline auto& m_NumDealers_Cars = StaticRef<float>(0xC0BC3C);
+    static inline auto& m_NumOther_Peds = StaticRef<float>(0xC0BC40);
+    static inline auto& m_NumCops_Peds = StaticRef<float>(0xC0BC44);
+    static inline auto& m_NumGangs_Peds = StaticRef<float>(0xC0BC48);
+    static inline auto& m_fPercOther = StaticRef<float>(0xC0BC4C);
+    static inline auto& m_fPercCops = StaticRef<float>(0xC0BC50);
+    static inline auto& m_fPercGangs = StaticRef<float>(0xC0BC54);
+    static inline auto& m_fPercDealers = StaticRef<float>(0xC0BC58);
+    static inline auto& m_bCurrentZoneIsGangArea = StaticRef<bool>(0xC0BC5C);
+    static inline auto& m_fCurrentZoneDodgyness = StaticRef<float>(0xC0BC60);
+    static inline auto& m_pCurrZone = StaticRef<CZone*>(0xC0BC64);
+    static inline auto& m_pCurrZoneInfo = StaticRef<CZoneInfo*>(0xC0BC68);
+
+    //! Same as `m_pCurrZoneInfo->zonePopulationType`
+    static inline auto& m_nCurrentZoneType = StaticRef<int32>(0xC0BC6C);
+
+    static inline auto& m_nCurrentTimeOfWeek = StaticRef<int32>(0xC0BC70);
+    static inline auto& m_nCurrentTimeIndex = StaticRef<int32>(0xC0BC74);
+    static inline auto& m_NumDealers_Peds = StaticRef<float>(0xC0E978);
+
+    static constexpr auto PERC_DATA_TIME_RESOLUTION_HR = 2;
+
+    // TODO: Eventually use an array of structs instead of 7x 4 dimensional arrays....
+    using PercDataArray = uint8[24 / PERC_DATA_TIME_RESOLUTION_HR /*time resolution (hr)*/][2 /*weekday and weekend*/][(uint32)(eZonePopulationType::COUNT)];
+    static inline auto& m_nPercOther = StaticRef<PercDataArray>(0xC0DE38);
+    static inline auto& m_nPercCops = StaticRef<PercDataArray>(0xC0E018);
+    static inline auto& m_nPercGang = StaticRef<PercDataArray>(0xC0E1F8);
+    static inline auto& m_nPercDealers = StaticRef<PercDataArray>(0xC0E3D8);
+    static inline auto& m_nMaxNumCars = StaticRef<PercDataArray>(0xC0E5B8);
+    static inline auto& m_nMaxNumPeds = StaticRef<PercDataArray>(0xC0E798);
+
+    //! See `Initialise` for more info about this array.
+    static inline auto& m_nPercTypeGroup = StaticRef<uint8[24 / PERC_DATA_TIME_RESOLUTION_HR][2 /*weekday or weekend*/][(uint32)(eZonePopulationType::COUNT)][POPCYCLE_TOTAL_GROUP_PERCS]>(0xC0BC78);
+
+    static void InjectHooks();
 
     static void  Initialise();
-    static bool  FindNewPedType(ePedType* arg1, int32* modelIndex, bool arg3, bool arg4);
+    static bool  FindNewPedType(ePedType& outPedType, eModelID& outPedMI, bool noGangs, bool noCops);
     static float GetCurrentPercOther_Peds();
-    static bool  IsPedAppropriateForCurrentZone(int32 modelIndex);
-    static bool  IsPedInGroup(int32 modelIndex, int32 PopCycle_Group);
+
+    /*
+    * @addr 0x610150
+    * @brief Check if any currently active group in the current world zone contains the given model
+    */
+    static bool IsPedAppropriateForCurrentZone(int32 modelIndex);
+
+    /*!
+    * @addr 0x610210
+    * @brief Check if group contains the specified model (In any world zone)
+    */
+    static bool IsPedInGroup(int32 modelIndex, ePopcycleGroup PopCycle_Group);
     static bool  PedIsAcceptableInCurrentZone(int32 modelIndex);
-    static int32 PickARandomGroupOfOtherPeds();
-    static int32 PickPedMIToStreamInForCurrentZone();
+    static ePopcycleGroup PickARandomGroupOfOtherPeds();
+
+    //! Picks a ped model to be streamed in for the current zone
+    static eModelID PickPedMIToStreamInForCurrentZone();
+
+    //! Called when the player kills a dealer in the current area
     static void  PlayerKilledADealer();
+
+    //! Update the stuff here
     static void  Update();
-    static void  UpdateAreaDodgyness();
-    static void  UpdateDealerStrengths();
-    static void  UpdatePercentages();
-    static ePopcycleGroupPerc GetCurrentPercTypeGroup(int32 groupId) {
-        return m_nPercTypeGroup[m_nCurrentTimeIndex][m_nCurrentTimeOfWeek][m_pCurrZoneInfo->zonePopulationType][groupId];
+
+    //! Update dodgyness counter
+    static void UpdateAreaDodgyness();
+    static void UpdateDealerStrengths();
+    static void UpdatePercentages();
+
+    //! Pick a gang whose peds should be created
+    static ePedType PickGangToCreateMembersOf();
+
+    //! NOTSA
+    static auto GetMaxPedsCurrently() { return m_nMaxNumPeds[m_nCurrentTimeIndex][m_nCurrentTimeOfWeek][m_nCurrentZoneType]; }
+
+    //! NOTSA
+    static auto GetMaxCarsCurrently() { return m_nMaxNumCars[m_nCurrentTimeIndex][m_nCurrentTimeOfWeek][m_nCurrentZoneType]; }
+    
+    static void UpdateIsGangArea();
+
+    /*!
+    * @notsa
+    * @brief Check if a race is allowed in the current zone
+    */
+    static bool IsRaceAllowedInCurrentZone(ePedRace race);
+
+    /*!
+    * @notsa
+    * @brief Check if the race of the given ped's model is allowed in the current zone
+    */
+    static bool IsRaceAllowedInCurrentZone(eModelID pedModelId);
+
+
+    static uint8 GetCurrentPercTypeGroup(int32 groupId) {
+        return m_nPercTypeGroup[m_nCurrentTimeIndex][m_nCurrentTimeOfWeek][m_pCurrZoneInfo->PopType][groupId];
     }
 
     static bool IsPedInGroupTheseGroups(int32 modelIndex, std::initializer_list<ePopcycleGroup> groups) {

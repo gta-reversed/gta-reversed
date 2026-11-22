@@ -30,7 +30,7 @@ enum eHudColours : uint8 {
 
 class CHudColours {
 public:
-    CRGBA m_aColours[HUD_COLOUR_COUNT];
+    std::array<CRGBA, HUD_COLOUR_COUNT> m_aColours;
 
 public:
     static void InjectHooks();
@@ -40,10 +40,10 @@ public:
     CHudColours* Constructor();
 
     void SetRGBAValue(eHudColours colorIndex, uint8 red, uint8 green, uint8 blue, uint8 alpha);
-    uint32 GetIntColour(eHudColours colorIndex);
+    uint32 GetIntColour(eHudColours colorIndex) const;
 
-    CRGBA GetRGB(eHudColours colorIndex);
-    CRGBA GetRGBA(eHudColours index, uint8 alpha);
+    CRGBA GetRGB(eHudColours colorIndex) const;
+    CRGBA GetRGBA(eHudColours index, uint8 alpha) const;
 };
 
 VALIDATE_SIZE(CHudColours, 0x3C);

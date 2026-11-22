@@ -7,6 +7,7 @@
 #pragma once
 
 #include "RenderWare.h"
+#include <Enums/eAreaCodes.h>
 
 class CColModel;
 class CEntity;
@@ -14,12 +15,13 @@ class CEntity;
 class CGame {
 public:
     //! Current number of area
-    static char (&aDatFile)[32];
-    static int32& currLevel;
-    static uint8& bMissionPackGame;
-    static int32& currArea;
-    static RwMatrix*& m_pWorkingMatrix1;
-    static RwMatrix*& m_pWorkingMatrix2;
+    static inline auto& aDatFile = StaticRef<char[32]>(0xB728EC);
+    static inline auto& currLevel = StaticRef<int32>(0xB7290C);
+    static inline auto& bMissionPackGame = StaticRef<uint8>(0xB72910);
+    static inline auto& currArea = StaticRef<eAreaCodesS32>(0xB72914);
+    static inline auto& m_pWorkingMatrix1 = StaticRef<RwMatrix*>(0xB72920);
+    static inline auto& m_pWorkingMatrix2 = StaticRef<RwMatrix*>(0xB72924);
+
 
 public:
     static void InjectHooks();
@@ -33,7 +35,7 @@ public:
     static bool Init2(const char* datFile);
     static bool Init3(const char* datFile);
     static void Initialise(char const *datFile);
-    static void InitialiseCoreDataAfterRW();
+    static bool InitialiseCoreDataAfterRW();
     static bool InitialiseEssentialsAfterRW();
     static void InitialiseOnceBeforeRW();
     static bool InitialiseRenderWare();
@@ -48,11 +50,14 @@ public:
     static void DrasticTidyUpMemory(bool a1);
     static void FinalShutdown();
     static void TidyUpMemory(bool a1, bool clearD3Dmem);
+    static eAreaCodes GetCurrentAreaCode() { return currArea; }
+    static eAreaCodes GetPlayerOrCurrentAreaCode();
 };
 
-extern int32 &gameTxdSlot;
-extern bool& gbLARiots;
-extern bool& gbLARiots_NoPoliceCars;
+static inline auto& gameTxdSlot = StaticRef<int32>(0xB728E8);
+static inline auto& gbLARiots = StaticRef<bool>(0xB72958);
+static inline auto& gbLARiots_NoPoliceCars = StaticRef<bool>(0xB72959);
+static inline auto& col1 = StaticRef<std::array<CColModel, 2>>(0xC17824);
 
 bool MoveMem(void **pMem);
 bool MoveColModelMemory(CColModel &colModel, bool a2);

@@ -2,27 +2,43 @@
 
 #include "CutsceneTrackManagerDebugModule.h"
 
-#include <imgui.h>
 #include "AECutsceneTrackManager.h"
 
-namespace CutsceneTrackManagerDebugModule {
+void CutsceneTrackManagerDebugModule::RenderWindow() {
+    const notsa::ui::ScopedWindow window{ "Custscene Track Manager", {400.f, 600.f}, m_IsOpen, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize };
+    if (!m_IsOpen) {
+        return;
+    }
 
-void ProcessImGui() {
-    ImGui::Text("Play Request %s",      AECutsceneTrackManager.m_bPlayRequest ? "true" : "false");
-    ImGui::Text("Paused %s",            AECutsceneTrackManager.m_bPaused ? "true" : "false");
-    ImGui::Text("Audio Channel Id: %d", AECutsceneTrackManager.m_nAudioChannel);
-    ImGui::Text("Status: %d",           AECutsceneTrackManager.m_nStatus);
-    ImGui::Text("Track Id: %d",         AECutsceneTrackManager.m_nTrackId);
-    ImGui::Text("f10: %d",              AECutsceneTrackManager._f10);
-    ImGui::Text("f14: %d",              AECutsceneTrackManager._f14);
-    ImGui::Text("f18: %d",              AECutsceneTrackManager._f18);
-    ImGui::Text("Is User Track: %d",    AECutsceneTrackManager.m_bIsUserTrack);
-    ImGui::Text("pad: %d",              AECutsceneTrackManager._pad);
-    ImGui::Text("Playing Track Id: %d", AECutsceneTrackManager.m_nPlayingTrackId);
-    ImGui::Text("Track Play Time: %d",  AECutsceneTrackManager.m_nTrackPlayTime);
-    ImGui::Text("Track Length Ms: %d",  AECutsceneTrackManager.m_nTrackLengthMs);
+    if (ImGui::BeginTable("CutsceneTrackManagerDebugModule", 2, ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_Borders)) {
+        const auto KVRow = [](const char* label, const char* vfmt, auto v) {
+            ImGui::TableNextColumn();
+            ImGui::Text(label);
+
+            ImGui::TableNextColumn();
+            ImGui::Text(vfmt, v);
+        };
+
+        KVRow("Play Request",      "%s", AECutsceneTrackManager.m_bPlayRequest ? "true" : "false");
+        KVRow("Paused",            "%s", AECutsceneTrackManager.m_bPaused ? "true" : "false");
+        KVRow("Audio Channel Id",  "%d", AECutsceneTrackManager.m_nAudioChannel);
+        KVRow("Status",            "%d", AECutsceneTrackManager.m_nStatus);
+        KVRow("Track Id",          "%d", AECutsceneTrackManager.m_nTrackId);
+        KVRow("f10",               "%d", AECutsceneTrackManager._f10);
+        KVRow("f14",               "%d", AECutsceneTrackManager._f14);
+        KVRow("f18",               "%d", AECutsceneTrackManager._f18);
+        KVRow("Is User Track",     "%d", AECutsceneTrackManager.m_bIsUserTrack);
+        KVRow("pad",               "%d", AECutsceneTrackManager._pad);
+        KVRow("Playing Track Id",  "%d", AECutsceneTrackManager.m_nPlayingTrackId);
+        KVRow("Track Play Time",   "%d", AECutsceneTrackManager.m_nTrackPlayTime);
+        KVRow("Track Length Ms",   "%d", AECutsceneTrackManager.m_nTrackLengthMs);
+
+        ImGui::EndTable();
+    }
 }
 
-void ProcessRender() {}
-
-} // namespace CutsceneTrackManagerDebugModule
+void CutsceneTrackManagerDebugModule::RenderMenuEntry() {
+    notsa::ui::DoNestedMenuIL({ "Extra", "Audio" }, [&] {
+        ImGui::MenuItem("Cutscene Track Manager", nullptr, &m_IsOpen);
+    });
+}

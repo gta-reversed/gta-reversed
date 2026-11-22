@@ -2,22 +2,45 @@
 
 #include "TaskComplexBeInCouple.h"
 #include "TaskComplexWanderStandard.h"
-#include "IKChainManager_c.h"
+#include "Ragdoll/IKChainManager.h"
+
+void CTaskComplexBeInCouple::InjectHooks() {
+    RH_ScopedVirtualClass(CTaskComplexBeInCouple, 0x870724, 11);
+    RH_ScopedCategory("Tasks/TaskTypes");
+
+    RH_ScopedConstructorInstall(0x6836F0, "1", {}, CPed *, bool, bool, bool, float);
+    RH_ScopedDestructorInstall(0x683780);
+
+    RH_ScopedInstall(AbortArmIK, 0x6837F0);
+
+    RH_ScopedVMTInstall(Clone, 0x6839C0);
+    RH_ScopedVMTInstall(GetTaskType, 0x683770);
+    RH_ScopedVMTInstall(MakeAbortable, 0x6847C0);
+    RH_ScopedVMTInstall(CreateNextSubTask, 0x684840, { .Reversed = false });
+    RH_ScopedVMTInstall(CreateFirstSubTask, 0x6837E0);
+    RH_ScopedVMTInstall(ControlSubTask, 0x684930, { .Reversed = false });
+}
 
 // 0x6836F0
-CTaskComplexBeInCouple::CTaskComplexBeInCouple(CPed* ped, bool a3, bool a4, bool a5, float a6) : CTaskComplex() {
-    byte14 = a3;
-    byte15 = a4;
-    m_Ped = ped;
-    byte16 = a5;
-    float18 = a6;
-    byte1C = 0;
-    CEntity::SafeRegisterRef(m_Ped);
+CTaskComplexBeInCouple::CTaskComplexBeInCouple(
+    CPed* ped,
+    bool  isLeader,
+    bool  holdHands,
+    bool  lookAtEachOther,
+    float giveUpDist
+) :
+    CTaskComplex(),
+    m_partner{ ped },
+    m_isLeader{ isLeader },
+    m_holdHands{ holdHands },
+    m_lookAtEachOther{ lookAtEachOther },
+    m_giveUpDist{ giveUpDist } {
+    CEntity::SafeRegisterRef(m_partner);
 }
 
 // 0x683780
 CTaskComplexBeInCouple::~CTaskComplexBeInCouple() {
-    CEntity::SafeCleanUpRef(m_Ped);
+    CEntity::SafeCleanUpRef(m_partner);
 }
 
 // 0x6837E0
@@ -27,27 +50,27 @@ CTask* CTaskComplexBeInCouple::CreateFirstSubTask(CPed* ped) {
 
 // 0x6837F0
 void CTaskComplexBeInCouple::AbortArmIK(CPed* ped) {
-    if (IKChainManager_c::IsArmPointing(0, ped)) {
-        IKChainManager_c::AbortPointArm(0, ped, 250);
-    }
-
-    if (IKChainManager_c::IsArmPointing(1, ped)) {
-        IKChainManager_c::AbortPointArm(1, ped, 250);
-    }
+    const auto DoAbortArmIK = [ped](eIKArm arm) {
+        if (IKChainManager_c::IsArmPointing(arm, ped)) {
+            IKChainManager_c::AbortPointArm(arm, ped, 250);
+        }
+    };
+    DoAbortArmIK(eIKArm::IK_ARM_RIGHT);
+    DoAbortArmIK(eIKArm::IK_ARM_LEFT);
 }
 
 // 0x6847C0
 bool CTaskComplexBeInCouple::MakeAbortable(CPed* ped, eAbortPriority priority, const CEvent* event) {
-    if (m_Ped && event && event->HasEditableResponse()) {
-        auto editable = static_cast<CEventEditableResponse*>(const_cast<CEvent*>(event)); // Okay let's go!
+    if (m_partner && event && event->HasEditableResponse()) {
+        auto editable                = static_cast<CEventEditableResponse*>(const_cast<CEvent*>(event)); // Okay let's go!
 
-        bool bAddToEventGroup = editable->m_bAddToEventGroup;
+        bool bAddToEventGroup        = editable->m_bAddToEventGroup;
         editable->m_bAddToEventGroup = false;
         switch (event->GetEventType()) {
         case EVENT_DAMAGE:
         case EVENT_GUN_AIMED_AT:
         case EVENT_SHOT_FIRED:
-            m_Ped->GetEventGroup().Add(editable, false);
+            m_partner->GetEventGroup().Add(editable, false);
             break;
         }
         editable->m_bAddToEventGroup = bAddToEventGroup;
@@ -59,19 +82,20 @@ bool CTaskComplexBeInCouple::MakeAbortable(CPed* ped, eAbortPriority priority, c
 // 0x684840
 CTask* CTaskComplexBeInCouple::CreateNextSubTask(CPed* ped) {
     return plugin::CallMethodAndReturn<CTask*, 0x684840, CTaskComplexBeInCouple*, CPed*>(this, ped);
-
-    if (!m_Ped) {
+    /*
+    if (!m_otherPed) {
         AbortArmIK(ped);
         return nullptr;
     }
 
-    if (this->byte14) {
+    if (this->m_isLeader) {
         AbortArmIK(ped);
         return new CTaskComplexWanderStandard(4, CGeneral::GetRandomNumberInRange(0, 8), true);
     } else {
         AbortArmIK(ped);
-        // todo: return new CTaskComplexWalkAlongsidePed(m_Ped, float18);
+        // todo: return new CTaskComplexWalkAlongsidePed(m_otherPed, m_giveUpDist);
     }
+    */
 }
 
 // 0x684930

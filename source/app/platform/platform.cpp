@@ -4,8 +4,6 @@
 #include "VideoMode.h"
 #include "app/app.h"
 
-#define RSEVENT_SUCCEED(x) ((x) ? rsEVENTPROCESSED : rsEVENTERROR)
-
 void RsInjectHooks() {
     RH_ScopedNamespaceName("Rs");
     RH_ScopedCategoryGlobal();
@@ -36,11 +34,11 @@ void RsInjectHooks() {
     RH_ScopedGlobalInstall(RsErrorMessage, 0x619B00);
     RH_ScopedGlobalInstall(RsWarningMessage, 0x619B30);
     RH_ScopedGlobalInstall(RsEventHandler, 0x619B60);
-    // RH_ScopedGlobalInstall(RsRwInitialize, 0x619C90);
+    RH_ScopedGlobalInstall(RsRwInitialize, 0x619C90);
 }
 
-static std::array<uint8, 256>& KeysShifted = *(std::array<uint8, 256>*)0x8D2D00;
-static std::array<uint8, 256>& KeysNormal = *(std::array<uint8, 256>*)0x8D2C00;
+static auto& KeysShifted = StaticRef<std::array<uint8, 256>>(0x8D2D00);
+static auto& KeysNormal = StaticRef<std::array<uint8, 256>>(0x8D2C00);
 
 // 0x6193F0
 uint8 RsKeyFromScanCode(uint8 scan, int32 shiftKeyDown) {
@@ -69,6 +67,8 @@ bool RsCameraBeginUpdate(RwCamera* camera) {
 
 // 0x619440
 RwCamera* RsCameraShowRaster(RwCamera* camera) {
+    ZoneScoped;
+
     return psCameraShowRaster(camera);
 }
 
@@ -108,38 +108,39 @@ int32 RsInputDeviceAttach(RsInputDeviceType type, RsInputEventHandler eventHandl
     case rsKEYBOARD:
         RsGlobal.keyboard.inputEventHandler = eventHandler;
         RsGlobal.keyboard.used = true;
-        return true;
+        break;
     case rsMOUSE:
         RsGlobal.mouse.inputEventHandler = eventHandler;
         RsGlobal.mouse.used = true;
-        return true;
+        break;
     case rsPAD:
         RsGlobal.pad.inputEventHandler = eventHandler;
         RsGlobal.pad.used = true;
-        return true;
+        break;
     default:
         return false;
     }
+
+    return true;
 }
 
 // 0x619510
 bool rsCommandLine(void* param) {
-    return plugin::CallAndReturn<bool, 0x619510, void*>(param);
-    // RsEventHandler(rsFILELOAD, param);
-    // return true;
+    RsEventHandler(rsFILELOAD, param);
+    return true;
 }
 
 // 0x619530
 bool rsPreInitCommandLine(RwChar* arg) {
     if (strcmp(arg, RWSTRING("-vms")) == 0) {
-        DefaultVideoMode = FALSE;
+        DefaultVM = FALSE;
         return true;
     }
     return false;
 }
 
 // 0x619560
-RsEventStatus RsKeyboardEventHandler(RsEvent event, void* param) {
+RsEventStatus RsKeyboardEventHandler(RsEvent event, void* param) { // Param should be `RsKeyCodes*` (so pass in a ptr to a `RsKeyCodes`)
     if (RsGlobal.keyboard.used) {
         return RsGlobal.keyboard.inputEventHandler(event, param);
     }
@@ -246,24 +247,16 @@ RwMemoryFunctions* psGetMemoryFunctions() {
 }
 
 // 0x619C90
-bool RsRwInitialize(void* param) {
-    return plugin::CallAndReturn<bool, 0x619C90, void*>(param);
-
-    if (!RwEngineInit(psGetMemoryFunctions(), 0, rsRESOURCESDEFAULTARENASIZE)) {
+bool RsRwInitialize(void* param) { // Win32: Param is HWND
+    if (!RwEngineInit(psGetMemoryFunctions(), 0, rsRESOURCESDEFAULTARENASIZE))
         return false;
-    }
 
     AppEventHandler(rsINITDEBUG, nullptr);
-
     psInstallFileSystem();
-
-    RsEventStatus es;
-    es = AppEventHandler(rsPLUGINATTACH, nullptr);
-    if (es != rsEVENTNOTPROCESSED && es == rsEVENTERROR)
+    if (!AppEventHandler(rsPLUGINATTACH, nullptr))
         return false;
 
-    es = AppEventHandler(rsINPUTDEVICEATTACH, nullptr);
-    if (es != rsEVENTNOTPROCESSED && es == rsEVENTERROR)
+    if (!AppEventHandler(rsINPUTDEVICEATTACH, nullptr))
         return false;
 
     RwEngineOpenParams openParams = {.displayID = param};
@@ -272,14 +265,15 @@ bool RsRwInitialize(void* param) {
         return false;
     }
 
-    es = AppEventHandler(rsSELECTDEVICE, param);
-    if (es == rsEVENTNOTPROCESSED || psSelectDevice() == 0) { // maybe wrong
-        RwEngineClose();
-        RwEngineTerm();
-        return false;
-    }
+    auto res = [&param] {
+        if (auto r = AppEventHandler(rsSELECTDEVICE, param); r != rsEVENTNOTPROCESSED) {
+            return r;
+        } else {
+            return (RsEventStatus)psSelectDevice();
+        }
+    }();
 
-    if (!RwEngineStart()) {
+    if (res == rsEVENTERROR || !RwEngineStart()) {
         RwEngineClose();
         RwEngineTerm();
         return false;
@@ -312,7 +306,7 @@ RsEventStatus RsEventHandler(RsEvent event, void* param) {
     case rsREGISTERIMAGELOADER:
         return rsEVENTPROCESSED;
 
-    case rsRWINITIALIZE:
+    case rsRWINITIALIZE: // Win32: Param is HWND 
         return RSEVENT_SUCCEED(RsRwInitialize(param));
 
     case rsRWTERMINATE:
@@ -339,10 +333,15 @@ RsEventStatus RsEventHandler(RsEvent event, void* param) {
     return rsEVENTNOTPROCESSED;
 }
 
-float IsWideScreenRatio(float ratio) {
-    return ratio == 0.6f || ratio == 10.0f / 16.0f || ratio == 9.0f / 16.0f;
+// Returns true if ratio is 5:3, 16:9 or 16:10.
+bool IsWideScreenRatio(float ratio) {
+    return approxEqual(ratio, 3.0f / 5.0f, 0.01f)      // 5:3 (height/width)
+        || approxEqual(ratio, 10.0f / 16.0f, 0.01f)    // 16:10
+        || approxEqual(ratio, 9.0f / 16.0f, 0.01f);    // 16:9
 }
 
-float IsFullScreenRatio(float ratio) {
-    return ratio == 3.0f / 4.0f || ratio == 0.8f;
+// Returns true if ratio is 4:3 or 5:4.
+bool IsFullScreenRatio(float ratio) {
+    return approxEqual(ratio, 3.0f / 4.0f, 0.01f)      // 4:3
+        || approxEqual(ratio, 4.0f / 5.0f, 0.01f);     // 5:4
 }

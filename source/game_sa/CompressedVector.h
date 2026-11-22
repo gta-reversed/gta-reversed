@@ -1,29 +1,45 @@
-/*
-    Plugin-SDK file
-    Authors: GTA Community. See more here
-    https://github.com/DK22Pac/plugin-sdk
-    Do not delete this comment block. Respect others' work!
-*/
 #pragma once
+#include "extensions/FixedVector.hpp"
 
-class CompressedVector {
-public:
-    int16 x;
-    int16 y;
-    int16 z;
-};
-VALIDATE_SIZE(CompressedVector, 0x6);
+using CompressedVector = FixedVector<int16, 128.0f>;
+using CompressedLargeVector = FixedVector<int16, 8.0f>;
+using CompressedUnitVector = FixedVector<int16, 4096.0f>;
+using CompressedFxVector = FixedVector<int16, 32767.0f>;
 
-CVector UncompressVector(const CompressedVector& compressedVec);
-CompressedVector CompressVector(const CVector& vec);
+using CompressedUnitFloat = FixedFloat<int16, 4096.0f>;
 
-float UncompressUnitFloat(int16 val);
+// Use CompressedVector as a type instead.
+[[deprecated]] auto CompressVector(const CVector& v) {
+    return CompressedVector{ v };
+}
+// Use CompressedVector as a type instead.
+[[deprecated]] auto UncompressVector(const CompressedVector& v) {
+    return CVector{ v };
+}
 
-CVector UncompressUnitVector(const CompressedVector& compressedVec);
-CompressedVector CompressUnitVector(const CVector& vec);
+// Use CompressedLargeVector as a type instead.
+[[deprecated]] auto CompressLargeVector(const CVector& v) {
+    return CompressedLargeVector{ v };
+}
+// Use CompressedLargeVector as a type instead.
+[[deprecated]] auto UncompressLargeVector(const CompressedLargeVector& v) {
+    return CVector{ v };
+}
 
-CVector UncompressLargeVector(const CompressedVector& compressedVec);
-CompressedVector CompressLargeVector(const CVector& vec);
+// Use CompressedUnitVector as a type instead.
+[[deprecated]] auto CompressUnitVector(const CVector& v) {
+    return CompressedUnitVector{ v };
+}
+// Use CompressedUnitVector as a type instead.
+[[deprecated]] auto UncompressUnitVector(const CompressedUnitVector& v) {
+    return CVector{ v };
+}
 
-CVector UncompressFxVector(const CompressedVector& compressedVec);
-CVector CompressFxVector(const CompressedVector& compressedVec);
+// Use CompressedFxVector as a type instead.
+[[deprecated]] auto CompressFxVector(const CVector& v) {
+    return CompressedFxVector{ v };
+}
+// Use CompressedFxVector as a type instead.
+[[deprecated]] auto UncompressFxVector(const CompressedFxVector& v) {
+    return CVector{ v };
+}

@@ -3,10 +3,6 @@
 #include "Birds.h"
 #include "Clouds.h"
 
-bool& CBirds::bHasBirdBeenShot = *(bool*)0xC6A8A0;
-uint32& CBirds::uiNumberOfBirds = *(uint32*)0xC6A8A4;
-CVector& CBirds::vecBirdShotAt = *(CVector*)0xC6AA48;
-
 /*
 These spawn in a formation like this:
     4           5
@@ -14,15 +10,15 @@ These spawn in a formation like this:
           2
        6           3
 */
-float CBirds::faCreationCoorsX[6] = { 0.0f, -1.0f, 2.0f, -3.0f, 1.0f, -2.0f }; // 0x8D5250
-float CBirds::faCreationCoorsY[6] = { 0.0f, -1.0f, -2.0f, 1.0f, 1.0f, -2.0f }; // 0x8D5268
-float CBirds::faCreationCoorsZ[6] = { 0.0f, 0.5f, 1.0f, 0.7f, 2.0f, 1.2f };    // 0x8D5280
+std::array<float, 6> CBirds::faCreationCoorsX = { 0.0f, -1.0f, 2.0f, -3.0f, 1.0f, -2.0f }; // 0x8D5250
+std::array<float, 6> CBirds::faCreationCoorsY = { 0.0f, -1.0f, -2.0f, 1.0f, 1.0f, -2.0f }; // 0x8D5268
+std::array<float, 6> CBirds::faCreationCoorsZ = { 0.0f, 0.5f, 1.0f, 0.7f, 2.0f, 1.2f };    // 0x8D5280
 
-float CBirds::faRenderCoorsU[8] = { 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.5f }; // 0x8D52B8
-float CBirds::faRenderCoorsV[8] = { 0.5f, 0.5f, 0.75f, 0.75f, 1.0f, 1.0f, 1.0f, 0.5f }; // 0x8D5298
-float CBirds::faRenderPosY[8] = { 0.25f, -0.25f, 0.25f, -0.25f, 0.0f, -0.25f, -0.35f, -0.35f }; // 0x8D52D8;
+std::array<float, 8> CBirds::faRenderCoorsU = { 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.5f }; // 0x8D52B8
+std::array<float, 8> CBirds::faRenderCoorsV = { 0.5f, 0.5f, 0.75f, 0.75f, 1.0f, 1.0f, 1.0f, 0.5f }; // 0x8D5298
+std::array<float, 8> CBirds::faRenderPosY = { 0.25f, -0.25f, 0.25f, -0.25f, 0.0f, -0.25f, -0.35f, -0.35f }; // 0x8D52D8;
 
-uint32 CBirds::auRenderIndices[30] = { 0, 3, 1, 0, 2, 3, 2, 4, 5, 2, 5, 3, 0, 1, 3, 0, 3, 2, 2, 5, 4, 2, 3, 5, 0, 6, 7, 0, 7, 6 }; // 0x8D52F8
+std::array<uint32, 30> CBirds::auRenderIndices = { 0, 3, 1, 0, 2, 3, 2, 4, 5, 2, 5, 3, 0, 1, 3, 0, 3, 2, 2, 5, 4, 2, 3, 5, 0, 6, 7, 0, 7, 6 }; // 0x8D52F8
 
 void CBirds::InjectHooks() {
     RH_ScopedClass(CBirds);
@@ -38,6 +34,8 @@ void CBirds::InjectHooks() {
 
 // 0x711EC0
 void CBirds::Init() {
+    ZoneScoped;
+
     for (auto& bird : aBirds) {
         bird.m_bCreated = false;
     }
@@ -73,8 +71,7 @@ void CBirds::CreateNumberOfBirds(CVector vecStartPos, CVector vecTargetPos, int3
         auto& bird = aBirds[iFreeBirdIndex];
         bird.m_vecPosn = vecStartPos;
 
-        auto vecBirdDirection = vecTargetPos - bird.m_vecPosn;
-        vecBirdDirection.Normalise();
+        const auto vecBirdDirection = (vecTargetPos - bird.m_vecPosn).Normalized();
         auto vecCheckPos = bird.m_vecPosn + (vecBirdDirection * fMaxDistance * 2.4F);
         if (bCheckObstacles && !CWorld::GetIsLineOfSightClear(bird.m_vecPosn, vecCheckPos, true, false, false, false, false, false, false))
             continue;
@@ -142,14 +139,17 @@ void CBirds::Shutdown() {
 
 // 0x712330
 void CBirds::Update() {
-    const auto& vecCamPos = TheCamera.GetPosition();
+    ZoneScoped;
+
+    const auto& camPosn = TheCamera.GetPosition();
 
     if (!CGame::currArea
         && uiNumberOfBirds < std::size(aBirds)
         && CClock::ClockHoursInRange(5, 22)
         && (CTimer::GetFrameCounter() % 512) == std::size(aBirds)
     ) {
-        auto iNumBirdsToCreate = (uint32)CGeneral::GetRandomNumberInRange(1, std::size(aBirds) + 1 - uiNumberOfBirds);
+        auto iNumBirdsToCreate = CGeneral::GetRandomNumberInRange(std::size(aBirds) - uiNumberOfBirds) + 1;
+
         eBirdsBiome biome = eBirdsBiome::BIOME_WATER;
 
         if (TheCamera.m_fDistanceToWater > 30.0F) {
@@ -176,36 +176,31 @@ void CBirds::Update() {
                 }
             }();
 
-            if (fFlightHeight > 5.0F) {
-                float fBirdSpawnZ = fFlightHeight + vecCamPos.z;
+            const float fBirdSpawnZ = fFlightHeight + camPosn.z;
+            if (fBirdSpawnZ > 5.0F) {
                 float fSpawnAngleCamRelative;
 
                 if (CGeneral::GetRandomNumber() % 2)
                     fSpawnAngleCamRelative = (float)(uint8)(CGeneral::GetRandomNumber() % 256) * 0.024531251F; // [0 : 255] mapped to [0 : 2π]
                 else {
-                    auto vecForward = TheCamera.m_mCameraMatrix.GetForward();
-                    vecForward.z = 0.0F;
-                    if (vecForward.x == 0.0F)
-                        vecForward.x = 0.01F;
-
-                    vecForward.Normalise();
+                    const auto cameraForward = TheCamera.m_mCameraMatrix.GetForward();
+                    const auto vecForward = CVector{ cameraForward.x == 0.0F ? 0.01F : cameraForward.x, cameraForward.y, 0.0F }.Normalized();
                     uint8 cRand = (uint8)(CGeneral::GetRandomNumber() % 256) - 128;
                     fSpawnAngleCamRelative = ((float)cRand) / 256.0F + std::atan2(vecForward.x, vecForward.y); // [0 : 1] + atan2(...)
                 }
 
                 auto vecBirdSpawnPos = CVector(
-                    std::sin(fSpawnAngleCamRelative) * fSpawnDistance + vecCamPos.x,
-                    std::cos(fSpawnAngleCamRelative) * fSpawnDistance + vecCamPos.y,
+                    std::sin(fSpawnAngleCamRelative) * fSpawnDistance + camPosn.x,
+                    std::cos(fSpawnAngleCamRelative) * fSpawnDistance + camPosn.y,
                     fBirdSpawnZ
                 );
 
                 float fWaterLevel;
-                if (!CWaterLevel::GetWaterLevelNoWaves(vecBirdSpawnPos.x, vecBirdSpawnPos.y, vecBirdSpawnPos.z, &fWaterLevel, nullptr, nullptr) || fWaterLevel + 4.0F < fBirdSpawnZ) {
-                    auto vecForward = TheCamera.m_mCameraMatrix.GetForward();
-                    vecForward.z = 0.0F;
-                    vecForward.Normalise();
+                if (!CWaterLevel::GetWaterLevelNoWaves(vecBirdSpawnPos, &fWaterLevel, nullptr, nullptr) || fWaterLevel + 4.0F < fBirdSpawnZ) {
+                    const auto cameraForward = TheCamera.m_mCameraMatrix.GetForward();
+                    const auto vecForward = CVector{ cameraForward.x, cameraForward.y, 0.0F }.Normalized();
 
-                    auto vecFlightTargetPos = vecCamPos + (vecForward * 8.0F);
+                    auto vecFlightTargetPos = camPosn + (vecForward * 8.0F);
                     vecFlightTargetPos.z = fBirdSpawnZ;
 
                     CreateNumberOfBirds(vecBirdSpawnPos, vecFlightTargetPos, iNumBirdsToCreate, biome, true);
@@ -216,7 +211,7 @@ void CBirds::Update() {
 
     auto iBirdIndex = CTimer::GetFrameCounter() % std::size(aBirds);
     auto& checkedBird = aBirds[iBirdIndex];
-    if (checkedBird.m_bCreated && DistanceBetweenPoints2D(vecCamPos, checkedBird.m_vecPosn) > checkedBird.m_fMaxBirdDistance)
+    if (checkedBird.m_bCreated && DistanceBetweenPoints2D(camPosn, checkedBird.m_vecPosn) > checkedBird.m_fMaxBirdDistance)
     {
         checkedBird.m_bCreated = false;
         uiNumberOfBirds--;
@@ -248,6 +243,8 @@ void CBirds::Update() {
 
 // 0x712810
 void CBirds::Render() {
+    ZoneScoped;
+
     if (uiNumberOfBirds == 0)
         return;
 
@@ -342,10 +339,10 @@ void CBirds::Render() {
                         NOTSA_UNREACHABLE("CBirds::Render::lambda suppress warning");
                         return std::make_pair(CVector(), CBirdColor());
                     }();
-                    auto vecWorldPos = matBirdTransform * point;
+                    auto vecWorldPos = matBirdTransform.TransformPoint(point);
 
                     auto iBufferInd = uiTempBufferVerticesStored + uiVertInd;
-                    auto vert1 = &aTempBufferVertices[iBufferInd];
+                    auto vert1 = &TempBufferVertices.m_3d[iBufferInd];
                     RwRGBA rwColor = CRGBA(color.cRed, color.cGreen, color.cBlue, cAlpha).ToRwRGBA();
                     RxObjSpace3DVertexSetPreLitColor(vert1, &rwColor);
                     RxObjSpace3DVertexSetPos(vert1, &vecWorldPos);
@@ -354,11 +351,11 @@ void CBirds::Render() {
 
                     // Mirror on the other side with slightly changed colors
                     point.x = -point.x;
-                    vecWorldPos = matBirdTransform * point;
+                    vecWorldPos = matBirdTransform.TransformPoint(point);
                     color.Scale(0.8F);
                     rwColor = CRGBA(color.cRed, color.cGreen, color.cBlue, cAlpha).ToRwRGBA();
 
-                    auto vert2 = &aTempBufferVertices[iBufferInd + 8];
+                    auto vert2 = &TempBufferVertices.m_3d[iBufferInd + 8];
                     RxObjSpace3DVertexSetPreLitColor(vert2, &rwColor);
                     RxObjSpace3DVertexSetPos(vert2, &vecWorldPos);
                     RxObjSpace3DVertexSetU(vert2, faRenderCoorsU[uiVertInd]);
@@ -390,7 +387,7 @@ void CBirds::HandleGunShot(const CVector* pointA, const CVector* pointB) {
             continue;
 
         CColLine line{ *pointA, *pointB };
-        CColSphere sphere{ 0.5f, bird.m_vecPosn };
+        CColSphere sphere{ bird.m_vecPosn, 0.5f };
 
         if (CCollision::TestLineSphere(line, sphere)) {
             vecBirdShotAt = bird.m_vecPosn;

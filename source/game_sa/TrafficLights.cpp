@@ -3,17 +3,6 @@
 #include "TrafficLights.h"
 #include "Shadows.h"
 
-uint8(&CTrafficLights::aTrafficLightColoursR)[3] = *(uint8(*)[3])0x8A6214;
-uint8(&CTrafficLights::aTrafficLightColoursG)[3] = *(uint8(*)[3])0x8A6218;
-uint8(&CTrafficLights::aTrafficLightColoursB)[3] = *(uint8(*)[3])0xA9AD94;
-float& CTrafficLights::fLightMult = *(float*)0x8A621C;
-
-CVector& CTrafficLights::vecTrafficLights5_1 = *(CVector*)0xA9ADD4;
-CVector& CTrafficLights::vecTrafficLights5_2 = *(CVector*)0xA9ADC8;
-CVector& CTrafficLights::vecTrafficLights_1 = *(CVector*)0xA9ADBC;
-CVector& CTrafficLights::vecTrafficLights_2 = *(CVector*)0xA9ADB0;
-uint32& CTrafficLights::uiPedLightFlags = *(uint32*)0xA9ADE0;
-
 void CTrafficLights::InjectHooks()
 {
     RH_ScopedClass(CTrafficLights);
@@ -43,16 +32,15 @@ bool CTrafficLights::ShouldCarStopForLight(CVehicle* vehicle, bool bUnkn) {
 
     const auto CalcDot = [&vehicle](const CCarPathLink& naviNode) {
         const auto& pos = vehicle->GetPosition();
-        return (pos.y - (float)naviNode.m_posn.y / 8.0F) * ((float)naviNode.m_nDirY / 100.0F)
-             + (pos.x - (float)naviNode.m_posn.x / 8.0F) * ((float)naviNode.m_nDirX / 100.0F);
+        return (pos - naviNode.m_posn).Dot(naviNode.m_dir);
     };
 
     auto& currentNodeInfo = vehicle->m_autoPilot.m_nCurrentPathNodeInfo;
     if (currentNodeInfo.IsValid() && ThePaths.m_pPathNodes[currentNodeInfo.m_wAreaId]) {
         const auto& naviNode = ThePaths.GetCarPathLink(currentNodeInfo);
         if (naviNode.m_nTrafficLightState) {
-            if ((!naviNode.m_bTrafficLightDirection || naviNode.m_address == vehicle->m_autoPilot.m_currentAddress) &&
-                (naviNode.m_bTrafficLightDirection || naviNode.m_address != vehicle->m_autoPilot.m_currentAddress)
+            if ((!naviNode.m_bTrafficLightDirection || naviNode.m_attachedTo == vehicle->m_autoPilot.m_currentAddress) &&
+                (naviNode.m_bTrafficLightDirection || naviNode.m_attachedTo != vehicle->m_autoPilot.m_currentAddress)
             ) {
                 if (!bUnkn
                     && (naviNode.m_nTrafficLightState != DIR_NORTH_SOUTH || !LightForCars1())
@@ -73,8 +61,8 @@ bool CTrafficLights::ShouldCarStopForLight(CVehicle* vehicle, bool bUnkn) {
     if (nextNodeInfo.IsValid() && ThePaths.m_pPathNodes[nextNodeInfo.m_wAreaId]) {
         const auto& naviNode = ThePaths.GetCarPathLink(nextNodeInfo);
         if (naviNode.m_nTrafficLightState) {
-            if ((!naviNode.m_bTrafficLightDirection || naviNode.m_address == vehicle->m_autoPilot.m_startingRouteNode) &&
-                (naviNode.m_bTrafficLightDirection || naviNode.m_address != vehicle->m_autoPilot.m_startingRouteNode)
+            if ((!naviNode.m_bTrafficLightDirection || naviNode.m_attachedTo == vehicle->m_autoPilot.m_startingRouteNode) &&
+                (naviNode.m_bTrafficLightDirection || naviNode.m_attachedTo != vehicle->m_autoPilot.m_startingRouteNode)
             ) {
                 if (!bUnkn
                     && (naviNode.m_nTrafficLightState != DIR_NORTH_SOUTH || !LightForCars1())
@@ -94,9 +82,9 @@ bool CTrafficLights::ShouldCarStopForLight(CVehicle* vehicle, bool bUnkn) {
     auto& prevNodeInfo = vehicle->m_autoPilot.m_nPreviousPathNodeInfo;
     if (prevNodeInfo.IsValid() && ThePaths.m_pPathNodes[prevNodeInfo.m_wAreaId]) {
         const auto& naviNode = ThePaths.GetCarPathLink(prevNodeInfo);
-        if (vehicle->m_nStatus == eEntityStatus::STATUS_PHYSICS && naviNode.m_nTrafficLightState) {
-            if ((!naviNode.m_bTrafficLightDirection || naviNode.m_address == vehicle->m_autoPilot.m_endingRouteNode) &&
-                ( naviNode.m_bTrafficLightDirection || naviNode.m_address != vehicle->m_autoPilot.m_endingRouteNode)
+        if (vehicle->GetStatus() == STATUS_PHYSICS && naviNode.m_nTrafficLightState) {
+            if ((!naviNode.m_bTrafficLightDirection || naviNode.m_attachedTo == vehicle->m_autoPilot.m_endingRouteNode) &&
+                ( naviNode.m_bTrafficLightDirection || naviNode.m_attachedTo != vehicle->m_autoPilot.m_endingRouteNode)
             ) {
                 if (!bUnkn
                     && (naviNode.m_nTrafficLightState != DIR_NORTH_SOUTH || !LightForCars1())
@@ -130,8 +118,8 @@ bool CTrafficLights::ShouldCarStopForBridge(CVehicle* vehicle) {
     if (!curNodeInfo.IsValid() || ThePaths.m_pPathNodes[curNodeInfo.m_wAreaId])
         return false;
 
-    if (ThePaths.GetCarPathLink(nextNodeInfo).m_bTrainCrossing &&
-        ThePaths.GetCarPathLink(curNodeInfo).m_bTrainCrossing
+    if (ThePaths.GetCarPathLink(nextNodeInfo).m_bridgeLights &&
+        ThePaths.GetCarPathLink(curNodeInfo).m_bridgeLights
     ) {
         return true;
     }
@@ -188,10 +176,10 @@ void CTrafficLights::DisplayActualLight(CEntity* entity) {
     CVector vecCenter(0.0F, 0.0F, 0.0F);
     for (int32 iFxInd = 0; iFxInd < mi->m_n2dfxCount; ++iFxInd) {
         auto effect = mi->Get2dEffect(iFxInd);
-        if (effect->m_nType != e2dEffectType::EFFECT_LIGHT)
+        if (effect->m_Type != e2dEffectType::EFFECT_LIGHT)
             continue;
 
-        auto vecLightPos = entity->GetMatrix() * effect->m_vecPosn;
+        auto vecLightPos = entity->GetMatrix().TransformPoint(effect->m_Pos);
         vecCenter += vecLightPos;
         int32 iColorState = eTrafficLightsState::LIGHT_GREEN;
         if (effect->light.m_color.red > 200) {
@@ -201,7 +189,7 @@ void CTrafficLights::DisplayActualLight(CEntity* entity) {
                 iColorState = eTrafficLightsState::LIGHT_RED;
         }
 
-        if (bSameDir == effect->m_vecPosn.y > 0.0F || iColorState != iLightState)
+        if (bSameDir == effect->m_Pos.y > 0.0F || iColorState != iLightState)
             continue;
 
         auto fBrightness = CTimeCycle::m_CurrentColours.m_fSpriteBrightness * 0.07F;
@@ -219,9 +207,9 @@ void CTrafficLights::DisplayActualLight(CEntity* entity) {
             50.0F,
             eCoronaType::CORONATYPE_SHINYSTAR,
             eCoronaFlareType::FLARETYPE_NONE,
-            true,
-            false,
-            0,
+            eCoronaReflType::CORREFL_SIMPLE,
+            eCoronaLOSCheck::LOSCHECK_OFF,
+            eCoronaTrail::TRAIL_OFF,
             0.0F,
             false,
             1.5F,
@@ -275,7 +263,7 @@ void CTrafficLights::DisplayActualLight(CEntity* entity) {
                     reinterpret_cast<uint32>(entity),
                     eShadowType::SHADOW_ADDITIVE,
                     gpShadowExplosionTex,
-                    &vecCenter,
+                    vecCenter,
                     8.0F,
                     0.0F,
                     0.0F,
@@ -342,10 +330,10 @@ void CTrafficLights::DisplayActualLight(CEntity* entity) {
         auto p4 = CVector(vecMidPoint.x, vecMidPoint.y, vecCorner2.z);
 
         CShinyTexts::RegisterOne(
-            entity->GetMatrix() * p1,
-            entity->GetMatrix() * p2,
-            entity->GetMatrix() * p3,
-            entity->GetMatrix() * p4,
+            entity->GetMatrix().TransformPoint(p1),
+            entity->GetMatrix().TransformPoint(p2),
+            entity->GetMatrix().TransformPoint(p3),
+            entity->GetMatrix().TransformPoint(p4),
             0.5F,
             0.0F,
             0.0F,
@@ -372,10 +360,10 @@ void CTrafficLights::DisplayActualLight(CEntity* entity) {
         auto p4 = CVector(vecCorner1.x, vecCorner1.y, vecCorner2.z);
 
         CShinyTexts::RegisterOne(
-            entity->GetMatrix()* p1,
-            entity->GetMatrix()* p2,
-            entity->GetMatrix()* p3,
-            entity->GetMatrix()* p4,
+            entity->GetMatrix().TransformPoint(p1),
+            entity->GetMatrix().TransformPoint(p2),
+            entity->GetMatrix().TransformPoint(p3),
+            entity->GetMatrix().TransformPoint(p4),
             1.0F,
             0.0F,
             0.5F,

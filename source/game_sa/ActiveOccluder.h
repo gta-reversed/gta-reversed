@@ -5,25 +5,26 @@
 #include "Vector.h"
 
 struct CActiveOccluderLine {
-    CVector2D m_vecOrigin;
-    CVector2D m_vecDirection;
-    float     m_fLength;
+    CVector2D Origin;
+    CVector2D Dir;
+    float     Length;
 };
 VALIDATE_SIZE(CActiveOccluderLine, 0x14);
 
 class CActiveOccluder {
 public:
-    CActiveOccluderLine m_aLines[6];
-    uint16              m_wDepth;
-    uint8               m_cLinesCount;
-    uint8               m_cNumVectors;
-    CVector             m_aVectors[3];
-    float               m_afRadiuses[3];
-
-public:
     static void InjectHooks();
 
-    bool IsPointWithinOcclusionArea(float fX, float fY, float fRadius);
-    bool IsPointBehindOccluder(CVector vecPos, float fRadius);
+    bool IsPointWithinOcclusionArea(CVector2D pt, float radius = 0.f) const;
+    bool IsPointBehindOccluder(CVector pt, float radius = 0.f) const;
+    auto GetLines() const { return std::span{ m_Lines.data(), m_LinesUsed }; }
+    float GetDistToCam() const { return (float)(m_DistToCam); }
+public:
+    std::array<CActiveOccluderLine, 6> m_Lines;
+    uint16                             m_DistToCam;
+    uint8                              m_LinesUsed;
+    uint8                              m_NumFaces;
+    std::array<CVector, 3>             m_FaceNormals;
+    std::array<float, 3>               m_FaceOffsets;
 };
 VALIDATE_SIZE(CActiveOccluder, 0xAC);

@@ -2,12 +2,21 @@
 
 #include "ColModel.h"
 
+//#define COL_EXTRA_DEBUG
+
+#ifdef COL_DEBUG
+#define DEV_LOG_COL(...) NOTSA_LOG_DEBUG(__VA_ARGS__)
+#else
+#define DEV_LOG_COL(...)
+#endif
+
 void CColModel::InjectHooks() {
     RH_ScopedClass(CColModel);
     RH_ScopedCategory("Collision");
 
     RH_ScopedInstall(operator new, 0x40FC30);
     RH_ScopedInstall(operator delete, 0x40FC40);
+    RH_ScopedInstall(operator=, 0x40F7C0);
     RH_ScopedInstall(MakeMultipleAlloc, 0x40F740);
     RH_ScopedOverloadedInstall(AllocateData, "void", 0x40F810, void(CColModel::*)());
     RH_ScopedOverloadedInstall(AllocateData, "params", 0x40F870, void(CColModel::*)(int32, int32, int32, int32, int32, bool));
@@ -17,27 +26,32 @@ void CColModel::InjectHooks() {
 }
 
 CColModel::CColModel() : m_boundBox() {
-    m_nColSlot = 0;
-    m_pColData = nullptr;
-    m_bNotEmpty = false;
+    m_nColSlot              = 0;
+    m_pColData              = nullptr;
+    m_bHasCollisionVolumes  = false;
     m_bIsSingleColDataAlloc = false;
-    m_bIsActive = true;
+    m_IsActive             = true;
 }
 
 CColModel::~CColModel() {
-    if (!m_bIsActive)
+    if (!m_IsActive) {
         return;
-
+    }
     RemoveCollisionVolumes();
 }
 
+// 0x40F7C0
 CColModel& CColModel::operator=(const CColModel& colModel) {
-    // BUG(Prone) No self assignment check
-    m_boundSphere.m_vecCenter = colModel.m_boundSphere.m_vecCenter;
-    m_boundSphere.m_fRadius = colModel.m_boundSphere.m_fRadius;
-    m_boundBox = colModel.m_boundBox;
-    if (m_pColData)
+    assert(&colModel != this); // BUG(Prone) No self assignment check
+
+    m_boundSphere = colModel.m_boundSphere;
+    m_boundBox    = colModel.m_boundBox;
+
+    if (m_pColData) {
         m_pColData->Copy(*colModel.m_pColData);
+    } else {
+        NOTSA_DEBUG_BREAK(); // ???? What now? We don't copy the stuff ????
+    }
 
     return *this;
 }
@@ -46,7 +60,9 @@ void CColModel::MakeMultipleAlloc() {
     if (!m_bIsSingleColDataAlloc)
         return;
 
-    auto* colData = new CCollisionData();
+    const auto colData = new CCollisionData();
+    assert(colData);
+
     colData->Copy(*m_pColData);
     delete m_pColData;
 
@@ -57,6 +73,7 @@ void CColModel::MakeMultipleAlloc() {
 void CColModel::AllocateData() {
     m_bIsSingleColDataAlloc = false;
     m_pColData = new CCollisionData();
+    assert(m_pColData);
 }
 
 // Memory layout of m_pColData is: | CCollisionData | CColSphere[] | CColLine[]/CColDisk[] | CColBox[] | Vertices[] | CColTriangle[] |
@@ -104,13 +121,18 @@ void CColModel::AllocateData(int32 numSpheres, int32 numBoxes, int32 numLines, i
 }
 
 void CColModel::AllocateData(int32 size) {
+    DEV_LOG_COL("AllocateData[Size]: {} [ColSlot: {}; Size: {}]", LOG_PTR(this), m_nColSlot, size);
+
     m_bIsSingleColDataAlloc = true;
-    m_pColData = static_cast<CCollisionData*>(CMemoryMgr::Malloc(size));
+    VERIFY(m_pColData = new (CMemoryMgr::Malloc(size)) CCollisionData); // R* used a cast here, leaving the shadow fields uninitialized
 }
 
 void CColModel::RemoveCollisionVolumes() {
-    if (!m_pColData)
+    if (!m_pColData) {
         return;
+    }
+
+    DEV_LOG_COL("Removing: {} [ColSlot: {}]", LOG_PTR(this), m_nColSlot);
 
     if (m_bIsSingleColDataAlloc) {
         CCollision::RemoveTrianglePlanes(m_pColData);

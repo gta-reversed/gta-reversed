@@ -8,7 +8,7 @@
 
 #include "Object.h"
 
-class CProjectile : public CObject {
+class NOTSA_EXPORT_VTABLE CProjectile : public CObject {
 public:
     CProjectile(int32 modelId);
 };

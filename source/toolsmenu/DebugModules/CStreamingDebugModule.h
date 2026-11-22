@@ -1,8 +1,14 @@
-#ifdef EXTRA_DEBUG_FEATURES
 #pragma once
 
-namespace CStreamingDebugModule {
-    void ProcessImGui();
-    void ProcessRender();
+#include "DebugModule.h"
+
+class CStreamingDebugModule final : public DebugModule {
+public:
+    void RenderWindow() override final;
+    void RenderMenuEntry() override final;
+
+    NOTSA_IMPLEMENT_DEBUG_MODULE_SERIALIZATION(CStreamingDebugModule, m_IsOpen);
+
+private:
+    bool m_IsOpen{ false };
 };
-#endif

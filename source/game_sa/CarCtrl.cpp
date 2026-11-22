@@ -10,29 +10,18 @@
 #include "CarCtrl.h"
 #include "TrafficLights.h"
 #include "TheScripts.h"
+#include "GangWars.h"
+#include "Game.h"
+#include "General.h"
+#include "GameLogic.h"
+#include "CutsceneMgr.h"
+#include "TheCarGenerators.h"
+#include "eAreaCodes.h"
 
-uint32& CCarCtrl::NumLawEnforcerCars = *(uint32*)0x969098;
-uint32& CCarCtrl::NumParkedCars = *(uint32*)0x9690A0;
-uint32& CCarCtrl::NumAmbulancesOnDuty = *(uint32*)0x9690A8;
-uint32& CCarCtrl::NumFireTrucksOnDuty = *(uint32*)0x9690AC;
-uint32& CCarCtrl::MaxNumberOfCarsInUse = *(uint32*)0x8A5B24;
-float& CCarCtrl::CarDensityMultiplier = *(float*)0x8A5B20;
-int32& CCarCtrl::NumRandomCars = *(int32*)0x969094;
-int32& CCarCtrl::NumMissionCars = *(int32*)0x96909C;
-int32& CCarCtrl::NumPermanentVehicles = *(int32*)0x9690A4;
-int32& CCarCtrl::LastTimeAmbulanceCreated = *(int32*)0x9690B0;
-int32& CCarCtrl::LastTimeFireTruckCreated = *(int32*)0x9690B4;
-bool& CCarCtrl::bAllowEmergencyServicesToBeCreated = *(bool*)0x8A5B28;
-bool& CCarCtrl::bCarsGeneratedAroundCamera = *(bool*)0x9690C1;
-int8& CCarCtrl::CountDownToCarsAtStart = *(int8*)0x9690C0;
-float& CCarCtrl::TimeNextMadDriverChaseCreated = *(float*)0x9690BC;
-int32& CCarCtrl::SequenceElements = *(int32*)0x969078;
-int32& CCarCtrl::SequenceRandomOffset = *(int32*)0x969074;
-bool& CCarCtrl::bSequenceOtherWay = *(bool*)0x969070;
-int32& CCarCtrl::LastTimeLawEnforcerCreated = *(int32*)0x9690B8;
+#include <reversiblebugfixes/Bugs.hpp>
 
-CVehicle* (&apCarsToKeep)[2] = *(CVehicle*(*)[2])0x969084;
-uint32 (&aCarsToKeepTime)[2] = *(uint32(*)[2])0x96907C;
+auto& apCarsToKeep = StaticRef<CVehicle*[2]>(0x969084);
+auto& aCarsToKeepTime = StaticRef<std::array<uint32, 2>>(0x96907C);
 
 void CCarCtrl::InjectHooks()
 {
@@ -43,12 +32,12 @@ void CCarCtrl::InjectHooks()
     RH_ScopedInstall(Init, 0x4212E0);
     RH_ScopedInstall(ReInit, 0x4213B0);
     RH_ScopedInstall(InitSequence, 0x421740);
-    Install("CCarCtrl", "ChooseGangCarModel", 0x421A40, &CCarCtrl::ChooseGangCarModel, { .jmpCodeSize = 7 });
-    Install("CCarCtrl", "ChoosePoliceCarModel", 0x421980, &CCarCtrl::ChoosePoliceCarModel, { .jmpCodeSize = 7 });
+    RH_ScopedInstall(ChooseGangCarModel, 0x421A40);
+    RH_ScopedInstall(ChoosePoliceCarModel, 0x421980);
     RH_ScopedInstall(CreateCarForScript, 0x431F80);
     RH_ScopedInstall(ChooseBoatModel, 0x421970);
     RH_ScopedInstall(ChooseCarModelToLoad, 0x421900);
-    // RH_ScopedInstall(GetNewVehicleDependingOnCarModel, 0x421440);
+    RH_ScopedInstall(GetNewVehicleDependingOnCarModel, 0x421440, { .Reversed = false });
     RH_ScopedInstall(IsAnyoneParking, 0x42C250);
     RH_ScopedInstall(IsThisVehicleInteresting, 0x423EA0);
     RH_ScopedInstall(JoinCarWithRoadAccordingToMission, 0x432CB0);
@@ -60,10 +49,102 @@ void CCarCtrl::InjectHooks()
     RH_ScopedInstall(ScriptGenerateOneEmergencyServicesCar, 0x42FBC0);
     RH_ScopedInstall(SlowCarDownForObject, 0x426220);
     RH_ScopedInstall(SlowCarOnRailsDownForTrafficAndLights, 0x434790);
+    RH_ScopedInstall(FindMaxSteerAngle, 0x427FE0);
+    RH_ScopedInstall(GenerateRandomCars, 0x4341C0);
+    RH_ScopedInstall(ChooseModel, 0x424CE0, { .Reversed = false });
+    RH_ScopedInstall(ClearInterestingVehicleList, 0x423F00);
+    RH_ScopedInstall(ClitargetOrientationToLink, 0x422760, { .Reversed = false });
+    RH_ScopedInstall(CreateConvoy, 0x42C740, { .Reversed = false });
+    RH_ScopedInstall(CreatePoliceChase, 0x42C2B0, { .Reversed = false });
+    RH_ScopedInstall(DealWithBend_Racing, 0x428040, { .Reversed = false });
+    RH_ScopedInstall(DragCarToPoint, 0x42EC90, { .Reversed = false });
+    RH_ScopedInstall(FindAngleToWeaveThroughTraffic, 0x4325C0, { .Reversed = false });
+    RH_ScopedInstall(FindIntersection2Lines, 0x4226F0);
+    RH_ScopedInstall(FindLinksToGoWithTheseNodes, 0x42B470, { .Reversed = false });
+    RH_ScopedInstall(FindMaximumSpeedForThisCarInTraffic, 0x434400, { .Reversed = false });
+    RH_ScopedInstall(FindNodesThisCarIsNearestTo, 0x42BD20, { .Reversed = false });
+    RH_ScopedInstall(FindPathDirection, 0x422090, { .Reversed = false });
+    RH_ScopedInstall(FindPercDependingOnDistToLink, 0x422620);
+    RH_ScopedInstall(FindSequenceElement, 0x421770);
+    RH_ScopedInstall(FindSpeedMultiplier, 0x4224E0);
+    RH_ScopedInstall(FindSpeedMultiplierWithSpeedFromNodes, 0x424130);
+    RH_ScopedInstall(FindGhostRoadHeight, 0x422370, { .Reversed = false });
+    RH_ScopedInstall(FireHeliRocketsAtTarget, 0x42B270, { .Reversed = false });
+    RH_ScopedInstall(FlyAIHeliInCertainDirection, 0x429A70, { .Reversed = false });
+    RH_ScopedInstall(FlyAIHeliToTarget_FixedOrientation, 0x423940, { .Reversed = false });
+    RH_ScopedInstall(FlyAIPlaneInCertainDirection, 0x423000, { .Reversed = false });
+    RH_ScopedInstall(GenerateCarCreationCoors2, 0x424210, { .Reversed = false });
+    RH_ScopedInstall(GenerateEmergencyServicesCar, 0x42F9C0, { .Reversed = false });
+    RH_ScopedInstall(GenerateOneEmergencyServicesCar, 0x42B7D0, { .Reversed = false });
+    RH_ScopedInstall(GenerateOneRandomCar, 0x430050, { .Reversed = false });
+    RH_ScopedInstall(GetAIHeliToAttackPlayer, 0x42F3C0, { .Reversed = false });
+    RH_ScopedInstall(GetAIHeliToFlyInDirection, 0x42A730, { .Reversed = false });
+    RH_ScopedInstall(GetAIPlaneToAttackPlayer, 0x429780, { .Reversed = false });
+    RH_ScopedInstall(GetAIPlaneToDoDogFight, 0x429890, { .Reversed = false });
+    RH_ScopedInstall(GetAIPlaneToDoDogFightAgainstPlayer, 0x42F370, { .Reversed = false });
+    RH_ScopedInstall(IsThisAnAppropriateNode, 0x42DAB0, { .Reversed = false });
+    RH_ScopedInstall(JoinCarWithRoadSystem, 0x42F5A0, { .Reversed = false });
+    RH_ScopedInstall(JoinCarWithRoadSystemGotoCoors, 0x42F870, { .Reversed = false });
+    RH_ScopedInstall(PickNextNodeAccordingStrategy, 0x432B10, { .Reversed = false });
+    RH_ScopedInstall(PickNextNodeRandomly, 0x42DE80, { .Reversed = false });
+    RH_ScopedInstall(PickNextNodeToChaseCar, 0x426EF0, { .Reversed = false });
+    RH_ScopedInstall(PickNextNodeToFollowPath, 0x427740, { .Reversed = false });
+    RH_ScopedInstall(PossiblyRemoveVehicle, 0x424F80, { .Reversed = false });
+    RH_ScopedInstall(ReconsiderRoute, 0x42FC40, { .Reversed = false });
+    RH_ScopedInstall(RegisterVehicleOfInterest, 0x423DE0, { .Reversed = false });
+    RH_ScopedInstall(ScanForPedDanger, 0x42CE40, { .Reversed = false });
+    RH_ScopedInstall(SetCoordsOfScriptCar, 0x4342A0, { .Reversed = false });
+    RH_ScopedInstall(SetUpDriverAndPassengersForVehicle, 0x4217C0, { .Reversed = false });
+    RH_ScopedInstall(SlowCarDownForCarsSectorList<CPtrListDoubleLink<CPhysical*>>, 0x432420, { .Reversed = false });
+    RH_ScopedInstall(SlowCarDownForObjectsSectorList<CPtrListDoubleLink<CPhysical*>>, 0x42D4F0, { .Reversed = false });
+    RH_ScopedInstall(SlowCarDownForOtherCar, 0x42D0E0, { .Reversed = false });
+    RH_ScopedInstall(SlowCarDownForPedsSectorList<CPtrListDoubleLink<CPhysical*>>, 0x425440, { .Reversed = false });
+    RH_ScopedInstall(SteerAIBoatWithPhysicsAttackingPlayer, 0x428DE0, { .Reversed = false });
+    RH_ScopedInstall(SteerAIBoatWithPhysicsCirclingPlayer, 0x429090, { .Reversed = false });
+    RH_ScopedInstall(SteerAIBoatWithPhysicsHeadingForTarget, 0x428BE0, { .Reversed = false });
+    RH_ScopedInstall(SteerAICarBlockingPlayerForwardAndBack, 0x422B20, { .Reversed = false });
+    RH_ScopedInstall(SteerAICarParkParallel, 0x433BA0, { .Reversed = false });
+    RH_ScopedInstall(SteerAICarParkPerpendicular, 0x433EA0, { .Reversed = false });
+    RH_ScopedInstall(SteerAICarTowardsPointInEscort, 0x4336D0, { .Reversed = false });
+    RH_ScopedInstall(SteerAICarWithPhysics, 0x437C20, { .Reversed = false });
+    RH_ScopedInstall(SteerAICarWithPhysicsFollowPath, 0x434900, { .Reversed = false });
+    RH_ScopedInstall(SteerAICarWithPhysicsFollowPath_Racing, 0x435830, { .Reversed = false });
+    RH_ScopedInstall(SteerAICarWithPhysicsFollowPreRecordedPath, 0x432DD0, { .Reversed = false });
+    RH_ScopedInstall(SteerAICarWithPhysicsHeadingForTarget, 0x433280, { .Reversed = false });
+    RH_ScopedInstall(SteerAICarWithPhysicsTryingToBlockTarget, 0x4335E0, { .Reversed = false });
+    RH_ScopedInstall(SteerAICarWithPhysicsTryingToBlockTarget_Stop, 0x428990, { .Reversed = false });
+    RH_ScopedInstall(SteerAICarWithPhysics_OnlyMission, 0x436A90, { .Reversed = false });
+    RH_ScopedInstall(SteerAIHeliAsPoliceHeli, 0x42AAD0, { .Reversed = false });
+    RH_ScopedInstall(SteerAIHeliFlyingAwayFromPlayer, 0x42ACB0, { .Reversed = false });
+    RH_ScopedInstall(SteerAIHeliToCrashAndBurn, 0x4238E0, { .Reversed = false });
+    RH_ScopedInstall(SteerAIHeliToFollowEntity, 0x42A750, { .Reversed = false });
+    RH_ScopedInstall(SteerAIHeliToKeepEntityInView, 0x42AEB0, { .Reversed = false });
+    RH_ScopedInstall(SteerAIHeliToLand, 0x42AD30, { .Reversed = false });
+    RH_ScopedInstall(SteerAIHeliTowardsTargetCoors, 0x42A630, { .Reversed = false });
+    RH_ScopedInstall(SteerAIPlaneToCrashAndBurn, 0x423880, { .Reversed = false });
+    RH_ScopedInstall(SteerAIPlaneToFollowEntity, 0x4237F0, { .Reversed = false });
+    RH_ScopedInstall(SteerAIPlaneTowardsTargetCoors, 0x423790, { .Reversed = false });
+    RH_ScopedInstall(StopCarIfNodesAreInvalid, 0x422590, { .Reversed = false });
+    RH_ScopedInstall(SwitchBetweenPhysicsAndGhost, 0x4222A0, { .Reversed = false });
+    RH_ScopedInstall(SwitchVehicleToRealPhysics, 0x423FC0, { .Reversed = false });
+    RH_ScopedInstall(TestCollisionBetween2MovingRects, 0x425B30, { .Reversed = false });
+    RH_ScopedInstall(TestCollisionBetween2MovingRects_OnlyFrontBumper, 0x425F70, { .Reversed = false });
+    RH_ScopedInstall(TestWhetherToFirePlaneGuns, 0x429520, { .Reversed = false });
+    RH_ScopedInstall(ThisVehicleShouldTryNotToTurn, 0x421FE0, { .Reversed = false });
+    RH_ScopedInstall(TriggerDogFightMoves, 0x429300, { .Reversed = false });
+    RH_ScopedInstall(UpdateCarCount, 0x424000, { .Reversed = false });
+    RH_ScopedInstall(UpdateCarOnRails, 0x436540, { .Reversed = false });
+    RH_ScopedInstall(WeaveForObject, 0x426BC0, { .Reversed = false });
+    RH_ScopedInstall(WeaveForOtherCar, 0x426350, { .Reversed = false });
+    RH_ScopedInstall(WeaveThroughCarsSectorList<CPtrListDoubleLink<CPhysical*>>, 0x42D680, { .Reversed = false });
+    RH_ScopedInstall(WeaveThroughObjectsSectorList<CPtrListDoubleLink<CPhysical*>>, 0x42D950, { .Reversed = false });
+    RH_ScopedInstall(WeaveThroughPedsSectorList<CPtrListDoubleLink<CPhysical*>>, 0x42D7E0, { .Reversed = false });
 }
 
 // 0x4212E0
 void CCarCtrl::Init() {
+    ZoneScoped;
+
     CarDensityMultiplier = 1.0f;
     NumRandomCars = 0;
     NumLawEnforcerCars = 0;
@@ -121,16 +202,20 @@ int32 CCarCtrl::ChooseBoatModel() {
 }
 
 // 0x421900
-int32 CCarCtrl::ChooseCarModelToLoad(int32 arg1) {
-    for (auto i = 0; i < 16; i++) {
-        const auto model = CPopulation::m_CarGroups[i][CGeneral::GetRandomNumberInRange(0, CPopulation::m_nNumCarsInGroup[i])];
-        if (!CStreaming::IsModelLoaded(model))
-            return model;
+int32 CCarCtrl::ChooseCarModelToLoad(int32 groupID) {
+    const auto numCarsInGroup = CPopulation::m_nNumCarsInGroup[groupID];
+    if (numCarsInGroup > 0) {
+        for (auto i = 0; i < 16; i++) { // 16 tries
+            const auto model = CPopulation::m_CarGroups[groupID][CGeneral::GetRandomNumberInRange(numCarsInGroup)];
+            if (!CStreaming::IsModelLoaded(model)) {
+                return model;
+            }
+        }
     }
     return -1;
 }
 
-int32 CCarCtrl::ChooseGangCarModel(int32 loadedCarGroupId) {
+eModelID CCarCtrl::ChooseGangCarModel(eGangID loadedCarGroupId) {
     return CPopulation::PickGangCar(loadedCarGroupId);
 }
 
@@ -139,7 +224,7 @@ int32 CCarCtrl::ChooseModel(int32* arg1) {
     return plugin::CallAndReturn<int32, 0x424CE0, int32*>(arg1);
 }
 
-int32 CCarCtrl::ChoosePoliceCarModel(uint32 ignoreLvpd1Model) {
+int32 CCarCtrl::ChoosePoliceCarModel(uint32 ignoreCopBike) {
     CWanted* playerWanted = FindPlayerWanted();
     if (playerWanted->AreSwatRequired()
         && CStreaming::IsModelLoaded(MODEL_ENFORCER)
@@ -161,12 +246,12 @@ int32 CCarCtrl::ChoosePoliceCarModel(uint32 ignoreLvpd1Model) {
             && CStreaming::IsModelLoaded(MODEL_ARMY))
             return (CGeneral::GetRandomNumber() < 0x3FFF) + MODEL_RHINO;
     }
-    return CStreaming::GetDefaultCopCarModel(ignoreLvpd1Model);
+    return CStreaming::GetDefaultCopCarModel(ignoreCopBike);
 }
 
 // 0x423F00
 void CCarCtrl::ClearInterestingVehicleList() {
-    plugin::Call<0x423F00>();
+    rng::fill(apCarsToKeep, nullptr);
 }
 
 // 0x422760
@@ -188,13 +273,13 @@ CVehicle* CCarCtrl::CreateCarForScript(int32 modelid, CVector posn, bool doMissi
         CTheScripts::ClearSpaceForMissionEntity(posn, boat);
         boat->vehicleFlags.bEngineOn = false;
         boat->vehicleFlags.bIsLocked = true;
-        boat->m_nStatus = eEntityStatus::STATUS_ABANDONED;
+        boat->SetStatus(STATUS_ABANDONED);
         JoinCarWithRoadSystem(boat);
 
-        boat->m_autoPilot.m_nCarMission = eCarMission::MISSION_NONE;
-        boat->m_autoPilot.m_nTempAction = 0;
+        boat->m_autoPilot.SetCarMission(eCarMission::MISSION_NONE);
+        boat->m_autoPilot.m_nTempAction = TEMPACT_NONE;
         boat->m_autoPilot.m_speed = 20.0F;
-        boat->m_autoPilot.m_nCruiseSpeed = 20;
+        boat->m_autoPilot.SetCruiseSpeed(20);
 
         if (doMissionCleanup)
             boat->m_bIsStaticWaitingForCollision = true;
@@ -228,16 +313,16 @@ CVehicle* CCarCtrl::CreateCarForScript(int32 modelid, CVector posn, bool doMissi
 
     CTheScripts::ClearSpaceForMissionEntity(posn, vehicle);
     vehicle->vehicleFlags.bIsLocked = true;
-    vehicle->m_nStatus = eEntityStatus::STATUS_ABANDONED;
+    vehicle->SetStatus(STATUS_ABANDONED);
     JoinCarWithRoadSystem(vehicle);
     vehicle->vehicleFlags.bEngineOn = false;
     vehicle->vehicleFlags.bHasBeenOwnedByPlayer = true;
 
-    vehicle->m_autoPilot.m_nCarMission = eCarMission::MISSION_NONE;
-    vehicle->m_autoPilot.m_nTempAction = 0;
+    vehicle->m_autoPilot.SetCarMission(eCarMission::MISSION_NONE);
+    vehicle->m_autoPilot.m_nTempAction = TEMPACT_NONE;
     vehicle->m_autoPilot.m_nCarDrivingStyle = DRIVING_STYLE_STOP_FOR_CARS;
     vehicle->m_autoPilot.m_speed = 13.0F;
-    vehicle->m_autoPilot.m_nCruiseSpeed = 13;
+    vehicle->m_autoPilot.SetCruiseSpeed(13);
     vehicle->m_autoPilot.m_nCurrentLane = 0;
     vehicle->m_autoPilot.m_nNextLane = 0;
 
@@ -280,8 +365,13 @@ float CCarCtrl::FindAngleToWeaveThroughTraffic(CVehicle* vehicle, CPhysical* phy
 }
 
 // 0x4226F0
-void CCarCtrl::FindIntersection2Lines(float arg1, float arg2, float arg3, float arg4, float arg5, float arg6, float arg7, float arg8, float* arg9, float* arg10) {
-    plugin::Call<0x4226F0, float, float, float, float, float, float, float, float, float*, float*>(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10);
+void CCarCtrl::FindIntersection2Lines(CVector2D point1, CVector2D dir1, CVector2D point2, CVector2D dir2, float* outX, float* outY) {
+    const auto det = dir1.Cross(dir2);
+    const auto t   = det != 0.0f
+        ? (point2 - point1).Cross(dir2) / det
+        : 0.0f;
+    *outX = point1.x + dir1.x * t;
+    *outY = point1.y + dir1.y * t;
 }
 
 // 0x42B470
@@ -306,22 +396,35 @@ int8 CCarCtrl::FindPathDirection(CNodeAddress nodeAddress1, CNodeAddress nodeAdd
 
 // 0x422620
 float CCarCtrl::FindPercDependingOnDistToLink(CVehicle* vehicle, CCarPathLinkAddress linkAddress) {
-    return plugin::CallAndReturn<float, 0x422620, CVehicle*, CCarPathLinkAddress>(vehicle, linkAddress);
+    return CGeneral::GetPiecewiseLinear({
+        { 5.0f,  0.5f },
+        { 15.0f, 1.0f },
+    }, CVector2D::Dist(ThePaths.GetCarPathLink(linkAddress).GetNodeCoors(), vehicle->GetPosition2D()));
 }
 
 // 0x421770
-int32 CCarCtrl::FindSequenceElement(int32 arg1) {
-    return plugin::CallAndReturn<int32, 0x421770, int32>(arg1);
+int32 CCarCtrl::FindSequenceElement(int32 element) {
+    return bSequenceOtherWay
+        ? (element + SequenceRandomOffset) % SequenceElements
+        : (SequenceElements - element + SequenceRandomOffset) % SequenceElements;
 }
 
 // 0x4224E0
-float CCarCtrl::FindSpeedMultiplier(float arg1, float arg2, float arg3, float arg4) {
-    return plugin::CallAndReturn<float, 0x4224E0, float, float, float, float>(arg1, arg2, arg3, arg4);
+float CCarCtrl::FindSpeedMultiplier(float angleChange, float minAngle, float maxAngle, float minMultiplier) {
+    return CGeneral::GetPiecewiseLinear({
+        { minAngle, 1.0f },
+        { maxAngle, minMultiplier },
+    }, std::abs(CGeneral::LimitRadianAngle(angleChange)));
 }
 
 // 0x424130
-float CCarCtrl::FindSpeedMultiplierWithSpeedFromNodes(int8 arg1) {
-    return plugin::CallAndReturn<float, 0x424130, int8>(arg1);
+float CCarCtrl::FindSpeedMultiplierWithSpeedFromNodes(int8 speedFromNodes) {
+    switch (speedFromNodes) {
+    case -1: return 0.5f;
+    case 0:  return 0.65f;
+    case 2:  return 2.3f;
+    default: return 1.0f;
+    }
 }
 
 float CCarCtrl::FindGhostRoadHeight(CVehicle* vehicle) {
@@ -370,7 +473,40 @@ void CCarCtrl::GenerateOneRandomCar() {
 
 // 0x4341C0
 void CCarCtrl::GenerateRandomCars() {
-    plugin::Call<0x4341C0>();
+    if (CCutsceneMgr::ms_running) {
+        CountDownToCarsAtStart = 2;
+        return;
+    }
+    if (CGangWars::DontCreateCivilians() || !CGame::CanSeeOutSideFromCurrArea()) {
+        return;
+    }
+
+    if (CGameLogic::LaRiotsActiveHere() && TimeNextMadDriverChaseCreated > 480.0f) {
+        TimeNextMadDriverChaseCreated = CGeneral::GetRandomNumberInRange(240.0f, 480.0f);
+    }
+    TimeNextMadDriverChaseCreated -= (CTimer::GetTimeStep() * 0.02f);
+
+    if (NumRandomCars < 45) {
+        if (CountDownToCarsAtStart) {
+            if (--CountDownToCarsAtStart == 0) {
+                for (auto i = 100; i --> 0;) {
+                    GenerateOneRandomCar();
+                }
+                CTheCarGenerators::GenerateEvenIfPlayerIsCloseCounter = 20;
+            }
+        } else {
+            GenerateOneRandomCar();
+            GenerateOneRandomCar();
+        }
+    }
+
+    CTrain::DoTrainGenerationAndRemoval();
+    CPlane::DoPlaneGenerationAndRemoval();
+
+    // 0x434277 - About every 4 seconds
+    if (CTimer::GetTimeInMS() / 4096u != CTimer::GetPreviousTimeInMS() / 4096u) {
+        GenerateEmergencyServicesCar();
+    }
 }
 
 // 0x42F3C0
@@ -430,15 +566,13 @@ CVehicle* CCarCtrl::GetNewVehicleDependingOnCarModel(int32 modelId, uint8 create
 
 // 0x42C250
 bool CCarCtrl::IsAnyoneParking() {
-    for (auto i = 0; i < GetVehiclePool()->GetSize(); i++) {
-        if (auto vehicle = GetVehiclePool()->GetAt(i)) {
-            switch (vehicle->m_autoPilot.m_nCarMission) {
-            case eCarMission::MISSION_PARK_PARALLEL_0:
-            case eCarMission::MISSION_PARK_PARALLEL_1:
-            case eCarMission::MISSION_PARK_PERPENDICULAR_0:
-            case eCarMission::MISSION_PARK_PERPENDICULAR_1:
-                return true;
-            }
+    for (auto& veh : GetVehiclePool()->GetAllValid()) {
+        switch (veh.m_autoPilot.m_nCarMission) {
+        case eCarMission::MISSION_PARK_PARALLEL:
+        case eCarMission::MISSION_PARK_PARALLEL_2:
+        case eCarMission::MISSION_PARK_PERPENDICULAR:
+        case eCarMission::MISSION_PARK_PERPENDICULAR_2:
+            return true;
         }
     }
     return false;
@@ -467,33 +601,33 @@ void CCarCtrl::JoinCarWithRoadAccordingToMission(CVehicle* vehicle) {
     case MISSION_WAITFORDELETION:
     case MISSION_EMERGENCYVEHICLE_STOP:
     case MISSION_STOP_FOREVER:
-    case MISSION_FOLLOW_PRE_RECORDED_PATH:
-    case MISSION_PARK_PERPENDICULAR_0:
-    case MISSION_PARK_PARALLEL_0:
-    case MISSION_PARK_PERPENDICULAR_1:
-    case MISSION_PARK_PARALLEL_1:
+    case MISSION_FOLLOW_RECORDED_PATH:
+    case MISSION_PARK_PERPENDICULAR:
+    case MISSION_PARK_PARALLEL:
+    case MISSION_PARK_PERPENDICULAR_2:
+    case MISSION_PARK_PARALLEL_2:
         return JoinCarWithRoadSystem(vehicle);
     case MISSION_RAMPLAYER_FARAWAY:
     case MISSION_RAMPLAYER_CLOSE:
     case MISSION_BLOCKPLAYER_FARAWAY:
     case MISSION_BLOCKPLAYER_CLOSE:
     case MISSION_BLOCKPLAYER_HANDBRAKESTOP:
-    case MISSION_ATTACKPLAYER:
+    case MISSION_BOAT_ATTACKPLAYER:
     case MISSION_SLOWLY_DRIVE_TOWARDS_PLAYER_1:
     case MISSION_SLOWLY_DRIVE_TOWARDS_PLAYER_2:
     case MISSION_BLOCKPLAYER_FORWARDANDBACK:
-    case MISSION_POLICE_BIKE:
-    case MISSION_2C:
-    case MISSION_BOAT_CIRCLING_PLAYER: {
+    case MISSION_APPROACHPLAYER_FARAWAY:
+    case MISSION_APPROACHPLAYER_CLOSE:
+    case MISSION_BOAT_CIRCLEPLAYER: {
         JoinCarWithRoadSystemGotoCoors(vehicle, FindPlayerCoors(-1), true, vehicle->IsSubBoat());
         break;
     }
-    case MISSION_GOTOCOORDS:
-    case MISSION_GOTOCOORDS_STRAIGHT:
-    case MISSION_GOTOCOORDS_ACCURATE:
-    case MISSION_GOTOCOORDS_STRAIGHT_ACCURATE:
-    case MISSION_GOTOCOORDS_ASTHECROWSWIMS:
-    case MISSION_FOLLOW_PATH_RACING: {
+    case MISSION_GOTOCOORDINATES:
+    case MISSION_GOTOCOORDINATES_STRAIGHTLINE:
+    case MISSION_GOTOCOORDINATES_ACCURATE:
+    case MISSION_GOTOCOORDINATES_STRAIGHTLINE_ACCURATE:
+    case MISSION_GOTOCOORDINATES_ASTHECROWSWIMS:
+    case MISSION_GOTOCOORDINATES_RACING: {
         JoinCarWithRoadSystemGotoCoors(vehicle, vehicle->m_autoPilot.m_vecDestinationCoors, true, vehicle->IsSubBoat());
         break;
     }
@@ -502,23 +636,23 @@ void CCarCtrl::JoinCarWithRoadAccordingToMission(CVehicle* vehicle) {
     case MISSION_BLOCKCAR_FARAWAY:
     case MISSION_BLOCKCAR_CLOSE:
     case MISSION_BLOCKCAR_HANDBRAKESTOP:
-    case MISSION_1B:
-    case MISSION_1C:
-    case MISSION_GOTO_ESCORTPOINT_0:
-    case MISSION_GOTO_ESCORTPOINT_1:
-    case MISSION_GOTO_ESCORTPOINT_2:
-    case MISSION_GOTO_ESCORTPOINT_3:
-    case MISSION_34:
-    case MISSION_35:
-    case MISSION_36:
-    case MISSION_37:
-    case MISSION_3C:
-    case MISSION_3D:
-    case MISSION_41:
-    case MISSION_42:
-    case MISSION_43:
-    case MISSION_44: {
-        JoinCarWithRoadSystemGotoCoors(vehicle, vehicle->m_autoPilot.m_pTargetCar->GetPosition(), true, vehicle->IsSubBoat());
+    case MISSION_PROTECTION_REAR:
+    case MISSION_PROTECTION_FRONT:
+    case MISSION_ESCORT_LEFT:
+    case MISSION_ESCORT_RIGHT:
+    case MISSION_ESCORT_REAR:
+    case MISSION_ESCORT_FRONT:
+    case MISSION_FOLLOWCAR_FARAWAY:
+    case MISSION_FOLLOWCAR_CLOSE:
+    case MISSION_KILLPED_FARAWAY:
+    case MISSION_KILLPED_CLOSE:
+    case MISSION_DO_DRIVEBY_CLOSE:
+    case MISSION_DO_DRIVEBY_FARAWAY:
+    case MISSION_ESCORT_LEFT_FARAWAY:
+    case MISSION_ESCORT_RIGHT_FARAWAY:
+    case MISSION_ESCORT_REAR_FARAWAY:
+    case MISSION_ESCORT_FRONT_FARAWAY: {
+        JoinCarWithRoadSystemGotoCoors(vehicle, vehicle->m_autoPilot.m_TargetEntity->GetPosition(), true, vehicle->IsSubBoat());
         break;
     }
     }
@@ -543,7 +677,7 @@ bool CCarCtrl::PickNextNodeAccordingStrategy(CVehicle* vehicle) {
 void CCarCtrl::InitSequence(int32 numSequenceElements) {
     SequenceElements = numSequenceElements;
     SequenceRandomOffset = CGeneral::GetRandomNumber() % numSequenceElements;
-    bSequenceOtherWay = (CGeneral::GetRandomNumber() / 4) % 2;
+    bSequenceOtherWay = (CGeneral::GetRandomNumber() / 16) % 2 != 0;
 }
 
 // 0x42DE80
@@ -571,13 +705,11 @@ void CCarCtrl::PossiblyFireHSMissile(CVehicle* entityLauncher, CEntity* targetEn
 
     const CVector launcherPos = entityLauncher->GetPosition();
     const CVector targetPos = targetEntity->GetPosition();
-    CVector dir = targetPos - launcherPos;
+    const CVector dir = targetPos - launcherPos;
     const float dist = dir.Magnitude();
     if (dist < 160.0f && dist > 30.0f) {
         CMatrix launcherMat = entityLauncher->GetMatrix();
-        CVector dirNormalized = dir;
-        dir.Normalise();
-        if (DotProduct(launcherMat.GetForward(), dirNormalized) > 0.8f) {
+        if (DotProduct(launcherMat.GetForward(), dir / dist) > 0.8f) {
             CProjectileInfo::AddProjectile(
                 entityLauncher,
                 eWeaponType::WEAPON_ROCKET_HS,
@@ -597,6 +729,8 @@ void CCarCtrl::PossiblyRemoveVehicle(CVehicle* vehicle) {
 
 // 0x423F10
 void CCarCtrl::PruneVehiclesOfInterest() {
+    ZoneScoped;
+
     if ((CTimer::GetFrameCounter() % 64) == 19 && FindPlayerCoors(-1).z < 950.0f) {
         for (size_t i = 0; i < std::size(apCarsToKeep); i++) {
             if (apCarsToKeep[i]) {
@@ -620,6 +754,8 @@ void CCarCtrl::RegisterVehicleOfInterest(CVehicle* vehicle) {
 
 // 0x4322B0
 void CCarCtrl::RemoveCarsIfThePoolGetsFull() {
+    ZoneScoped;
+
     if (CTimer::GetFrameCounter() % 8 != 3)
         return;
 
@@ -630,22 +766,24 @@ void CCarCtrl::RemoveCarsIfThePoolGetsFull() {
     const CVector camPos = TheCamera.GetPosition();
     float fClosestDist = std::numeric_limits<float>::max();
     CVehicle* closestVeh = nullptr;
-    for (auto i = 0; i < GetVehiclePool()->GetSize(); i++) {
-        if (auto vehicle = GetVehiclePool()->GetAt(i)) {
-            if (IsThisVehicleInteresting(vehicle))
-                continue;
-            if (vehicle->vehicleFlags.bIsLocked)
-                continue;
-            if (!vehicle->CanBeDeleted())
-                continue;
-            if (CCranes::IsThisCarBeingTargettedByAnyCrane(vehicle))
-                continue;
+    for (auto& veh : GetVehiclePool()->GetAllValid()) {
+        if (IsThisVehicleInteresting(&veh)) {
+            continue;
+        }
+        if (veh.vehicleFlags.bIsLocked) {
+            continue;
+        }
+        if (!veh.CanBeDeleted()) {
+            continue;
+        }
+        if (CCranes::IsThisCarBeingTargettedByAnyCrane(&veh)) {
+            continue;
+        }
 
-            const float fCamVehDist = (camPos - vehicle->GetPosition()).Magnitude();
-            if (fClosestDist > fCamVehDist) {
-                fClosestDist = fCamVehDist;
-                closestVeh = vehicle;
-            }
+        const float fCamVehDist = (camPos - veh.GetPosition()).Magnitude();
+        if (fClosestDist > fCamVehDist) {
+            fClosestDist = fCamVehDist;
+            closestVeh   = &veh;
         }
     }
     if (closestVeh) {
@@ -656,21 +794,34 @@ void CCarCtrl::RemoveCarsIfThePoolGetsFull() {
 
 // 0x42CD10
 void CCarCtrl::RemoveDistantCars() {
-    for (auto i = 0; i < GetVehiclePool()->GetSize(); i++) {
-        if (auto vehicle = GetVehiclePool()->GetAt(i)) {
-            PossiblyRemoveVehicle(vehicle);
-            if (!vehicle->vehicleFlags.bCreateRoadBlockPeds)
-                continue;
+    ZoneScoped;
 
-            CVector centreOfWorld = FindPlayerCentreOfWorld();
-            if (DistanceBetweenPoints(centreOfWorld, vehicle->GetPosition()) < 54.5f) {
-                CRoadBlocks::GenerateRoadBlockCopsForCar(
-                    vehicle,
-                    vehicle->m_nPedsPositionForRoadBlock,
-                    vehicle->IsLawEnforcementVehicle() ? PED_TYPE_COP : PED_TYPE_GANG1
-                );
-            }
+    // FIXBUGS: First remove vehicles that can be removed
+    if (notsa::bugfixes::CCarCtrl_RemoveDistantCars_UseAfterFree) {
+        for (auto& veh : GetVehiclePool()->GetAllValid()) {
+            PossiblyRemoveVehicle(&veh);
         }
+    }
+
+    //... only then process them, this way we don't do use-after-free
+    // only other solution would be `PossiblyRemoveVehicle` returning a `bool`
+    // to indicate whenever the vehicle was deleted or not.
+    for (auto& veh : GetVehiclePool()->GetAllValid()) {
+        if (!notsa::bugfixes::CCarCtrl_RemoveDistantCars_UseAfterFree) {
+            PossiblyRemoveVehicle(&veh); // This may or may not invalidate `veh`
+        }
+        if (!veh.vehicleFlags.bCreateRoadBlockPeds) {
+            continue;
+        }
+        if (DistanceBetweenPoints(FindPlayerCentreOfWorld(), veh.GetPosition()) >= 54.5f) {
+            continue;
+        }
+        CRoadBlocks::GenerateRoadBlockPedsForCar(
+            &veh,
+            veh.m_nPedsPositionForRoadBlock,
+            veh.IsLawEnforcementVehicle() ? PED_TYPE_COP : PED_TYPE_GANG1
+        );
+        veh.vehicleFlags.bCreateRoadBlockPeds = false;
     }
 }
 
@@ -694,7 +845,7 @@ bool CCarCtrl::ScriptGenerateOneEmergencyServicesCar(uint32 modelId, CVector pos
     if (CStreaming::IsModelLoaded(modelId)) {
         if (auto pAuto = GenerateOneEmergencyServicesCar(modelId, posn)) {
             pAuto->m_autoPilot.m_vecDestinationCoors = posn;
-            pAuto->m_autoPilot.m_nCarMission = JoinCarWithRoadSystemGotoCoors(pAuto, posn, false, false) ? MISSION_GOTOCOORDS_STRAIGHT : MISSION_GOTOCOORDS;
+            pAuto->m_autoPilot.SetCarMission(JoinCarWithRoadSystemGotoCoors(pAuto, posn, false, false) ? MISSION_GOTOCOORDINATES_STRAIGHTLINE : MISSION_GOTOCOORDINATES);
             return true;
         }
     }
@@ -712,8 +863,9 @@ void CCarCtrl::SetUpDriverAndPassengersForVehicle(CVehicle* vehicle, int32 arg2,
 }
 
 // 0x432420
-void CCarCtrl::SlowCarDownForCarsSectorList(CPtrList& ptrList, CVehicle* vehicle, float arg3, float arg4, float arg5, float arg6, float* arg7, float arg8) {
-    plugin::Call<0x432420, CPtrList&, CVehicle*, float, float, float, float, float*, float>(ptrList, vehicle, arg3, arg4, arg5, arg6, arg7, arg8);
+template<typename PtrListType>
+void CCarCtrl::SlowCarDownForCarsSectorList(PtrListType& ptrList, CVehicle* vehicle, float arg3, float arg4, float arg5, float arg6, float* arg7, float arg8) {
+    plugin::Call<0x432420, PtrListType&, CVehicle*, float, float, float, float, float*, float>(ptrList, vehicle, arg3, arg4, arg5, arg6, arg7, arg8);
 }
 
 // 0x426220
@@ -732,8 +884,9 @@ void CCarCtrl::SlowCarDownForObject(CEntity* entity, CVehicle* vehicle, float* a
 }
 
 // 0x42D4F0
-void CCarCtrl::SlowCarDownForObjectsSectorList(CPtrList& ptrList, CVehicle* vehicle, float arg3, float arg4, float arg5, float arg6, float* arg7, float arg8) {
-    plugin::Call<0x42D4F0, CPtrList&, CVehicle*, float, float, float, float, float*, float>(ptrList, vehicle, arg3, arg4, arg5, arg6, arg7, arg8);
+template<typename PtrListType>
+void CCarCtrl::SlowCarDownForObjectsSectorList(PtrListType& ptrList, CVehicle* vehicle, float arg3, float arg4, float arg5, float arg6, float* arg7, float arg8) {
+    plugin::Call<0x42D4F0, PtrListType&, CVehicle*, float, float, float, float, float*, float>(ptrList, vehicle, arg3, arg4, arg5, arg6, arg7, arg8);
 }
 
 // 0x42D0E0
@@ -742,8 +895,9 @@ void CCarCtrl::SlowCarDownForOtherCar(CEntity* car1, CVehicle* car2, float* arg3
 }
 
 // 0x425440
-void CCarCtrl::SlowCarDownForPedsSectorList(CPtrList& PtrList, CVehicle* vehicle, float arg3, float arg4, float arg5, float arg6, float* arg7, float arg8) {
-    plugin::Call<0x425440, CPtrList&, CVehicle*, float, float, float, float, float*, float>(PtrList, vehicle, arg3, arg4, arg5, arg6, arg7, arg8);
+template<typename PtrListType>
+void CCarCtrl::SlowCarDownForPedsSectorList(PtrListType& PtrList, CVehicle* vehicle, float arg3, float arg4, float arg5, float arg6, float* arg7, float arg8) {
+    plugin::Call<0x425440, PtrListType&, CVehicle*, float, float, float, float, float*, float>(PtrList, vehicle, arg3, arg4, arg5, arg6, arg7, arg8);
 }
 
 // 0x434790
@@ -954,16 +1108,24 @@ void CCarCtrl::WeaveForOtherCar(CEntity* entity, CVehicle* vehicle, float* arg3,
 }
 
 // 0x42D680
-void CCarCtrl::WeaveThroughCarsSectorList(CPtrList& ptrList, CVehicle* vehicle, CPhysical* physical, float arg4, float arg5, float arg6, float arg7, float* arg8, float* arg9) {
-    plugin::Call<0x42D680, CPtrList&, CVehicle*, CPhysical*, float, float, float, float, float*, float*>(ptrList, vehicle, physical, arg4, arg5, arg6, arg7, arg8, arg9);
+template<typename PtrListType>
+void CCarCtrl::WeaveThroughCarsSectorList(PtrListType& ptrList, CVehicle* vehicle, CPhysical* physical, float arg4, float arg5, float arg6, float arg7, float* arg8, float* arg9) {
+    plugin::Call<0x42D680, PtrListType&, CVehicle*, CPhysical*, float, float, float, float, float*, float*>(ptrList, vehicle, physical, arg4, arg5, arg6, arg7, arg8, arg9);
 }
 
 // 0x42D950
-void CCarCtrl::WeaveThroughObjectsSectorList(CPtrList& ptrList, CVehicle* vehicle, float arg3, float arg4, float arg5, float arg6, float* arg7, float* arg8) {
-    plugin::Call<0x42D950, CPtrList&, CVehicle*, float, float, float, float, float*, float*>(ptrList, vehicle, arg3, arg4, arg5, arg6, arg7, arg8);
+template<typename PtrListType>
+void CCarCtrl::WeaveThroughObjectsSectorList(PtrListType& ptrList, CVehicle* vehicle, float arg3, float arg4, float arg5, float arg6, float* arg7, float* arg8) {
+    plugin::Call<0x42D950, PtrListType&, CVehicle*, float, float, float, float, float*, float*>(ptrList, vehicle, arg3, arg4, arg5, arg6, arg7, arg8);
 }
 
 // 0x42D7E0
-void CCarCtrl::WeaveThroughPedsSectorList(CPtrList& ptrList, CVehicle* vehicle, CPhysical* physical, float arg4, float arg5, float arg6, float arg7, float* arg8, float* arg9) {
-    plugin::Call<0x42D7E0, CPtrList&, CVehicle*, CPhysical*, float, float, float, float, float*, float*>(ptrList, vehicle, physical, arg4, arg5, arg6, arg7, arg8, arg9);
+template<typename PtrListType>
+void CCarCtrl::WeaveThroughPedsSectorList(PtrListType& ptrList, CVehicle* vehicle, CPhysical* physical, float arg4, float arg5, float arg6, float arg7, float* arg8, float* arg9) {
+    plugin::Call<0x42D7E0, PtrListType&, CVehicle*, CPhysical*, float, float, float, float, float*, float*>(ptrList, vehicle, physical, arg4, arg5, arg6, arg7, arg8, arg9);
+}
+
+// 0x427FE0
+float CCarCtrl::FindMaxSteerAngle(CVehicle* veh) {
+    return std::clamp(0.9f - veh->GetMoveSpeed().Magnitude(), 0.2f, 0.7f);
 }

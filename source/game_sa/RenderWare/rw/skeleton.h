@@ -64,80 +64,95 @@ enum RsEventStatus
 };
 typedef enum RsEventStatus RsEventStatus;
 
-enum RsEvent
-{
-#ifdef RWSPLASH
-    rsDISPLAYSPLASH,
-#endif
-    rsCAMERASIZE,
-    rsCOMMANDLINE,
-    rsFILELOAD,
-    rsINITDEBUG,
-    rsINPUTDEVICEATTACH,
-    rsLEFTBUTTONDOWN,
-    rsLEFTBUTTONUP,
-    rsMOUSEMOVE,
-    rsMOUSEWHEELMOVE,
-    rsPLUGINATTACH,
-    rsREGISTERIMAGELOADER,
-    rsRIGHTBUTTONDOWN,
-    rsRIGHTBUTTONUP,
-    // ...
-    rsRWINITIALIZE = 0x15,
-    rsRWTERMINATE,
-    rsSELECTDEVICE,
-    rsINITIALIZE,
-    rsTERMINATE,
-    rsIDLE,
-    rsRENDER,
-    rsKEYDOWN,
-    rsKEYUP,
-    rsQUITAPP,
-    rsPADBUTTONDOWN,
-    rsPADBUTTONUP,
-    rsPADANALOGUELEFT,
-    rsPADANALOGUELEFTRESET,
-    rsPADANALOGUERIGHT,
-    rsPADANALOGUERIGHTRESET,
-    rsPREINITCOMMANDLINE,
-    rsACTIVATE,
-    rsSETMEMORYFUNCS
+enum RsEvent {
+    rsCAMERASIZE            =  0,
+    rsCOMMANDLINE           =  1,
+    rsFILELOAD              =  2,
+    rsINITDEBUG             =  3,
+    rsINPUTDEVICEATTACH     =  4,
+    rsLEFTBUTTONDOWN        =  5,
+    rsLEFTBUTTONUP          =  6,
+    rsMOUSEMOVE             =  7,
+    rsMOUSEWHEELMOVE        =  8,
+    rsPLUGINATTACH          =  9,
+    rsREGISTERIMAGELOADER   = 10,
+
+    rsRIGHTBUTTONDOWN       = 11,
+    rsRIGHTBUTTONUP         = 12,
+    rsMIDDLEBUTTONDOWN      = 13,
+    rsMIDDLEBUTTONUP        = 14,
+    rsMOUSEWHEELMOVEDUP     = 15,
+    rsMOUSEWHEELMOVEDDOWN   = 16,
+    rsFIRST_XBUTTONUP       = 17,
+    rsSECOND_XBUTTONUP      = 18,
+    rsFIRST_XBUTTONDOWN     = 19,
+    rsSECOND_XBUTTONDOWN    = 20,
+
+    rsRWINITIALIZE          = 21,
+    rsRWTERMINATE           = 22,
+    rsSELECTDEVICE          = 23,
+    rsINITIALIZE            = 24,
+    rsTERMINATE             = 25,
+    rsIDLE                  = 26,
+    rsFRONTENDIDLE          = 27,
+    rsKEYDOWN               = 28,
+    rsKEYUP                 = 29,
+    rsQUITAPP               = 30,
+
+    rsPADBUTTONDOWN         = 31,
+    rsPADBUTTONUP           = 32,
+    rsPADANALOGUELEFT       = 33,
+    rsPADANALOGUELEFTRESET  = 34,
+    rsPADANALOGUERIGHT      = 35,
+    rsPADANALOGUERIGHTRESET = 36,
+    rsPREINITCOMMANDLINE    = 37,
+    rsACTIVATE              = 38,
+    rsSETMEMORYFUNCS        = 39,
 };
 typedef enum RsEvent RsEvent;
 
-typedef RsEventStatus (*RsInputEventHandler)(RsEvent event, void *param);
+typedef RsEventStatus (*RsInputEventHandler)(RsEvent event, void* param);
 
 typedef struct RsInputDevice RsInputDevice;
-struct RsInputDevice
-{
+struct RsInputDevice {
     RsInputDeviceType inputDeviceType;
     RwBool used;
     RsInputEventHandler inputEventHandler;
 };
 
-struct psGlobalType
-{
+#ifdef NOTSA_USE_SDL3
+struct SDL_Window;
+#endif
+
+/**
+ * platform-specific global data
+ */
+struct psGlobalType {
     HWND      window;
     HINSTANCE instance;
     RwBool    fullScreen;
     RwV2d     lastMousePos;
-    int       field_14;
-    void*     diInterface;
-    void*     diMouse;
-    void*     diDevice1;
-    void*     diDevice2;
+    uint32    lastRenderTime;
+
+    LPDIRECTINPUT8 diInterface;
+    LPDIRECTINPUTDEVICE8 diMouse;
+    LPDIRECTINPUTDEVICE8 diDevice1;
+    LPDIRECTINPUTDEVICE8 diDevice2;
+
+#ifdef NOTSA_USE_SDL3
+    SDL_Window* sdlWindow;
+#endif
 };
 
 typedef struct RsGlobalType RsGlobalType;
-struct RsGlobalType
-{
-    const RwChar *appName;
+struct RsGlobalType {
+    const RwChar* appName;
     RwInt32 maximumWidth;
     RwInt32 maximumHeight;
     RwInt32 frameLimit;
-    RwBool  quit;
+    RwBool quit;
 
-    psGlobalType   *ps; /* platform specific data */
+    psGlobalType* ps; /* platform specific data */
 
     RsInputDevice keyboard;
     RsInputDevice mouse;
@@ -157,6 +172,8 @@ struct RsMouseStatus
 };
 
 enum RsKeyCodes : int32 {
+    /* ASCII chars up to 0xFF are also valid */
+
     rsESC            = 1000,
 
     rsF1             = 1001,

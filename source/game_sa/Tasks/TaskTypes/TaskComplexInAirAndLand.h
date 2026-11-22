@@ -2,7 +2,7 @@
 
 #include "TaskComplex.h"
 
-class CTaskComplexInAirAndLand : public CTaskComplex {
+class NOTSA_EXPORT_VTABLE CTaskComplexInAirAndLand : public CTaskComplex {
 public:
     bool m_bUsingJumpGlide;
     bool m_bUsingFallGlide;
@@ -14,15 +14,12 @@ public:
     CTaskComplexInAirAndLand(bool bUsingJumpGlide, bool bUsingFallGlide);
     ~CTaskComplexInAirAndLand() override = default;
 
-    eTaskType GetTaskType() override { return Type; }
-    CTask* Clone() override { return new CTaskComplexInAirAndLand(m_bUsingJumpGlide, m_bUsingFallGlide); }
+    eTaskType GetTaskType() const override { return Type; }
+    CTask* Clone() const override { return new CTaskComplexInAirAndLand(m_bUsingJumpGlide, m_bUsingFallGlide); }
     CTask* CreateFirstSubTask(CPed* ped) override;
     CTask* CreateNextSubTask(CPed* ped) override;
     CTask* ControlSubTask(CPed* ped) override;
 
-    CTask* CreateFirstSubTask_Reversed(CPed* ped);
-    CTask* CreateNextSubTask_Reversed(CPed* ped);
-    CTask* ControlSubTask_Reversed(CPed* ped);
 
 private:
     friend void InjectHooksMain();

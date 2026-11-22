@@ -1,8 +1,12 @@
 #pragma once
 
-namespace AmbienceTrackManagerDebugModule {
+#include "../DebugModule.h"
 
-void ProcessImGui();
-void ProcessRender();
+class AmbienceTrackManagerDebugModule : public DebugModule {
+public:
+    void RenderWindow() override final;
+    void RenderMenuEntry() override final;
 
-}
+private:
+    bool m_IsOpen{};
+};

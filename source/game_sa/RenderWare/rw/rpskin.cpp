@@ -38,7 +38,7 @@ RwUInt32 RpSkinGetNumBones(RpSkin* skin) {
     return ((RwUInt32(__cdecl *)(RpSkin*))0x7C77E0)(skin);
 }
 
-RwMatrixWeights* RpSkinGetVertexBoneWeights(RpSkin* skin) {
+/*const*/ RwMatrixWeights* RpSkinGetVertexBoneWeights(RpSkin* skin) {
     return ((RwMatrixWeights*(__cdecl *)(RpSkin*))0x7C77F0)(skin);
 }
 

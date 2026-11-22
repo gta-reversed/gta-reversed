@@ -43,7 +43,7 @@ void COnscreenTimerEntry::Process() {
     }
 /*
 #ifndef NDEBUG
-    printf("[COnscreenTimerEntry::Process] timerPtr: %d\n", timerPtr);
+    NOTSA_LOG_DEBUG("[COnscreenTimerEntry::Process] timerPtr: {}", timerPtr);
 #endif
 */
 }
@@ -51,7 +51,7 @@ void COnscreenTimerEntry::Process() {
 // 0x44CA40
 void COnscreenTimerEntry::ProcessForDisplayClock() {
     auto time = *CTheScripts::GetPointerToScriptVariable(m_nVarId);
-    sprintf(
+    sprintf_s(
         m_szDisplayedText,
         "%02d:%02d",
         time / 1000 / 60 % 100,

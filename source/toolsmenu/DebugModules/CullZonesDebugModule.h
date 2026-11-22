@@ -1,12 +1,28 @@
 #pragma once
 
-#ifdef EXTRA_DEBUG_FEATURES
+#include "DebugModule.h"
 
-namespace CullZonesDebugModule {
+class CullZonesDebugModule final : public DebugModule {
+public:
+    void RenderWindow() override final;
+    void Render3D() override final;
+    void RenderMenuEntry() override final;
 
-void ProcessImGui();
-void ProcessRender();
+    NOTSA_IMPLEMENT_DEBUG_MODULE_SERIALIZATION(CullZonesDebugModule, m_IsOpen, m_ZOffset, m_DrawMirrors, m_DrawTunnels, m_DrawCulls);
+    
+private:
+    bool m_IsOpen{};
+    float m_ZOffset{};
 
-}; // namespace CullZonesDebugModule
+    bool                  m_DrawMirrors{};
+    CMirrorAttributeZone* m_MirrorCurrent{};
+    uint32                m_MirrorCurrentIdx{};
 
-#endif
+    bool            m_DrawTunnels{};
+    CAttributeZone* m_TunnelCurrent{};
+    uint32          m_TunnelCurrentIdx{};
+
+    bool            m_DrawCulls{};
+    CAttributeZone* m_CullCurrent{};
+    uint32          m_CullCurrentIdx{};
+};

@@ -21,8 +21,8 @@ class CModelInfo {
 public:
     // static CBaseModelInfo *ms_modelInfoPtrs[20000]; Use GetModelInfo(int32 index) to get model info by id
     static constexpr int32 NUM_MODEL_INFOS = 20000;
-    static CBaseModelInfo* (&ms_modelInfoPtrs)[NUM_MODEL_INFOS];
-    static int32& ms_lastPositionSearched;
+    static inline auto& ms_modelInfoPtrs = StaticRef<CBaseModelInfo*[NUM_MODEL_INFOS]>(0xA9B0C8);
+    static inline auto& ms_lastPositionSearched = StaticRef<int32>(0xAAE948);
 
     static constexpr int32 NUM_ATOMIC_MODEL_INFOS = 14000;
     static CStore<CAtomicModelInfo, NUM_ATOMIC_MODEL_INFOS>& ms_atomicModelInfoStore;
@@ -90,5 +90,7 @@ public:
     static int32 IsVehicleModelType(int32 index);
 
     static CBaseModelInfo* GetModelInfo(int32 index) { return ms_modelInfoPtrs[index]; }
+    static auto GetPedModelInfo(int32 index) { return GetModelInfo(index)->AsPedModelInfoPtr(); }
+    static auto GetVehicleModelInfo(int32 index) { return GetModelInfo(index)->AsVehicleModelInfoPtr(); }
     static void SetModelInfo(int32 index, CBaseModelInfo* pInfo) { ms_modelInfoPtrs[index] = pInfo; }
 };

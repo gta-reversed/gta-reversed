@@ -3,8 +3,6 @@
 #include "CreepingFire.h"
 #include "FireManager.h"
 
-uint8 (&CCreepingFire::m_aFireStatus)[32][32] = *(uint8(*)[32][32])0xB71B68;
-
 void CCreepingFire::InjectHooks() {
     RH_ScopedClass(CCreepingFire);
     RH_ScopedCategoryGlobal();
@@ -25,6 +23,8 @@ void CCreepingFire::SetReadyToBurn() {
 
 // 0x539CE0
 void CCreepingFire::Update() {
+    ZoneScoped;
+
     uint8& status = m_aFireStatus[CTimer::GetFrameCounter() % 32][(CTimer::GetFrameCounter() / 32) % 32];
     if (status == 4) {
         status = 0;
@@ -54,7 +54,8 @@ bool CCreepingFire::TryToStartFireAtCoors(CVector pos, uint8 nGenerations, bool 
     if (!fire)
         return false;
 
-    fire->firstGeneration = false;
-    fire->createdByScript = bScriptFire;
+    fire->SetIsFirstGen(false);
+    fire->SetIsScript(bScriptFire);
+
     return true;
 }

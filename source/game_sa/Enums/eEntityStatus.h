@@ -16,10 +16,9 @@ enum eEntityStatus : uint8 {
     STATUS_WRECKED,
     STATUS_TRAIN_MOVING,
     STATUS_TRAIN_NOT_MOVING,
-    STATUS_HELI,
-    STATUS_PLANE,
     STATUS_REMOTE_CONTROLLED,
-    STATUS_PLAYER_DISABLED,
-    STATUS_TRAILER,                  // TODO: Check this. I can't reproduce that this is set for trailers
-    STATUS_SIMPLE_TRAILER            // Same here
+    STATUS_FORCED_STOP,
+    STATUS_IS_TOWED,
+    STATUS_IS_SIMPLE_TOWED,
+    STATUS_GHOST
 };

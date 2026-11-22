@@ -9,7 +9,7 @@
 #include "Ped.h"
 #include "eModelID.h"
 
-enum eCopType : uint32 {
+enum eCopType : uint32 { // TODO: Fix naming
     COP_TYPE_CITYCOP,
     COP_TYPE_LAPDM1,
     COP_TYPE_SWAT1,
@@ -19,7 +19,7 @@ enum eCopType : uint32 {
     COP_TYPE_CSHER = 7
 };
 
-class CCopPed : public CPed {
+class NOTSA_EXPORT_VTABLE CCopPed : public CPed {
 public:
     bool     m_bDontPursuit;
     bool     field_79D;
@@ -27,15 +27,18 @@ public:
     uint32   field_7A4;
     CCopPed* m_pCopPartner;
     CPed*    m_apCriminalsToKill[5];
-    char     field_7C0;
+    bool     m_isTheDriver; //< Whenever this ped should be a passenger or a driver when entering a vehicle
 
 public:
+    //! Get model ID used for a given cop type
+    static eModelID GetPedModelForCopType(eCopType ctype);
+
     /* May also be called with a modelID */
     explicit CCopPed(uint32_t copTypeOrModelID);
     ~CCopPed() override;
 
     void SetPartner(CCopPed* partner);
-    void AddCriminalToKill(CPed* criminal);
+    int32 AddCriminalToKill(CPed* criminal);
     void RemoveCriminalToKill(int32 unk, int32 nCriminalLocalIdx);
     void ClearCriminalsToKill();
     void ClearCriminalListFromDeadPeds();
@@ -50,7 +53,6 @@ private:
     CCopPed* Constructor(uint32_t copTypeOrModelID);
     CCopPed* Destructor();
 
-    void ProcessControl_Reversed();
 };
 
 VALIDATE_SIZE(CCopPed, 0x7C4);

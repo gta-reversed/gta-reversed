@@ -4,10 +4,6 @@
 #include "CurrentVehicle.h"
 #include "PlaceName.h"
 
-CPlaceName& CUserDisplay::PlaceName = *(CPlaceName*)0xBA18F4;
-COnscreenTimer& CUserDisplay::OnscnTimer = *(COnscreenTimer*)0xBA1788;
-CCurrentVehicle& CUserDisplay::CurrentVehicle = *(CCurrentVehicle*)0xBA18FC;
-
 void CUserDisplay::InjectHooks() {
     RH_ScopedClass(CUserDisplay);
     RH_ScopedCategoryGlobal();
@@ -18,6 +14,8 @@ void CUserDisplay::InjectHooks() {
 
 // 0x571EE0
 void CUserDisplay::Init() {
+    ZoneScoped;
+
     PlaceName.Init();
     OnscnTimer.Init();
     CurrentVehicle.Init();
@@ -25,6 +23,8 @@ void CUserDisplay::Init() {
 
 // 0x5720A0
 void CUserDisplay::Process() {
+    ZoneScoped;
+
     PlaceName.Process();
     OnscnTimer.Process();
     CurrentVehicle.Process();

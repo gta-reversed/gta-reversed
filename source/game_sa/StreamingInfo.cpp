@@ -1,7 +1,5 @@
 #include "StdInc.h"
 
-CStreamingInfo*& CStreamingInfo::ms_pArrayBase = *reinterpret_cast<CStreamingInfo**>(0x9654B4); // Just a pointer to `CStreaming::ms_aInfoForModel`
-
 void CStreamingInfo::InjectHooks() {
     RH_ScopedClass(CStreamingInfo);
     RH_ScopedCategoryGlobal();
@@ -17,55 +15,62 @@ void CStreamingInfo::InjectHooks() {
 
 // 0x407460
 void CStreamingInfo::Init() {
-    m_nLoadState = LOADSTATE_NOT_LOADED;
-    m_nNextIndex = -1;
-    m_nPrevIndex = -1;
-    m_nNextIndexOnCd = -1;
-    m_nImgId = 0;
-    m_nCdSize = 0;
-    m_nCdPosn = 0;
-}
-
-// Used to adding `info` to a linked list
-// This is done with the help of `m_nNextIndex` and `m_nPrevIndex`
-// which are just `indices` into `ms_aInfoForModel`.
-// 0x407480
-void CStreamingInfo::AddToList(CStreamingInfo* listStart) {
-    m_nNextIndex = listStart->m_nNextIndex;
-    m_nPrevIndex = static_cast<ptrdiff_t>(listStart - ms_pArrayBase);
-    listStart->m_nNextIndex = static_cast<ptrdiff_t>(this - ms_pArrayBase);
-    ms_pArrayBase[m_nNextIndex].m_nPrevIndex = listStart->m_nNextIndex;
+    *this = {};
 }
 
 // 0x407570
-size_t CStreamingInfo::GetCdPosn() const {
-    return m_nCdPosn + CStreaming::ms_files[m_nImgId].m_StreamHandle;
+CdStreamPos CStreamingInfo::GetCdPosn() const {
+    return CdStreamPos{
+        .Offset = m_CDOffset,
+        .FileID = CdStreamHandleToFileID(CStreaming::ms_files[m_ImgID].StreamHandle)
+    };
 }
 
 // 0x4075E0
-void CStreamingInfo::SetCdPosnAndSize(size_t CdPosn, size_t CdSize) {
-    m_nCdPosn = CdPosn;
-    m_nCdSize = CdSize;
+void CStreamingInfo::SetCdPosnAndSize(uint32 offset, size_t size) {
+    m_CDOffset = offset;
+    m_CDSize   = size;
 }
 
 // 0x4075A0
-bool CStreamingInfo::GetCdPosnAndSize(size_t& CdPosn, size_t& CdSize) {
-    if (!HasCdPosnAndSize())
-        return false;
-    CdPosn = GetCdPosn();
-    CdSize = m_nCdSize;
-    return true;
+bool CStreamingInfo::GetCdPosnAndSize(CdStreamPos& pos, size_t& size) {
+    if (HasCdPosnAndSize()) {
+        pos  = GetCdPosn();
+        size = m_CDSize;
+        return true;
+    }
+    return false;
 }
 
 // 0x407560
 bool CStreamingInfo::InList() const {
-    return m_nNextIndex != -1;
+    if (m_NextIndex != -1) {
+        assert(m_PrevIndex != -1);
+    }
+
+    // Yeah, that's partially true
+    // Because the way these lists work, items actually always have both `next` and `prev` defined
+    // So, I guess here they just assume that, and "optimize" the check :D
+    return m_NextIndex != -1 /*notsa => */ && m_PrevIndex != -1;
+}
+
+// 0x407480
+void CStreamingInfo::AddToList(CStreamingInfo* after) {
+    assert(!InList()); // May not be in a list (As that would corrupt the list)
+
+    m_NextIndex = after->m_NextIndex;
+    m_PrevIndex = static_cast<int16>(after - ms_pArrayBase);
+
+    after->m_NextIndex = static_cast<int16>(this - ms_pArrayBase);
+    ms_pArrayBase[m_NextIndex].m_PrevIndex = after->m_NextIndex;
 }
 
 // 0x4074E0
 void CStreamingInfo::RemoveFromList() {
-    ms_pArrayBase[m_nNextIndex].m_nPrevIndex = m_nPrevIndex;
-    ms_pArrayBase[m_nPrevIndex].m_nNextIndex = m_nNextIndex;
-    m_nNextIndex = -1;
-    m_nPrevIndex = -1;
+    assert(InList()); // Must be in a list (Otherwise array access is UB)
+
+    ms_pArrayBase[m_NextIndex].m_PrevIndex = m_PrevIndex;
+    ms_pArrayBase[m_PrevIndex].m_NextIndex = m_NextIndex;
+    m_NextIndex = -1;
+    m_PrevIndex = -1;
 }

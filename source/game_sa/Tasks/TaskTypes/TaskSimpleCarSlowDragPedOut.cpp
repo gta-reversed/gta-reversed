@@ -3,7 +3,7 @@
 #include "TaskUtilityLineUpPedWithCar.h"
 
 void CTaskSimpleCarSlowDragPedOut::InjectHooks() {
-    RH_ScopedClass(CTaskSimpleCarSlowDragPedOut);
+    RH_ScopedVirtualClass(CTaskSimpleCarSlowDragPedOut, 0x86EEE8, 9);
     RH_ScopedCategory("Tasks/TaskTypes");
 
     RH_ScopedInstall(Constructor, 0x647FE0);
@@ -12,11 +12,11 @@ void CTaskSimpleCarSlowDragPedOut::InjectHooks() {
     RH_ScopedGlobalInstall(FinishAnimCarSlowDragPedOutCB, 0x648180);
     RH_ScopedInstall(ComputeAnimID_Wrapper, 0x648100);
     RH_ScopedInstall(StartAnim, 0x64C010);
-    RH_ScopedInstall(Clone_Reversed, 0x649FD0);
-    RH_ScopedInstall(GetTaskType_Reversed, 0x648060);
-    RH_ScopedInstall(MakeAbortable_Reversed, 0x64BFB0);
-    RH_ScopedInstall(ProcessPed_Reversed, 0x64E060);
-    RH_ScopedInstall(SetPedPosition_Reversed, 0x6480E0);
+    RH_ScopedVMTInstall(Clone, 0x649FD0);
+    RH_ScopedVMTInstall(GetTaskType, 0x648060);
+    RH_ScopedVMTInstall(MakeAbortable, 0x64BFB0);
+    RH_ScopedVMTInstall(ProcessPed, 0x64E060);
+    RH_ScopedVMTInstall(SetPedPosition, 0x6480E0);
 }
 
 // 0x647FE0
@@ -82,13 +82,13 @@ std::pair<AssocGroupId, AnimationId> CTaskSimpleCarSlowDragPedOut::ComputeAnimID
             return ANIM_ID_UNDEFINED;
         }
     }();
-    return { (AssocGroupId)m_Vehicle->GetAnimGroup().GetGroup(animationId), animationId};
+    return { m_Vehicle->GetAnimGroup().GetGroup(animationId), animationId};
 }
 
 // 0x64C010
 void CTaskSimpleCarSlowDragPedOut::StartAnim(const CPed* ped) {
     const auto [groupId, animId] = ComputeAnimID();
-    m_AnimAssoc = CAnimManager::BlendAnimation(ped->m_pRwClump, groupId, animId, 1000.f);
+    m_AnimAssoc = CAnimManager::BlendAnimation(ped->GetRpClump(), groupId, animId, 1000.f);
     m_AnimAssoc->SetFinishCallback(FinishAnimCarSlowDragPedOutCB, this);
 }
 
@@ -105,10 +105,12 @@ CPed* CTaskSimpleCarSlowDragPedOut::GetJackedPed() const {
 }
 
 // 0x64BFB0
+
+
 bool CTaskSimpleCarSlowDragPedOut::MakeAbortable(CPed* ped, eAbortPriority priority, CEvent const*) {
     if (priority == eAbortPriority::ABORT_PRIORITY_IMMEDIATE) {
         if (m_AnimAssoc) {
-            m_AnimAssoc->m_fBlendDelta = -1000.f;
+            m_AnimAssoc->m_BlendDelta = -1000.f;
         }
         if (m_Vehicle) {
             const auto [groupId, animId] = ComputeAnimID();
@@ -120,6 +122,8 @@ bool CTaskSimpleCarSlowDragPedOut::MakeAbortable(CPed* ped, eAbortPriority prior
 }
 
 // 0x64E060
+
+
 bool CTaskSimpleCarSlowDragPedOut::ProcessPed(CPed* ped) {
     if (m_bAnimFinished || !m_Vehicle) {
         return true;
@@ -145,15 +149,15 @@ bool CTaskSimpleCarSlowDragPedOut::ProcessPed(CPed* ped) {
         // Make peds say something
         if (m_Vehicle) { // Redundant check, maybe inlined?
             if (const auto jackedPed = GetJackedPed()) {
-                const auto DoTalk = [this](auto ped1, auto ped2) {
-                    if (!SayJacked(ped1, m_Vehicle)) {
-                        SayJacking(ped2, ped1, m_Vehicle);
-                    }
-                };
+                // Randomly pick which of the two says something first
                 if (CGeneral::GetRandomNumber() % 1024 <= 512) {
-                    DoTalk(jackedPed, ped);
+                    if (!SayJacked(jackedPed, m_Vehicle)) {
+                        SayJacking(ped, jackedPed, m_Vehicle);
+                    }
                 } else {
-                    DoTalk(ped, jackedPed);
+                    if (!SayJacking(ped, jackedPed, m_Vehicle)) {
+                        SayJacked(jackedPed, m_Vehicle);
+                    }
                 }
             }
         }
@@ -161,13 +165,16 @@ bool CTaskSimpleCarSlowDragPedOut::ProcessPed(CPed* ped) {
 
     // Process door open ratio according to animation's current time
     const auto [groupId, animId] = ComputeAnimID();
-    m_Vehicle->ProcessOpenDoor(ped, m_TargetDoor, groupId, animId, m_AnimAssoc->m_fCurrentTime);
+    m_Vehicle->ProcessOpenDoor(ped, m_TargetDoor, groupId, animId, m_AnimAssoc->m_CurrentTime);
 
     return false;
 }
 
 // 0x6480E0
+
+// 0x0
 bool CTaskSimpleCarSlowDragPedOut::SetPedPosition(CPed* ped) {
     m_LineUpPedWithCarTask->ProcessPed(ped, m_Vehicle, m_AnimAssoc);
     return true;
 }
+

@@ -3,15 +3,12 @@
 #include "Rect.h"
 #include "Vector.h"
 #include "Pool.h"
+#include <Enums/eAreaCodes.h>
 
 // thanks to jte for reversing this
 struct ColDef {
     CRect  m_Area;
-    uint32 field_10;
-    uint32 field_14;
-    uint32 field_18;
-    uint32 field_1C;
-    uint16 field_20;
+    char   name[18]{};
     int16  m_nModelIdStart;
     int16  m_nModelIdEnd;
     uint16 m_nRefCount;
@@ -25,18 +22,12 @@ struct ColDef {
 };
 VALIDATE_SIZE(ColDef, 0x2C);
 
-typedef CPool<ColDef> CColPool;
-
-class CQuadTreeNode;
-
+using CColPool = CPool<ColDef>;
 class CColStore {
 public:
-    static CColPool*& ms_pColPool;
-    static CQuadTreeNode*& ms_pQuadTree;
-
-    static CVector& ms_vecCollisionNeeded;
-    static bool&    ms_bCollisionNeeded;
-    static int32    ms_nRequiredCollisionArea;
+    static inline auto& ms_vecCollisionNeeded = StaticRef<CVector>(0x965580);
+    static inline auto& ms_bCollisionNeeded = StaticRef<bool>(0x965558);
+    static inline auto& ms_EntityAreaCode = StaticRef<eAreaCodesS32>(0x965554);
 
 public:
     static void InjectHooks();
@@ -46,12 +37,13 @@ public:
     static int32 AddColSlot(const char* name);
     static void AddCollisionNeededAtPosn(const CVector& pos);
     static void AddRef(int32 colNum);
-    static int32 FindColSlot();
+    static int32 FindColSlot() { return -1; }
+    static int32 FindColSlot(const char*);
     static void BoundingBoxesPostProcess();
     static void EnsureCollisionIsInMemory(const CVector& pos);
     static CRect* GetBoundingBox(int32 colSlot);
     static void IncludeModelIndex(int32 colSlot, int32 modelId);
-    static bool HasCollisionLoaded(const CVector& pos, int32 areaCode);
+    static bool HasCollisionLoaded(const CVector& pos, eAreaCodes areaCode);
     static void LoadAllBoundingBoxes();
     static void LoadAllCollision();
     static void LoadCol(int32 colSlot, const char* filename);
@@ -61,9 +53,9 @@ public:
     static void RemoveCol(int32 colSlot);
     static void RemoveColSlot(int32 colSlot);
     static void RemoveRef(int32 colNum);
-    static void RequestCollision(const CVector& pos, int32 areaCode);
-    static void SetCollisionRequired(const CVector& pos, int32 areaCode);
-};
+    static void RequestCollision(const CVector& pos, eAreaCodes areaCode);
+    static void SetCollisionRequired(const CVector& pos, eAreaCodes areaCode);
 
-void SetIfCollisionIsRequired(const CVector2D& vecPos, void* data); // data is ColDef*
-void SetIfCollisionIsRequiredReducedBB(const CVector2D& vecPos, void* data); // data is ColDef*
+    static ColDef* GetInSlot(int32 slot);
+    static CColPool* GetPool();
+};

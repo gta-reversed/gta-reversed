@@ -14,7 +14,7 @@ class CEntity;
 
 class CFireManager {
 public:
-    CFire  m_aFires[MAX_NUM_FIRES];
+    std::array<CFire, MAX_NUM_FIRES> m_aFires;
     uint32 m_nMaxFireGenerationsAllowed;
 
 public:
@@ -25,7 +25,11 @@ public:
     void Shutdown();
 
     uint32 GetNumOfNonScriptFires();
-    CFire* FindNearestFire(const CVector& point, bool bCheckWasExtinguished, bool bCheckWasCreatedByScript);
+    CFire* FindNearestFire(const CVector& point, bool bCheckWasExtinguished = false, bool bCheckWasCreatedByScript = false);
+
+    /*!
+     * @return True when there are enough free or reusable fire slots available for allocation (i.e. according to a similar slot-availability logic used by `GetNextFreeFire`).
+     */
     bool PlentyFiresAvailable();
 
     void ExtinguishPoint(CVector point, float fRadiusSq);
@@ -48,7 +52,7 @@ public:
     void DestroyAllFxSystems();
 
     CFire* StartFire(CVector pos, float size, uint8 unused, CEntity* creator, uint32 nTimeToBurn, int8 nGenerations, uint8 unused_);
-    CFire* StartFire(CEntity* target, CEntity* creator, _IGNORED_ float size, _IGNORED_ uint8 arg3, uint32 time, int8 numGenerations);
+    CFire* StartFire(CEntity* target, CEntity* creator, _IGNORED_ float size = 0.8f, _IGNORED_ uint8 arg3 = 1, uint32 time = 7000, int8 numGenerations = 0);
     int32 StartScriptFire(const CVector& point, CEntity* target, _IGNORED_ float arg2, _IGNORED_ uint8 arg3, int8 numGenerations, int32 size);
 
     void Update();
@@ -57,18 +61,21 @@ public:
     uint32 GetNumOfFires();
     CFire& GetRandomFire();
 
+    // NOTSA
+    CFire& Get(size_t idx)
+    {
+        assert(m_aFires[idx].IsActive());
+        return m_aFires[idx];
+    }
+    auto GetIndexOf(const CFire* fire) const { return std::distance(m_aFires.data(), fire); }
 private:
     friend void InjectHooksMain();
     static void InjectHooks();
 
     CFireManager* Constructor();
     CFireManager* Destructor();
-
-    // NOTSA
-    CFire& Get(size_t idx) { return m_aFires[idx]; }
-    auto GetIndexOf(const CFire* fire) const { return std::distance(std::begin(m_aFires), fire); }
 };
 
 VALIDATE_SIZE(CFireManager, 0x964);
 
-extern CFireManager& gFireManager;
+static inline auto& gFireManager = StaticRef<CFireManager>(0xB71F80);

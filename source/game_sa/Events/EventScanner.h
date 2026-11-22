@@ -13,18 +13,30 @@ class CPed;
 
 class CPedAcquaintanceScanner {
 public:
-    static float& ms_fThresholdDotProduct;
+    static inline auto& ms_fThresholdDotProduct = StaticRef<float>(0xC0B034);
 
     CTaskTimer m_timer;
-    bool m_bScanAllowedScriptPed;
-    bool m_bScanAllowedInVehicle;
-    bool m_bScanAllowedScriptedTask;
+    bool       m_bScanAllowedScriptPed;
+    bool       m_bScanAllowedInVehicle;
+    bool       m_bScanAllowedScriptedTask;
+
+    void SetOnlyScriptPedAllowed() {
+        m_bScanAllowedScriptPed    = true;
+        m_bScanAllowedInVehicle    = false;
+        m_bScanAllowedScriptedTask = false;
+    }
+
+    void TurnOffAllScanners() {
+        m_bScanAllowedScriptPed    = false;
+        m_bScanAllowedInVehicle    = false;
+        m_bScanAllowedScriptedTask = false;
+    }
 };
 
 class CVehiclePotentialCollisionScanner {
 public:
     CTaskTimer m_timer;
-    void ScanForVehiclePotentialCollisionEvents(const CPed& ped, CEntity** entities, int32 count);
+    void       ScanForVehiclePotentialCollisionEvents(const CPed& ped, CEntity** entities, int32 count);
 };
 
 class CObjectPotentialCollisionScanner {
@@ -50,15 +62,7 @@ VALIDATE_SIZE(CNearbyFireScanner, 0xC);
 
 class CEventScanner {
 public:
-    uint32                            m_nNextScanTime;
-    CVehiclePotentialCollisionScanner m_vehiclePotentialCollisionScanner;
-    CObjectPotentialCollisionScanner  m_objectPotentialCollisionScanner;
-    CAttractorScanner                 m_attractorScanner;
-    CPedAcquaintanceScanner           m_pedAcquaintanceScanner;
-    CSexyPedScanner                   m_sexyPedScanner;
-    CNearbyFireScanner                m_nearbyFireScanner;
-
-    static inline uint32 m_sDeadPedWalkingTimer = *(uint32*)0xC0B038;
+    static inline auto& m_sDeadPedWalkingTimer = StaticRef<uint32>(0xC0B038);
 
 public:
     CEventScanner();
@@ -67,6 +71,29 @@ public:
     void Clear();
     void ScanForEvents(CPed& ped);
     void ScanForEventsNow(const CPed& ped, bool bDontScan);
+
+    auto& GetAcquaintanceScanner() {
+        return m_pedAcquaintanceScanner;
+    }
+
+    auto& GetVehiclePotentialCollisionScanner(this auto&& self) { return self.m_vehiclePotentialCollisionScanner; }
+    auto& GetObjectPotentialCollisionScanner(this auto&& self) { return self.m_objectPotentialCollisionScanner; }
+    auto& GetAttractorScanner(this auto&& self) { return self.m_attractorScanner; }
+    auto& GetPedAcquaintanceScanner(this auto&& self) { return self.m_pedAcquaintanceScanner; }
+    auto& GetSexyPedScanner(this auto&& self) { return self.m_sexyPedScanner; }
+    auto& GetNearbyFireScanner(this auto&& self) { return self.m_nearbyFireScanner; }
+
+public:
+    static void InjectHooks();
+
+private:
+    uint32                            m_nNextScanTime{};
+    CVehiclePotentialCollisionScanner m_vehiclePotentialCollisionScanner{};
+    CObjectPotentialCollisionScanner  m_objectPotentialCollisionScanner{};
+    CAttractorScanner                 m_attractorScanner{};
+    CPedAcquaintanceScanner           m_pedAcquaintanceScanner{};
+    CSexyPedScanner                   m_sexyPedScanner{};
+    CNearbyFireScanner                m_nearbyFireScanner{};
 };
 
 VALIDATE_SIZE(CEventScanner, 0xD4);

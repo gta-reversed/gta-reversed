@@ -6,35 +6,20 @@
 #include "TaskSimpleGetUp.h"
 
 void CTaskComplexGetUpAndStandStill::InjectHooks() {
-    RH_ScopedClass(CTaskComplexGetUpAndStandStill);
+    RH_ScopedVirtualClass(CTaskComplexGetUpAndStandStill, 0x870404, 11);
     RH_ScopedCategory("Tasks/TaskTypes");
     RH_ScopedInstall(Constructor, 0x678130);
     RH_ScopedInstall(CreateSubTask, 0x678170);
     // VTABLE
-    RH_ScopedVirtualInstall(CreateFirstSubTask, 0x6782A0);
-    RH_ScopedVirtualInstall(CreateNextSubTask, 0x678240);
-    RH_ScopedVirtualInstall(ControlSubTask, 0x6782B0);
+    RH_ScopedVMTInstall(CreateFirstSubTask, 0x6782A0);
+    RH_ScopedVMTInstall(CreateNextSubTask, 0x678240);
+    RH_ScopedVMTInstall(ControlSubTask, 0x6782B0);
 }
 
 // 0x678130
 CTaskComplexGetUpAndStandStill* CTaskComplexGetUpAndStandStill::Constructor() {
     this->CTaskComplexGetUpAndStandStill::CTaskComplexGetUpAndStandStill();
     return this;
-}
-
-// 0x6782A0
-CTask* CTaskComplexGetUpAndStandStill::CreateFirstSubTask(CPed* ped) {
-    return CreateFirstSubTask_Reversed(ped);
-}
-
-// 0x678240
-CTask* CTaskComplexGetUpAndStandStill::CreateNextSubTask(CPed* ped) {
-    return CreateNextSubTask_Reversed(ped);
-}
-
-// 0x6782B0
-CTask* CTaskComplexGetUpAndStandStill::ControlSubTask(CPed* ped) {
-    return ControlSubTask_Reversed(ped);
 }
 
 // 0x678170
@@ -50,11 +35,13 @@ CTask* CTaskComplexGetUpAndStandStill::CreateSubTask(eTaskType taskType) {
     }
 }
 
-CTask* CTaskComplexGetUpAndStandStill::CreateFirstSubTask_Reversed(CPed* ped) {
+// 0x6782A0
+CTask* CTaskComplexGetUpAndStandStill::CreateFirstSubTask(CPed* ped) {
     return CreateSubTask(TASK_SIMPLE_GET_UP);
 }
 
-CTask* CTaskComplexGetUpAndStandStill::CreateNextSubTask_Reversed(CPed* ped) {
+// 0x678240
+CTask* CTaskComplexGetUpAndStandStill::CreateNextSubTask(CPed* ped) {
     auto subTaskType = m_pSubTask->GetTaskType();
 
     if (subTaskType == TASK_SIMPLE_STAND_STILL)
@@ -63,7 +50,7 @@ CTask* CTaskComplexGetUpAndStandStill::CreateNextSubTask_Reversed(CPed* ped) {
     if (subTaskType == TASK_SIMPLE_GET_UP) {
         auto pSubTask = reinterpret_cast<CTaskSimpleGetUp*>(m_pSubTask);
 
-        if (pSubTask->m_bIsFinished)
+        if (pSubTask->m_bHasPedGotUp)
             return CreateSubTask(TASK_SIMPLE_STAND_STILL);
         else
             return CreateSubTask(TASK_FINISHED);
@@ -72,6 +59,7 @@ CTask* CTaskComplexGetUpAndStandStill::CreateNextSubTask_Reversed(CPed* ped) {
     return nullptr;
 }
 
-CTask* CTaskComplexGetUpAndStandStill::ControlSubTask_Reversed(CPed* ped) {
+// 0x6782B0
+CTask* CTaskComplexGetUpAndStandStill::ControlSubTask(CPed* ped) {
     return m_pSubTask;
 }

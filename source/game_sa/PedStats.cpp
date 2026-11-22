@@ -2,9 +2,9 @@
 
 #include "PedStats.h"
 
-constexpr uint16 PED_STATS_COUNT = 43;
+#include "DecisionMakers/DecisionMakerTypesFileLoader.h"
 
-CPedStat*& CPedStats::ms_apPedStats = *(CPedStat**)0xC0BBEC;
+constexpr uint16 PED_STATS_COUNT = 43;
 
 void CPedStats::InjectHooks() {
     RH_ScopedClass(CPedStats);
@@ -14,6 +14,7 @@ void CPedStats::InjectHooks() {
     RH_ScopedInstall(Shutdown, 0x608850);
     RH_ScopedInstall(LoadPedStats, 0x5BB890);
     RH_ScopedInstall(GetPedStatType, 0x6088D0);
+    RH_ScopedInstall(FindIndexWithPedStat, 0x608940);
 }
 
 // 0x5BF9D0
@@ -29,7 +30,7 @@ void CPedStats::Initialise() {
         ms_apPedStats[statIndex].m_nSexiness = 50;
         ms_apPedStats[statIndex].m_fAttackStrength = 1.0f;
         ms_apPedStats[statIndex].m_fDefendWeakness = 1.0f;
-        ms_apPedStats[statIndex].m_wShootingRate = 0;
+        ms_apPedStats[statIndex].m_flags = 0;
         ms_apPedStats[statIndex].m_nDefaultDecisionMaker = 0;
     }
     LoadPedStats();
@@ -62,10 +63,10 @@ void CPedStats::LoadPedStats() {
         int32 shootingRate;
         int32 defaultDecisionMaker;
 
-        sscanf(
+        VERIFY(sscanf_s(
             line,
             "%s %f %f %d %d %d %d %f %f %d %d",
-            name,
+            SCANF_S_STR(name),
             &fleeDistance,
             &headingChangeRate,
             &fear,
@@ -76,10 +77,10 @@ void CPedStats::LoadPedStats() {
             &defendWeakness,
             &shootingRate,
             &defaultDecisionMaker
-        );
+        ) == 11);
 
         ms_apPedStats[statIndex].m_nId = statIndex;
-        strcpy(ms_apPedStats[statIndex].m_acName, name);
+        rng::copy(name, ms_apPedStats[statIndex].m_acName);
         ms_apPedStats[statIndex].m_fFleeDistance = fleeDistance;
         ms_apPedStats[statIndex].m_fHeadingChangeRate = headingChangeRate;
         ms_apPedStats[statIndex].m_nFear = fear;
@@ -88,7 +89,7 @@ void CPedStats::LoadPedStats() {
         ms_apPedStats[statIndex].m_nSexiness = sexiness;
         ms_apPedStats[statIndex].m_fAttackStrength = attackStrength;
         ms_apPedStats[statIndex].m_fDefendWeakness = defendWeakness;
-        ms_apPedStats[statIndex].m_wShootingRate = shootingRate;
+        ms_apPedStats[statIndex].m_flags = shootingRate;
         ms_apPedStats[statIndex].m_nDefaultDecisionMaker = defaultDecisionMaker;
 
         statIndex++;
@@ -125,6 +126,11 @@ CPedStat* CPedStats::GetPedStatByArrayIndex(uint32 statIndex) {
 
 // unused
 // 0x608940
-void CPedStats::FindIndexWithPedStat(void* a1) {
-    plugin::Call<0x608940>();
+int32 CPedStats::FindIndexWithPedStat(const CPedStat* pedStat) {
+    for (auto i = 0; i < PED_STATS_COUNT; i++) {
+        if (&ms_apPedStats[i] == pedStat) {
+            return i;
+        }
+    }
+    return 0;
 }

@@ -8,12 +8,12 @@
 
 void CEventVehicleCollision::InjectHooks()
 {
-    RH_ScopedClass(CEventVehicleCollision);
+    RH_ScopedVirtualClass(CEventVehicleCollision, 0x85AC28, 16);
     RH_ScopedCategory("Events");
 
     RH_ScopedInstall(Constructor, 0x4AC840);
-    RH_ScopedVirtualInstall(Clone, 0x4B6BC0);
-    RH_ScopedVirtualInstall(AffectsPed, 0x4B2EE0);
+    RH_ScopedVMTInstall(Clone, 0x4B6BC0);
+    RH_ScopedVMTInstall(AffectsPed, 0x4B2EE0);
 }
 
 CEventVehicleCollision::CEventVehicleCollision(int16 pieceType, float damageIntensity, CVehicle* vehicle, const CVector& collisionImpactVelocity, const CVector& collisionPosition, int8 moveState, int16 evadeType)
@@ -22,10 +22,10 @@ CEventVehicleCollision::CEventVehicleCollision(int16 pieceType, float damageInte
     m_evadeType               = evadeType;
     m_fDamageIntensity        = damageIntensity;
     m_vehicle                 = vehicle;
-    m_collisionImpactVelocity = collisionImpactVelocity;
-    m_collisionPosition       = collisionPosition;
+    m_impactNormal = collisionImpactVelocity;
+    m_impactPos       = collisionPosition;
     m_moveState               = moveState;
-    field_31                  = 0;
+    m_DirectionToWalkRoundCar                  = 0;
     CEntity::SafeRegisterRef(m_vehicle);
 }
 
@@ -41,24 +41,8 @@ CEventVehicleCollision* CEventVehicleCollision::Constructor(int16 pieceType, flo
     return this;
 }
 
-// 0x4B6BC0
-CEvent* CEventVehicleCollision::Clone()
-{
-    return CEventVehicleCollision::Clone_Reversed();
-}
-
 // 0x4B2EE0
 bool CEventVehicleCollision::AffectsPed(CPed* ped)
-{
-    return CEventVehicleCollision::AffectsPed_Reversed(ped);
-}
-
-CEvent* CEventVehicleCollision::Clone_Reversed()
-{
-    return new CEventVehicleCollision(m_pieceType, m_fDamageIntensity, m_vehicle, m_collisionImpactVelocity, m_collisionPosition, m_moveState, VEHICLE_EVADE_NONE);
-}
-
-bool CEventVehicleCollision::AffectsPed_Reversed(CPed* ped)
 {
     if (!ped->IsAlive())
         return false;
@@ -71,7 +55,7 @@ bool CEventVehicleCollision::AffectsPed_Reversed(CPed* ped)
 
     if (ped->bInVehicle
         || m_vehicle->IsBoat()
-        || -DotProduct(m_collisionImpactVelocity, ped->GetForward()) < 0.35f)
+        || -DotProduct(m_impactNormal, ped->GetForward()) < 0.35f)
     {
         return false;
     }
@@ -79,20 +63,19 @@ bool CEventVehicleCollision::AffectsPed_Reversed(CPed* ped)
     CTask* pSimplestActiveTask = ped->GetTaskManager().GetSimplestActiveTask();
     if (pSimplestActiveTask && CTask::IsGoToTask(pSimplestActiveTask)) {
         auto* pGoToTask = static_cast<CTaskSimpleGoTo*>(pSimplestActiveTask);
-        int32 hitSide = CPedGeometryAnalyser::ComputeEntityHitSide(*ped, *m_vehicle);
-        if (hitSide == CPedGeometryAnalyser::ComputeEntityHitSide(pGoToTask->m_vecTargetPoint, *m_vehicle)) {
-            if (!m_vehicle->m_pTractor && !m_vehicle->m_pTrailer)
+        if (CPedGeometryAnalyser::ComputeEntityHitSide(*ped, *m_vehicle) == CPedGeometryAnalyser::ComputeEntityHitSide(pGoToTask->m_vecTargetPoint, *m_vehicle)) {
+            if (!m_vehicle->m_pTowingVehicle && !m_vehicle->m_pVehicleBeingTowed)
                 return false;
 
-            CVector boundingBoxPlanes[4];
-            float planes_D[4];
-            CPedGeometryAnalyser::ComputeEntityBoundingBoxPlanes(ped->GetPosition().z, *m_vehicle, boundingBoxPlanes, planes_D);
+            std::array<CVector, 4> bbPlanes{};
+            std::array<float, 4> bbPlaneDots{};
+            CPedGeometryAnalyser::ComputeEntityBoundingBoxPlanes(ped->GetPosition().z, *m_vehicle, bbPlanes, bbPlaneDots);
             int32 targetPointInPlanes = 0, pedInPlanes = 0;
             for (int32 i = 0; i < 4; i++) {
-                CVector& plane = boundingBoxPlanes[i];
-                if (DotProduct(pGoToTask->m_vecTargetPoint, plane) + planes_D[i] < 0.0f)
+                CVector& plane = bbPlanes[i];
+                if (DotProduct(pGoToTask->m_vecTargetPoint, plane) + bbPlaneDots[i] < 0.0f)
                     ++targetPointInPlanes;
-                if (DotProduct(ped->GetPosition(), plane) + planes_D[i] < 0.0f)
+                if (DotProduct(ped->GetPosition(), plane) + bbPlaneDots[i] < 0.0f)
                     ++pedInPlanes;
             }
             if (targetPointInPlanes != 4 && pedInPlanes != 4)
@@ -104,18 +87,18 @@ bool CEventVehicleCollision::AffectsPed_Reversed(CPed* ped)
     if (pActiveTask) {
         if (pActiveTask->GetTaskType() == TASK_COMPLEX_WALK_ROUND_CAR) {
             auto pTaskWalkRoundCar = reinterpret_cast<CTaskComplexWalkRoundCar*>(pActiveTask);
-            CVehicle* walkRoundVehicle = pTaskWalkRoundCar->m_vehicle;
+            CVehicle* walkRoundVehicle = pTaskWalkRoundCar->m_Veh;
             if (walkRoundVehicle == m_vehicle)
                 return false;
-            if ((m_vehicle->m_pTrailer && m_vehicle->m_pTrailer == walkRoundVehicle) ||
-                (m_vehicle->m_pTractor && m_vehicle->m_pTractor == walkRoundVehicle))
+            if ((m_vehicle->m_pVehicleBeingTowed && m_vehicle->m_pVehicleBeingTowed == walkRoundVehicle) ||
+                (m_vehicle->m_pTowingVehicle && m_vehicle->m_pTowingVehicle == walkRoundVehicle))
             {
                 pTaskWalkRoundCar->SetNewVehicle(m_vehicle, 0);
             }
         }
         else {
             auto pTaskHitPedWithCar = reinterpret_cast<CTaskComplexHitPedWithCar*>(pActiveTask);
-            if (pActiveTask->GetTaskType() == TASK_COMPLEX_HIT_PED_WITH_CAR && pTaskHitPedWithCar->m_vehicle == m_vehicle)
+            if (pActiveTask->GetTaskType() == TASK_COMPLEX_HIT_PED_WITH_CAR && pTaskHitPedWithCar->m_Veh == m_vehicle)
                 return false;
         }
     }

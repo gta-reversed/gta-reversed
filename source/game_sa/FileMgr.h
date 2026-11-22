@@ -16,8 +16,8 @@ static constexpr auto TopLineEmptyFile{ "THIS FILE IS NOT VALID YET" };
 
 class CFileMgr {
 public:
-    static char (&ms_dirName)[128];
-    static char (&ms_rootDirName)[128];
+    static inline auto& ms_dirName = StaticRef<char[128]>(0xb71a60);
+    static inline auto& ms_rootDirName = StaticRef<char[128]>(0xb71ae0);
 
     static void Initialise();
     static int32 ChangeDir(const char* path);
@@ -36,7 +36,12 @@ public:
     static int32 Tell(FILESTREAM file);
     static bool GetErrorReadWrite(FILESTREAM file);
 
+    //! Increment the file's seek pointer until after the next new line (`\n`) (make sure file is open in non-binary mode!)
+    static void SeekNextLine(FILESTREAM file);
+
 private:
     friend void InjectHooksMain();
     static void InjectHooks();
 };
+
+char* InitUserDirectories();

@@ -2,7 +2,7 @@
 
 #include "HudColours.h"
 
-CHudColours& HudColour = *reinterpret_cast<CHudColours*>(0xBAB22C);
+auto& HudColour = StaticRef<CHudColours>(0xBAB22C);
 
 void CHudColours::InjectHooks() {
     RH_ScopedClass(CHudColours);
@@ -47,19 +47,19 @@ void CHudColours::SetRGBAValue(eHudColours colorIndex, uint8 red, uint8 green, u
 
 // Get color from color table as integer value. "color" parameter - index of color in the table.
 // 0x58FD50
-uint32 CHudColours::GetIntColour(eHudColours colorIndex) {
+uint32 CHudColours::GetIntColour(eHudColours colorIndex) const {
     return m_aColours[colorIndex].ToInt();
 }
 
 // Get color RGB and set alpha manually. "color" parameter - index of color in the table.
 // 0x58FEA0
-CRGBA CHudColours::GetRGB(eHudColours colorIndex) {
+CRGBA CHudColours::GetRGB(eHudColours colorIndex) const {
     return m_aColours[colorIndex];
 }
 
 // Get color RGBA. "color" parameter - index of color in the table.
 // 0x58FEE0
-CRGBA CHudColours::GetRGBA(eHudColours index, uint8 alpha) {
+CRGBA CHudColours::GetRGBA(eHudColours index, uint8 alpha) const {
     auto& color = m_aColours[index];
     return CRGBA(color.r, color.g, color.b, alpha);
 }

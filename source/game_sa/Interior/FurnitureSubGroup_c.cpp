@@ -5,9 +5,9 @@ void FurnitureSubGroup_c::InjectHooks() {
     RH_ScopedClass(FurnitureSubGroup_c);
     RH_ScopedCategory("Interior");
 
-    // RH_ScopedInstall(GetFurniture, 0x590EE0);
-    // RH_ScopedInstall(GetRandomId, 0x590FD0);
-    // RH_ScopedInstall(AddFurniture, 0x5C00C0);
+    RH_ScopedInstall(GetFurniture, 0x590EE0, { .Reversed = false });
+    RH_ScopedInstall(GetRandomId, 0x590FD0, { .Reversed = false });
+    RH_ScopedInstall(AddFurniture, 0x5C00C0, { .Reversed = false });
 }
 
 // 0x5C00C0
@@ -23,4 +23,8 @@ Furniture_c* FurnitureSubGroup_c::GetFurniture(int16 id, uint8 wealth) {
 // 0x590FD0
 int32 FurnitureSubGroup_c::GetRandomId(uint8 a2) {
     return plugin::CallMethodAndReturn<int32, 0x590FD0, FurnitureSubGroup_c*, uint8>(this, a2);
+}
+
+void FurnitureSubGroup_c::Exit() {
+    m_Furnitures.RemoveAll();
 }

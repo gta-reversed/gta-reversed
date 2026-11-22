@@ -9,11 +9,11 @@
 #include "ColSphere.h"
 #include "ColBox.h"
 #include "ColLine.h"
-#include "CompressedVector.h"
 #include "ColTriangle.h"
 #include "ColTrianglePlane.h"
 #include "ColDisk.h"
 #include "Link.h"
+#include "CompressedVector.h"
 
 namespace ColHelpers {
 struct TFaceGroup;
@@ -55,25 +55,25 @@ public:
     //
     // The following is only true if `bHasFaceGroups` flag is set (Which is the case only when loaded by `CFileLoader::LoadCollisionModelVer2/3/4`). **
     // All the data is basically stored in a big buffer, and all the data pointers - except `m_pTrianglePlanes` - point into it.
-    // If case the flag `bHasFaceGroups` is set there's an array of `TFaceGroup` before the triangles, but there's no pointer to it.
+    // In case the flag `bHasFaceGroups` is set there's an array of `TFaceGroup` before the triangles, but there's no pointer to it.
     // In order to access it you have to do some black magic with `pTriangles`. Here's the memory layout of the `TFaceGroups` data:
     //
     // FaceGroup[]          - -0x8 - And growing downwards by `sizeof(FaceGroup)` (Which is 28)
     // uint32 nFaceGroups;  - -0x4
     // <Triangles>          - FaceGroup data is before the triangles!
     //
-    // Whenever accessing this section make sure both `CColModel::bSingleAlloc` and `CCollisionData::bHasFaceGroups` is set
+    // Whenever accessing this section make sure both `CColModel::bSingleAlloc` and `bHasFaceGroups` is set
     // (also, please, assert if `bHasFaceGroups` is set but `bSingleAlloc` isnt)
     //
     // NOTEs:
     // ** Col models may also be loaded by the Collision plugin from a clump file - In this case `CFileLoader::LoadCollisionModelVer2/3` is called, but then
     //    the col data is reallocated using `MakeMultipleAlloc` which uses `Copy` to copy the data, in this case the face groups aren't copied. (And the flag is set to false in the ctor)
-    CColTriangle*      m_pTriangles;            // 0x18
-    CColTrianglePlane* m_pTrianglePlanes;       // 0x1C
-    uint32             m_nNumShadowTriangles;   // 0x20
-    uint32             m_nNumShadowVertices;    // 0x24
-    CompressedVector*  m_pShadowVertices;       // 0x28
-    CColTriangle*      m_pShadowTriangles;      // 0x2C
+    CColTriangle*      m_pTriangles;          // 0x18
+    CColTrianglePlane* m_pTrianglePlanes;     // 0x1C
+    uint32             m_nNumShadowTriangles; // 0x20
+    uint32             m_nNumShadowVertices;  // 0x24
+    CompressedVector*  m_pShadowVertices;     // 0x28
+    CColTriangle*      m_pShadowTriangles;    // 0x2C
 
     // <size 0x30>
 
@@ -90,14 +90,24 @@ public:
     CLink<CCollisionData*>* GetLinkPtr();
 
     // NOTSA section
-    [[nodiscard]] auto GetNumFaceGroups() const -> uint32;
+    auto GetNumFaceGroups() const -> uint32;
 
-    [[nodiscard]] auto GetSpheres() const { return std::span{ m_pSpheres, m_nNumSpheres }; }
-    [[nodiscard]] auto GetBoxes()   const { return std::span{ m_pBoxes, m_nNumBoxes }; }
-    [[nodiscard]] auto GetTris()    const { return std::span{ m_pTriangles, m_nNumTriangles }; }
-    [[nodiscard]] auto GetLines()   const { return std::span{ m_pLines, m_nNumLines }; }
+    auto GetSpheres()        const { return std::span{ m_pSpheres, m_nNumSpheres }; }
+    auto GetBoxes()          const { return std::span{ m_pBoxes, m_nNumBoxes }; }
+                             
+    auto GetNumTris()        const { return m_nNumTriangles; }
+    auto GetTris()           const { return std::span{ m_pTriangles, m_nNumTriangles }; }
+    auto GetTriVerts()       const { return m_pVertices; } // Sadly there's no easy way to provide a span here - we don't know the number of vertices, and finding it is expensive
+    auto GetTriPlanes()      const { return std::span{ m_pTrianglePlanes, m_nNumTriangles }; }
+                             
+    auto GetShdwTris()       const { return std::span{ m_pShadowTriangles, m_nNumShadowTriangles }; }
+    auto GetShdwTriVerts()   const { return std::span{ m_pShadowVertices, m_nNumShadowVertices }; }
+                             
+    auto GetLines()          const { return std::span{ m_pLines, m_nNumLines }; }
+                             
+    auto GetFaceGroups()     const -> std::span<ColHelpers::TFaceGroup>;
 
-    [[nodiscard]] auto GetFaceGroups() const -> std::span<ColHelpers::TFaceGroup>;
+    [[nodiscard]] auto GetTriVertices(const CColTriangle& tri) const->std::array<CVector, 3>;
 
     void AllocateLines(uint32 num);
 

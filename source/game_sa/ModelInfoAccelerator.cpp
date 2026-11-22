@@ -45,7 +45,7 @@ void CModelInfoAccelerator::GetEntry(CBaseModelInfo** mi, int32* arg1, char* arg
 
 // 0x4C6C20
 bool CModelInfoAccelerator::Begin(const char* filePath) {
-    strcpy(m_szFilePath, filePath);
+    strcpy_s(m_szFilePath, filePath);
     if (field_1A)
         return field_1A;
 
@@ -79,7 +79,7 @@ void CModelInfoAccelerator::EndOfLoadPhase() {
             CFileMgr::Write(file, m_pIDs, BUFFER_SIZE);
             CFileMgr::CloseFile(file);
         } else { // FIX_BUGS
-            DEV_LOG("Failed to open file %s in CModelInfoAccelerator::EndOfLoadPhase", m_szFilePath);
+            NOTSA_LOG_DEBUG("Failed to open file {} in CModelInfoAccelerator::EndOfLoadPhase", m_szFilePath);
             CFileMgr::CloseFile(file);
         }
     }

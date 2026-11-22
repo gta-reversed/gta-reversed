@@ -4,29 +4,30 @@
 // #include "TaskComplexTurnToFaceEntityOrCoord.h"
 
 void CTaskComplexGangJoinRespond::InjectHooks() {
-    RH_ScopedClass(CTaskComplexGangJoinRespond);
+    RH_ScopedVirtualClass(CTaskComplexGangJoinRespond, 0x86FB5C, 11);
     RH_ScopedCategory("Tasks/TaskTypes");
 
     RH_ScopedInstall(Constructor, 0x6616F0);
     RH_ScopedInstall(Destructor, 0x661720);
-    // RH_ScopedInstall(Clone_Reversed, 0x662290);
-    // RH_ScopedInstall(MakeAbortable_Reversed, 0x661790);
-    // RH_ScopedInstall(CreateNextSubTask_Reversed, 0x6617A0);
-    // RH_ScopedInstall(CreateFirstSubTask_Reversed, 0x6618D0);
-    // RH_ScopedInstall(ControlSubTask_Reversed, 0x661950);
+
+    RH_ScopedVMTInstall(Clone, 0x662290, { .Reversed = false });
+    RH_ScopedVMTInstall(MakeAbortable, 0x661790);
+    RH_ScopedVMTInstall(CreateNextSubTask, 0x6617A0, { .Reversed = false });
+    RH_ScopedVMTInstall(CreateFirstSubTask, 0x6618D0, { .Reversed = false });
+    RH_ScopedVMTInstall(ControlSubTask, 0x661950, { .Reversed = false });
 }
 
 // 0x6616F0
-CTaskComplexGangJoinRespond::CTaskComplexGangJoinRespond(uint8 a2) : CTaskComplex() {
-    byteC = a2;
-    m_bAnimBlockRefAdded = false;
+CTaskComplexGangJoinRespond::CTaskComplexGangJoinRespond(bool response) :
+    m_response{response}
+{
 }
 
 // 0x661720
 CTaskComplexGangJoinRespond::~CTaskComplexGangJoinRespond() {
-    if (m_bAnimBlockRefAdded) {
+    if (m_animsReferenced) {
         CAnimManager::RemoveAnimBlockRef(CAnimManager::GetAnimationBlockIndex("gangs"));
-        m_bAnimBlockRefAdded = false;
+        m_animsReferenced = false;
     }
 }
 

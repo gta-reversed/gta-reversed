@@ -50,6 +50,13 @@ RwMatrix* RpHAnimHierarchyGetMatrixArray(RpHAnimHierarchy* hierarchy) {
     return ((RwMatrix*(__cdecl *)(RpHAnimHierarchy*))0x7C5120)(hierarchy);
 }
 
+// NOTSA
+RwMatrix* RpHAnimHierarchyGetNodeMatrix(RpHAnimHierarchy* hierarchy, RwInt32 nodeID) {
+    const auto i = RpHAnimIDGetIndex(hierarchy, nodeID);
+    assert(i >= 0 && i < hierarchy->numNodes);
+    return &RpHAnimHierarchyGetMatrixArray(hierarchy)[i];
+}
+
 RwBool RpHAnimHierarchyUpdateMatrices(RpHAnimHierarchy* hierarchy) {
     return ((RwBool(__cdecl *)(RpHAnimHierarchy*))0x7C51D0)(hierarchy);
 }

@@ -23,6 +23,8 @@ struct tBikeHandlingData {
     float m_fWheelieSteer;
     float m_fWheelieStabMult;
     float m_fStoppieStabMult;
+
+    int32 InitFromData(int32 id, const char* line);
 };
 
 VALIDATE_SIZE(tBikeHandlingData, 0x40);

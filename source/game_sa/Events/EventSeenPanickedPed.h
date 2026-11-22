@@ -1,6 +1,9 @@
 #pragma once
 
-class CEventSeenPanickedPed : public CEventEditableResponse {
+#include "EventEditableResponse.h"
+
+
+class NOTSA_EXPORT_VTABLE CEventSeenPanickedPed : public CEventEditableResponse {
 public:
     CPed* m_ped;
 
@@ -13,12 +16,11 @@ public:
     int32 GetLifeTime() override { return 0; }
     bool AffectsPed(CPed* ped) override;
     CEntity* GetSourceEntity() const override { return m_ped;}
-    CEventSeenPanickedPed* CloneEditable() override { return new CEventSeenPanickedPed(m_ped); }
+    CEventSeenPanickedPed* CloneEditable() const noexcept override { return new CEventSeenPanickedPed(m_ped); }
 
 private:
     friend void InjectHooksMain();
     static void InjectHooks();
     CEventSeenPanickedPed* Constructor(CPed* ped);
-    bool AffectsPed_Reversed(CPed* ped);
 };
 VALIDATE_SIZE(CEventSeenPanickedPed, 0x18);

@@ -1,19 +1,5 @@
 #include "StdInc.h"
-
 #include "BoundingBox.h"
-
-int32& numBBFailed = *(int32*)0xB71808;
-
-CBoundingBox::CBoundingBox()
-{
-    m_vecMin.Set(1.0F, 1.0F, 1.0F);
-    m_vecMax.Set(-1.0F, -1.0F, -1.0F);
-}
-
-CBoundingBox::CBoundingBox(CVector vecMin, CVector vecMax) {
-    m_vecMin = vecMin;
-    m_vecMax = vecMax;
-}
 
 // 0x49C300
 bool CBoundingBox::IsPointWithin(const CVector& point) const {

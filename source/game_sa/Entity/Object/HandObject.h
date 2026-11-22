@@ -8,7 +8,7 @@
 
 #include "Object.h"
 
-class CHandObject : public CObject {
+class NOTSA_EXPORT_VTABLE CHandObject : public CObject {
 public:
     class CPed* m_pPed;
     uint32      m_nBoneIndex;
@@ -27,9 +27,6 @@ public:
     void Render() override;
 
 private:
-    void ProcessControl_Reversed();
-    void PreRender_Reversed();
-    void Render_Reversed();
 };
 
 VALIDATE_SIZE(CHandObject, 0x18C);

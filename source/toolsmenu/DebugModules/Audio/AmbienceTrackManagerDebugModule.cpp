@@ -5,24 +5,42 @@
 #include <imgui.h>
 #include "AEAmbienceTrackManager.h"
 
-namespace AmbienceTrackManagerDebugModule {
+void AmbienceTrackManagerDebugModule::RenderWindow() {
+    const notsa::ui::ScopedWindow window{ "Ambience Track Manager", {400.f, 600.f}, m_IsOpen, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize };
+    if (!m_IsOpen) {
+        return;
+    }
 
-void ProcessImGui() {
-    ImGui::Text("Stop %s",                           AEAmbienceTrackManager.m_bStop ? "true" : "false");
-    ImGui::Text("Stop Prev %s",                      AEAmbienceTrackManager.m_bStopPrev ? "true" : "false");
-    ImGui::Text("b3 %s",                             AEAmbienceTrackManager.m_b3 ? "true" : "false");
-    ImGui::Text("Is Ambience Radio Active %d",       AEAmbienceTrackManager.m_IsAmbienceRadioActive);
-    ImGui::Text("Channel Id %d",                     AEAmbienceTrackManager.m_nChannel);
-    ImGui::Text("Special Mission Ambience Track %d", AEAmbienceTrackManager.m_nSpecialMissionAmbienceTrack);
-    ImGui::Text("Track Play Time %d",                AEAmbienceTrackManager.m_nTrackPlayTime);
-    ImGui::Text("Time In Ms %d",                     AEAmbienceTrackManager.m_nTimeInMs);
-    ImGui::InputFloat("Volume %f",                  &AEAmbienceTrackManager.m_nVolume);
-    ImGui::SliderFloat("Frequency %f",              &AEAmbienceTrackManager.m_fFreqFactor, 0.0f, 1.0f);
-    ImGui::InputInt("Track Id %d",                  &AEAmbienceTrackManager.m_nTrackId);
-    ImGui::Text("dword24 %d",                        AEAmbienceTrackManager.dword24);
-    ImGui::Text("byte28 %d",                         AEAmbienceTrackManager.byte28);
+    if (ImGui::BeginTable("AmbienceTrackManagerDebugModule", 2, ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_Borders)) {
+        const auto KVRow = [](const char* label, const char* vfmt, auto v) {
+            ImGui::TableNextColumn();
+            ImGui::Text(label);
+
+            ImGui::TableNextColumn();
+            ImGui::Text(vfmt, v);
+        };
+
+        KVRow("Stop",                             "%s", AEAmbienceTrackManager.m_OverrideRadio ? "true" : "false");
+        KVRow("Stop Prev",                        "%s", AEAmbienceTrackManager.m_LastAmbienceOverrodeRadio ? "true" : "false");
+        KVRow("StartAmbienceAtBeginning",         "%s", AEAmbienceTrackManager.m_StartAmbienceAtBeginning ? "true" : "false");
+        KVRow("Is Ambience Radio Active",         "%d", AEAmbienceTrackManager.m_AmbienceRadioStation);
+        KVRow("HwClientHandle",                   "%d", AEAmbienceTrackManager.m_HwClientHandle);
+        KVRow("Special Mission Ambience Track",   "%d", AEAmbienceTrackManager.m_SpecialMissionAmbienceTrackID);
+        KVRow("PrevAmbiencePlayTimeMs",           "%d", AEAmbienceTrackManager.m_PrevAmbiencePlayTimeMs);
+        KVRow("PrevAmbienceStopTimeMs",           "%d", AEAmbienceTrackManager.m_PrevAmbienceStopTimeMs);
+        KVRow("RequestedSettings.PlayingTrackID", "%d", AEAmbienceTrackManager.m_RequestedSettings.PlayingTrackID);
+        KVRow("RequestedSettings.TrackFlags",     "%d", AEAmbienceTrackManager.m_RequestedSettings.TrackFlags);
+
+        ImGui::EndTable();
+    }
+
+    ImGui::SliderFloat("Volume %f",    &AEAmbienceTrackManager.m_Volume, -100.f, 100.f, NULL, ImGuiSliderFlags_Logarithmic);
+    ImGui::SliderFloat("Frequency %f", &AEAmbienceTrackManager.m_FreqFactor, 0.0f, 100.0f, NULL, ImGuiSliderFlags_Logarithmic);
+    ImGui::InputInt("Track Id %d",     &AEAmbienceTrackManager.m_RequestedSettings.PlayingTrackID);
 }
 
-void ProcessRender() {}
-
-} // namespace AmbienceTrackManagerDebugModule
+void AmbienceTrackManagerDebugModule::RenderMenuEntry() {
+    notsa::ui::DoNestedMenuIL({ "Extra", "Audio" }, [&] {
+        ImGui::MenuItem("Ambience Track Manager", nullptr, &m_IsOpen);
+    });
+}

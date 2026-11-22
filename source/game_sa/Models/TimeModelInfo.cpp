@@ -3,12 +3,11 @@
 #include "ModelInfo.h"
 
 void CTimeModelInfo::InjectHooks() {
-    RH_ScopedClass(CTimeModelInfo);
+    RH_ScopedVirtualClass(CTimeModelInfo, 0x85BCB0, 16);
     RH_ScopedCategory("Models");
 
-    RH_ScopedVirtualInstall(GetModelType, 0x4C5660);
-    RH_ScopedVirtualInstall(GetTimeInfo, 0x4C5670);
-    // RH_ScopedInstall(FindOtherTimeModel, 0x4C47E0);
+    RH_ScopedVMTInstall(GetModelType, 0x4C5660);
+    RH_ScopedVMTInstall(GetTimeInfo, 0x4C5670);
 }
 
 // 0x4C5660
@@ -21,10 +20,3 @@ CTimeInfo* CTimeModelInfo::GetTimeInfo() {
     return &m_timeInfo;
 }
 
-ModelInfoType CTimeModelInfo::GetModelType_Reversed() {
-    return CTimeModelInfo::GetModelType();
-}
-
-CTimeInfo* CTimeModelInfo::GetTimeInfo_Reversed() {
-    return CTimeModelInfo::GetTimeInfo();
-}

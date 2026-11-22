@@ -5,22 +5,22 @@
 #include "TaskComplexGoToPointAndStandStill.h"
 
 void CTaskComplexGoToBoatSteeringWheel::InjectHooks() {
-    RH_ScopedClass(CTaskComplexGoToBoatSteeringWheel);
+    RH_ScopedVirtualClass(CTaskComplexGoToBoatSteeringWheel, 0x86f018, 11);
     RH_ScopedCategory("Tasks/TaskTypes");
 
     RH_ScopedInstall(Constructor, 0x649090);
     RH_ScopedInstall(Destructor, 0x649100);
-    // RH_ScopedInstall(Clone, 0x64A350);
-    // RH_ScopedInstall(CreateNextSubTask, 0x64E350);
-    // RH_ScopedInstall(CreateFirstSubTask, 0x64E390);
-    // RH_ScopedInstall(ControlSubTask, 0x64E3B0);
+
+    RH_ScopedVMTInstall(Clone, 0x64A350);
+    RH_ScopedVMTInstall(CreateNextSubTask, 0x64E350);
+    RH_ScopedVMTInstall(CreateFirstSubTask, 0x64E390);
+    RH_ScopedVMTInstall(ControlSubTask, 0x64E3B0);
 }
 
 // 0x649090
-CTaskComplexGoToBoatSteeringWheel::CTaskComplexGoToBoatSteeringWheel(CVehicle* vehicle) : CTaskComplex() {
-    m_Vehicle = vehicle;
-    byte1C = false;
-    m_FirstSubTaskStartTime = 0;
+CTaskComplexGoToBoatSteeringWheel::CTaskComplexGoToBoatSteeringWheel(CVehicle* vehicle) :
+    m_Vehicle{vehicle}
+{
     CEntity::SafeRegisterRef(m_Vehicle);
 }
 
@@ -35,16 +35,16 @@ CTask* CTaskComplexGoToBoatSteeringWheel::CreateNextSubTask(CPed* ped) {
     case TASK_SIMPLE_STAND_STILL:
         return CreateSubTask(TASK_FINISHED);
     case TASK_COMPLEX_GO_TO_POINT_AND_STAND_STILL:
-        byte1C = true;
+        m_bAchievedPoint = true;
         return CreateSubTask(TASK_FINISHED);
     default:
-        return nullptr;
+        NOTSA_UNREACHABLE();
     }
 }
 
 // 0x649160
 void CTaskComplexGoToBoatSteeringWheel::ComputeTargetPos() {
-    assert(false);
+    m_TargetPos = m_Vehicle->GetDummyPosition(m_Vehicle->IsBoat() ? DUMMY_LIGHT_FRONT_MAIN : DUMMY_SEAT_FRONT);
 }
 
 // 0x64CDA0
@@ -58,7 +58,7 @@ CTask* CTaskComplexGoToBoatSteeringWheel::CreateSubTask(eTaskType taskType) {
     case TASK_FINISHED:
         return nullptr;
     default:
-        return nullptr;
+        NOTSA_UNREACHABLE();
     }
 }
 
@@ -70,5 +70,28 @@ CTask* CTaskComplexGoToBoatSteeringWheel::CreateFirstSubTask(CPed* ped) {
 
 // 0x64E3B0
 CTask* CTaskComplexGoToBoatSteeringWheel::ControlSubTask(CPed* ped) {
-    return plugin::CallMethodAndReturn<CTask*, 0x64E3B0, CTaskComplexGoToBoatSteeringWheel*, CPed*>(this, ped);
+    if (ped->IsPlayer()) {
+        if (m_Vehicle) {
+            if (CCarEnterExit::IsPlayerToQuitCarEnter(ped, m_Vehicle, m_FirstSubTaskStartTime, m_pSubTask)) {
+                return CreateSubTask(TASK_SIMPLE_STAND_STILL);
+            }
+        }
+    }
+
+    // Possibly adjust goto point (if it has changed significantly)
+    if (const auto subSubTask = m_pSubTask->GetSubTask()) {
+        if (subSubTask->GetTaskType() != TASK_SIMPLE_STAND_STILL) {
+            assert(m_pSubTask->GetTaskType() == TASK_COMPLEX_GO_TO_POINT_AND_STAND_STILL);
+            const auto subTaskGoTo = static_cast<CTaskComplexGoToPointAndStandStill*>(m_pSubTask);
+            ComputeTargetPos();
+            if ((m_TargetPos - subTaskGoTo->m_vecTargetPoint).SquaredMagnitude() > sq(0.2f)) {
+                if (subTaskGoTo->m_fMoveStateRadius != 2.f || m_TargetPos != subTaskGoTo->m_vecTargetPoint) {
+                    subTaskGoTo->GoToPoint(m_TargetPos, 0.5f, 2.f);
+                }
+            }
+                
+        }
+    }
+
+    return m_pSubTask;
 }

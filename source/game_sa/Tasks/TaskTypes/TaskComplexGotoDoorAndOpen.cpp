@@ -3,16 +3,16 @@
 #include "TaskComplexGotoDoorAndOpen.h"
 
 void CTaskComplexGotoDoorAndOpen::InjectHooks() {
-    RH_ScopedClass(CTaskComplexGotoDoorAndOpen);
+    RH_ScopedVirtualClass(CTaskComplexGotoDoorAndOpen, 0x86FFC0, 11);
     RH_ScopedCategory("Tasks/TaskTypes");
 
     RH_ScopedOverloadedInstall(Constructor, "0", 0x66BB20, CTaskComplexGotoDoorAndOpen*(CTaskComplexGotoDoorAndOpen::*)(CObject *));
     RH_ScopedOverloadedInstall(Constructor, "1", 0x66BBA0, CTaskComplexGotoDoorAndOpen*(CTaskComplexGotoDoorAndOpen::*)(CVector const&, CVector const&));
     RH_ScopedInstall(Destructor, 0x66BC00);
-    // RH_ScopedInstall(Clone, 0x66BCA0);
-    // RH_ScopedInstall(CreateNextSubTask, 0x66C0D0);
-    // RH_ScopedInstall(CreateFirstSubTask, 0x66BD40);
-    // RH_ScopedInstall(ControlSubTask, 0x66C1F0);
+    RH_ScopedInstall(Clone, 0x66BCA0, { .Reversed = false });
+    RH_ScopedInstall(CreateNextSubTask, 0x66C0D0, { .Reversed = false });
+    RH_ScopedInstall(CreateFirstSubTask, 0x66BD40, { .Reversed = false });
+    RH_ScopedInstall(ControlSubTask, 0x66C1F0, { .Reversed = false });
 }
 
 // 0x66BB20
@@ -47,7 +47,7 @@ CTaskComplexGotoDoorAndOpen::~CTaskComplexGotoDoorAndOpen() {
 }
 
 // 0x66BCA0
-CTask* CTaskComplexGotoDoorAndOpen::Clone() {
+CTask* CTaskComplexGotoDoorAndOpen::Clone() const {
     if ((m_nFlags & 1) != 0) { // todo: flags
         return new CTaskComplexGotoDoorAndOpen(m_Object);
     } else {

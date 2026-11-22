@@ -6,7 +6,7 @@ class CEntity;
 class CVehicle;
 enum eWeaponType : uint32;
 
-class CEventVehicleDamage : public CEventEditableResponse {
+class NOTSA_EXPORT_VTABLE CEventVehicleDamage : public CEventEditableResponse {
 public:
     CVehicle*   m_vehicle;
     CEntity*    m_attacker;
@@ -28,10 +28,6 @@ public:
 
 private:
     CEventVehicleDamage* Constructor(CVehicle* vehicle, CEntity* attacker, eWeaponType weaponType);
-    bool AffectsPed_Reversed(CPed* ped);
-    bool IsCriminalEvent_Reversed();
-    void ReportCriminalEvent_Reversed(CPed* ped);
-    CEntity* GetSourceEntity_Reversed() const;
 };
 
 VALIDATE_SIZE(CEventVehicleDamage, 0x20);

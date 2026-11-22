@@ -15,8 +15,9 @@ void CTaskTimer::InjectHooks() {
 
 // 0x420E30
 bool CTaskTimer::IsOutOfTime() {
-    if (!m_bStarted)
+    if (!m_bStarted) {
         return false;
+    }
 
     if (m_bStopped) {
         m_nStartTime = CTimer::GetTimeInMS();

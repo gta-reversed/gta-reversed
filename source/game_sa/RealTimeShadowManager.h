@@ -9,11 +9,11 @@ public:
     static constexpr int32 NUM_REALTIME_SHADOWS = 16;
 
 public:
-    char             m_bInitialised;
-    char             m_bNeedsReinit;
-    CRealTimeShadow* m_apShadows[NUM_REALTIME_SHADOWS];
-    CShadowCamera    m_BlurCamera;
-    CShadowCamera    m_GradientCamera[4];
+    char             m_bInitialised{};
+    char             m_bNeedsReinit{}; // AKA `m_bNotReInitialized`
+    CRealTimeShadow* m_apShadows[NUM_REALTIME_SHADOWS]{};
+    CShadowCamera    m_BlurCamera{};
+    CShadowCamera    m_GradientCamera{};
 
 public:
     static void InjectHooks();
@@ -27,5 +27,6 @@ public:
     void             DoShadowThisFrame(CPhysical* physical);
     void             ReturnRealTimeShadow(CRealTimeShadow* pShadow);
 };
+VALIDATE_SIZE(CRealTimeShadowManager, 0x54);
 
 extern CRealTimeShadowManager& g_realTimeShadowMan;

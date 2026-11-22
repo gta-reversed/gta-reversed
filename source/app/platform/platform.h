@@ -1,21 +1,9 @@
 #pragma once
 
-#define APP_CLASS "Grand theft auto San Andreas"
-
-#define APP_MINIMAL_WIDTH             640
-#define APP_MINIMAL_HEIGHT            480
-
-#define APP_DEFAULT_WIDTH             800
-#define APP_DEFAULT_HEIGHT            600
-
-#define APP_MAX_FPS                   30
-
-float IsWideScreenRatio(float ratio);
-float IsFullScreenRatio(float ratio);
+bool IsWideScreenRatio(float ratio);
+bool IsFullScreenRatio(float ratio);
 #define IS_WIDESCREEN_RATIO(ratio) IsWideScreenRatio(ratio)
 #define IS_FULLSCREEN_RATIO(ratio) IsFullScreenRatio(ratio)
-
-#define GAME_LEVEL_FILE "DATA//GTA.DAT"
 
 void RsInjectHooks();
 
@@ -68,7 +56,7 @@ RwCamera* RsCameraShowRaster(RwCamera* camera);
 /**
  * Platform Specific
  */
-bool psInitialize();
+RwBool psInitialize();
 void psTerminate();
 
 void psWindowSetText(const char* str);

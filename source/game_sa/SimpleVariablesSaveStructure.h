@@ -9,7 +9,7 @@ class CVector;
 class CSimpleVariablesSaveStructure {
 public:
     uint32       m_nVersionId;
-    char         m_szSaveName[100];
+    GxtChar      m_szSaveName[100];
     bool         m_bMissionPackGame;
     int32        m_nCurrLevel;
     CVector      m_vecCamPosn;
@@ -49,7 +49,7 @@ public:
     uint32       m_nWaterConfiguration;
     bool         m_bLARiots;
     bool         m_bLARiots_NoPoliceCar;
-    uint32       m_nMaximumWantedLevel;
+    eWantedLevel m_nMaximumWantedLevel;
     uint32       m_nMaxChaos;
     bool         m_bFrenchGame;
     bool         m_bGermanGame;

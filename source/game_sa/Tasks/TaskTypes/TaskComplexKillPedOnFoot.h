@@ -9,45 +9,55 @@
 #include "TaskComplex.h"
 #include "TaskTimer.h"
 #include "TaskComplex.h"
+#include "Ped.h"
 
-class CTaskComplexKillPedOnFoot : public CTaskComplex {
-public:
-    uint8      m_bit_1 : 1;
-    uint8      m_bit_2 : 1;
-    uint8      m_bit_3 : 1;
-    uint8      m_bit_4 : 1;
-    uint8      m_bit_5 : 1;
-    uint8      m_bit_6 : 1;
-    uint8      m_bit_7 : 1;
-    uint8      m_bit_8 : 1;
-    CPed*      m_target;
-    int32      m_pedFlags;
-    int32      m_actionDelay;
-    int32      m_actionChance;
-    uint8      field_20;
-    uint32     m_startTime;
-    uint32     m_time;
-    CTaskTimer m_timer;
-
+class NOTSA_EXPORT_VTABLE CTaskComplexKillPedOnFoot : public CTaskComplex {
 public:
     static constexpr auto Type = TASK_COMPLEX_KILL_PED_ON_FOOT;
 
-    CTaskComplexKillPedOnFoot(CPed* target, int32 time, int32 pedFlags, int32 delay, int32 chance, int8 a7);
-    ~CTaskComplexKillPedOnFoot() override;
+    CTaskComplexKillPedOnFoot(
+        CPed* target,
+        int32 time = -1,
+        int32 pedFlags = 0,
+        int32 delay = 0,
+        int32 chance = 0,
+        uint8 nCompetence = 1,
+        /* VVV notsa VVV */
+        bool bWaitForPlayerToBeSafe = false,
+        bool bWaitingForPlayerToBeSafe = false
+    );
+    CTaskComplexKillPedOnFoot(const CTaskComplexKillPedOnFoot&);
+    ~CTaskComplexKillPedOnFoot() override = default;
 
-    eTaskType GetTaskType() override { return Type; }
-    CTask* Clone() override { return new CTaskComplexKillPedOnFoot(m_target, m_time, m_pedFlags, m_actionDelay, m_actionChance, field_20); }
-    bool   MakeAbortable(CPed* ped, eAbortPriority priority, const CEvent* event) override;
+    eTaskType GetTaskType() const override { return Type; }
+    CTask* Clone() const override { return new CTaskComplexKillPedOnFoot{ *this }; }
+    bool      MakeAbortable(CPed* ped, eAbortPriority priority = ABORT_PRIORITY_URGENT, const CEvent* event = nullptr) override;
     CTask* CreateNextSubTask(CPed* ped) override;
     CTask* CreateFirstSubTask(CPed* ped) override;
     CTask* ControlSubTask(CPed* ped) override;
     CTask* CreateSubTask(int32 taskId, CPed* ped);
 
-private:
-    friend void InjectHooksMain();
+    CPed* GetPedToKill() const { return m_PedToKill; }
+
+public:
     static void InjectHooks();
 
-    CTaskComplexKillPedOnFoot* Constructor(CPed* target, int32 time, int32 pedFlags, int32 delay, int32 chance, int8 a7);
-};
+public:
+    bool m_bShotFiredByPlayerFlag : 1    = true;
+    bool m_bNewTarget : 1                = true;
+    bool m_bRoomToDragPedOutOfCar : 1    = true;
+    bool m_bTargetKilled : 1             = false;
+    bool m_bAimImmediate : 1             = false;
+    bool m_bWaitForPlayerToBeSafe : 1    = false;
+    bool m_bWaitingForPlayerToBeSafe : 1 = false;
 
+    CPed::Ref  m_PedToKill{};
+    int32      m_pedFlags{};
+    int32      m_actionDelay{};
+    int32      m_actionChance{};
+    uint8      m_nCompetence{};
+    uint32     m_startTime{};
+    int32      m_time{};
+    CTaskTimer m_timer{};
+};
 VALIDATE_SIZE(CTaskComplexKillPedOnFoot, 0x38);

@@ -3,15 +3,15 @@
 #include "TaskSimpleWaitUntilPedIsOutCar.h"
 
 void CTaskSimpleWaitUntilPedIsOutCar::InjectHooks() {
-    RH_ScopedClass(CTaskSimpleWaitUntilPedIsOutCar);
+    RH_ScopedVirtualClass(CTaskSimpleWaitUntilPedIsOutCar, 0x86F094, 9);
     RH_ScopedCategory("Tasks/TaskTypes");
 
     RH_ScopedInstall(Constructor, 0x649450);
     RH_ScopedInstall(Destructor, 0x6494F0);
-    RH_ScopedInstall(Clone_Reversed, 0x64A4B0);
-    RH_ScopedInstall(GetTaskType_Reversed, 0x6494D0);
-    RH_ScopedInstall(MakeAbortable_Reversed, 0x6494E0);
-    RH_ScopedInstall(ProcessPed_Reversed, 0x649550);
+    RH_ScopedVMTInstall(Clone, 0x64A4B0);
+    RH_ScopedVMTInstall(GetTaskType, 0x6494D0);
+    RH_ScopedVMTInstall(MakeAbortable, 0x6494E0);
+    RH_ScopedVMTInstall(ProcessPed, 0x649550);
 }
 
 // 0x649450
@@ -29,6 +29,8 @@ CTaskSimpleWaitUntilPedIsOutCar::~CTaskSimpleWaitUntilPedIsOutCar() {
 }
 
 // 0x649550
+
+// 0x0
 bool CTaskSimpleWaitUntilPedIsOutCar::ProcessPed(CPed* ped) {
     if (!m_PedToWaitFor) {
         return true;
@@ -45,3 +47,4 @@ bool CTaskSimpleWaitUntilPedIsOutCar::ProcessPed(CPed* ped) {
 
     return !m_PedToWaitFor->bInVehicle;
 }
+

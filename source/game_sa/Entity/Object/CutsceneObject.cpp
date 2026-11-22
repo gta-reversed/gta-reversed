@@ -6,32 +6,24 @@
 #include "Shadows.h"
 #include "CarFXRenderer.h"
 
-char* (&CCutsceneObject::ms_sCutsceneVehNames)[NUM_CUTSCENE_VEHS] = *(char* (*)[NUM_CUTSCENE_VEHS])0x8D0F68;
-
 void CCutsceneObject::InjectHooks() {
-    RH_ScopedClass(CCutsceneObject);
+    RH_ScopedVirtualClass(CCutsceneObject, 0x868A60, 23);
     RH_ScopedCategory("Entity/Object");
 
-    RH_ScopedVirtualInstall(SetModelIndex, 0x5B1B20);
-    RH_ScopedVirtualInstall(SetupLighting, 0x553F40);
-    RH_ScopedVirtualInstall(RemoveLighting, 0x5533F0);
-    RH_ScopedVirtualInstall(ProcessControl, 0x5B1B90);
-    RH_ScopedVirtualInstall(PreRender, 0x5B1E00);
+    RH_ScopedVMTInstall(SetModelIndex, 0x5B1B20);
+    RH_ScopedVMTInstall(SetupLighting, 0x553F40);
+    RH_ScopedVMTInstall(RemoveLighting, 0x5533F0);
+    RH_ScopedVMTInstall(ProcessControl, 0x5B1B90);
+    RH_ScopedVMTInstall(PreRender, 0x5B1E00);
     RH_ScopedInstall(SetupCarPipeAtomicsForClump, 0x5B1AB0);
 }
-
-void CCutsceneObject::SetModelIndex(unsigned index) { CCutsceneObject::SetModelIndex_Reversed(index); }
-void CCutsceneObject::ProcessControl() { CCutsceneObject::ProcessControl_Reversed(); }
-void CCutsceneObject::PreRender() { CCutsceneObject::PreRender_Reversed(); }
-bool CCutsceneObject::SetupLighting() { return CCutsceneObject::SetupLighting_Reversed(); }
-void CCutsceneObject::RemoveLighting(bool bRemove) { return CCutsceneObject::RemoveLighting_Reversed(bRemove); }
 
 // 0x5B19D0
 CCutsceneObject::CCutsceneObject() : CObject() {
     m_vWorldPosition.Set(0.0F, 0.0F, 0.0F);
     m_vForce.Set(0.0F, 0.0F, 0.0F);
-    m_bUsesCollision = false;
-    m_nStatus = eEntityStatus::STATUS_SIMPLE;
+    SetUsesCollision(false);
+    SetStatus(STATUS_SIMPLE);
     m_nObjectType = eObjectType::OBJECT_TYPE_CUTSCENE;
     m_nAttachBone = 0;
     m_pAttachmentObject = nullptr;
@@ -39,39 +31,39 @@ CCutsceneObject::CCutsceneObject() : CObject() {
     m_bStreamingDontDelete = true;
 
     CObject::SetIsStatic(false);
-    m_bBackfaceCulled = false;
+    SetIsBackfaceCulled(false);
     m_fContactSurfaceBrightness = 0.5F;
 }
 
 // 0x5B1B20
-void CCutsceneObject::SetModelIndex_Reversed(unsigned index) {
+void CCutsceneObject::SetModelIndex(unsigned index) {
     CEntity::SetModelIndex(index);
-    if (RwObjectGetType(m_pRwObject) == rpCLUMP) {
-        RpAnimBlendClumpInit(m_pRwClump);
-        auto* animData = RpClumpGetAnimBlendClumpData(m_pRwClump);
+    if (RwObjectGetType(GetRwObject()) == rpCLUMP) {
+        RpAnimBlendClumpInit(GetRpClump());
+        auto* animData = RpAnimBlendClumpGetData(GetRpClump());
         animData->m_PedPosition = &m_vecMoveSpeed;
-        animData->m_Frames->m_bUpdateSkinnedWith3dVelocityExtraction = true;
-        CCutsceneObject::SetupCarPipeAtomicsForClump(index, m_pRwClump);
+        animData->m_FrameDatas->HasZVelocity = true;
+        CCutsceneObject::SetupCarPipeAtomicsForClump(index, GetRpClump());
     }
     GetModelInfo()->m_nAlpha = 0xFF;
 }
 
 // 0x5B1B90
-void CCutsceneObject::ProcessControl_Reversed() {
-    if (m_nAttachBone && m_pAttachmentObject && !m_bWasPostponed) {
-        m_bWasPostponed = true;
+void CCutsceneObject::ProcessControl() {
+    if (m_nAttachBone && m_pAttachmentObject && !GetWasPostponed()) {
+        SetWasPostponed(true);
         return;
     }
 
     CPhysical::ProcessControl(); // exactly CPhysical
-    if (m_pAttachTo) {
+    if (m_pAttachToFrame) {
         if (m_pAttachmentObject) {
-            auto* hierarchy = GetAnimHierarchyFromClump(m_pAttachmentObject->m_pRwClump);
+            auto* hierarchy = GetAnimHierarchyFromClump(m_pAttachmentObject->GetRpClump());
             auto* matArr = RpHAnimHierarchyGetMatrixArray(hierarchy);
             const auto boneMat = CMatrix(&matArr[m_nAttachBone], false);
             *static_cast<CMatrix*>(m_matrix) = boneMat;
         } else {
-            auto* pLtm = RwFrameGetLTM(m_pAttachTo);
+            auto* pLtm = RwFrameGetLTM(m_pAttachToFrame);
             const auto attachMat = CMatrix(pLtm, false);
             *static_cast<CMatrix*>(m_matrix) = attachMat;
         }
@@ -91,39 +83,39 @@ void CCutsceneObject::ProcessControl_Reversed() {
 }
 
 // 0x5B1E00
-void CCutsceneObject::PreRender_Reversed() {
-    if (m_pAttachTo) {
+void CCutsceneObject::PreRender() {
+    if (m_pAttachToFrame) {
         if (m_pAttachmentObject) {
-            auto* hierarchy = GetAnimHierarchyFromClump(m_pAttachmentObject->m_pRwClump);
+            auto* hierarchy = GetAnimHierarchyFromClump(m_pAttachmentObject->GetRpClump());
             auto* matArr = RpHAnimHierarchyGetMatrixArray(hierarchy);
             const auto boneMat = CMatrix(&matArr[m_nAttachBone], false);
             *static_cast<CMatrix*>(m_matrix) = boneMat;
         } else {
-            auto* pLtm = RwFrameGetLTM(m_pAttachTo);
+            auto* pLtm = RwFrameGetLTM(m_pAttachToFrame);
             const auto attachMat = CMatrix(pLtm, false);
             *static_cast<CMatrix*>(m_matrix) = attachMat;
         }
 
-        if (RwObjectGetType(m_pRwObject) == rpCLUMP) {
-            const auto* firstAtomic = GetFirstAtomic(m_pRwClump);
+        if (RwObjectGetType(GetRwObject()) == rpCLUMP) {
+            const auto* firstAtomic = GetFirstAtomic(GetRpClump());
             if (firstAtomic) {
                 if (RpSkinGeometryGetSkin(RpAtomicGetGeometry(firstAtomic))) {
-                    auto* animData = RpClumpGetAnimBlendClumpData(m_pRwClump);
+                    auto* animData = RpAnimBlendClumpGetData(GetRpClump());
                     auto* morphTarget = RpGeometryGetMorphTarget(RpAtomicGetGeometry(firstAtomic), 0);
                     auto* sphere = RpMorphTargetGetBoundingSphere(morphTarget);
-                    sphere->center = animData->m_Frames->m_pIFrame->translation;
+                    sphere->center = animData->m_FrameDatas[0].BonePos;
                 }
             }
         }
     }
 
-    if (RwObjectGetType(m_pRwObject) == rpCLUMP)
+    if (RwObjectGetType(GetRwObject()) == rpCLUMP)
         CEntity::UpdateRpHAnim();
 
     g_realTimeShadowMan.DoShadowThisFrame(this);
     if (!m_pShadowData) {
         CShadows::StoreShadowForPedObject(
-            this,
+            AsPed(),
             CTimeCycle::m_fShadowDisplacementX[CTimeCycle::m_CurrentStoredValue],
             CTimeCycle::m_fShadowDisplacementY[CTimeCycle::m_CurrentStoredValue],
             CTimeCycle::m_fShadowFrontX[CTimeCycle::m_CurrentStoredValue],
@@ -134,7 +126,7 @@ void CCutsceneObject::PreRender_Reversed() {
     }
 
     if (m_nModelIndex == MODEL_CSPLAY) {
-        CPed::ShoulderBoneRotation(m_pRwClump);
+        CPed::ShoulderBoneRotation(GetRpClump());
         m_bDontUpdateHierarchy = true;
     }
 
@@ -150,14 +142,14 @@ void CCutsceneObject::PreRender_Reversed() {
 }
 
 // 0x553F40
-bool CCutsceneObject::SetupLighting_Reversed() {
+bool CCutsceneObject::SetupLighting() {
     ActivateDirectional();
     return CRenderer::SetupLightingForEntity(this);
 }
 
 // 0x5533F0
-void CCutsceneObject::RemoveLighting_Reversed(bool bRemove) {
-    if (!physicalFlags.bDestroyed)
+void CCutsceneObject::RemoveLighting(bool bRemove) {
+    if (!physicalFlags.bRenderScorched)
         CPointLights::RemoveLightsAffectingObject();
 
     SetAmbientColours();
@@ -166,8 +158,8 @@ void CCutsceneObject::RemoveLighting_Reversed(bool bRemove) {
 
 // 0x5B1AB0
 void CCutsceneObject::SetupCarPipeAtomicsForClump(unsigned modelId, RpClump* clump) {
-    static bool& bCarPipeAtomicsInitialized = *(bool*)0xBC4058;                              // TODO | STATICREF // = false;
-    static uint32(&anHashKeys)[NUM_CUTSCENE_VEHS] = *(uint32(*)[NUM_CUTSCENE_VEHS])0xBC4040; // TODO | STATICREF
+    static auto& bCarPipeAtomicsInitialized = StaticRef<bool>(0xBC4058); // false
+    static auto& anHashKeys = StaticRef<uint32[NUM_CUTSCENE_VEHS]>(0xBC4040);
 
     if (!bCarPipeAtomicsInitialized) {
         bCarPipeAtomicsInitialized = true;

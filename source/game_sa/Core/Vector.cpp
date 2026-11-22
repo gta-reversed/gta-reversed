@@ -8,6 +8,7 @@
 #include "StdInc.h"
 
 #include "Vector.h"
+#include "Vector2D.h"
 
 void CVector::InjectHooks()
 {
@@ -18,13 +19,29 @@ void CVector::InjectHooks()
     RH_ScopedInstall(Magnitude2D, 0x406D50);
     RH_ScopedInstall(Normalise, 0x59C910);
     RH_ScopedInstall(NormaliseAndMag, 0x59C970);
-    RH_ScopedInstall(Cross, 0x70F890);
+    RH_ScopedInstall(Cross_OG, 0x70F890);
     RH_ScopedInstall(Sum, 0x40FDD0);
     RH_ScopedInstall(Difference, 0x40FE00);
     RH_ScopedInstall(FromMultiply, 0x59C670);
     RH_ScopedInstall(FromMultiply3x3, 0x59C6D0);
     RH_ScopedGlobalOverloadedInstall(CrossProduct, "out", 0x59C730, CVector*(*)(CVector*, CVector*, CVector*));
-    RH_ScopedGlobalOverloadedInstall(DotProduct, "vec*vec*", 0x59C6D0, float(*)(CVector*, CVector*));
+    RH_ScopedGlobalOverloadedInstall(DotProduct, "v3d*v3d*", 0x40FDB0, float(*)(CVector*, CVector*));
+}
+
+/*!
+* @brief From a 2D vector and Z position
+*/
+CVector::CVector(const CVector2D& v2d, float Z) :
+    RwV3d{ v2d.x, v2d.y, Z }
+{
+}
+
+/*!
+* @returns A vector with each of its components set to a number in the given range [min, max)
+*/
+CVector CVector::Random(CVector min, CVector max) {
+    const auto Get = [=](float fmin, float fmax) { return CGeneral::GetRandomNumberInRange(fmin, fmax); };
+    return { Get(min.x, max.x), Get(min.y, max.y), Get(min.z, max.z) };
 }
 
 CVector CVector::Random(float min, float max) {
@@ -46,7 +63,7 @@ float CVector::Magnitude2D() const
 // Normalises a vector
 void CVector::Normalise()
 {
-    NormaliseAndMag();
+    (void)NormaliseAndMag();
 }
 
 // Normalises a vector and returns length
@@ -67,12 +84,27 @@ float CVector::NormaliseAndMag()
     return 1.0F / fRecip;
 }
 
-// Performs cross calculation
-void CVector::Cross(const CVector& left, const CVector &right)
-{
-    x = left.y * right.z - left.z * right.y;
-    y = left.z * right.x - left.x * right.z;
-    z = left.x * right.y - left.y * right.x;
+auto CVector::Dot(const CVector& o) const -> float{
+    return DotProduct(*this, o);
+}
+
+auto CVector::Dot2D(const CVector& o) const -> float {
+    return y * o.y
+         + x * o.x;
+}
+
+// notsa
+CVector CVector::Cross(const CVector& o) const {
+    return {
+        y * o.z - z * o.y,
+        z * o.x - x * o.z,
+        x * o.y - y * o.x
+    };
+}
+
+// 0x70F890
+void CVector::Cross_OG(const CVector& a, const CVector& b) {
+    *this = a.Cross(b);
 }
 
 // Adds left + right and stores result
@@ -129,35 +161,31 @@ void CVector::operator /= (float divisor)
     z /= divisor;
 }
 
-void CVector::FromMultiply(const CMatrix& matrix, const CVector& vector)
-{
-    x = matrix.m_pos.x + matrix.m_right.x * vector.x + matrix.m_forward.x * vector.y + matrix.m_up.x * vector.z;
-    y = matrix.m_pos.y + matrix.m_right.y * vector.x + matrix.m_forward.y * vector.y + matrix.m_up.y * vector.z;
-    z = matrix.m_pos.z + matrix.m_right.z * vector.x + matrix.m_forward.z * vector.y + matrix.m_up.z * vector.z;
+void CVector::FromMultiply(const CMatrix& matrix, const CVector& vector) {
+    *this = matrix.TransformPoint(vector);
 }
 
-void CVector::FromMultiply3x3(const CMatrix& matrix, const CVector& vector)
-{
-    x = matrix.m_right.x * vector.x + matrix.m_forward.x * vector.y + matrix.m_up.x * vector.z;
-    y = matrix.m_right.y * vector.x + matrix.m_forward.y * vector.y + matrix.m_up.y * vector.z;
-    z = matrix.m_right.z * vector.x + matrix.m_forward.z * vector.y + matrix.m_up.z * vector.z;
+void CVector::FromMultiply3x3(const CMatrix& matrix, const CVector& vector) {
+    *this = matrix.TransformVector(vector);
 }
 
-CVector CVector::Average(const CVector* begin, const CVector* end) {
-    return std::accumulate(begin, end, CVector{}) / (float)std::distance(begin, end);
+float CVector::Heading(bool limitAngle) const {
+    const auto radians = std::atan2(-x, y);
+    if (limitAngle) {
+        return CGeneral::LimitRadianAngle(radians);
+    }
+    return radians;
 }
 
 CVector* CrossProduct(CVector* out, CVector* a, CVector* b)
 {
-    out->Cross(*a, *b);
+    *out = a->Cross(*b);
     return out;
 }
 
 CVector CrossProduct(const CVector& a, const CVector& b)
 {
-    CVector result;
-    result.Cross(a, b);
-    return result;
+    return a.Cross(b);
 }
 
 float DotProduct(CVector* v1, CVector* v2)

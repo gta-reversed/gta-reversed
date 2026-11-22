@@ -11,8 +11,13 @@
 static std::random_device randomDevice;
 static std::mt19937 randomEngine(randomDevice());
 
+// 0x407180 - 2-arg wrapper to allow hooking the original function while the template has an extra `inclusive` arg
+static int32 GetRandomNumberInRange_int32(int32 min, int32 max) {
+    return CGeneral::GetRandomNumberInRange(min, max);
+}
+
 void CGeneral::InjectHooks() {
-    RH_ScopedClass(CGeneral);
+    RH_ScopedNamespace(CGeneral);
     RH_ScopedCategoryGlobal();
 
     RH_ScopedInstall(LimitAngle, 0x53CB00);
@@ -22,8 +27,8 @@ void CGeneral::InjectHooks() {
     RH_ScopedInstall(GetNodeHeadingFromVector, 0x53CDC0);
     RH_ScopedInstall(SolveQuadratic, 0x53CE30);
     RH_ScopedInstall(GetAngleBetweenPoints, 0x53CEA0);
-    RH_ScopedOverloadedInstall(GetRandomNumberInRange, "int", 0x407180, int32 (*)(const int32, const int32));
-    RH_ScopedOverloadedInstall(GetRandomNumberInRange, "float", 0x41BD90, float (*)(const float, const float));
+    RH_ScopedGlobalInstall(GetRandomNumberInRange_int32, 0x407180);
+    RH_ScopedOverloadedInstall(GetRandomNumberInRange<float>, "", 0x41BD90, float (*)(float, float), { .State = HS::RedirectToGTA, .Locked = true }); // There's a bug in the code at 0x6DF26D which causes the assert to be triggered, so I'm unhooking this for now
 }
 
 // 0x53CB00
@@ -41,7 +46,7 @@ float CGeneral::LimitAngle(float angle) {
 
 // 0x53CB50
 float CGeneral::LimitRadianAngle(float angle) {
-    float result = clamp(angle, -25.0f, 25.0f);
+    float result = std::clamp(angle, -25.0f, 25.0f);
 
     while (result >= PI) {
         result -= 2 * PI;
@@ -126,15 +131,24 @@ uint32 CGeneral::GetNodeHeadingFromVector(float x, float y) {
     return (uint32)floor(angle / DegreesToRadians(45.0f));
 }
 
-// 0x53CE30
+/*!
+* Solves: ax² + bx + c = 0
+* @returns If there is a solution for the equation
+* @addr 0x53CE30
+*/
 bool CGeneral::SolveQuadratic(float a, float b, float c, float& x1, float& x2) {
-    float discriminant = b * b - 4.f * a * c;
-    if (discriminant < 0.0f)
-        return false;
+    // x12 = (-b ± √(b²-4ac)) / 2a
 
-    float discriminantSqrt = sqrt(discriminant);
-    x2 = (-b + discriminantSqrt) / (2.0f * a);
-    x1 = (-b - discriminantSqrt) / (2.0f * a);
+    const auto discr = b * b - 4.f * a * c;
+    if (discr < 0.0f) {
+        return false; // No solution
+    }
+
+
+    const auto discriminantSqrt = std::sqrt(discr);
+    const auto denom = 1.f / (2.f * a);
+    x1 = (-b - discriminantSqrt) * denom;
+    x2 = (-b + discriminantSqrt) * denom;
     return true;
 }
 
@@ -143,8 +157,7 @@ float CGeneral::GetAngleBetweenPoints(float x1, float y1, float x2, float y2) {
     return RadiansToDegrees(GetRadianAngleBetweenPoints(x1, y1, x2, y2));
 }
 
-uint16 CGeneral::GetRandomNumber()
-{
+uint16 CGeneral::GetRandomNumber() { // Why does this return `uint16`? Should be `int32` (same as retval of `rand()`)
     static_assert(RAND_MAX == 0x7FFF, "PC-generated random numbers should not exceed 32767");
 #ifdef BETTER_RNG
     static_assert(false, "PC-generated random numbers should not exceed 32767");
@@ -153,37 +166,19 @@ uint16 CGeneral::GetRandomNumber()
 #endif
 }
 
-/**
- * Returns a pseudo-random number between min and max, exclusive [min, max).
- * @param  min Minimum value
- * @param  max Maximum value. Must be greater than min.
- * @return Integer between min and max, exclusive.
- * @addr   0x407180
- */
-int32 CGeneral::GetRandomNumberInRange(const int32 min, const int32 max) {
-#ifdef BETTER_RNG
-    // TODO: Use better RNG
-#else
-    return min + static_cast<int32>((float)GetRandomNumber() * RAND_MAX_INT_RECIPROCAL * (float)(max - min));
-#endif
-}
-
-/**
- * Returns a pseudo-random number between min and max, inclusive [min, max].
- * @param  min Minimum value
- * @param  max Maximum value. Must be greater than min.
- * @return Float between min and max, exclusive.
- * @addr   0x41BD90
- */
-float CGeneral::GetRandomNumberInRange(const float min, const float max) {
-#ifdef BETTER_RNG
-    std::uniform_real_distribution<float> uniform_dist(min, max);
-    return uniform_dist(randomEngine);
-#else
-    return min + (max - min) * (float)GetRandomNumber() * RAND_MAX_FLOAT_RECIPROCAL;
-#endif
-}
-
 float CGeneral::GetRadianAngleBetweenPoints(CVector2D a, CVector2D b) {
     return GetRadianAngleBetweenPoints(a.x, a.y, b.x, b.y);
+}
+
+bool CGeneral::RandomBool(float chanceOfTrue) {
+    assert(chanceOfTrue <= 100.f);
+    return CGeneral::GetRandomNumberInRange(0.f, 100.f) <= chanceOfTrue;
+}
+
+/*!
+* @return true/false with 50/50 change
+* @addr notsa
+*/
+bool CGeneral::DoCoinFlip() {
+	return CGeneral::GetRandomNumber() >= RAND_MAX / 2;
 }

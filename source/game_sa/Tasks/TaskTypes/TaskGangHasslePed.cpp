@@ -1,17 +1,18 @@
-#include <EntitySeekPosCalculatorStandard.h>
+#include "SeekEntity/TaskComplexSeekEntityStandard.h"
 #include "StdInc.h"
 
 #include "TaskGangHasslePed.h"
 
 void CTaskGangHasslePed::InjectHooks() {
-    RH_ScopedClass(CTaskGangHasslePed);
+    RH_ScopedVirtualClass(CTaskGangHasslePed, 0x86FA00, 11);
     RH_ScopedCategory("Tasks/TaskTypes");
 
     RH_ScopedInstall(Constructor, 0x65FED0);
     RH_ScopedInstall(Destructor, 0x65FF60);
-    // RH_ScopedInstall(CreateNextSubTask_Reversed, 0x6642C0);
-    // RH_ScopedInstall(CreateFirstSubTask_Reversed, 0x664380);
-    // RH_ScopedInstall(ControlSubTask_Reversed, 0x65FFE0);
+
+    RH_ScopedVMTInstall(CreateNextSubTask, 0x6642C0, { .Reversed = false });
+    RH_ScopedVMTInstall(CreateFirstSubTask, 0x664380, { .Reversed = false });
+    RH_ScopedVMTInstall(ControlSubTask, 0x65FFE0, { .Reversed = false });
 }
 
 // 0x65FED0
@@ -58,7 +59,7 @@ CTask* CTaskGangHasslePed::CreateFirstSubTask(CPed* ped) {
     if (!m_Ped)
         return nullptr;
 
-    m_nTime = CTimer::GetTimeInMS();
+    m_spentWaitingMs = CTimer::GetTimeInMS();
     m_nSomeRandomShit = CGeneral::GetRandomNumberInRange(m_RndMin, m_RndMax);
     m_bFirstSubTaskInitialised = true;
 

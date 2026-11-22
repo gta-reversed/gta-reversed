@@ -7,7 +7,7 @@
 #include "StdInc.h"
 
 void CHeli::InjectHooks() {
-    RH_ScopedClass(CHeli);
+    RH_ScopedVirtualClass(CHeli, 0x871680, 71);
     RH_ScopedCategory("Vehicle");
 
     RH_ScopedInstall(InitHelis, 0x6C4560);
@@ -17,10 +17,10 @@ void CHeli::InjectHooks() {
     RH_ScopedInstall(SwitchPoliceHelis, 0x6C4800);
     RH_ScopedInstall(RenderAllHeliSearchLights, 0x6C7C50);
     RH_ScopedInstall(TestSniperCollision, 0x6C6890);
-    RH_ScopedVirtualInstall(Render, 0x6C4400);
-    RH_ScopedVirtualInstall(Fix, 0x6C4530);
-    RH_ScopedVirtualInstall(BurstTyre, 0x6C4330);
-    RH_ScopedVirtualInstall(SetUpWheelColModel, 0x6C4320);
+    RH_ScopedVMTInstall(Render, 0x6C4400);
+    RH_ScopedVMTInstall(Fix, 0x6C4530);
+    RH_ScopedVMTInstall(BurstTyre, 0x6C4330);
+    RH_ScopedVMTInstall(SetUpWheelColModel, 0x6C4320);
 }
 
 // 0x6C4190
@@ -48,10 +48,7 @@ CHeli::CHeli(int32 modelIndex, eVehicleCreatedBy createdBy) : CAutomobile(modelI
 
     if (modelIndex == MODEL_HUNTER) {
         m_damageManager.SetDoorStatus(DOOR_LEFT_FRONT, DAMSTATE_OK);
-        m_doors[DOOR_LEFT_FRONT].m_fOpenAngle = (3.0f * PI) / 10.0f;
-        m_doors[DOOR_LEFT_FRONT].m_fClosedAngle = 0.0f;
-        m_doors[DOOR_LEFT_FRONT].m_nAxis = 1;
-        m_doors[DOOR_LEFT_FRONT].m_nDirn = 19;
+        m_doors[DOOR_LEFT_FRONT].Init((3.0f * PI) / 10.0f, 0.0f, DOOR_AXIS_NEG_X, DOOR_AXIS_Y, DOOR_EXTRA_BASED);
     }
 
     m_nNumSwatOccupants = 4;
@@ -73,7 +70,7 @@ CHeli::CHeli(int32 modelIndex, eVehicleCreatedBy createdBy) : CAutomobile(modelI
 
     field_9B8 = 0;
     m_bSearchLightEnabled = false;
-    field_A14 = CGeneral::GetRandomNumberInRange(2.0, 8.0f);
+    field_A14 = CGeneral::GetRandomNumberInRange(2.f, 8.f);
 }
 
 // 0x6C4340
@@ -124,6 +121,8 @@ void CHeli::PreRenderAlways() {
 
 // 0x6C4650
 void CHeli::Pre_SearchLightCone() {
+    ZoneScoped;
+
     RwRenderStateSet(rwRENDERSTATEZWRITEENABLE,         RWRSTATE(FALSE));
     RwRenderStateSet(rwRENDERSTATEZTESTENABLE,          RWRSTATE(TRUE));
     RwRenderStateSet(rwRENDERSTATESRCBLEND,             RWRSTATE(rwBLENDONE));
@@ -138,6 +137,8 @@ void CHeli::Pre_SearchLightCone() {
 
 // 0x6C46E0
 void CHeli::Post_SearchLightCone() {
+    ZoneScoped;
+
     RwRenderStateSet(rwRENDERSTATEZWRITEENABLE,         RWRSTATE(TRUE));
     RwRenderStateSet(rwRENDERSTATEZTESTENABLE,          RWRSTATE(TRUE));
     RwRenderStateSet(rwRENDERSTATESRCBLEND,             RWRSTATE(rwBLENDSRCALPHA));
@@ -180,14 +181,22 @@ void CHeli::SwitchPoliceHelis(bool enable) {
 
 // 0x6C58E0
 void CHeli::SearchLightCone(int32 coronaIndex,
-                            CVector origin, CVector target,
+                            CVector origin,
+                            CVector target,
                             float targetRadius,
                             float power,
-                            uint8 unknownFlag, uint8 drawShadow,
-                            CVector* useless0, CVector* useless1, CVector* useless2,
-                            bool a11, float baseRadius, float a13,float a14,float a15
+                            uint8 unknownFlag,
+                            uint8 drawShadow,
+                            CVector& useless0,
+                            CVector& useless1,
+                            CVector& useless2,
+                            bool a11,
+                            float baseRadius,
+                            float a13,
+                            float a14,
+                            float a15
 ) {
-    ((void(__cdecl*)(int32, CVector, CVector, float, float, uint8, uint8, CVector*, CVector*, CVector*, bool, float, float, float, float))0x6C58E0)(coronaIndex, origin, target, targetRadius, power, unknownFlag, drawShadow, useless0, useless1, useless2, a11, baseRadius, a13, a14, a15);
+    ((void(__cdecl*)(int32, CVector, CVector, float, float, uint8, uint8, CVector&, CVector&, CVector&, bool, float, float, float, float))0x6C58E0)(coronaIndex, origin, target, targetRadius, power, unknownFlag, drawShadow, useless0, useless1, useless2, a11, baseRadius, a13, a14, a15);
 }
 
 // 0x6C6520
@@ -207,8 +216,7 @@ void CHeli::TestSniperCollision(CVector* origin, CVector* target) {
             continue;
 
         const auto mat = (CMatrix*)heli->m_matrix;
-        auto out = MultiplyMatrixWithVector(*mat, { -0.43f, 1.49f, 1.5f });
-        if (CCollision::DistToLine(origin, target, &out) < 0.8f) {
+        if (CCollision::DistToLine(*origin, *target, mat->TransformPoint({ -0.43f, 1.49f, 1.5f })) < 0.8f) {
             heli->m_fRotationBalance = (float)(CGeneral::GetRandomNumber() < pow(2, 14) - 1) * 0.1f - 0.05f; // 2^14 - 1 = 16383 [-0.05, 0.05]
             heli->BlowUpCar(FindPlayerPed(), false);
             heli->m_nNumSwatOccupants = 0;
@@ -223,11 +231,15 @@ bool CHeli::SendDownSwat() {
 
 // 0x6C79A0
 void CHeli::UpdateHelis() {
+    ZoneScoped;
+
     ((void(__cdecl*)())0x6C79A0)();
 }
 
 // 0x6C7C50
 void CHeli::RenderAllHeliSearchLights() {
+    ZoneScoped;
+
     for (auto& light : HeliSearchLights) {
         SearchLightCone(
             light.m_nCoronaIndex,
@@ -237,9 +249,9 @@ void CHeli::RenderAllHeliSearchLights() {
             light.m_fPower,
             light.field_24,
             light.m_bDrawShadow,
-            light.m_vecUseless,
-            &light.m_vecUseless[1],
-            &light.m_vecUseless[2],
+            light.m_vecUseless[0],
+            light.m_vecUseless[1],
+            light.m_vecUseless[2],
             false,
             0.05f,
             0.0f,

@@ -8,7 +8,7 @@
 
 #include "Entity.h"
 
-class CBuilding : public CEntity {
+class NOTSA_EXPORT_VTABLE CBuilding : public CEntity {
 public:
     CBuilding();
     static void* operator new(unsigned size);
@@ -24,4 +24,6 @@ VALIDATE_SIZE(CBuilding, 0x38);
 
 bool IsBuildingPointerValid(CBuilding* building);
 
-extern int32& gBuildings;
+// in entity.cpp
+static auto& gBuildings = StaticRef<int32>(0xB71804);
+

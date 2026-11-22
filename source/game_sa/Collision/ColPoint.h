@@ -7,6 +7,7 @@
 #pragma once
 
 #include "Vector.h"
+#include "Enums/eSurfaceType.h"
 
 struct tColLighting {
     union {
@@ -30,22 +31,24 @@ VALIDATE_SIZE(tColLighting, 0x1);
 class CColPoint {
 public:
     /* https://github.com/multitheftauto/mtasa-blue/blob/master/Client/game_sa/CColPointSA.h */
-    CVector      m_vecPoint;
-    float        field_C;
-    CVector      m_vecNormal;
-    float        field_1C;
-                                  // col shape 1 info
-    eSurfaceType m_nSurfaceTypeA;
-    uint8        m_nPieceTypeA;
-    tColLighting m_nLightingA;
-                                  // col shape 2 info
-    eSurfaceType m_nSurfaceTypeB;
-    uint8 m_nPieceTypeB;
-    tColLighting m_nLightingB;
+    CVector      m_vecPoint;        // 0x00
+    float        field_C;           // 0x0C
+    CVector      m_vecNormal;       // 0x10
+    float        field_1C;          // 0x1C
 
-    char _align0x26[2];
+    // col shape 1 info
+    eSurfaceType m_nSurfaceTypeA;   // 0x20
+    uint8        m_nPieceTypeA;     // 0x21
+    tColLighting m_nLightingA;      // 0x22
 
-    float m_fDepth;
+    // col shape 2 info
+    eSurfaceType m_nSurfaceTypeB;   // 0x23
+    uint8 m_nPieceTypeB;            // 0x24
+    tColLighting m_nLightingB;      // 0x25
+
+    char _align0x26[2];             // 0x26
+                            
+    float m_fDepth;                 // 0x28
 
 public:
     CColPoint& operator=(CColPoint const&) = default;

@@ -6,7 +6,7 @@
 
 //             animsCount,   anims
 #define awc(a) std::size(a), a
-std::array<AnimAssocDefinition, NUM_ANIM_ASSOC_GROUPS> CAnimManager::ms_aAnimAssocDefinitionsX = std::to_array<AnimAssocDefinition>({ // 0x8AA5A8
+std::array<AnimAssocDefinition, NUM_ANIM_ASSOC_GROUPS> CAnimManager::ms_aAnimAssocDefinitionsX{{ // 0x8AA5A8
     { "default",            "ped",           MODEL_MALE01,  awc(aStdAnimations),                aStdAnimDescs          },
     { "door",               "ped",           MODEL_INVALID, awc(aDoorAnimations),               aDoorDescs             },
     { "bikes",              "bikes",         MODEL_MALE01,  awc(aBikesAnimations),              aBikesDescs            },
@@ -125,5 +125,5 @@ std::array<AnimAssocDefinition, NUM_ANIM_ASSOC_GROUPS> CAnimManager::ms_aAnimAss
     { "harrplaneanims",     "rustler",       MODEL_MALE01,  awc(aHarrPlaneAnimations),          aCarAnimDescs1         },
     { "stdcarupright",      "ped",           MODEL_MALE01,  awc(aStdCarAnimations),             aCarAnimDescs2         },
     { "nvadaplaneanims",    "nevada",        MODEL_MALE01,  awc(aNevadaPlaneAnimations),        aCarAnimDescs1         }
-});
+}};
 #undef awc

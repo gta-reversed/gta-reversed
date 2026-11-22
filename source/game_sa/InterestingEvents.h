@@ -1,5 +1,7 @@
 #pragma once
 
+#include <Timer.h>
+
 constexpr int8 MAX_INTERESTING_EVENTS = 8;
 
 struct TInterestingEvent {
@@ -12,7 +14,7 @@ class CInterestingEvents {
 public:
     enum EType {
         INTERESTING_EVENT_0     =  0, //
-        INTERESTING_EVENT_1     =  1, // CTaskComplexChat::CreateFirstSubTask
+        PEDS_CHATTING           =  1, // CTaskComplexChat::CreateFirstSubTask
         INTERESTING_EVENT_2     =  2, // CTaskComplexSunbathe::CreateNextSubTask
         INTERESTING_EVENT_3     =  3, // CTaskComplexUseAttractor::CreateFirstSubTask CTaskComplexUseClosestFreeScriptedAttractor::CreateFirstSubTask
         INTERESTING_EVENT_4     =  4, //
@@ -34,8 +36,8 @@ public:
         INTERESTING_EVENT_20    = 20, // CEventHandler::ComputePedEnteredVehicleResponse
         INTERESTING_EVENT_21    = 21, // CHeli::ProcessControl
         INTERESTING_EVENT_22    = 22, // CWeapon::FireSniper CWeapon::FireInstantHitFromCar2 CWeapon::FireInstantHit CWeapon::FireProjectile
-        INTERESTING_EVENT_23    = 23, // CTaskAllocatorKillThreatsDriveby::AllocateTasks CTaskAllocatorKillThreatsBasic::AllocateTasks ComputeKillThreatsBasicResponse
-        INTERESTING_EVENT_24    = 24, //
+        GANG_ATTACKING_PED      = 23, // CTaskAllocatorKillThreatsDriveby::AllocateTasks CTaskAllocatorKillThreatsBasic::AllocateTasks ComputeKillThreatsBasicResponse
+        GANG_FIGHT              = 24, //
         INTERESTING_EVENT_25    = 25, // CTaskComplexKillCriminal::CreateFirstSubTask
         ZELDICK_OCCUPATION      = 26, // CHeli::ProcessControl
         EVENT_ATTRACTOR         = 27, //
@@ -44,10 +46,10 @@ public:
         MAX_INTERESTING_EVENT_TYPES,
     };
 
-    TInterestingEvent m_Events[MAX_INTERESTING_EVENTS];
-    uint8             m_nPriorities[MAX_INTERESTING_EVENT_TYPES]; // not sure
-    uint16            m_nDelays[MAX_INTERESTING_EVENT_TYPES];     // delays for update (e.g. GetInterestingEvent)
-    uint32            m_nEndsOfTime[MAX_INTERESTING_EVENT_TYPES];
+    std::array<TInterestingEvent, (size_t)MAX_INTERESTING_EVENTS> m_Events{};
+    std::array<uint8, MAX_INTERESTING_EVENT_TYPES>                m_nPriorities{}; // not sure
+    std::array<uint16, MAX_INTERESTING_EVENT_TYPES>               m_nDelays{};     // delays for update (e.g. GetInterestingEvent)
+    std::array<uint32, MAX_INTERESTING_EVENT_TYPES>               m_nEndsOfTime{};
     union {
         struct {
             uint8 m_b1 : 1;
@@ -55,14 +57,14 @@ public:
             uint8 m_b4 : 1;
             uint8 m_b8 : 1;
         };
-        uint8         m_nFlags;
+        uint8         m_nFlags{};
     };
-    uint32            m_nLastFrameUpdate;
-    uint32            m_nLastScanTimeUpdate;
-    float             m_fRadius;
-    CVector           m_vecCenter;
-    CVector           vec148;
-    int8              m_nInterestingEvent;
+    uint32            m_CurrentFrameCounter{CTimer::GetFrameCounter() - 1};
+    uint32            m_nLastScanTimeUpdate{};
+    float             m_fRadius{30.f};
+    CVector           m_vecCenter{};
+    CVector           vec148{};
+    int8              m_nInterestingEvent{-1};
 
 public:
     static void InjectHooks();

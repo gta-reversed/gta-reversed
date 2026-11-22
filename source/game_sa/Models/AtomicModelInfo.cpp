@@ -14,64 +14,52 @@
 
 void CAtomicModelInfo::InjectHooks()
 {
-    RH_ScopedClass(CAtomicModelInfo);
+    RH_ScopedVirtualClass(CAtomicModelInfo, 0x85BBF0, 16);
     RH_ScopedCategory("Models");
 
-    RH_ScopedVirtualInstall(AsAtomicModelInfoPtr, 0x4C5560);
-    RH_ScopedVirtualInstall(GetModelType, 0x4C5570);
-    RH_ScopedVirtualInstall(Init, 0x4C4430);
-    RH_ScopedVirtualInstall(DeleteRwObject, 0x4C4440);
-    RH_ScopedVirtualInstall(GetRwModelType, 0x4C5580);
+    RH_ScopedVMTInstall(AsAtomicModelInfoPtr, 0x4C5560);
+    RH_ScopedVMTInstall(GetModelType, 0x4C5570);
+    RH_ScopedVMTInstall(Init, 0x4C4430);
+    RH_ScopedVMTInstall(DeleteRwObject, 0x4C4440);
+    RH_ScopedVMTInstall(GetRwModelType, 0x4C5580);
     // clang moment: RH_ScopedVirtualOverloadedInstall(CreateInstance, "void", 0x4C4530, RwObject * (CAtomicModelInfo::*)());
     // clang moment: RH_ScopedVirtualOverloadedInstall(CreateInstance, "rwmat", 0x4C44D0, RwObject * (CAtomicModelInfo::*)(RwMatrix*));
-    RH_ScopedVirtualInstall(SetAtomic, 0x4C4360);
+    RH_ScopedVMTInstall(SetAtomic, 0x4C4360);
 
     RH_ScopedInstall(GetAtomicFromDistance, 0x4C44B0);
     RH_ScopedInstall(SetupVehicleUpgradeFlags, 0x4C4570);
     RH_ScopedGlobalInstall(SetAtomicModelInfoFlags, 0x5B3B20);
 }
 
+// 0x4C5560
 CAtomicModelInfo* CAtomicModelInfo::AsAtomicModelInfoPtr()
-{
-    return CAtomicModelInfo::AsAtomicModelInfoPtr_Reversed();
-}
-CAtomicModelInfo* CAtomicModelInfo::AsAtomicModelInfoPtr_Reversed()
 {
     return this;
 }
 
+// 0x4C5570
 ModelInfoType CAtomicModelInfo::GetModelType()
-{
-    return CAtomicModelInfo::GetModelType_Reversed();
-}
-ModelInfoType CAtomicModelInfo::GetModelType_Reversed()
 {
     return ModelInfoType::MODEL_INFO_ATOMIC;
 }
 
+// 0x4C4430
 void CAtomicModelInfo::Init()
-{
-    return CAtomicModelInfo::Init_Reversed();
-}
-void CAtomicModelInfo::Init_Reversed()
 {
     return CBaseModelInfo::Init();
 }
 
+// 0x4C4440
 void CAtomicModelInfo::DeleteRwObject()
 {
-    CAtomicModelInfo::DeleteRwObject_Reversed();
-}
-void CAtomicModelInfo::DeleteRwObject_Reversed()
-{
-    if (!m_pRwAtomic)
+    if (!GetRpAtomic())
         return;
 
-    auto uiEffectsCount = RpGeometryGet2dFxCount(RpAtomicGetGeometry(m_pRwAtomic));
+    auto uiEffectsCount = RpGeometryGet2dFxCount(RpAtomicGetGeometry(GetRpAtomic()));
     m_n2dfxCount -= uiEffectsCount;
 
-    auto frame = RpAtomicGetFrame(m_pRwAtomic);
-    RpAtomicDestroy(m_pRwAtomic);
+    auto frame = RpAtomicGetFrame(GetRpAtomic());
+    RpAtomicDestroy(GetRpAtomic());
     RwFrameDestroy(frame);
     m_pRwObject = nullptr;
 
@@ -81,26 +69,13 @@ void CAtomicModelInfo::DeleteRwObject_Reversed()
         CAnimManager::RemoveAnimBlockRef(iAnimIndex);
 }
 
-uint32 CAtomicModelInfo::GetRwModelType()
-{
-    return CAtomicModelInfo::GetRwModelType_Reversed();
-}
-uint32 CAtomicModelInfo::GetRwModelType_Reversed()
-{
-    return rpATOMIC;
-}
-
 RwObject* CAtomicModelInfo::CreateInstance()
 {
-    return CAtomicModelInfo::CreateInstance_Reversed();
-}
-RwObject* CAtomicModelInfo::CreateInstance_Reversed()
-{
-    if (!m_pRwObject)
+    if (!GetRpAtomic())
         return nullptr;
 
     CBaseModelInfo::AddRef();
-    auto clonedAtomic = RpAtomicClone(m_pRwAtomic);
+    auto clonedAtomic = RpAtomicClone(GetRpAtomic());
     auto frame = RwFrameCreate();
     RpAtomicSetFrame(clonedAtomic, frame);
     CBaseModelInfo::RemoveRef();
@@ -110,15 +85,11 @@ RwObject* CAtomicModelInfo::CreateInstance_Reversed()
 
 RwObject* CAtomicModelInfo::CreateInstance(RwMatrix* matrix)
 {
-    return CAtomicModelInfo::CreateInstance_Reversed(matrix);
-}
-RwObject* CAtomicModelInfo::CreateInstance_Reversed(RwMatrix* matrix)
-{
-    if (!m_pRwObject)
+    if (!GetRpAtomic())
         return nullptr;
 
     CBaseModelInfo::AddRef();
-    auto clonedAtomic = RpAtomicClone(m_pRwAtomic);
+    auto clonedAtomic = RpAtomicClone(GetRpAtomic());
     auto frame = RwFrameCreate();
     memcpy(RwFrameGetMatrix(frame), matrix, sizeof(RwMatrix));
     RpAtomicSetFrame(clonedAtomic, frame);
@@ -127,19 +98,16 @@ RwObject* CAtomicModelInfo::CreateInstance_Reversed(RwMatrix* matrix)
     return reinterpret_cast<RwObject*>(clonedAtomic);
 }
 
+// 0x4C4360
 void CAtomicModelInfo::SetAtomic(RpAtomic* atomic)
 {
-    CAtomicModelInfo::SetAtomic_Reversed(atomic);
-}
-void CAtomicModelInfo::SetAtomic_Reversed(RpAtomic* atomic)
-{
     if (m_pRwObject) {
-        auto uiEffectsCount = RpGeometryGet2dFxCount(RpAtomicGetGeometry(m_pRwAtomic));
+        auto uiEffectsCount = RpGeometryGet2dFxCount(RpAtomicGetGeometry(GetRpAtomic()));
         m_n2dfxCount -= uiEffectsCount;
     }
 
-    m_pRwAtomic = atomic;
-    auto uiNewEffectsCount = RpGeometryGet2dFxCount(RpAtomicGetGeometry(m_pRwAtomic));
+    m_pRwObject            = reinterpret_cast<RwObject*>(atomic);
+    auto uiNewEffectsCount = RpGeometryGet2dFxCount(RpAtomicGetGeometry(GetRpAtomic()));
     m_n2dfxCount += uiNewEffectsCount;
 
     CBaseModelInfo::AddTexDictionaryRef();
@@ -147,13 +115,13 @@ void CAtomicModelInfo::SetAtomic_Reversed(RpAtomic* atomic)
     if (iAnimIndex != -1)
         CAnimManager::AddAnimBlockRef(iAnimIndex);
 
-    if (CCustomBuildingRenderer::IsCBPCPipelineAttached(m_pRwAtomic))
-        CCustomBuildingRenderer::AtomicSetup(m_pRwAtomic);
-    else if (CCarFXRenderer::IsCCPCPipelineAttached(m_pRwAtomic))
-        CCarFXRenderer::SetCustomFXAtomicRenderPipelinesVMICB(m_pRwAtomic, nullptr);
+    if (CCustomBuildingRenderer::IsCBPCPipelineAttached(GetRpAtomic()))
+        CCustomBuildingRenderer::AtomicSetup(GetRpAtomic());
+    else if (CCarFXRenderer::IsCCPCPipelineAttached(GetRpAtomic()))
+        CCarFXRenderer::SetCustomFXAtomicRenderPipelinesVMICB(GetRpAtomic(), nullptr);
 
     if (!bTagDisabled && IsTagModel())
-        CTagManager::SetupAtomic(m_pRwAtomic);
+        CTagManager::SetupAtomic(*GetRpAtomic());
 
     SetHasBeenPreRendered(true);
 }
@@ -163,7 +131,7 @@ RpAtomic* CAtomicModelInfo::GetAtomicFromDistance(float distance)
     if (TheCamera.m_fLODDistMultiplier * m_fDrawDistance <= distance)
         return nullptr;
 
-    return m_pRwAtomic;
+    return GetRpAtomic();
 }
 
 void CAtomicModelInfo::SetupVehicleUpgradeFlags(const char* name)
@@ -208,7 +176,7 @@ void CAtomicModelInfo::SetupVehicleUpgradeFlags(const char* name)
         }
 
         bUseCommonVehicleDictionary = true;
-        nCarmodId = pChassis->m_nFlag;
+        CarMod = pChassis->m_nFlag;
         return;
     }
 
@@ -221,7 +189,7 @@ void CAtomicModelInfo::SetupVehicleUpgradeFlags(const char* name)
 
         bUseCommonVehicleDictionary = true;
         bUsesVehDummy = true;
-        nCarmodId = pDummy->m_nFlag;
+        CarMod = pDummy->m_nFlag;
         return;
     }
 }

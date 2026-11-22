@@ -8,6 +8,7 @@
 
 #include "RenderWare.h"
 #include "Vector.h"
+#include "PtrListDoubleLink.h"
 
 class CPed;
 class CVehicle;
@@ -99,7 +100,7 @@ public:
     static CEntity* FindObjectToSteal(CPed* ped);
 
     void Process(uint32 playerIndex);
-    void FindClosestCarSectorList(CPtrList& ptrList, CPed* ped, float minX, float minY, float maxX, float maxY, float* outVehDist, CVehicle** outVehicle);
+    void FindClosestCarSectorList(CPtrListDoubleLink<CVehicle*>& ptrList, CPed* ped, float minX, float minY, float maxX, float maxY, float* outVehDist, CVehicle** outVehicle);
     void EvaluateCarPosition(CEntity* car, CPed* ped, float pedToVehDist, float* outDistance, CVehicle** outVehicle);
     void Clear();
     void GivePlayerParachute() const;
@@ -165,7 +166,7 @@ public:
         m_nPlayerState =                    info->m_nPlayerState;
         m_fRoadDensityAroundPlayer =        info->m_fRoadDensityAroundPlayer;
         m_nDisplayMoney =                   info->m_nDisplayMoney;
-        m_nNumHoursDidntEat =               info->m_nNumHoursDidntEat;
+        m_nNumHoursDidntEat =               static_cast<uint8>(info->m_nNumHoursDidntEat);
         m_nCollectablesPickedUp =           info->m_nCollectablesPickedUp;
         m_nTotalNumCollectables =           info->m_nTotalNumCollectables;
         m_bDoesNotGetTired =                info->m_bDoesNotGetTired;

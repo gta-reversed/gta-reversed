@@ -19,6 +19,8 @@ void CBridge::Init() {
 
 // 0x41BC80
 void CBridge::Update() {
+    ZoneScoped;
+
     // NOP
 }
 

@@ -7,43 +7,45 @@
 #pragma once
 
 #include "TaskSimple.h"
-#include "Ped.h"
-#include "AnimBlendAssociation.h"
 
-class CTaskSimpleStealthKill : public CTaskSimple {
+class CPed;
+class CEvent;
+class CAnimBlendAssociation;
+
+/*!
+* Kill a ped with a knife
+*/
+class NOTSA_EXPORT_VTABLE CTaskSimpleStealthKill : public CTaskSimple {
 public:
-    bool                   m_bKeepTargetAlive;
-    CPed*                  m_pTarget;
-    AssocGroupId           m_nAssocGroupId;
-    bool                   m_bIsAborting;
-    bool                   m_bIsFinished;
-    CAnimBlendAssociation* m_pAnim;
-    uint32                 m_nTime;
+    bool                   m_bKeepTargetAlive{};    //< If the target ped should stay alive (Also plays a different anim in this case)
+    CPed*                  m_target{};              //< Ped to kill
+    AssocGroupId           m_animGrpId{};           //< Anim's group
+    bool                   m_bIsAborting{};         //< If we're aborting (Cancels the animation)
+    bool                   m_bIsFinished{};         //< Is the animation finished (And thus the task)
+    CAnimBlendAssociation* m_anim{};                //< The kill animation
+    uint32                 m_spentWaitingMs{};      //< Time we've spent waiting for the animation to be loaded (Task finished if not loaded after 10'000ms)
 
 public:
+    static void InjectHooks();
+
     static constexpr auto Type = TASK_SIMPLE_STEALTH_KILL;
 
     CTaskSimpleStealthKill(bool keepTargetAlive, CPed* target, AssocGroupId groupId);
-
-    bool ProcessPed(CPed* ped) override;
-    CTask* Clone() override;
-    eTaskType GetTaskType() override;
-    bool MakeAbortable(class CPed* ped, eAbortPriority priority, const CEvent* event) override;
-    void ManageAnim(CPed* ped);
+    CTaskSimpleStealthKill(const CTaskSimpleStealthKill&);
 
     static void FinishAnimStealthKillCB(CAnimBlendAssociation* pAnimAssoc, void* vpTaskSimpleStealthKill);
 
+    void ManageAnim(CPed* ped);
+
+    CTask*    Clone() const override { return new CTaskSimpleStealthKill{ *this }; }
+    eTaskType GetTaskType() const override { return TASK_SIMPLE_STEALTH_KILL; } // 0x622670
+    bool      ProcessPed(CPed* ped) override;
+    bool      MakeAbortable(CPed* ped, eAbortPriority priority = ABORT_PRIORITY_URGENT, const CEvent* event = nullptr) override;
+
 private:
-    friend void InjectHooksMain();
-    static void InjectHooks();
-
-    CTaskSimpleStealthKill* Constructor(bool keepTargetAlive, CPed* target, AssocGroupId groupId);
-
-    bool ProcessPed_Reversed(CPed* ped);
-    CTask* Clone_Reversed();
-    eTaskType GetId_Reversed() { return TASK_SIMPLE_STEALTH_KILL; };
-    bool MakeAbortable_Reversed(class CPed* ped, eAbortPriority priority, const CEvent* event);
+    auto Constructor(bool keepTargetAlive, CPed* target, AssocGroupId groupId) {
+        this->CTaskSimpleStealthKill::CTaskSimpleStealthKill(keepTargetAlive, target, groupId);
+        return this;
+    }
 };
-
 VALIDATE_SIZE(CTaskSimpleStealthKill, 0x20);
-

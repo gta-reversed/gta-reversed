@@ -26,12 +26,20 @@ VALIDATE_SIZE(CScriptedBrainTaskEntry, 0x10);
 
 class CScriptedBrainTaskStore {
 public:
-    static CScriptedBrainTaskEntry(&ms_entries)[TOTAL_SCRIPTED_BRAIN_TASK_ENTRIES];
+    static inline auto& ms_entries = StaticRef<CScriptedBrainTaskEntry[TOTAL_SCRIPTED_BRAIN_TASK_ENTRIES]>(0xC188F0);
 
     static void InjectHooks();
 
     static CTask* SetTask(CPed* ped, CTask* task);
+
+    /// Get brain entry task of ped (possibly null)
     static CTask* GetTask(CPed* ped);
+
     static void Clear(CPed* ped);
     static void Clear(CTask* task);
+
+    /* NOTSA */
+
+    /// Get brain of `ped`, nullptr if not found.
+    static auto GetOf(CPed* ped) -> CScriptedBrainTaskEntry*;
 };

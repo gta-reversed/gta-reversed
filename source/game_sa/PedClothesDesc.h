@@ -8,11 +8,12 @@
 
 #include "eClothesModelPart.h"
 #include "eClothesTexturePart.h"
+#include "eClothesRules.h"
 
 class CPedClothesDesc {
 public:
-    uint32 m_anModelKeys[10];
-    uint32 m_anTextureKeys[18];
+    std::array<uint32, CLOTHES_MODEL_TOTAL> m_anModelKeys;
+    std::array<uint32, CLOTHES_TEXTURE_TOTAL> m_anTextureKeys;
     float  m_fFatStat;
     float  m_fMuscleStat;
 
@@ -21,12 +22,6 @@ public:
 
     CPedClothesDesc();
     CPedClothesDesc* Constructor();
-
-    // todo: ugly?
-    CPedClothesDesc& operator=(const CPedClothesDesc* rhs) {
-        memcpy(this, &rhs, sizeof(CPedClothesDesc));
-        return *this;
-    }
 
     void Initialise();
 
@@ -37,6 +32,13 @@ public:
     bool HasVisibleTattoo();
     void SetTextureAndModel(uint32 texture, uint32 model, eClothesTexturePart texturePart);
     void SetTextureAndModel(const char* textureName, const char* modelName, eClothesTexturePart texturePart);
+
+    // NOTSA
+    bool IsWearingModel(const char* model, std::optional<eClothesModelPart> modelPart = {}) const {
+        return modelPart.has_value()
+            ? m_anModelKeys[+*modelPart] == CKeyGen::GetUppercaseKey(model)
+            : rng::contains(m_anModelKeys, CKeyGen::GetUppercaseKey(model));
+    }
 };
 
 VALIDATE_SIZE(CPedClothesDesc, 0x78);

@@ -12,11 +12,11 @@
 class CAnimBlendAssociation;
 class CEntity;
 
-class CTaskSimpleInAir : public CTaskSimple {
+class NOTSA_EXPORT_VTABLE CTaskSimpleInAir : public CTaskSimple {
 public:
     CVector                m_vecPosn;
     float                  m_fAngle;
-    uint8                  m_nSurfaceType;
+    eSurfaceType           m_nSurfaceType;
     CAnimBlendAssociation* m_pAnim;
     float                  m_fMinZSpeed;
     union {
@@ -32,8 +32,8 @@ public:
     CTaskTimer m_timer;
     CEntity*   m_pClimbEntity;
 
-    static float ms_fSlowFallThreshold;  // 0x8D2EFC
-    static uint32 ms_nMaxSlowFallFrames; // 0x8D2EF8
+    static inline auto& ms_fSlowFallThreshold = StaticRef<float>(0x8D2EFC); // -0.05f
+    static inline auto& ms_nMaxSlowFallFrames = StaticRef<uint32>(0x8D2EF8); // 10
 
 public:
     static constexpr auto Type = TASK_SIMPLE_IN_AIR;
@@ -41,13 +41,11 @@ public:
     CTaskSimpleInAir(bool bUsingJumpGlide, bool bUsingFallGlide, bool bUsingClimbJump);
     ~CTaskSimpleInAir() override;
 
-    eTaskType GetTaskType() override { return Type; }
-    CTask* Clone() override { return new CTaskSimpleInAir(m_bUsingJumpGlide, m_bUsingFallGlide, m_bUsingClimbJump); }
+    eTaskType GetTaskType() const override { return Type; }
+    CTask* Clone() const override { return new CTaskSimpleInAir(m_bUsingJumpGlide, m_bUsingFallGlide, m_bUsingClimbJump); }
     bool ProcessPed(CPed* ped) override;
-    bool MakeAbortable(CPed* ped, eAbortPriority priority, const CEvent* event) override;
+    bool MakeAbortable(CPed* ped, eAbortPriority priority = ABORT_PRIORITY_URGENT, const CEvent* event = nullptr) override;
 
-    bool ProcessPed_Reversed(CPed* ped);
-    bool MakeAbortable_Reversed(CPed* ped, eAbortPriority priority, const CEvent* event);
 
     static void DeleteAnimCB(CAnimBlendAssociation* anim, void* data);
 
