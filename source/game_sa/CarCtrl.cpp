@@ -52,7 +52,7 @@ void CCarCtrl::InjectHooks()
     RH_ScopedInstall(FindMaxSteerAngle, 0x427FE0);
     RH_ScopedInstall(GenerateRandomCars, 0x4341C0);
     RH_ScopedInstall(ChooseModel, 0x424CE0, { .Reversed = false });
-    RH_ScopedInstall(ClearInterestingVehicleList, 0x423F00, { .Reversed = false });
+    RH_ScopedInstall(ClearInterestingVehicleList, 0x423F00);
     RH_ScopedInstall(ClitargetOrientationToLink, 0x422760, { .Reversed = false });
     RH_ScopedInstall(CreateConvoy, 0x42C740, { .Reversed = false });
     RH_ScopedInstall(CreatePoliceChase, 0x42C2B0, { .Reversed = false });
@@ -251,7 +251,7 @@ int32 CCarCtrl::ChoosePoliceCarModel(uint32 ignoreCopBike) {
 
 // 0x423F00
 void CCarCtrl::ClearInterestingVehicleList() {
-    plugin::Call<0x423F00>();
+    rng::fill(apCarsToKeep, nullptr);
 }
 
 // 0x422760
