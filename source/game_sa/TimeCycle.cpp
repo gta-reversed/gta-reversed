@@ -198,10 +198,11 @@ void CTimeCycle::Initialise(bool padFile) {
 
     CFileMgr::CloseFile(file);
                                                                                // Android values
-    m_vecDirnLightToSun.x = std::cos(-3.0f * PI / 4.0f) * std::cos(PI / 4.0f); // -0.5f
-    m_vecDirnLightToSun.y = std::sin(-3.0f * PI / 4.0f) * std::cos(PI / 4.0f); // -0.5f
-    m_vecDirnLightToSun.z = std::sin(PI / 4.0f);                               // std::cos(-3 * rwPI / 3.0f) * std::cos(rwPI / 4.0f);
-    m_vecDirnLightToSun.Normalise();
+    m_vecDirnLightToSun = CVector{
+        std::cos(-3.0f * PI / 4.0f) * std::cos(PI / 4.0f), // -0.5f
+        std::sin(-3.0f * PI / 4.0f) * std::cos(PI / 4.0f), // -0.5f
+        std::sin(PI / 4.0f),                               // std::cos(-3 * rwPI / 3.0f) * std::cos(rwPI / 4.0f);
+    }.Normalized();
     m_FogReduction = 0;
     m_bExtraColourOn = false;
 }

@@ -9,8 +9,8 @@ void CTaskSimpleCarForcePedOut::InjectHooks() {
     RH_ScopedDestructorInstall(0x647790);
 
     RH_ScopedVMTInstall(Clone, 0x649EE0, { .Reversed = false });
-    RH_ScopedVMTInstall(GetTaskType, 0x647770, { .Reversed = false });
-    RH_ScopedVMTInstall(MakeAbortable, 0x647780, { .Reversed = false });
+    RH_ScopedVMTInstall(GetTaskType, 0x647770);
+    RH_ScopedVMTInstall(MakeAbortable, 0x647780);
     RH_ScopedVMTInstall(ProcessPed, 0x6477F0, { .Reversed = false });
 }
 

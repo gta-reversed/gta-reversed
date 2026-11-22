@@ -386,8 +386,7 @@ void CFireManager::Update() {
         bool bHit{};
         point.z = CWorld::FindGroundZFor3DCoord(point, &bHit, &hitEntity);
 
-        CVector pointToCamDirNorm = (TheCamera.GetPosition() - point);
-        pointToCamDirNorm.Normalise();
+        const auto pointToCamDirNorm = (TheCamera.GetPosition() - point).Normalized();
 
         // In the PC version 0.2f and "riot_smoke" is accessed through an array
         // On the Android version it's inlined
@@ -517,9 +516,8 @@ void CFireManager::Update() {
                 RegisterCorona(strongestId + 1, point);
 
                 point.z -= 2.0f;
-                CVector camRightNorm = TheCamera.GetRight();
-                camRightNorm.z = 0.0f;
-                camRightNorm.Normalise();
+                const auto camRight = TheCamera.GetRight();
+                const auto camRightNorm = CVector{ camRight.x, camRight.y, 0.0f }.Normalized();
                 point += camRightNorm * 2.0f;
                 RegisterCorona(strongestId + 2, point);
 
