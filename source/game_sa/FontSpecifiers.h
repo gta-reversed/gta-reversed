@@ -83,6 +83,9 @@ struct tFontData {
         default:
             break;
         }
+        if (idx >= PropValues.size()) { // The original reads past the array (into the following data), e.g. idx 224 in some mission texts
+            return reinterpret_cast<const uint8*>(this)[idx];
+        }
         return PropValues[idx];
     }
 };
