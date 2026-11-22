@@ -289,12 +289,11 @@ void cBuoyancy::AddSplashParticles(CPhysical* entity, CVector vecFrom, CVector v
             const auto& vecEntPos = entity->GetPosition();
             vecSplashDir = vecTransformedPoint - vecEntPos;
         }
-        vecSplashDir.z = 0.0F;
-        vecSplashDir.Normalise();
+        const auto normalizedSplashDir = CVector{ vecSplashDir.x, vecSplashDir.y, 0.0F }.Normalized();
 
         float fRand = CGeneral::GetRandomNumberInRange(0.0F, 0.5F);
-        vecTransformedPoint += (vecSplashDir * fRand);
-        g_fx.m_WaterSplash->AddParticle(vecTransformedPoint, vecSplashDir * fMoveSpeed * 60.0F + vecVelocityModifier, 0.0F, curParticle);
+        vecTransformedPoint += (normalizedSplashDir * fRand);
+        g_fx.m_WaterSplash->AddParticle(vecTransformedPoint, normalizedSplashDir * fMoveSpeed * 60.0F + vecVelocityModifier, 0.0F, curParticle);
     }
 
     if (entity->GetIsTypePed()) {

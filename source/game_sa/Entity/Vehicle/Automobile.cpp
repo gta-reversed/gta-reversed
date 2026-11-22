@@ -4626,11 +4626,9 @@ void CAutomobile::ProcessCarWheelPair(eCarWheel leftWheel, eCarWheel rightWheel,
         if (m_WheelCounts[leftWheel] > 0.0f) {
             float thrust = driveWheels ? acceleration : 0.0f;
 
-            wheelFwd = GetForward();
-            wheelFwd -= DotProduct(wheelFwd, m_wheelColPoint[leftWheel].m_vecNormal) * m_wheelColPoint[leftWheel].m_vecNormal;
-            wheelFwd.Normalise();
-            wheelRight = CrossProduct(wheelFwd, m_wheelColPoint[leftWheel].m_vecNormal);
-            wheelRight.Normalise();
+            wheelFwd = (GetForward() - DotProduct(wheelFwd, m_wheelColPoint[leftWheel].m_vecNormal) * m_wheelColPoint[leftWheel].m_vecNormal).Normalized();
+
+            wheelRight = CrossProduct(wheelFwd, m_wheelColPoint[leftWheel].m_vecNormal).Normalized();
             if (canSteer && m_nModelIndex != MODEL_HYDRA)
             {
                 CVector tmp = cosSteerAngle * wheelFwd - sinSteerAngle * wheelRight;
@@ -4678,9 +4676,9 @@ void CAutomobile::ProcessCarWheelPair(eCarWheel leftWheel, eCarWheel rightWheel,
             float thrust = driveWheels ? acceleration : 0.0f;
             wheelFwd = GetForward();
             wheelFwd -= DotProduct(wheelFwd, m_wheelColPoint[rightWheel].m_vecNormal) * m_wheelColPoint[rightWheel].m_vecNormal;
-            wheelFwd.Normalise();
+            wheelFwd = wheelFwd.Normalized();
             wheelRight = CrossProduct(wheelFwd, m_wheelColPoint[rightWheel].m_vecNormal);
-            wheelRight.Normalise();
+            wheelRight = wheelRight.Normalized();
             if (canSteer)
             {
                 CVector tmp = cosSteerAngle * wheelFwd - sinSteerAngle * wheelRight;
@@ -5866,9 +5864,7 @@ void CAutomobile::PlaceOnRoadProperly()
     auto fLength = fEndY + fStartY;
     GetRight().Set((vecFrontCheck.y - vecRearCheck.y) / fLength, -((vecFrontCheck.x - vecRearCheck.x) / fLength), 0.0F);
 
-    auto vecDiff = vecFrontCheck - vecRearCheck;
-    vecDiff.Normalise();
-    GetForward() = vecDiff;
+    GetForward() = (vecFrontCheck - vecRearCheck).Normalized();
 
     auto vecCross = CrossProduct(GetRight(), GetForward());
     GetUp() = vecCross;

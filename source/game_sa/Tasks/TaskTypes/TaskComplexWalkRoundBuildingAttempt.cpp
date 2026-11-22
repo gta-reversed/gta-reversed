@@ -37,8 +37,7 @@ CTaskComplexWalkRoundBuildingAttempt::CTaskComplexWalkRoundBuildingAttempt(eMove
     m_bIsHeadOnCollision{flag_0x1},
     m_moveState{(int8)moveState}
 {
-    m_normal.z = 0.f;
-    m_normal.Normalise();
+    m_normal = CVector{ CVector2D{ m_normal }.Normalized() };
 }
 
 // 0x654840
@@ -51,8 +50,7 @@ CTaskComplexWalkRoundBuildingAttempt::CTaskComplexWalkRoundBuildingAttempt(eMove
     m_bIsHeadOnCollision{bIsHeadOnCollision},
     m_isWalkingAroundEntity{true}
 {
-    m_normal.z = 0.f;
-    m_normal.Normalise();
+    m_normal = CVector{ CVector2D{ m_normal }.Normalized() };
 
     CEntity::RegisterReference(m_targetEntity);
 }

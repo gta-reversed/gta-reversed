@@ -174,12 +174,12 @@ int32 ProcSurfaceInfo_c::AddObjects(CPlantLocTri* plant) {
     auto vec1   = plant->m_V2 - plant->m_V1;
     auto vec2   = plant->m_V3 - plant->m_V2;
     auto vec3   = plant->m_V3 - plant->m_V1;
-    auto normal = vec3.Cross(vec1);
+
+    const auto [normal, normalMagnitude] = vec3.Cross(vec1).NormalizedAndMag();
 
     auto numAdded = 0;
     if (m_fUseGrid == 0.f) {
-        auto density = normal.Magnitude() * 0.5f * m_fSquaredSpacingRadius;
-        normal.Normalise(); //Originally placed inside the below loop, no need to do this repeatedly
+        auto density = normalMagnitude * 0.5f * m_fSquaredSpacingRadius;
 
         auto randSeed    = (plant->m_V1 + plant->m_V2 + plant->m_V3).ComponentwiseSum() + m_ModelIndex;
         auto oldRandSeed = rand(); // R* usage of srand and rand seems rather weird.
@@ -222,8 +222,6 @@ int32 ProcSurfaceInfo_c::AddObjects(CPlantLocTri* plant) {
     auto xEnd = float(int32((int32(maxX * step) + 1) * m_fSpacing));
     auto yCur = float(int32(int32(minY * step) * m_fSpacing));
     auto yEnd = float(int32((int32(maxY * step) + 1) * m_fSpacing));
-    normal.Normalise();
-
     for (xCur; xCur < xEnd; xCur += m_fSpacing) {
         for (yCur; yCur < yEnd; yCur += m_fSpacing) {
             float zPos;

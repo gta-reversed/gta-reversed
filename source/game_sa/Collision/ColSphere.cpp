@@ -39,9 +39,7 @@ bool CColSphere::IntersectRay(const CVector& rayOrigin, const CVector& direction
 // 0x4100E0
 bool CColSphere::IntersectEdge(const CVector& startPoint, const CVector& endPoint, CVector& intersectPoint1, CVector& intersectPoint2) const noexcept {
     CVector originCenterDistance = startPoint - m_vecCenter;
-    CVector rayDirection = endPoint - startPoint;
-    float rayLength = rayDirection.Magnitude();
-    rayDirection.Normalise();
+    const auto [rayDirection, rayLength] = (endPoint - startPoint).NormalizedAndMag();
     float a = DotProduct(rayDirection, rayDirection);
     float b = 2.0f * DotProduct(originCenterDistance, rayDirection);
     float c = DotProduct(originCenterDistance, originCenterDistance) - m_fRadius * m_fRadius;

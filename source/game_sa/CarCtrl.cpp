@@ -705,13 +705,11 @@ void CCarCtrl::PossiblyFireHSMissile(CVehicle* entityLauncher, CEntity* targetEn
 
     const CVector launcherPos = entityLauncher->GetPosition();
     const CVector targetPos = targetEntity->GetPosition();
-    CVector dir = targetPos - launcherPos;
+    const CVector dir = targetPos - launcherPos;
     const float dist = dir.Magnitude();
     if (dist < 160.0f && dist > 30.0f) {
         CMatrix launcherMat = entityLauncher->GetMatrix();
-        CVector dirNormalized = dir;
-        dir.Normalise();
-        if (DotProduct(launcherMat.GetForward(), dirNormalized) > 0.8f) {
+        if (DotProduct(launcherMat.GetForward(), dir / dist) > 0.8f) {
             CProjectileInfo::AddProjectile(
                 entityLauncher,
                 eWeaponType::WEAPON_ROCKET_HS,
