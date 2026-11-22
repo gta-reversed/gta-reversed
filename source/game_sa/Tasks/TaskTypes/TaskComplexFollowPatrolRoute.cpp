@@ -25,7 +25,8 @@ CTaskComplexFollowPatrolRoute::CTaskComplexFollowPatrolRoute(eMoveStateS32 moveS
     m_Route(new CPatrolRoute(route)),
     m_Mode(mode),
     m_TargetRadius(targetRadius),
-    m_SlowDownDistance(slowDownDistance) {
+    m_SlowDownDistance(slowDownDistance),
+    m_IsNewRoute(true) { // 0x6749C4
 }
 
 // 0x674BB0
