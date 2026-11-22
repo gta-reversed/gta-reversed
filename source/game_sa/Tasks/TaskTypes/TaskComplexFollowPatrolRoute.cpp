@@ -21,13 +21,14 @@ void CTaskComplexFollowPatrolRoute::InjectHooks() {
 
 // 0x674930
 CTaskComplexFollowPatrolRoute::CTaskComplexFollowPatrolRoute(eMoveStateS32 moveState, const CPatrolRoute& route, int32 mode, float targetRadius, float slowDownDistance) :
-    m_MoveState(moveState),
-    m_Route(new CPatrolRoute(route)),
-    m_Mode(mode),
-    m_TargetRadius(targetRadius),
-    m_SlowDownDistance(slowDownDistance),
-    m_IsNewRoute(true) { // 0x6749C4
+    m_MoveState{ moveState },
+    m_Route{ new CPatrolRoute(route) },
+    m_Mode{ mode },
+    m_TargetRadius{ targetRadius },
+    m_SlowDownDistance{ slowDownDistance },
+    m_IsNewRoute{ true } {
 }
+
 
 // 0x674BB0
 CTaskComplexFollowPatrolRoute::CTaskComplexFollowPatrolRoute(const CTaskComplexFollowPatrolRoute& o) :
