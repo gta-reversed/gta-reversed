@@ -3,6 +3,7 @@
 #include "app_debug.h"
 #include <windows.h>
 #include <DbgHelp.h>
+#include <filesystem>
 #include <spdlog/async.h>
 #include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
@@ -178,7 +179,13 @@ notsa::Logging::Logging() {
     spdlog::enable_backtrace(128);
     spdlog::set_level(spdlog::level::debug);
 
-    m_sinks.emplace_back(std::make_shared<spdlog::sinks::basic_file_sink_mt>("logs/log.log"));
+    // Next to the exe, not in the working directory (that's `scripts/` while the ASI loader loads us)
+    const auto exeDir = [] {
+        char path[MAX_PATH]{};
+        GetModuleFileNameA(nullptr, path, std::size(path));
+        return std::filesystem::path{ path }.parent_path();
+    }();
+    m_sinks.emplace_back(std::make_shared<spdlog::sinks::basic_file_sink_mt>((exeDir / "logs" / "log.log").string()));
     m_sinks.emplace_back(std::make_shared<spdlog::sinks::stdout_color_sink_mt>());
 
     spdlog::set_default_logger(Create("default"));
