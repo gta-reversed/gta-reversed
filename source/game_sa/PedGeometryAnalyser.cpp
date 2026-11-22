@@ -299,7 +299,7 @@ void CPedGeometryAnalyser::ComputeEntityBoundingBoxCorners(float zPos, CEntity& 
 // 0x5F1FA0
 bool CPedGeometryAnalyser::ComputeEntityBoundingBoxCornersUncached(float zPos, CEntity& entity, std::array<CVector, 4>& corners) {
     if (entity.GetIsTypeBuilding() && entity.m_bIsTempBuilding) {
-        if (g_interiorMan.GetBoundingBox(entity, corners.data())) {
+        if (g_interiorMan.GetBoundingBox(entity, corners)) {
             for (auto& corner : corners) {
                 corner.z = zPos;
             }

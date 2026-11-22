@@ -49,7 +49,6 @@ VALIDATE_SIZE(CPointRoute, 0x64);
 
 class CPedGeometryAnalyser {
 public:
-    /*! @brief Register hooks for all analyser methods. */
     static void InjectHooks();
 
     /*!
@@ -474,6 +473,6 @@ private:
     */
     static void ComputeEntityBoundingBoxSegmentPlanesUncachedAll(float zPos, CEntity& entity, std::array<CVector, 4>& outSegPlaneNormals, std::array<float, 4>& outPlaneDs);
 
-private:
+public:
     static inline auto& ms_fPedNominalRadius = StaticRef<float>(0x8D22B0);
 };

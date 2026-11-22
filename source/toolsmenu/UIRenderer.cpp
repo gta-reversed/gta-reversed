@@ -29,6 +29,8 @@
 #include <Lines.h>
 #include <PedGeometryAnalyser.h>
 
+#include "DebugModules/CTeleportDebugModule.h"
+
 namespace notsa {
 namespace ui {
 UIRenderer::UIRenderer() :
@@ -171,6 +173,13 @@ void UIRenderer::DebugCode() {
 
     if (UIRenderer::IsActive() || CPad::NewKeyState.lctrl || CPad::NewKeyState.rctrl)
         return;
+
+    if (pad->IsStandardKeyJustDown('P')) {
+        CClock::SetGameClock(20, 0, 0);
+        CCheat::ExtraSunnyWeatherCheat();
+        CCheat::VehicleCheat(eModelID::MODEL_BOXBURG);
+        TeleportDebugModule::TeleportTo(CVector{2253.503f, -1787.292f, 13.555f});
+    }
 
 }
 }; // namespace ui
