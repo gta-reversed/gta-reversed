@@ -65,6 +65,9 @@ CTask* CTaskComplexWalkRoundObject::ControlSubTask(CPed* ped) {
 
 // 0x657220
 CTask* CTaskComplexWalkRoundObject::CreateNextSubTask(CPed* ped) {
+    if (!m_object) {
+        return nullptr;
+    }
     switch (const auto stt = m_pSubTask->GetTaskType()) {
     case TASK_SIMPLE_STAND_STILL:
     case TASK_COMPLEX_FOLLOW_POINT_ROUTE:
