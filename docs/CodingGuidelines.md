@@ -163,6 +163,7 @@ We use a casting system for (the derivatives of) `CTask`, `CEvent`, `C2dEffect`,
 - `notsa::dyn_cast` (and `notsa::dyn_cast_and_present`) - Works like `dynamic_cast`
 Use the `_and_present` variants if the pointer may be null.
 We plan on expanding this casting system to cover more types in the future, as it provides a safer and more consistent way to handle type casting compared to traditional C++ casts.
+Using it wherever possible is strongly preferred over traditional C++ casts.
 
 ### Usage of `auto`
 * Use `auto` in function bodies if the variables' type is guessable.
