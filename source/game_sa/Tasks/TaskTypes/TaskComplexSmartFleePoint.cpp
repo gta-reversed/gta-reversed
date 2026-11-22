@@ -53,7 +53,7 @@ void CTaskComplexSmartFleePoint::SetDefaultTaskWanderDir(CPed* ped) {
 
 // 0x65BE40
 uint32 CTaskComplexSmartFleePoint::ComputeFleeDir(CPed* ped) {
-    return (CVector2D{ m_fleePoint } - ped->GetPosition2D()).NodeHeading();
+    return (ped->GetPosition2D() - CVector2D{ m_fleePoint }).NodeHeading(); // Away from the flee point
 }
 
 // 0x65BE80
@@ -72,7 +72,7 @@ CTask* CTaskComplexSmartFleePoint::CreateSubTask(eTaskType taskType, CPed* ped) 
             return nullptr;
         }
         return new CTaskComplexSequence{
-            new CTaskSimpleRunAnim{ ANIM_GROUP_DEFAULT, ANIM_ID_FLEE_LKAROUND_01 }
+            new CTaskSimpleRunAnim{ ANIM_GROUP_DEFAULT, ANIM_ID_FLEE_LKAROUND_01 },
             new CTaskSimpleTired{ 2'000 }
         };
     }
@@ -113,8 +113,8 @@ CTask* CTaskComplexSmartFleePoint::CreateNextSubTask(CPed* ped) {
         m_fleeDir = (uint8)ComputeFleeDir(ped);
         return CreateSubTask(TASK_COMPLEX_WANDER, ped);
     }
-    default:
-        NOTSA_UNREACHABLE_CASE(tt);
+    default: // 0x65c12e - e.g. the flee wander finished
+        return nullptr;
     }
 }
 
@@ -148,14 +148,14 @@ CTask* CTaskComplexSmartFleePoint::ControlSubTask(CPed* ped) {
                 m_timer.m_nInterval  = m_fleeTimeMs;
                 m_timer.m_bStarted   = true;
             }
-            if (const auto prev = m_fleeDir; std::exchange(m_fleeDir, (uint8)ComputeFleeDir(ped)) != prev) {
+            if (const auto dir = (uint8)ComputeFleeDir(ped); std::exchange(m_fleeDir, dir) != dir) {
                 tSubWander->SetDirection(dir);
             }
         } else if (m_timer.IsOutOfTime()) {
             return CreateSubTask(TASK_SIMPLE_STAND_STILL, ped); // 0x65c2e3
         } else {
             const auto DistSqToPed = [from = ped->GetPosition()](CVector pt) {
-                return CVector::DistSq(pt, from);
+                return CVector::DistSqr(pt, from);
             };
             if (DistSqToPed(m_fleePoint) > sq(m_safeDist) && DistSqToPed(m_initalPos) > sq(m_safeDist)) {
                 return CreateSubTask(TASK_SIMPLE_STAND_STILL, ped);
