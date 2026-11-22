@@ -289,11 +289,9 @@ void CMatrix::Rotate(CVector rotation)
 
 void CMatrix::Reorthogonalise()
 {
-    auto vecCross = CrossProduct(m_right, m_forward);
-    vecCross.Normalise();
+    const auto vecCross = CrossProduct(m_right, m_forward).Normalized();
 
-    auto vecCross2 = CrossProduct(m_forward, vecCross);
-    vecCross2.Normalise();
+    const auto vecCross2 = CrossProduct(m_forward, vecCross).Normalized();
 
     auto vecCross3 = CrossProduct(vecCross, vecCross2);
 

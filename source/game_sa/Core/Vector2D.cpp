@@ -9,6 +9,7 @@
 #include "Vector.h"
 #include "General.h"
 
+
 void CVector2D::InjectHooks() {
     RH_ScopedClass(CVector2D);
     RH_ScopedCategory("Core");
@@ -21,6 +22,16 @@ void CVector2D::InjectHooks() {
 CVector2D::CVector2D(const CVector& v3) :
     CVector2D{v3.x, v3.y}
 {
+}
+
+CVector2D CVector2D::Random(CVector2D min, CVector2D max) {
+    const auto Get = [=](float fmin, float fmax) { return CGeneral::GetRandomNumberInRange(fmin, fmax); };
+    return { Get(min.x, max.x), Get(min.y, max.y) };
+}
+
+CVector2D CVector2D::Random(float min, float max) {
+    const auto Get = [=] { return CGeneral::GetRandomNumberInRange(min, max); };
+    return { Get(), Get() };
 }
 
 void CVector2D::Normalise(float* outMag) {

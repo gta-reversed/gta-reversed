@@ -4059,7 +4059,7 @@ bool CVehicle::BladeColSectorList(PtrListType& ptrList, CColModel& colModel, CMa
         if (entity->GetIsTypePed()) { // 0x6DB207
             auto& ped = *entity->AsPed();
 
-            const auto dirToPed = Normalized(GetPosition() - ped.GetPosition());
+            const auto dirToPed = (GetPosition() - ped.GetPosition()).Normalized();
 
             if (!ped.m_pAttachedTo) { // 0x6DB24C
                 ped.ApplyMoveForce(CVector{ CVector2D{dirToPed} * -5.f, 5.f });
@@ -4165,7 +4165,7 @@ bool CVehicle::BladeColSectorList(PtrListType& ptrList, CColModel& colModel, CMa
                         ReportCollision(cpOnRotor);
                     } else if (GetStatus() == STATUS_PLAYER) {
                         const auto& gameCamPos = *TheCamera.GetGameCamPosition();
-                        ReportCollision(gameCamPos + Normalized(cpOnRotor - gameCamPos) * 4.f);
+                        ReportCollision(gameCamPos + (cpOnRotor - gameCamPos).Normalized() * 4.f);
                     }
                     planeRotorDmgTimeMS = CTimer::GetTimeInMS() + CGeneral::GetRandomNumberInRange(150, 250);
                 }
@@ -5273,7 +5273,7 @@ void CVehicle::DoHeadLightBeam(eVehicleLightId lightId, CMatrix& vehicleMatrix, 
     if (!isRight) {
         point -= 2 * pointModelSpace.x * vehicleMatrix.GetRight();
     }
-    const CVector pointToCamDir = Normalized(TheCamera.GetPosition() - point);
+    const CVector pointToCamDir = (TheCamera.GetPosition() - point).Normalized();
     const auto    alpha         = (uint8)((1.0f - std::fabs(DotProduct(pointToCamDir, vehicleMatrix.GetForward()))) * 32.0f);
 
     RwRenderStateSet(rwRENDERSTATEZWRITEENABLE,         RWRSTATE(FALSE));
@@ -5288,8 +5288,8 @@ void CVehicle::DoHeadLightBeam(eVehicleLightId lightId, CMatrix& vehicleMatrix, 
     RwRenderStateSet(rwRENDERSTATEALPHATESTFUNCTIONREF, RWRSTATE(FALSE));
 
     const float   angleMult   = ModelIndices::IsForklift(GetModelIndex()) ? 0.5f : 0.15f;
-    const CVector lightNormal = Normalized(vehicleMatrix.GetForward() - vehicleMatrix.GetUp() * angleMult);
-    const CVector lightRight  = Normalized(CrossProduct(lightNormal, pointToCamDir));
+    const CVector lightNormal = (vehicleMatrix.GetForward() - vehicleMatrix.GetUp() * angleMult).Normalized();
+    const CVector lightRight  = (CrossProduct(lightNormal, pointToCamDir)).Normalized();
     const CVector lightPos    = point - vehicleMatrix.GetForward() * 0.1f;
 
     const CVector posn[]      = {

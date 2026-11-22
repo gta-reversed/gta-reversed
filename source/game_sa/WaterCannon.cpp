@@ -172,9 +172,9 @@ void CWaterCannon::Render() {
                 if (!hasCalculatedMatrix) {
                     hasCalculatedMatrix = true;
 
-                    up = Normalized(CrossProduct(prevPosn - currPosn, TheCamera.GetForward())) / 20.0f;
-                    right = Normalized(CVector::Random(0.0f, 1.0f)) / 20.0f;
-                    fwd = Normalized(CVector::Random(0.0f, 1.0f)) / 20.0f;
+                    up = (CrossProduct(prevPosn - currPosn, TheCamera.GetForward())).Normalized() / 20.0f;
+                    right = CVector::Random(0.0f, 1.0f).Normalized() / 20.0f;
+                    fwd = CVector::Random(0.0f, 1.0f).Normalized() / 20.0f;
                 }
 
                 const float size = (float)(i * i) / (float)SECTIONS_COUNT + 3.0f;

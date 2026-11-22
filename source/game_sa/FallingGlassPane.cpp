@@ -43,7 +43,7 @@ void CFallingGlassPane::Update() {
 }
 
 RwRGBA CFallingGlassPane::CalculateHiLightPolyColor() {
-    const auto alpha       = static_cast<float>(CGlass::CalcAlphaWithNormal(Normalized(m_Matrix.GetForward())));
+    const auto alpha       = static_cast<float>(CGlass::CalcAlphaWithNormal(m_Matrix.GetForward().Normalized()));
     const auto delta       = static_cast<float>(std::clamp(CTimer::GetTimeInMS() - m_nCreatedTime, 0u, 500u));
     const auto scaledAlpha = static_cast<uint32>(alpha * delta / 500.f);
     const auto color       = static_cast<uint8>(m_f6F ? std::max(64u, scaledAlpha) : scaledAlpha);
