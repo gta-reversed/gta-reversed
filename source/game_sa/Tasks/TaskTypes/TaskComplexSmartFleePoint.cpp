@@ -46,41 +46,40 @@ CTaskComplexSmartFleePoint::CTaskComplexSmartFleePoint(const CTaskComplexSmartFl
 
 // 0x65BE00
 void CTaskComplexSmartFleePoint::SetDefaultTaskWanderDir(CPed* ped) {
-    // Hand our flee-wander's path nodes over to the ped's default wander task, so it continues from where we stopped
-    auto* const defaultTask = ped->GetTaskManager().GetTaskPrimary(TASK_PRIMARY_DEFAULT);
-    if (defaultTask && defaultTask->GetTaskType() == TASK_COMPLEX_WANDER) {
-        static_cast<CTaskComplexWander*>(defaultTask)->SetPathNodesFrom(*static_cast<CTaskComplexWander*>(m_pSubTask));
+    if (auto* const tComplexWander = notsa::dyn_cast<CTaskComplexWander>(ped->GetTaskManager().GetTaskPrimary(TASK_PRIMARY_DEFAULT))) {
+        tComplexWander->SetPathNodesFrom(*notsa::cast<CTaskComplexWander>(m_pSubTask));
     }
 }
 
 // 0x65BE40
 uint32 CTaskComplexSmartFleePoint::ComputeFleeDir(CPed* ped) {
-    const auto& pedPos = ped->GetPosition();
-    return CGeneral::GetNodeHeadingFromVector(pedPos.x - m_fleePoint.x, pedPos.y - m_fleePoint.y);
+    return (CVector2D{ m_fleePoint } - ped->GetPosition2D()).NodeHeading();
 }
 
 // 0x65BE80
 CTask* CTaskComplexSmartFleePoint::CreateSubTask(eTaskType taskType, CPed* ped) {
     switch (taskType) {
-    case TASK_COMPLEX_LEAVE_ANY_CAR:
+    case TASK_COMPLEX_LEAVE_ANY_CAR: // 0x65bffd
         return new CTaskComplexLeaveAnyCar{ 0, false, true };
-    case TASK_COMPLEX_WANDER:
+    case TASK_COMPLEX_WANDER: // 0x65c099
         return new CTaskComplexWanderFlee{ m_moveState, m_fleeDir };
-    case TASK_SIMPLE_STAND_STILL:
+    case TASK_SIMPLE_STAND_STILL: { // 0x65bfae
         SetDefaultTaskWanderDir(ped);
         return new CTaskSimpleStandStill{ 0, false, false, 8.f };
-    case TASK_COMPLEX_SEQUENCE: {
+    }
+    case TASK_COMPLEX_SEQUENCE: { // 0x65bec6
         if (m_moveState != PEDMOVE_RUN) {
             return nullptr;
         }
-        auto* const seq = new CTaskComplexSequence{};
-        seq->AddTask(new CTaskSimpleRunAnim{ ANIM_GROUP_DEFAULT, ANIM_ID_FLEE_LKAROUND_01, 4.f, false });
-        seq->AddTask(new CTaskSimpleTired{ 2'000 });
-        return seq;
+        return new CTaskComplexSequence{
+            new CTaskSimpleRunAnim{ ANIM_GROUP_DEFAULT, ANIM_ID_FLEE_LKAROUND_01 }
+            new CTaskSimpleTired{ 2'000 }
+        };
     }
-    case TASK_FINISHED:
-    default:
+    case TASK_FINISHED: // 0x65c051
         return nullptr;
+    default:
+        NOTSA_UNREACHABLE_CASE(taskType);
     }
 }
 
@@ -98,34 +97,31 @@ void CTaskComplexSmartFleePoint::SetFleePosition(const CVector& fleePos, float s
 bool CTaskComplexSmartFleePoint::MakeAbortable(CPed* ped, eAbortPriority priority, CEvent const* event) {
     if (priority == ABORT_PRIORITY_LEISURE) {
         m_fleeTimeMs = -1;
-
-        // Started with raw fields, as `CTaskTimer::Start` refuses negative times
-        m_timer.m_nStartTime = CTimer::GetTimeInMS();
-        m_timer.m_nInterval  = m_fleeTimeMs;
-        m_timer.m_bStarted   = true;
+        m_timer.SetOutOfTime();
     }
     return m_pSubTask->MakeAbortable(ped, priority, event);
 }
 
 // 0x65C0C0
 CTask* CTaskComplexSmartFleePoint::CreateNextSubTask(CPed* ped) {
-    switch (m_pSubTask->GetTaskType()) {
+    switch (const auto tt = m_pSubTask->GetTaskType()) {
     case TASK_SIMPLE_STAND_STILL:
         return CreateSubTask(TASK_COMPLEX_SEQUENCE, ped);
     case TASK_COMPLEX_SEQUENCE:
         return CreateSubTask(TASK_FINISHED, ped);
-    case TASK_COMPLEX_LEAVE_ANY_CAR:
+    case TASK_COMPLEX_LEAVE_ANY_CAR: {
         m_fleeDir = (uint8)ComputeFleeDir(ped);
         return CreateSubTask(TASK_COMPLEX_WANDER, ped);
+    }
     default:
-        return nullptr;
+        NOTSA_UNREACHABLE_CASE(tt);
     }
 }
 
 // 0x65C140
 CTask* CTaskComplexSmartFleePoint::CreateFirstSubTask(CPed* ped) {
     m_initalPos = ped->GetPosition();
-    if (ped->bInVehicle && ped->m_pVehicle) {
+    if (ped->IsInVehicle()) {
         return CreateSubTask(TASK_COMPLEX_LEAVE_ANY_CAR, ped);
     }
     m_fleeDir = (uint8)ComputeFleeDir(ped);
@@ -134,45 +130,41 @@ CTask* CTaskComplexSmartFleePoint::CreateFirstSubTask(CPed* ped) {
 
 // 0x65C1E0
 CTask* CTaskComplexSmartFleePoint::ControlSubTask(CPed* ped) {
-    if (m_pSubTask->GetTaskType() != TASK_COMPLEX_WANDER) {
-        if (g_ikChainMan.IsLooking(ped)) {
+    if (auto* const tSubWander = notsa::dyn_cast<CTaskComplexWander>(m_pSubTask)) {
+        if (m_doScream) {
+            ped->Say(CTX_GLOBAL_PAIN_PANIC, 0, 0.1f);
+        }
+        
+        tSubWander->m_nMoveState = m_moveState;
+
+        if (m_moveState == PEDMOVE_RUN && !g_ikChainMan.IsLooking(ped) && CGeneral::GetRandomNumberInRange(0, 100) <= 5) { // 0x65c26f - moved up here for convinience
+            g_ikChainMan.LookAt("TaskSmartFleePoint", ped, nullptr, 2'000, BONE_UNKNOWN, &m_fleePoint, false, 0.25f, 500, 3, false);
+        }
+        
+        if (m_hasFleePointChanged) { // 0x65c238
+            m_hasFleePointChanged = false;
+            if (m_timer.m_bStarted) { // Restart with raw fields (`m_fleeTimeMs` may be -1, see `MakeAbortable`)
+                m_timer.m_nStartTime = CTimer::GetTimeInMS();
+                m_timer.m_nInterval  = m_fleeTimeMs;
+                m_timer.m_bStarted   = true;
+            }
+            if (const auto prev = m_fleeDir; std::exchange(m_fleeDir, (uint8)ComputeFleeDir(ped)) != prev) {
+                tSubWander->SetDirection(dir);
+            }
+        } else if (m_timer.IsOutOfTime()) {
+            return CreateSubTask(TASK_SIMPLE_STAND_STILL, ped); // 0x65c2e3
+        } else {
+            const auto DistSqToPed = [from = ped->GetPosition()](CVector pt) {
+                return CVector::DistSq(pt, from);
+            };
+            if (DistSqToPed(m_fleePoint) > sq(m_safeDist) && DistSqToPed(m_initalPos) > sq(m_safeDist)) {
+                return CreateSubTask(TASK_SIMPLE_STAND_STILL, ped);
+            }
+        }  
+    } else {
+        if (g_ikChainMan.IsLooking(ped)) { // 0x65c39a
             g_ikChainMan.AbortLookAt(ped, 250);
         }
-        return m_pSubTask;
     }
-
-    if (m_doScream) {
-        ped->Say(CTX_GLOBAL_PAIN_PANIC, 0, 0.1f);
-    }
-
-    auto* const wander   = static_cast<CTaskComplexWander*>(m_pSubTask);
-    wander->m_nMoveState = m_moveState;
-
-    CTask* subTask       = m_pSubTask;
-    if (m_hasFleePointChanged) {
-        m_hasFleePointChanged = false;
-        if (m_timer.m_bStarted) { // Restart with raw fields (`m_fleeTimeMs` may be -1, see `MakeAbortable`)
-            m_timer.m_nStartTime = CTimer::GetTimeInMS();
-            m_timer.m_nInterval  = m_fleeTimeMs;
-            m_timer.m_bStarted   = true;
-        }
-        if (const auto dir = (uint8)ComputeFleeDir(ped); m_fleeDir != dir) {
-            m_fleeDir = dir;
-            wander->SetDirection(dir);
-        }
-    } else if (m_timer.m_bStarted && m_timer.IsOutOfTime()) {
-        subTask = CreateSubTask(TASK_SIMPLE_STAND_STILL, ped);
-    } else {
-        const auto& pedPos     = ped->GetPosition();
-        const auto  safeDistSq = sq(m_safeDist);
-        if ((m_fleePoint - pedPos).SquaredMagnitude() > safeDistSq && (m_initalPos - pedPos).SquaredMagnitude() > safeDistSq) {
-            subTask = CreateSubTask(TASK_SIMPLE_STAND_STILL, ped);
-        }
-    }
-
-    if (m_moveState == PEDMOVE_RUN && !g_ikChainMan.IsLooking(ped) && CGeneral::GetRandomNumberInRange(0, 100) <= 5) {
-        g_ikChainMan.LookAt("TaskSmartFleePoint", ped, nullptr, 2'000, BONE_UNKNOWN, &m_fleePoint, false, 0.25f, 500, 3, false);
-    }
-
-    return subTask;
+    return m_pSubTask;
 }
