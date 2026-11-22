@@ -180,7 +180,7 @@ void CTaskComplexWalkRoundBuildingAttempt::ComputeRoute(CPed const& ped) {
 
         const auto  pedPos = ped.GetPosition() - CVector{ 0.f, 0.f, 0.5f }; // Ped's position is it's center, so adjust it to be on the ground
         const auto& target = moveDir + pedPos;
-        const auto  origin = target - Normalized(moveDir) * 0.7f;
+        const auto  origin = target - moveDir.Normalized() * 0.7f;
 
         if (!CWorld::GetIsLineOfSightClear(pedPos, target, true, false, false, false, false, false, true)) {
             continue;

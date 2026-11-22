@@ -5113,7 +5113,7 @@ CObject* CAutomobile::SpawnFlyingComponent(eCarNodes nodeIndex, uint32 collision
     obj->m_vecMoveSpeed = CVector{ m_vecMoveSpeed.x * 0.75f, m_vecMoveSpeed.y * 0.75f, GetMoveSpeedZ() };
     obj->m_vecTurnSpeed = m_vecTurnSpeed * 2.f;
 
-    auto objDir = Normalized(obj->GetPosition() - GetPosition());
+    auto objDir = (obj->GetPosition() - GetPosition()).Normalized();
     if (isBonnetBootOrWindscreen) {
         objDir += m_matrix->GetUp();
         if (m_matrix->GetUp().z > 0.f/*not flipped*/) {
@@ -5132,7 +5132,7 @@ CObject* CAutomobile::SpawnFlyingComponent(eCarNodes nodeIndex, uint32 collision
     if (GetStatus() == STATUS_WRECKED && IsVisible()) {
         const auto camDirUnnorm = TheCamera.GetPosition() - GetPosition();
         if (DotProduct(objDir, camDirUnnorm) > -0.5f) { // Object's direction is opposite to that of the camera's
-            auto camDir = Normalized(camDirUnnorm);
+            auto camDir = camDirUnnorm.Normalized();
             camDir.z += 0.3f;
             obj->ApplyMoveForce(camDir * 5.f); // Apply some move force toward the camera's direction
         }

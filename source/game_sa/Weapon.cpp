@@ -822,7 +822,7 @@ bool CWeapon::TakePhotograph(CEntity* owner, const CVector* point) {
         }
 
         if (!CheckIsLOSBlocked(
-            pedHeadPos + Normalized(camPos - pedHeadPos) * 1.5f, // Point from ped's head towards camera
+            pedHeadPos + (camPos - pedHeadPos).Normalized() * 1.5f, // Point from ped's head towards camera
             &ped
         )) {
             ped.bHasBeenPhotographed = true;
@@ -1676,7 +1676,7 @@ bool CWeapon::Fire(CEntity* firedBy, CVector* startPosn, CVector* barrelPosn, CE
     case WEAPONSTATE_FIRING:
         break;
     default:
-        return false;
+               return false;
     }
 
     if (!m_AmmoInClip) {

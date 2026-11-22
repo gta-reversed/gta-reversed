@@ -95,8 +95,8 @@ void CGlass::CarWindscreenShatters(CVehicle* vehicle) {
     const auto normal = vehMat.TransformVector(colModel->m_pColData->m_pTrianglePlanes[glassTriIdx].GetNormal());
 
     // Calculate direction vectors
-    const auto fwd   = Normalized(CrossProduct(vehMat.GetRight(), normal));
-    const auto right = Normalized(CrossProduct(vehMat.GetUp(), normal));
+    const auto fwd   = CrossProduct(vehMat.GetRight(), normal).Normalized();
+    const auto right = CrossProduct(vehMat.GetUp(), normal).Normalized();
 
     // Store world space vertex positions of both triangles
     // Should be more like [2][3] but a multdim array would've been way harder to deal with
@@ -293,15 +293,15 @@ void CGlass::GeneratePanesForWindow(ePaneType type, CVector point, CVector fwd, 
 
                 // Calculate matrix
                 auto& mat = pane->m_Matrix;
-                mat.GetRight() = Normalized(right) * sizeX;
-                mat.GetUp() = Normalized(fwd) * sizeY;
-                mat.GetForward() = Normalized(CrossProduct(mat.GetRight(), mat.GetUp()));
+                mat.GetRight() = right.Normalized() * sizeX;
+                mat.GetUp() = fwd.Normalized() * sizeY;
+                mat.GetForward() = (CrossProduct(mat.GetRight(), mat.GetUp())).Normalized();
 
                 // Matrix's position is the center of the glass pane
                 const auto paneCenterPos = (PanePolyCenterPositions[piece] + CVector2D{ (float)posX, (float)posY } )* CVector2D{ sizeX, sizeY };
                 mat.GetPosition() = point
-                    + Normalized(fwd) * paneCenterPos.y
-                    + Normalized(right) * paneCenterPos.x;
+                    + fwd.Normalized() * paneCenterPos.y
+                    + right.Normalized() * paneCenterPos.x;
 
                 {
                     constexpr auto RandomFactor = [] {return (float)((CGeneral::GetRandomNumber() % 128) - 64) * 0.0015f; };
@@ -309,7 +309,7 @@ void CGlass::GeneratePanesForWindow(ePaneType type, CVector point, CVector fwd, 
                 }
 
                 if (velocityCenterDragCoeff != 0.0f) {
-                    pane->m_Velocity += Normalized(mat.GetPosition() - center) * velocityCenterDragCoeff;
+                    pane->m_Velocity += (mat.GetPosition() - center).Normalized() * velocityCenterDragCoeff;
                 }
 
                 {

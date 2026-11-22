@@ -303,5 +303,3 @@ constexpr static bool IsPointWithinBounds2D(CVector2D min, CVector2D max, CVecto
 constexpr static bool IsPointInRectangle2D(CVector2D rectTopLeft, CVector2D rectSize, CVector2D point) {
     return IsPointWithinBounds2D(rectTopLeft + rectSize, rectTopLeft, point);
 }
-
-static CVector2D Normalized2D(CVector2D v) { return v.Normalized(); }
