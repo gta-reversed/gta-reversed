@@ -58,7 +58,7 @@ bool CTaskSimpleKillPedWithCar::ProcessPed(CPed* ped) {
     const auto pedPos     = ped->GetPosition();
     const auto pedToCar   = pedPos - carPos;
     const auto pedPosOS   = m_Car->GetMatrix().TransformPoint(pedToCar); // Ped's position in the Car's object space
-    auto       pedHitSide = (eDirection)CPedGeometryAnalyser::ComputePedHitSide(*ped, *m_Car);
+    auto       pedHitSide = CPedGeometryAnalyser::ComputePedHitSide(*ped, *m_Car);
 
     eWeaponType killWT = WEAPON_RAMMEDBYCAR;
     enum {
