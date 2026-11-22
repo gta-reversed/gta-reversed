@@ -47,9 +47,8 @@ void CTaskComplexPartner::CalcTargetPositions(CPed * ped, CVector * point, CVect
 
 // 0x6822B0
 int32 CTaskComplexPartner::GetPartnerState() {
-    // NOTE: The partner's own partner task is looked up by our task type (m_partner isn't null-checked, same as the original)
-    if (auto* const t = static_cast<CTaskComplexPartner*>(m_partner->GetTaskManager().FindActiveTaskByType((eTaskType)m_taskId))) {
-        return (int32)t->m_partnerState;
+    if (const auto* const tComplexPartnerOfPartner = m_partner->GetTaskManager().Find<CTaskComplexPartner>(true)) {
+        return (int32)tComplexPartnerOfPartner->m_partnerState;
     }
     return 0;
 }
