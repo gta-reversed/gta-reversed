@@ -1,6 +1,8 @@
 #include "StdInc.h"
 #include "TaskSimpleStandStill.h"
 #include "TaskComplexWaitForPed.h"
+#include "TaskComplexWalkAlongsidePed.h"
+#include "Events/EventDeadPed.h"
 
 void CTaskComplexWaitForPed::InjectHooks() {
     RH_ScopedVirtualClass(CTaskComplexWaitForPed, 0x8706f8, 11);
@@ -14,7 +16,7 @@ void CTaskComplexWaitForPed::InjectHooks() {
     RH_ScopedVMTInstall(MakeAbortable, 0x683430);
     RH_ScopedVMTInstall(CreateNextSubTask, 0x683440);
     RH_ScopedVMTInstall(CreateFirstSubTask, 0x683450);
-    RH_ScopedVMTInstall(ControlSubTask, 0x6834E0, { .Reversed = false });
+    RH_ScopedVMTInstall(ControlSubTask, 0x6834E0);
 }
 // 0x683340
 CTaskComplexWaitForPed::CTaskComplexWaitForPed(CPed* waitForPed, float targetDist, int32 timeout, bool lookAtPed) :
@@ -37,10 +39,49 @@ CTaskComplexWaitForPed::CTaskComplexWaitForPed(const CTaskComplexWaitForPed& o) 
 
 // 0x683450
 CTask* CTaskComplexWaitForPed::CreateFirstSubTask(CPed* ped) {
+    if (!m_WaitForPed) {
+        return nullptr;
+    }
+    // NOTE: Not `m_Timer.Start()`, as that does nothing for negative timeouts (the original always starts it)
+    m_Timer.m_nStartTime = CTimer::GetTimeInMS();
+    m_Timer.m_nInterval  = m_Timeout;
+    m_Timer.m_bStarted   = true;
+    m_FrameCounter       = 0;
     return new CTaskSimpleStandStill{ 999'999 };
 }
 
 // 0x6834E0
 CTask* CTaskComplexWaitForPed::ControlSubTask(CPed* ped) {
-    return plugin::CallMethodAndReturn<CTask*, 0x6834E0, CTaskComplexWaitForPed*, CPed*>(this, ped);
+    if (!m_WaitForPed) {
+        return nullptr;
+    }
+
+    if (!m_WaitForPed->IsAlive()) { // Stop waiting, and go see what happened
+        CEventDeadPed e{ m_WaitForPed, false, CTimer::GetTimeInMS() };
+        e.m_TaskId = TASK_COMPLEX_INVESTIGATE_DEAD_PED;
+        ped->GetEventGroup().Add(&e, false);
+        return nullptr;
+    }
+
+    if (m_Timer.IsStarted() && m_Timer.IsOutOfTime()) {
+        return nullptr;
+    }
+
+    // If the ped we're waiting for walks alongside someone, use the offset position (NOTE: transformed by *our* matrix, like the original)
+    const auto* const walkAlongside = static_cast<CTaskComplexWalkAlongsidePed*>(m_WaitForPed->GetIntelligence()->FindTaskByType(TASK_COMPLEX_WALK_ALONGSIDE_PED));
+    const auto        toWaitForPed  = walkAlongside
+        ? ped->GetMatrix().TransformPoint(walkAlongside->GetOffset()) - m_WaitForPed->GetPosition()
+        : ped->GetPosition() - m_WaitForPed->GetPosition();
+    if (toWaitForPed.SquaredMagnitude() < sq(m_TargetDist)) {
+        return nullptr; // They're here
+    }
+
+    if (m_LookAtPed && m_FrameCounter == 0) {
+        const auto dir         = m_WaitForPed->GetPosition() - ped->GetPosition();
+        ped->m_fAimingRotation = CGeneral::LimitRadianAngle(CGeneral::GetRadianAngleBetweenPoints(dir.x, dir.y, 0.f, 0.f));
+    }
+    if (++m_FrameCounter > 10) {
+        m_FrameCounter = 0;
+    }
+    return m_pSubTask;
 }
