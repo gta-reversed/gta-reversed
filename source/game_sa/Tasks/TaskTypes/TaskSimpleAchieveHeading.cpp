@@ -15,8 +15,8 @@ void CTaskSimpleAchieveHeading::InjectHooks() {
 }
 
 // 0x667E20
-CTaskSimpleAchieveHeading::CTaskSimpleAchieveHeading(float desiredHeading, float changeRateMult, float tolerance) :
-    m_DesiredHeadingRad{ desiredHeading },
+CTaskSimpleAchieveHeading::CTaskSimpleAchieveHeading(float desiredHeadingRads, float changeRateMult, float tolerance) :
+    m_DesiredHeadingRad{ desiredHeadingRads },
     m_HeadingChangeRate{ changeRateMult },
     m_HeadingToleranceRad{ tolerance }
 {
