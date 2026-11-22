@@ -47,5 +47,5 @@ void CTaskComplexCarDriveWander::InjectHooks() {
     RH_ScopedVMTInstall(Clone, 0x63DD00);
     RH_ScopedVMTInstall(GetTaskType, 0x63CB40);
     RH_ScopedVMTInstall(SetUpCar, 0x63CB60, { .Reversed = false });
-    RH_ScopedVMTInstall(CreateSubTaskCannotGetInCar, 0x643240, { .Reversed = false });
+    RH_ScopedVMTInstall(CreateSubTaskCannotGetInCar, 0x643240);
 }
