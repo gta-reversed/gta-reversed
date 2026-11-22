@@ -15,6 +15,17 @@
  * The winding order is counter-clockwise, same as the `eDirection` enum
  **/
 
+namespace {
+//! GTA's callers of the `eDirection` returning functions use the whole of EAX (the original enum is 32 bits),
+//! but our `eDirection` is `uint8` (it's stored as 1 byte in some structs), so our functions only set AL.
+//! The upper bytes of EAX were then garbage, e.g. used as an array index at 0x655257 => crash.
+//! These are installed instead, so GTA's code gets the zero-extended value.
+template<auto Fn, typename... Args>
+int32 HookRetAsInt32(Args... args) {
+    return static_cast<int32>(Fn(args...));
+}
+} // namespace
+
 void CPedGeometryAnalyser::InjectHooks() {
     RH_ScopedClass(CPedGeometryAnalyser);
     RH_ScopedCategoryGlobal();
@@ -41,12 +52,12 @@ void CPedGeometryAnalyser::InjectHooks() {
     RH_ScopedInstall(ComputeEntityBoundingSphere, 0x5F3C20);
     RH_ScopedOverloadedInstall(ComputeMoveDirToAvoidEntity, "OG", 0x5F3730, void(*)(const CPed&, CEntity&, CVector&));
     RH_ScopedInstall(ComputeEntityDirs, 0x5F1500);
-    RH_ScopedOverloadedInstall(ComputeEntityHitSide, "1", 0x5F3BC0, eDirection(*)(const CPed&, CEntity&));
-    RH_ScopedOverloadedInstall(ComputeEntityHitSide, "2", 0x5F1450, eDirection(*)(const CVector&, const std::array<CVector, 4>&, const std::array<float, 4>&));
-    RH_ScopedOverloadedInstall(ComputeEntityHitSide, "3", 0x5F3AC0, eDirection(*)(const CVector&, CEntity&));
-    RH_ScopedOverloadedInstall(ComputePedHitSide, "physical", 0x5F3640, eDirection(*)(const CPed&,const CPhysical&));
-    RH_ScopedOverloadedInstall(ComputePedHitSide, "pos", 0x5F1E70, eDirection(*)(const CPed&,const CVector&));
-    RH_ScopedInstall(ComputePedShotSide, 0x5F13F0);
+    rh->InstallStatic(RHCurrentCat.name + "/" + RHCurrentScopeName.name, "ComputeEntityHitSide-1", 0x5F3BC0, &HookRetAsInt32<static_cast<eDirection (*)(const CPed&, CEntity&)>(&ComputeEntityHitSide), const CPed&, CEntity&>);
+    rh->InstallStatic(RHCurrentCat.name + "/" + RHCurrentScopeName.name, "ComputeEntityHitSide-2", 0x5F1450, &HookRetAsInt32<static_cast<eDirection (*)(const CVector&, const std::array<CVector, 4>&, const std::array<float, 4>&)>(&ComputeEntityHitSide), const CVector&, const std::array<CVector, 4>&, const std::array<float, 4>&>);
+    rh->InstallStatic(RHCurrentCat.name + "/" + RHCurrentScopeName.name, "ComputeEntityHitSide-3", 0x5F3AC0, &HookRetAsInt32<static_cast<eDirection (*)(const CVector&, CEntity&)>(&ComputeEntityHitSide), const CVector&, CEntity&>);
+    rh->InstallStatic(RHCurrentCat.name + "/" + RHCurrentScopeName.name, "ComputePedHitSide-physical", 0x5F3640, &HookRetAsInt32<static_cast<eDirection (*)(const CPed&, const CPhysical&)>(&ComputePedHitSide), const CPed&, const CPhysical&>);
+    rh->InstallStatic(RHCurrentCat.name + "/" + RHCurrentScopeName.name, "ComputePedHitSide-pos", 0x5F1E70, &HookRetAsInt32<static_cast<eDirection (*)(const CPed&, const CVector&)>(&ComputePedHitSide), const CPed&, const CVector&>);
+    rh->InstallStatic(RHCurrentCat.name + "/" + RHCurrentScopeName.name, "ComputePedShotSide", 0x5F13F0, &HookRetAsInt32<&ComputePedShotSide, const CPed&, const CVector&>);
     RH_ScopedOverloadedInstall(ComputeRouteRoundEntityBoundingBox, "Entity", 0x5F6110, int32(*)(const CPed&,CEntity&,const CVector&,CPointRoute&,int32));
     RH_ScopedOverloadedInstall(ComputeRouteRoundEntityBoundingBox, "2", 0x5F3DD0, int32(*)(const CPed&,const CVector&,CEntity&,const CVector&,CPointRoute&,int32));
     RH_ScopedInstall(ComputeRouteRoundSphere, 0x5F1890);
