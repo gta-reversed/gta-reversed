@@ -156,6 +156,14 @@ const auto dist2D = GetDistance2D();
 * For array sizes, etc... prefer using `unsigned` (u) types over `signed` ones (eg.: `uint32` over `int32`). If possible use `size_t`.
 * Whenever possible use `std::array` over C style arrays [as the former has bounds checking in debug mode, and can help us discover bugs]
 
+# Casting
+We use a casting system for (the derivatives of) `CTask`, `CEvent`, `C2dEffect`, and `CPedAttractor` that's pretty much the exact same as LLVM's, so.:
+- `notsa::isa` (and `notsa::isa_and_present`) - Check if a value is of a certain type
+- `notsa::cast` (and `notsa::cast_and_present`) - Works like `static_cast`
+- `notsa::dyn_cast` (and `notsa::dyn_cast_and_present`) - Works like `dynamic_cast`
+Use the `_and_present` variants if the pointer may be null.
+We plan on expanding this casting system to cover more types in the future, as it provides a safer and more consistent way to handle type casting compared to traditional C++ casts.
+
 ### Usage of `auto`
 * Use `auto` in function bodies if the variables' type is guessable.
 * Always use `*` for `auto` (eg.: `auto*` instead of plain `auto`)
