@@ -33,18 +33,18 @@ void Interior_c::InjectHooks() {
     RH_ScopedInstall(Shop_FurnishEdges, 0x59A1B0, { .Reversed = false });
     RH_ScopedInstall(GetBoundingBox, 0x593DB0, { .Reversed = false });
     RH_ScopedInstall(Init, 0x593BF0, { .Reversed = false });
-    RH_ScopedInstall(ResetTiles, 0x593910, { .Reversed = false });
+    RH_ScopedInstall(ResetTiles, 0x593910);
     RH_ScopedInstall(PlaceObject, 0x5934E0, { .Reversed = false });
     RH_ScopedInstall(GetFurnitureEntity, 0x5913B0, { .Reversed = false });
     RH_ScopedInstall(IsPtInside, 0x5913E0, { .Reversed = false });
     RH_ScopedInstall(CalcMatrix, 0x5914D0, { .Reversed = false });
     RH_ScopedInstall(Furnish, 0x591590, { .Reversed = false });
     RH_ScopedInstall(Unfurnish, 0x5915D0, { .Reversed = false });
-    RH_ScopedInstall(CheckTilesEmpty, 0x591680, { .Reversed = false });
-    RH_ScopedInstall(SetTilesStatus, 0x591700, { .Reversed = false });
-    RH_ScopedInstall(SetCornerTiles, 0x5917C0, { .Reversed = false });
+    RH_ScopedInstall(CheckTilesEmpty, 0x591680);
+    RH_ScopedInstall(SetTilesStatus, 0x591700);
+    RH_ScopedInstall(SetCornerTiles, 0x5917C0);
     RH_ScopedInstall(GetTileStatus, 0x5918E0, { .Reversed = false });
-    RH_ScopedInstall(GetNumEmptyTiles, 0x591920, { .Reversed = false });
+    RH_ScopedInstall(GetNumEmptyTiles, 0x591920);
     RH_ScopedInstall(GetRandomTile, 0x591B20, { .Reversed = false });
     RH_ScopedInstall(Shop_FurnishAisles, 0x59A590, { .Reversed = false });
     RH_ScopedInstall(GetTileCentre, 0x591BD0, { .Reversed = false });
@@ -194,7 +194,97 @@ bool Interior_c::GetBoundingBox(FurnitureEntity_c* entity, CVector* a3) {
 
 // 0x593910
 void Interior_c::ResetTiles() {
-    plugin::CallMethod<0x593910, Interior_c*>(this);
+    memset(field_68, 0, sizeof(field_68)); // 900 bytes
+
+    const auto& box = *m_box;
+
+    // Paint a run of tiles, skipping occupied (non-zero) and door-connector (3) tiles
+    const auto paintRun = [&](char* base, int32 count, int32 stride, int8 status) {
+        for (auto i = 0; i < count; i++, base += stride) {
+            if (*base != 3 && *base == 0) {
+                *base = (char)status;
+            }
+        }
+    };
+
+    // Left wall doors (x = 0), status 8
+    if (box.m_lDoorStart != -1) {
+        const auto y = (int32)box.m_lDoorStart;
+        const auto count = (int32)box.m_lDoorEnd - y;
+        if (count > 0 && y >= 0 && box.m_width != 0 && y + count <= (int32)box.m_depth) {
+            paintRun(&field_68[y], count, 1, 8);
+        }
+    }
+
+    // Right wall doors (row = m_width - 1), status 8
+    if (box.m_rDoorStart != -1) {
+        const auto y = (int32)box.m_rDoorStart;
+        const auto count = (int32)box.m_rDoorEnd - y;
+        const auto row = (int32)box.m_width - 1;
+        if (count > 0 && row >= 0 && y >= 0 && y + count <= (int32)box.m_depth) {
+            paintRun(&field_68[row * 0x1E + y], count, 1, 8);
+        }
+    }
+
+    // Top wall doors (column = m_depth - 1), status 8
+    if (box.m_tDoorStart != -1) {
+        const auto x = (int32)box.m_tDoorStart;
+        const auto count = (int32)box.m_tDoorEnd - x;
+        const auto col = (int32)box.m_depth - 1;
+        if (count > 0 && col >= 0 && x >= 0 && x + count <= (int32)box.m_width) {
+            paintRun(&field_68[x * 0x1E + col], count, 0x1E, 8);
+        }
+    }
+
+    // Left wall windows, status 9
+    if (box.m_lWindowStart != -1) {
+        const auto y = (int32)box.m_lWindowStart;
+        const auto count = (int32)box.m_lWindowEnd - y;
+        if (count > 0 && y >= 0 && box.m_width != 0 && y + count <= (int32)box.m_depth) {
+            paintRun(&field_68[y], count, 1, 9);
+        }
+    }
+
+    // Right wall windows (row = m_width - 1), status 9
+    if (box.m_rWindowStart != -1) {
+        const auto y = (int32)box.m_rWindowStart;
+        const auto count = (int32)box.m_rWindowEnd - y;
+        const auto row = (int32)box.m_width - 1;
+        if (count > 0 && row >= 0 && y >= 0 && y + count <= (int32)box.m_depth) {
+            paintRun(&field_68[row * 0x1E + y], count, 1, 9);
+        }
+    }
+
+    // Top wall windows (column = m_depth - 1), status 9
+    if (box.m_tWindowStart != -1) {
+        const auto x = (int32)box.m_tWindowStart;
+        const auto count = (int32)box.m_tWindowEnd - x;
+        const auto col = (int32)box.m_depth - 1;
+        if (count > 0 && col >= 0 && x >= 0 && x + count <= (int32)box.m_width) {
+            paintRun(&field_68[x * 0x1E + col], count, 0x1E, 9);
+        }
+    }
+
+    // No-go zones (3 rectangles), status 11 (0xB)
+    for (auto i = 0; i < 3; i++) {
+        const auto left   = (int32)box.m_noGoLeft[i];
+        const auto bottom = (int32)box.m_noGoBottom[i];
+        if (left != -1 && bottom != -1) {
+            int32 noGoWidth = (int32)box.m_noGoWidth[i];
+            const auto noGoDepth = (int32)box.m_noGoDepth[i];
+            if (left >= 0 && bottom >= 0 && left + noGoWidth <= (int32)box.m_width && bottom + noGoDepth <= (int32)box.m_depth && noGoWidth > 0) {
+                auto p = &field_68[left * 0x1E + bottom];
+                do {
+                    for (auto j = 0; j < noGoDepth; j++) {
+                        if (p[j] != 3 && p[j] == 0) {
+                            p[j] = 0xB;
+                        }
+                    }
+                    p += 0x1E;
+                } while (--noGoWidth != 0);
+            }
+        }
+    }
 }
 
 // 0x5934E0
@@ -229,18 +319,80 @@ void Interior_c::Unfurnish() {
 }
 
 // 0x591680
-int8 Interior_c::CheckTilesEmpty(int32 a1, int32 a2, int32 a3, int32 a4, uint8 a5) {
-    return plugin::CallMethodAndReturn<int8, 0x591680, Interior_c*, int32, int32, int32, int32, uint8>(this, a1, a2, a3, a4, a5);
+int8 Interior_c::CheckTilesEmpty(int32 x, int32 y, int32 width, int32 depth, uint8 allowTableTiles) {
+    if (x < 0
+        || y < 0
+        || m_box->m_width < x + width
+        || m_box->m_depth < y + depth
+    ) {
+        return false;
+    }
+
+    for (int32 iy = 0; iy < width; iy++) {
+        for (int32 ix = 0; ix < depth; ix++) {
+            const auto tileStatus = field_68[(x + iy) * 0x1E + (y + ix)];
+            if (tileStatus != 0) {
+                if (!allowTableTiles) {
+                    return false;
+                }
+                if (tileStatus != 9) { // tile status 9 (table) still counts as empty when `allowTableTiles`
+                    return false;
+                }
+            }
+        }
+    }
+    return true;
 }
 
 // 0x591700
-void Interior_c::SetTilesStatus(int32 a, int32 b, int32 a3, int32 a4, int32 a5, int8 a6) {
-    plugin::CallMethod<0x591700, Interior_c*, int32, int32, int32, int32, int32, int8>(this, a, b, a3, a4, a5, a6);
+void Interior_c::SetTilesStatus(int32 x, int32 y, int32 width, int32 depth, int32 newStatus, int8 mode) {
+    if (x < 0 || y < 0)
+        return;
+    if (x + width > m_box->m_width || y + depth > m_box->m_depth || width <= 0)
+        return;
+
+    int8* tile = reinterpret_cast<int8*>(&field_68) + x * 0x1E + y; // tile grid, stride 0x1E (30)
+
+    for (int32 row = 0; row < width; row++) {
+        if (depth > 0) {
+            for (int32 col = 0; col < depth; col++) {
+                const auto status = tile[col];
+                if (status == 9 && newStatus == 5) {
+                    tile[col] = 10;
+                } else if (mode == 0) {
+                    if (status == 3) {
+                        if (newStatus == 3)
+                            return;
+                        if (newStatus == 4)
+                            tile[col] = 4;
+                    } else if (status == 0) {
+                        tile[col] = static_cast<int8>(newStatus);
+                    }
+                } else if (status != 5 && status != 7 && status != 8) {
+                    tile[col] = static_cast<int8>(newStatus);
+                }
+            }
+        }
+        tile += 0x1E;
+    }
 }
 
 // 0x5917C0
-void Interior_c::SetCornerTiles(int32 a4, int32 a3, int32 a5, uint8 a6) {
-    plugin::CallMethod<0x5917C0, Interior_c*, int32, int32, int32, uint8>(this, a4, a3, a5, a6);
+void Interior_c::SetCornerTiles(int32 corner, int32 size, int32 status, uint8 mode) {
+    const auto& box = *m_box;
+    if (corner == 1) { // top-left
+        SetTilesStatus(0, 0, size, 1, status, mode);
+        SetTilesStatus(0, 0, 1, size, status, mode);
+    } else if (corner == 0) { // bottom-left
+        SetTilesStatus(0, box.m_depth - 1, size, 1, status, mode);
+        SetTilesStatus(0, box.m_depth - size, 1, size, status, mode);
+    } else if (corner == 2) { // top-right
+        SetTilesStatus(box.m_width - size, 0, size, 1, status, mode);
+        SetTilesStatus(box.m_width - 1, 0, 1, size, status, mode);
+    } else if (corner == 3) { // bottom-right
+        SetTilesStatus(box.m_width - size, box.m_depth - 1, size, 1, status, mode);
+        SetTilesStatus(box.m_width - 1, box.m_depth - size, 1, size, status, mode);
+    }
 }
 
 // 0x5918E0
@@ -249,8 +401,32 @@ int32 Interior_c::GetTileStatus(int32 x, int32 y) {
 }
 
 // 0x591920
-int32 Interior_c::GetNumEmptyTiles(int32 a2, int32 a3, int32 a4, int32 a5) {
-    return plugin::CallMethodAndReturn<int32, 0x591920, Interior_c*, int32, int32, int32, int32>(this, a2, a3, a4, a5);
+int32 Interior_c::GetNumEmptyTiles(int32 x, int32 y, int32 direction, int32 numTiles) {
+    int32 numEmpty = 0;
+
+    const int32 step = (direction == 3 || direction == 0) ? -1 : 1;
+
+    if (direction == 3 || direction == 1) {
+        // Walk along X, checking `numTiles` tiles in Y for each row
+        for (;; x += step) {
+            for (auto i = 0, ty = y; i < numTiles; i++, ty++) {
+                if (m_box->m_width <= x || m_box->m_depth <= ty || x < 0 || ty < 0 || field_68[x * 0x1E + ty] != 0) {
+                    return numEmpty;
+                }
+            }
+            numEmpty++;
+        }
+    } else {
+        // Walk along Y, checking `numTiles` tiles in X for each column
+        for (;; y += step) {
+            for (auto i = 0, tx = x; i < numTiles; i++, tx++) {
+                if (m_box->m_width <= tx || m_box->m_depth <= y || tx < 0 || y < 0 || field_68[tx * 0x1E + y] != 0) {
+                    return numEmpty;
+                }
+            }
+            numEmpty++;
+        }
+    }
 }
 
 // 0x591B20
