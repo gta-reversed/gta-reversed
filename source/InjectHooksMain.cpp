@@ -1093,6 +1093,8 @@ void InjectHooksMain() {
         CTaskComplexInvestigateDisturbance::InjectHooks();
         CTaskComplexKillCriminal::InjectHooks();
 
+
+
         CTaskComplexKillPedOnFootArmed::InjectHooks();
         CTaskComplexKillPedGroupOnFoot::InjectHooks();
         CTaskComplexKillPedOnFootMelee::InjectHooks();
