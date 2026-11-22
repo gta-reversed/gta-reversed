@@ -10,7 +10,7 @@ void CDecision::InjectHooks() {
     RH_ScopedInstall(Set, 0x600570);
     //RH_ScopedInstall(Add, 0x600600, { .Reversed = false });
     RH_ScopedInstall(From, 0x6006B0);
-    //RH_ScopedInstall(HasResponse, 0x600710, { .Reversed = false });
+    RH_ScopedInstall(HasResponse, 0x600710);
     //RH_ScopedInstall(MakeDecision, 0x6040D0, { .Reversed = false });
 }
 
@@ -50,14 +50,16 @@ void CDecision::Set(
     }
 }
 
+// 0x600710
+bool CDecision::HasResponse() const {
+    return rng::any_of(m_Tasks, [](eTaskType t) {
+        return t != TASK_NONE;
+    });
+}
+
 /*
 // 0x6040D0
 void CDecision::MakeDecision(int32, bool, int32, int32, int32, int32, int16&, int16&) {
-
-}
-
-// 0x600710
-bool CDecision::HasResponse() {
 
 }
 
