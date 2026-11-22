@@ -32,7 +32,7 @@ bool CTaskSimpleStandStill::MakeAbortable(CPed* ped, eAbortPriority priority, co
 
 // 0x62F370
 bool CTaskSimpleStandStill::ProcessPed(CPed* ped) {
-    if (!m_timer.m_bStarted && m_timer.Start(m_nTime)) {
+    if (!m_timer.m_bStarted && m_timer.StartIfInterval(m_nTime)) {
         if (!ped->bInVehicle) {
             ped->SetMoveState(PEDMOVE_STILL);
             ped->m_nSwimmingMoveState = PEDMOVE_STILL;

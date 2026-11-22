@@ -439,9 +439,7 @@ CTask* CTaskComplexFollowNodeRoute::CreateNextSubTask(CPed* ped) {
 
 // 0x671800
 CTask* CTaskComplexFollowNodeRoute::CreateFirstSubTask(CPed* ped) {
-    if (m_TimeToFinishMs >= 0) {
-        m_FinishedTimer.Start(m_TimeToFinishMs);
-    }
+    m_FinishedTimer.StartIfInterval(m_TimeToFinishMs);
 
     if (m_bUseBlending) {
         m_SpeedDecreaseDist = m_SpeedIncreaseDist = 0.0;

@@ -37,9 +37,8 @@ bool CTaskSimplePause::MakeAbortable(CPed* ped, eAbortPriority priority, const C
 
 // 0x48E830
 bool CTaskSimplePause::ProcessPed(CPed* ped) {
-    if (!m_Timer.IsStarted() && !m_Timer.Start(m_PauseIntervalMs)) {
-        return false;
+    if (!m_Timer.IsStarted()) {
+        m_Timer.Start(m_PauseIntervalMs);
     }
-    m_Timer.Reset();
     return m_Timer.IsOutOfTime();
 }

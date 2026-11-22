@@ -65,7 +65,7 @@ CTask* CTaskComplexEnterCarAsPassengerTimed::CreateFirstSubTask(CPed* ped) {
         return nullptr;
     }
 
-    m_Timer.Start(m_Time);
+    m_Timer.StartIfInterval(m_Time);
 
     const auto tEnterCar = new CTaskComplexEnterCarAsPassenger{m_TargetCar, (int32)(m_TargetSeat), m_ShouldCarryOnAfterFallingOff};
     tEnterCar->SetMoveState(m_MoveState);

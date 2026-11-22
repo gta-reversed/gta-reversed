@@ -177,7 +177,9 @@ bool CTaskInteriorLieInBed::ProcessPed(CPed* ped) {
         }
     } else if (InteriorManager_c::AreAnimsLoaded(ANIM_GROUP_DEFAULT)) { // Create animation
         const auto CreateNextAnimAndStartTimer = [&, this](AnimSeqIdx offset, float blendDelta = 1000.f) {
-            m_GetOutTimer.Start(m_GetOutAfterInterval);
+            if (m_GetOutAfterInterval != -1) {
+                m_GetOutTimer.Start(m_GetOutAfterInterval);
+            }
             CreateNextAnim(offset, blendDelta);
         };
 
