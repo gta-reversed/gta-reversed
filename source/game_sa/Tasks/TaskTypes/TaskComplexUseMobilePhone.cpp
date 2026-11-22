@@ -19,10 +19,10 @@ void CTaskComplexUseMobilePhone::RemovePhoneModel(CPed* ped) {
 // 0x634A40
 int8 CTaskComplexUseMobilePhone::Stop(CPed* ped) {
     if (m_IsQuitting) {
-        return m_IsQuitting;
+        return true;
     }
     m_IsQuitting = true;
-    return MakeAbortable(ped, ABORT_PRIORITY_LEISURE, nullptr);
+    return MakeAbortable(ped);
 }
 
 // 0x634930
