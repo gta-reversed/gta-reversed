@@ -64,7 +64,7 @@ void CGroupEventHandler::InjectHooks() {
     RH_ScopedInstall(ComputeResponsePedFriend, 0x5FB2D0);
     RH_ScopedInstall(ComputeResponseNewGangMember, 0x5F9840);
     RH_ScopedInstall(ComputeResponseLeaderExitedCar, 0x5F90A0);
-    RH_ScopedInstall(ComputeResponsLeaderQuitEnteringCar, 0x5F9530, { .Reversed = false });
+    RH_ScopedInstall(ComputeResponsLeaderQuitEnteringCar, 0x5F9530);
     RH_ScopedInstall(ComputeResponseLeaderEnteredCar, 0x5F8900, { .Reversed = false });
     RH_ScopedInstall(ComputeResponseLeaderEnterExit, 0x5F9710);
     RH_ScopedInstall(ComputeResponseGunAimedAt, 0x5FBD10);
@@ -466,7 +466,35 @@ CTaskAllocator* CGroupEventHandler::ComputeResponseDamage(const CEventDamage& e,
 
 // 0x5F9530
 CTaskAllocator* CGroupEventHandler::ComputeResponsLeaderQuitEnteringCar(const CEvent& e, CPedGroup* pg, CPed* originator) {
-    return plugin::CallAndReturn<CTaskAllocator*, 0x5F9530, const CEvent&, CPedGroup*, CPed*>(e, pg, originator);
+    auto& gi = pg->GetIntelligence();
+    for (auto i = 0; i < TOTAL_PED_GROUP_FOLLOWERS; i++) {
+        auto* const m = pg->GetMembership().GetMember(i);
+        if (!m) {
+            continue;
+        }
+        const auto delay = i * 500;
+        if (m->bInVehicle && m->m_pVehicle) { // Get out, one after another
+            gi.SetTask(m, CTaskComplexLeaveCar{ m->m_pVehicle, 0, delay, true, false }, gi.GetPedTaskPairs());
+            continue;
+        }
+
+        // Stop getting in: leave the car they're entering (as a passenger)
+        CVehicle* veh = nullptr;
+        if (const auto t = m->GetIntelligence()->FindTaskByType(TASK_COMPLEX_ENTER_CAR_AS_PASSENGER_WAIT)) {
+            veh = static_cast<CTaskComplexEnterCarAsPassengerWait*>(t)->GetCar();
+        }
+        if (!veh) {
+            if (const auto t = m->GetIntelligence()->FindTaskByType(TASK_COMPLEX_ENTER_CAR_AS_PASSENGER)) {
+                veh = static_cast<CTaskComplexEnterCarAsPassenger*>(t)->GetTargetCar();
+            }
+        }
+        if (!veh) {
+            continue;
+        }
+        const auto rnd = (int32)((float)CGeneral::GetRandomNumber() * RAND_MAX_FLOAT_RECIPROCAL * -500.f); // (-500, 0]
+        gi.SetTask(m, CTaskComplexLeaveCar{ veh, 0, delay - rnd + 250, false, false }, gi.GetPedTaskPairs());
+    }
+    return nullptr;
 }
 
 // 0x5FAA50
