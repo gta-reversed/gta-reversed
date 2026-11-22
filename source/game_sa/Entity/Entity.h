@@ -29,6 +29,7 @@ class CBoat;
 class CAutomobile;
 class CBike;
 class CTrain;
+class CTrailer;
 class CPed;
 class CObject;
 class CBuilding;
@@ -148,7 +149,7 @@ public:
     [[nodiscard]] bool GetIsTypePhysical() const { return GetType() > ENTITY_TYPE_BUILDING && GetType() < ENTITY_TYPE_DUMMY; } // 0x4DA030, orig GetIsPhysical
 
     void SetType(eEntityType type) { m_info.m_nType = type; }
-    [[nodiscard]] auto GetType() const noexcept { return m_info.m_nType; }
+    [[nodiscard]] eEntityType GetType() const noexcept { return m_info.m_nType; }
 
     void SetStatus(eEntityStatus status) { m_info.m_nStatus = status; }
     [[nodiscard]] auto GetStatus() const noexcept { return m_info.m_nStatus; }
@@ -395,6 +396,8 @@ public:
     auto AsBoat()       const { return reinterpret_cast<const CBoat*>(this); }
     auto AsTrain()            { return reinterpret_cast<CTrain*>(this); }
     auto AsTrain()      const { return reinterpret_cast<const CTrain*>(this); }
+    auto AsTrailer()          { return reinterpret_cast<CTrailer*>(this); }
+    auto AsTrailer()    const { return reinterpret_cast<const CTrailer*>(this); }
     auto AsPed()              { return reinterpret_cast<CPed*>(this); }
     auto AsPed()        const { return reinterpret_cast<const CPed*>(this); }
     auto AsObject()           { return reinterpret_cast<CObject*>(this); }

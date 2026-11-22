@@ -9,14 +9,14 @@ void CTaskComplexGoToPointAndStandStillAndAchieveHeading::InjectHooks() {
     RH_ScopedVirtualClass(CTaskComplexGoToPointAndStandStillAndAchieveHeading, 0x86FE58, 11);
     RH_ScopedCategory("Tasks/TaskTypes");
 
-    RH_ScopedInstall(Constructor, 0x668CD0);
-    RH_ScopedInstall(Destructor, 0x668D40);
+    RH_ScopedConstructorInstall(0x668CD0, "1", {}, int32, const CVector&, float, float, float, float);
+    RH_ScopedDestructorInstall(0x668D40);
 
-    RH_ScopedInstall(Clone, 0x66CFD0);
-    RH_ScopedInstall(GetTaskType, 0x668D30);
-    RH_ScopedInstall(CreateNextSubTask, 0x66DFD0);
     RH_ScopedInstall(CreateSubTask, 0x668D50);
-    RH_ScopedInstall(CreateFirstSubTask, 0x66E030);
+    RH_ScopedVMTInstall(Clone, 0x66CFD0);
+    RH_ScopedVMTInstall(GetTaskType, 0x668D30);
+    RH_ScopedVMTInstall(CreateNextSubTask, 0x66DFD0);
+    RH_ScopedVMTInstall(CreateFirstSubTask, 0x66E030);
     RH_ScopedVMTInstall(ControlSubTask, 0x668E80);
 }
 

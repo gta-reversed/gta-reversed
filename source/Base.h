@@ -136,6 +136,14 @@ template<typename... Ts>
 // This should be added to every and all class with a vtable
 #define NOTSA_EXPORT_VTABLE __declspec(dllexport)
 
+// `final` used on when compiling for standalone
+// (Can't use `final` for the whole class otherwise due to how `RH_ScopedConstructorInstall` and `RH_ScopedDestructorInstall` work)
+#if defined(NOTSA_STANDALONE) && !defined(NOTSA_STANDALONE_DUMP_HOOKS_ONLY)
+    #define NOTSA_CLASS_FINAL final
+#else
+    #define NOTSA_CLASS_FINAL
+#endif
+
 // Macro for unused function arguments - Use it to avoid compiler warnings of unused arguments
 #define UNUSED(x) (void)(x);
 

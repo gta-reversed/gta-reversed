@@ -447,8 +447,7 @@ void CBoat::FillBoatList() {
     apFrameWakeGeneratingBoats.fill(nullptr);
 
     const auto& vecCamPos = TheCamera.GetPosition();
-    auto vecCamDir = TheCamera.m_mCameraMatrix.GetForward();
-    vecCamDir.Normalise();
+    const auto vecCamDir = TheCamera.m_mCameraMatrix.GetForward().Normalized();
 
     auto iCurBoat = 0u;
     for (auto& vehicle : GetVehiclePool()->GetAllValid()) {
@@ -1077,11 +1076,7 @@ void CBoat::BlowUpCar(CEntity* culprit, bool inACutscene) {
 
     obj->m_vecTurnSpeed.Set(0.5F, m_vecTurnSpeed.y * 2.0F, m_vecTurnSpeed.z * 2.0F);
 
-    auto vecOffset = obj->GetPosition() - vecPos;
-    vecOffset.Normalise();
-    if (GetUp().z > 0.0F) {
-        vecOffset += GetUp();
-    }
+    const auto vecOffset = (obj->GetPosition() - vecPos).Normalized() + (GetUp().z > 0.0F ? GetUp() : CVector{});
 
     auto vecObjPos = obj->GetPosition() + vecOffset;
     obj->SetPosn(vecObjPos);

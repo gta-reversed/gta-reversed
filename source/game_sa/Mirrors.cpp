@@ -100,7 +100,7 @@ void CMirrors::CreateBuffer() {
 // 0x723150
 void CMirrors::BuildCamMatrix(CMatrix& mat, CVector pointA, CVector pointB) {
     mat.SetTranslateOnly(pointA);
-    mat.GetForward() = Normalized(pointB - pointA);
+    mat.GetForward() = (pointB - pointA).Normalized();
     mat.GetRight() = CrossProduct({ 0.0f, 0.0f, 1.0f }, mat.GetForward());
     mat.GetUp() = CrossProduct(mat.GetForward(), mat.GetRight());
 }

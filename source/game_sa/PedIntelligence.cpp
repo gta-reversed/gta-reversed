@@ -527,12 +527,12 @@ void CPedIntelligence::FlushImmediately(bool bSetPrimaryDefaultTask) {
 
 // 0x6018D0
 C2dEffect* CPedIntelligence::GetEffectInUse() const {
-    return m_eventScanner.m_attractorScanner.m_pEffectInUse;
+    return m_eventScanner.GetAttractorScanner().m_pEffectInUse;
 }
 
 // 0x6018E0
 void CPedIntelligence::SetEffectInUse(C2dEffect* effect) {
-    m_eventScanner.m_attractorScanner.m_pEffectInUse = effect;
+    m_eventScanner.GetAttractorScanner().m_pEffectInUse = effect;
 }
 
 // 0x6018F0
@@ -685,7 +685,7 @@ void CPedIntelligence::FlushIntelligence() {
     m_eventGroup.Flush(false);
     m_vehicleScanner.Clear();
     m_pedScanner.Clear();
-    m_eventScanner.m_attractorScanner.Clear();
+    m_eventScanner.GetAttractorScanner().Clear();
 }
 
 // 0x601E00
@@ -713,7 +713,7 @@ bool CPedIntelligence::TestForStealthKill(CPed* target, bool bFullTest) {
         return false;
 
     if (const auto tKillPedOnFoot = notsa::dyn_cast_if_present<CTaskComplexKillPedOnFoot>(target->GetTaskManager().GetActiveTask())) {
-        if (tKillPedOnFoot->m_target == m_pPed) {
+        if (tKillPedOnFoot->m_PedToKill == m_pPed) {
             return false;
         }
     }

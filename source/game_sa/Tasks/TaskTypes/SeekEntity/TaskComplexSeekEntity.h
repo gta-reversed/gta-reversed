@@ -352,7 +352,7 @@ public:
 
         auto& boatPos      = commonBoat->GetPosition();
         auto  pedToBoat    = ped->GetPosition() - boatPos;
-        auto  pedToBoatDir = Normalized(pedToBoat);
+        auto  pedToBoatDir = pedToBoat.Normalized();
 
         auto newPedPos = boatPos - (pedToBoat - pedToBoatDir * 0.25f);
         (void)CPedPlacement::FindZCoorForPed(newPedPos); // Omitting `if` check here, it's useless
