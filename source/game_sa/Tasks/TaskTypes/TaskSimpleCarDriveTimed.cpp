@@ -9,8 +9,17 @@ CTaskSimpleCarDriveTimed::CTaskSimpleCarDriveTimed(CVehicle* vehicle, int32 nTim
     m_nTime = nTime;
 }
 
+// 0x46F610
 bool CTaskSimpleCarDriveTimed::ProcessPed(CPed* ped) {
-    return plugin::CallMethodAndReturn<bool, 0x46F610, CTaskSimpleCarDriveTimed*, CPed*>(this, ped);
+    if (!m_nTimer.IsStarted()) { // NOTE: Not `m_nTimer.Start()`, as that does nothing for negative times (the original always starts it)
+        m_nTimer.m_nStartTime = CTimer::GetTimeInMS();
+        m_nTimer.m_nInterval  = m_nTime;
+        m_nTimer.m_bStarted   = true;
+    }
+    if (m_nTimer.IsOutOfTime()) {
+        return true;
+    }
+    return CTaskSimpleCarDrive::ProcessPed(ped);
 }
 
 void CTaskSimpleCarDriveTimed::InjectHooks() {
@@ -22,5 +31,5 @@ void CTaskSimpleCarDriveTimed::InjectHooks() {
 
     RH_ScopedVMTInstall(Clone, 0x46F570);
     RH_ScopedVMTInstall(GetTaskType, 0x46F600);
-    RH_ScopedVMTInstall(ProcessPed, 0x46F610, { .Reversed = false });
+    RH_ScopedVMTInstall(ProcessPed, 0x46F610);
 }
