@@ -24,8 +24,8 @@ public:
     tEffectInterior*  m_box;                // 0x14
     RwMatrix          m_matrix;             // 0x18
     int32             field_58;             // 0x58
-    TList_c<int>     m_list;                // 0x5C - TODO: Figure out type
-    char              field_68[900];        // 0x68
+    TList_c<FurnitureEntity_c> m_furnitureEntities;  // 0x5C
+    uint8                      m_tileStatus[30][30]; // 0x68
     int16             field_3EC;            // 0x3EC
     int16             field_3EE;            // 0x3EE
     CNodeAddress      m_nodeAddress;        // 0x3F0
@@ -92,8 +92,8 @@ public:
     void CalcMatrix(CVector* translation);
     void Furnish();
     void Unfurnish();
-    int8 CheckTilesEmpty(int32 a1, int32 a2, int32 a3, int32 a4, uint8 a5);
-    void SetTilesStatus(int32 a, int32 b, int32 a3, int32 a4, int32 a5, int8 a6);
+    int8               CheckTilesEmpty(int32 x, int32 y, int32 width, int32 depth, uint8 allowStatus9);
+    void               SetTilesStatus(int32 x, int32 y, int32 width, int32 depth, int32 status, int8 overwrite);
     void SetCornerTiles(int32 a4, int32 a3, int32 a5, uint8 a6);
     int32 GetTileStatus(int32 x, int32 y);
     int32 GetNumEmptyTiles(int32 a2, int32 a3, int32 a4, int32 a5);
