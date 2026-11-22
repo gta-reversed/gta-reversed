@@ -8,15 +8,15 @@ void CPedGroups::InjectHooks() {
 
     RH_ScopedInstall(Process, 0x5FC800);
     RH_ScopedInstall(RemoveGroup, 0x5FB870);
-    RH_ScopedInstall(AddGroup, 0x5FB800, { .Reversed = false });
-    RH_ScopedInstall(RemoveAllFollowersFromGroup, 0x5FB8A0, { .Reversed = false });
+    RH_ScopedInstall(AddGroup, 0x5FB800);
+    RH_ScopedInstall(RemoveAllFollowersFromGroup, 0x5FB8A0);
     RH_ScopedInstall(Init, 0x5FB8C0, { .Reversed = false });
     RH_ScopedInstall(CleanUpForShutDown, 0x5FB930, { .Reversed = false });
-    RH_ScopedInstall(IsGroupLeader, 0x5F7E40, { .Reversed = false });
-    RH_ScopedInstall(GetPedsGroup, 0x5F7E80, { .Reversed = false });
-    RH_ScopedInstall(GetGroupId, 0x5F7EE0, { .Reversed = false });
-    RH_ScopedInstall(IsInPlayersGroup, 0x5F7F10, { .Reversed = false });
-    RH_ScopedInstall(AreInSameGroup, 0x5F7F40, { .Reversed = false });
+    RH_ScopedInstall(IsGroupLeader, 0x5F7E40);
+    RH_ScopedInstall(GetPedsGroup, 0x5F7E80);
+    RH_ScopedInstall(GetGroupId, 0x5F7EE0);
+    RH_ScopedInstall(IsInPlayersGroup, 0x5F7F10);
+    RH_ScopedInstall(AreInSameGroup, 0x5F7F40);
 }
 
 #ifdef ANDROID
@@ -32,7 +32,15 @@ void CPedGroups::Load() {
 // return the index of the added group , return -1 if failed.
 // 0x5FB800
 int32 CPedGroups::AddGroup() {
-    return plugin::CallAndReturn<int32, 0x5FB800>();
+    for (auto i = 0u; i < ms_groups.size(); i++) {
+        if (ms_activeGroups[i]) {
+            continue;
+        }
+        ms_activeGroups[i] = true;
+        ms_groups[i].Flush();
+        return (int32)i;
+    }
+    return -1;
 }
 
 // 0x5FB870
@@ -46,7 +54,9 @@ void CPedGroups::RemoveGroup(int32 groupId) {
 
 // 0x5FB8A0
 void CPedGroups::RemoveAllFollowersFromGroup(int32 groupId) {
-    plugin::Call<0x5FB8A0, int32>(groupId);
+    if (ms_activeGroups[groupId]) {
+        GetGroup(groupId).RemoveAllFollowers();
+    }
 }
 
 // 0x5FB8C0
@@ -67,17 +77,32 @@ void CPedGroups::CleanUpForShutDown() {
 
 // 0x5F7E40
 bool CPedGroups::IsGroupLeader(CPed* ped) {
-    return plugin::CallAndReturn<bool, 0x5F7E40, CPed*>(ped);
+    for (auto&& [i, g] : GetActiveGroupsWithIDs()) {
+        if (ped && g.GetMembership().GetLeader() == ped) {
+            return true;
+        }
+    }
+    return false;
 }
 
 // 0x5F7E80
 CPedGroup* CPedGroups::GetPedsGroup(const CPed* ped) {
-    return plugin::CallAndReturn<CPedGroup*, 0x5F7E80>(ped);
+    for (auto&& [i, g] : GetActiveGroupsWithIDs()) {
+        if (g.GetMembership().IsMember(ped)) {
+            return &g;
+        }
+    }
+    return nullptr;
 }
 
 // 0x5F7EE0
 int32 CPedGroups::GetGroupId(const CPedGroup* pedGroup) {
-    return plugin::CallAndReturn<int32, 0x5F7EE0, const CPedGroup*>(pedGroup);
+    for (auto i = 0u; i < ms_groups.size(); i++) { // NOTE: Doesn't check whether the group is active
+        if (&ms_groups[i] == pedGroup) {
+            return (int32)i;
+        }
+    }
+    return -1;
 }
 
 // 0x5FC800
@@ -115,7 +140,10 @@ void CPedGroups::Process() {
 
 // 0x5F7F10
 bool CPedGroups::IsInPlayersGroup(const CPed* ped) {
-    return plugin::CallAndReturn<bool, 0x5F7F10, const CPed*>(ped);
+    if (ped->GetPlayerData()) { // Players aren't "in the player's group"
+        return false;
+    }
+    return GetGroup(0).GetMembership().IsMember(ped); // NOTE: Group 0 is the player's, it's not checked whether it's active
 }
 
 CPedGroup& CPedGroups::GetGroup(int32 groupId) {
@@ -124,5 +152,13 @@ CPedGroup& CPedGroups::GetGroup(int32 groupId) {
 
 // 0x5F7F40
 bool CPedGroups::AreInSameGroup(const CPed* ped1, const CPed* ped2) {
-    return plugin::CallAndReturn<bool, 0x5F7F40, const CPed*, const CPed*>(ped1, ped2);
+    if (!ped1 || !ped2) {
+        return false;
+    }
+    for (auto&& [i, g] : GetActiveGroupsWithIDs()) {
+        if (g.GetMembership().IsMember(ped1) && g.GetMembership().IsMember(ped2)) {
+            return true;
+        }
+    }
+    return false;
 }
