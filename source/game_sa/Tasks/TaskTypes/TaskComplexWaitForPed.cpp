@@ -67,21 +67,24 @@ CTask* CTaskComplexWaitForPed::ControlSubTask(CPed* ped) {
         return nullptr;
     }
 
-    // If the ped we're waiting for walks alongside someone, use the offset position (NOTE: transformed by *our* matrix, like the original)
-    const auto* const walkAlongside = static_cast<CTaskComplexWalkAlongsidePed*>(m_WaitForPed->GetIntelligence()->FindTaskByType(TASK_COMPLEX_WALK_ALONGSIDE_PED));
-    const auto        toWaitForPed  = walkAlongside
-        ? ped->GetMatrix().TransformPoint(walkAlongside->GetOffset()) - m_WaitForPed->GetPosition()
-        : ped->GetPosition() - m_WaitForPed->GetPosition();
-    if (toWaitForPed.SquaredMagnitude() < sq(m_TargetDist)) {
-        return nullptr; // They're here
+    // If the ped we're waiting for walks alongside someone, use the offset position
+    if (const auto* const tWalkAlongsidePed = m_WaitForPed->GetIntelligence()->Find<CTaskComplexWalkAlongsidePed>(false)) {
+        // NOTE/BUG: Seems like code assumes `ped == m_TargetPed->m_TargetPed`, should assert it
+        const auto waitForPoint = tWalkAlongsidePed 
+            ? ped->GetMatrix().TransformPoint(tWalkAlongsideThisPed->GetOffset()) 
+            : ped->GetPosition();
+        if ((waitForPoint - m_WaitForPed->GetPosition()).SquaredMagnitude() < sq(m_TargetDist)) {
+            return nullptr; // They're here
+        }
     }
-
+    
     if (m_LookAtPed && m_FrameCounter == 0) {
-        const auto dir         = m_WaitForPed->GetPosition() - ped->GetPosition();
-        ped->m_fAimingRotation = CGeneral::LimitRadianAngle(CGeneral::GetRadianAngleBetweenPoints(dir.x, dir.y, 0.f, 0.f));
+        ped->m_fAimingRotation = (m_WaitForPed->GetPosition() - ped->GetPosition()).Heading(); // NOTE: Dropped `LimitRadianAngle`
     }
+    
     if (++m_FrameCounter > 10) {
         m_FrameCounter = 0;
     }
+
     return m_pSubTask;
 }
