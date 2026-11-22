@@ -12,12 +12,12 @@ void CTaskComplexCrossRoadLookAndAchieveHeading::InjectHooks() {
     RH_ScopedDestructorInstall(0x631B50);
 
     RH_ScopedInstall(CreateSubTask, 0x631B60);
-    RH_ScopedVMTInstall(Clone, 0x636500, { .Reversed = false });
-    RH_ScopedVMTInstall(GetTaskType, 0x631B10, { .Reversed = false });
+    RH_ScopedVMTInstall(Clone, 0x636500);
+    RH_ScopedVMTInstall(GetTaskType, 0x631B10);
     RH_ScopedVMTInstall(MakeAbortable, 0x631B20);
     RH_ScopedVMTInstall(CreateNextSubTask, 0x631C40);
-    RH_ScopedVMTInstall(CreateFirstSubTask, 0x631C90, { .Reversed = false });
-    RH_ScopedVMTInstall(ControlSubTask, 0x631CB0, { .Reversed = false });
+    RH_ScopedVMTInstall(CreateFirstSubTask, 0x631C90);
+    RH_ScopedVMTInstall(ControlSubTask, 0x631CB0);
 }
 
 // 0x631AE0
