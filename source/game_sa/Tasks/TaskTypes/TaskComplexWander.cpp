@@ -35,6 +35,8 @@ void CTaskComplexWander::InjectHooks() {
     RH_ScopedOverloadedInstall(ScanForBlockedNode, "", 0x671EF0, bool(CTaskComplexWander::*)(CPed*, const CNodeAddress&));
     RH_ScopedOverloadedInstall(ScanForBlockedNode, "1", 0x66F4C0, bool(CTaskComplexWander::*)(const CVector&, CEntity*));
     RH_ScopedInstall(GetWanderTaskByPedType, 0x673D00);
+    RH_ScopedInstall(SetDirection, 0x669D30);
+    RH_ScopedInstall(SetPathNodesFrom, 0x669D50);
 }
 CTaskComplexWander* CTaskComplexWander::Constructor(eMoveState moveState, uint8 dir, bool bWanderSensibly, float fTargetRadius) { this->CTaskComplexWander::CTaskComplexWander(moveState, dir, bWanderSensibly, fTargetRadius); return this; }
 
@@ -348,4 +350,22 @@ float CTaskComplexWander::GetDistSqOfClosestPathNodeToPed(CPed* ped) {
             return 999'999.f;
         })
     );
+}
+
+// 0x669D30
+void CTaskComplexWander::SetDirection(uint8 dir) {
+    if (m_nDir != dir) {
+        m_nDir    = dir;
+        m_bNewDir = true;
+    }
+}
+
+// 0x669D50
+void CTaskComplexWander::SetPathNodesFrom(const CTaskComplexWander& other) {
+    if (m_LastNode != other.m_LastNode || m_NextNode != other.m_NextNode) {
+        m_LastNode  = other.m_LastNode;
+        m_NextNode  = other.m_NextNode;
+        m_nDir      = other.m_nDir;
+        m_bNewNodes = true;
+    }
 }
