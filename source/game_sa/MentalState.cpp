@@ -7,7 +7,7 @@
 #include "Events/EventHighAngerAtPlayer.h"
 #include "Events/EventLowAngerAtPlayer.h"
 
-// 0x421050
+// Code from `CPedIntelligence::IncrementAngerAtPlayer` (At 0x421050)
 void CMentalState::IncrementAngerAtPlayer(uint8 anger) {
     if (m_AngerTimer.IsOutOfTime()) {
         m_AngerTimer.Start(3'000);
@@ -58,6 +58,5 @@ void CMentalState::InjectHooks() {
     RH_ScopedClass(CMentalState);
     RH_ScopedCategoryGlobal();
 
-    RH_ScopedInstall(IncrementAngerAtPlayer, 0x421050, { .Reversed = false });
-    RH_ScopedInstall(Process, 0x6008A0, { .Reversed = false });
+    RH_ScopedInstall(Process, 0x6008A0);
 }

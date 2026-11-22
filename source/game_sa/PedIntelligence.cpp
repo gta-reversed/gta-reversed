@@ -978,11 +978,7 @@ float CPedIntelligence::GetPedFOVRange() const {
 
 // 0x421050
 void CPedIntelligence::IncrementAngerAtPlayer(uint8 anger) {
-    if (!m_mentalState.m_AngerTimer.IsOutOfTime()) {
-        return;
-    }
-    m_mentalState.m_AngerTimer.Start(3000);
-    m_mentalState.m_AngerAtPlayer += anger;
+    m_mentalState.IncrementAngerAtPlayer(anger);
 }
 
 // 0x6074A0

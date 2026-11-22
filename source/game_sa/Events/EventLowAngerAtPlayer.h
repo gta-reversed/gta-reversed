@@ -4,6 +4,7 @@
 
 
 class NOTSA_EXPORT_VTABLE CEventLowAngerAtPlayer : public CEventEditableResponse {
+public:
     CEventLowAngerAtPlayer()           = default;
     ~CEventLowAngerAtPlayer() override = default;
 
