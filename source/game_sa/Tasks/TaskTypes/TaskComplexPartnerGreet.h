@@ -4,7 +4,6 @@
 
 class NOTSA_EXPORT_VTABLE CTaskComplexPartnerGreet final : public CTaskComplexPartner {
 public:
-    int32 field_70;
     int32 m_handShakeType;
 
 public:
@@ -20,7 +19,8 @@ public:
     CTask*    Clone()               const override { return new CTaskComplexPartnerGreet{*this}; }
     void      StreamRequiredAnims()       override;
 
-    virtual CTaskComplexSequence* GetPartnerSequence();
+    CTaskComplexSequence* GetPartnerSequence() override;
+
 private: // Wrappers for hooks
     // 0x684210
     CTaskComplexPartnerGreet* Constructor(char * commandName, CPed * partner, uint8 leadSpeaker, float distanceMultiplier, int32 handShakeType, CVector point) {

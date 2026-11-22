@@ -24,6 +24,7 @@ public:
     CTask*       ControlSubTask(CPed* ped) override;
     virtual void StreamRequiredAnims();
     virtual void RemoveStreamedAnims();
+    virtual CTaskComplexSequence* GetPartnerSequence() = 0;
 
 public:
     static void InjectHooks();
@@ -45,6 +46,7 @@ public:
     bool          m_makePedAlwaysFacePartner{};
     char          m_animBlockName[16]{};
     bool          m_requiredAnimsStreamedIn{};
+    int16         m_goToPointFrameCounter{}; // 0x70 - Frames spent in the go-to-point stage (reset by CreateNextSubTask, aborts after 150)
 };
 
-VALIDATE_SIZE(CTaskComplexPartner, 0x70);
+VALIDATE_SIZE(CTaskComplexPartner, 0x74);
