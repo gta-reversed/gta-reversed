@@ -16,6 +16,14 @@ void CTaskSimpleBeKickedOnGround::InjectHooks() {
     RH_ScopedVMTInstall(ProcessPed, 0x61FE00, { .Reversed = false });
 }
 
+// 0x61FC50
+CTaskSimpleBeKickedOnGround::~CTaskSimpleBeKickedOnGround() {
+    if (m_Anim) {
+        m_Anim->m_BlendDelta = -4.f;
+        m_Anim->SetDefaultFinishCallback(); // Otherwise the anim calls back into this (deleted) task
+    }
+}
+
 // 0x61FD10
 CTaskSimpleBeKickedOnGround* CTaskSimpleBeKickedOnGround::FinishAnimBeKickedOnGroundCB(CAnimBlendAssociation* anim, void* data) {
     return plugin::CallAndReturn<CTaskSimpleBeKickedOnGround*, 0x61FD10>(anim, data);
