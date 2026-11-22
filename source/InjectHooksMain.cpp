@@ -628,7 +628,6 @@ void InjectHooksMain() {
     CPlayerRelationshipRecorder::InjectHooks();
     CRemote::InjectHooks();
     CPedSaveStructure::InjectHooks();
-    CEventSource::InjectHooks();
     D3DResourceSystem::InjectHooks();
     CLoadedCarGroup::InjectHooks();
     RenderBuffer::InjectHooks();
