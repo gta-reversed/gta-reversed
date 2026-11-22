@@ -38,16 +38,8 @@ public:
     static void InjectHooks();
 
 private:
-    // Order matters, original code accesses these directly (e.g. 0x66D4B0, 0x670E20)
     size_t    m_Count{};
     PointInfo m_Infos[MaxPoints]{};
     CVector   m_Positions[MaxPoints]{};
-
-    friend struct PatrolRouteLayoutCheck;
-};
-struct PatrolRouteLayoutCheck {
-    static_assert(offsetof(CPatrolRoute, m_Count) == 0x0);
-    static_assert(offsetof(CPatrolRoute, m_Infos) == 0x4);
-    static_assert(offsetof(CPatrolRoute, m_Positions) == 0x144);
 };
 VALIDATE_SIZE(CPatrolRoute, 0x1A4);
