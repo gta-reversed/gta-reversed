@@ -67,15 +67,14 @@ CTask* CTaskComplexWaitForPed::ControlSubTask(CPed* ped) {
         return nullptr;
     }
 
-    // If the ped we're waiting for walks alongside someone, use the offset position
-    if (const auto* const tWalkAlongsidePed = m_WaitForPed->GetIntelligence()->Find<CTaskComplexWalkAlongsidePed>(false)) {
-        // NOTE/BUG: Seems like code assumes `ped == m_TargetPed->m_TargetPed`, should assert it
-        const auto waitForPoint = tWalkAlongsidePed 
-            ? ped->GetMatrix().TransformPoint(tWalkAlongsideThisPed->GetOffset()) 
-            : ped->GetPosition();
-        if ((waitForPoint - m_WaitForPed->GetPosition()).SquaredMagnitude() < sq(m_TargetDist)) {
-            return nullptr; // They're here
-        }
+    // If the ped we're waiting for walks alongside someone, use the offset position, otherwise our own position
+    // NOTE/BUG: Seems like code assumes `ped == m_TargetPed->m_TargetPed`, should assert it
+    const auto* const tWalkAlongsidePed = static_cast<CTaskComplexWalkAlongsidePed*>(m_WaitForPed->GetIntelligence()->FindTaskByType(TASK_COMPLEX_WALK_ALONGSIDE_PED));
+    const auto        waitForPoint      = tWalkAlongsidePed
+        ? ped->GetMatrix().TransformPoint(tWalkAlongsidePed->GetOffset())
+        : ped->GetPosition();
+    if ((waitForPoint - m_WaitForPed->GetPosition()).SquaredMagnitude() < sq(m_TargetDist)) {
+        return nullptr; // They're here
     }
     
     if (m_LookAtPed && m_FrameCounter == 0) {
