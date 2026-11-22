@@ -29,10 +29,10 @@ public:
     CTaskComplexSmartFleePoint(CVector const& fleePos, bool doScream, float safeDist, int32 fleeTimeMs);
     CTaskComplexSmartFleePoint(const CTaskComplexSmartFleePoint& o); // NOTSA
 
-    int8 SetDefaultTaskWanderDir(CPed* ped);
-    uint32 ComputeFleeDir(CPed*);
+    void   SetDefaultTaskWanderDir(CPed* ped);
+    uint32 ComputeFleeDir(CPed* ped);
     CTask* CreateSubTask(eTaskType taskType, CPed* ped);
-    int8 SetFleePosition(CVector const& a2, float a3, bool a4);
+    void   SetFleePosition(const CVector& fleePos, float safeDist, bool doScream);
 
     CTask*    Clone() const override { return new CTaskComplexSmartFleePoint{ *this }; }
     eTaskType GetTaskType() const override { return Type; }
