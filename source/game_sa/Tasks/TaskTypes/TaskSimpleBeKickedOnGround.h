@@ -12,7 +12,7 @@ public:
 
     CTaskSimpleBeKickedOnGround() = default;
     CTaskSimpleBeKickedOnGround(const CTaskSimpleBeKickedOnGround&) : CTaskSimpleBeKickedOnGround{} {}
-    ~CTaskSimpleBeKickedOnGround() = default;
+    ~CTaskSimpleBeKickedOnGround() override;
 
     void StartAnim(CPed* ped);
 

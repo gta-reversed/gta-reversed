@@ -1,11 +1,6 @@
 #include "StdInc.h"
 #include "TaskSimpleBeKickedOnGround.h"
 
-// 0x61FC20
-CTaskSimpleBeKickedOnGround::CTaskSimpleBeKickedOnGround() {
-    assert(false); // Pirulax: This task doesn't seem to be constructed anywhere, LMK if it was.
-}
-
 // 0x61FC50
 CTaskSimpleBeKickedOnGround::~CTaskSimpleBeKickedOnGround() {
     if (m_Anim) {
