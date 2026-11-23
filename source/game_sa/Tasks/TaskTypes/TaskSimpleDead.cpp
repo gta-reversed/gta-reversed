@@ -82,7 +82,7 @@ bool CTaskSimpleDead::ProcessPed(CPed* ped) {
         );
         anim->SetFlag(ANIMATION_IS_FINISH_AUTO_REMOVE, false);
         SetPedIKSlope();
-    } else if (!ped->m_bUsesCollision || m_bHasDrowned || !ped->bIsStanding || ped->m_standingOnEntity || wasFirstTime && isTargetedByPlayer) {
+    } else if (!ped->m_bUsesCollision || m_bHasDrowned || !ped->bIsStanding || ped->m_standingOnEntity || isTargetedByPlayer) { // NOTE: The original re-checks the players' targets every frame, not just on the first one
         if (wasFirstTime && (ped->bIsStanding || ped->bWasStanding)) {
             SetPedIKSlope();
         }
