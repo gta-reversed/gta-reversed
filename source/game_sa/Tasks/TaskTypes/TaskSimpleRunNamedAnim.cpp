@@ -36,19 +36,25 @@ CTaskSimpleRunNamedAnim::CTaskSimpleRunNamedAnim(
     }
 }
 
+// NOTSA
+CTaskSimpleRunNamedAnim::CTaskSimpleRunNamedAnim(const CTaskSimpleRunNamedAnim& o) :
+    CTaskSimpleRunNamedAnim{
+        o.m_animName,
+        o.m_animGroupName,
+        o.m_animFlags,
+        o.m_fBlendDelta,
+        o.m_Time,
+        o.m_bDontInterrupt,
+        o.m_bRunInSequence,
+        o.m_bOffsetAtEnd,
+        o.m_bHoldLastFrame
+    }
+{
+}
+
 // 0x61B770
 CTask* CTaskSimpleRunNamedAnim::Clone() const {
-    return new CTaskSimpleRunNamedAnim{
-        m_animName,
-        m_animGroupName,
-        m_animFlags,
-        m_fBlendDelta,
-        m_Time,
-        m_bDontInterrupt,
-        m_bRunInSequence,
-        m_bOffsetAtEnd,
-        m_bHoldLastFrame
-    };
+    return new CTaskSimpleRunNamedAnim{ *this };
 }
 
 // 0x61BF20
@@ -62,7 +68,7 @@ bool CTaskSimpleRunNamedAnim::ProcessPed(CPed* ped) {
             const auto anim    = RpAnimBlendClumpGetAssociation(ped->GetRpClump(), true, m_pAnimHierarchy);
             const auto bonePos = ped->GetBonePosition(BONE_SPINE1, false);
             if (m_fBlendDelta > 100.f && anim) {
-                if (CVector::Dist(ped->GetPosition(), bonePos) > 1.f) {
+                if (CVector::DistSqr(ped->GetPosition(), bonePos) > sq(1.f)) {
                     anim->m_Flags |= ANIMATION_IS_BLEND_AUTO_REMOVE;
                     anim->m_BlendDelta = m_fBlendDelta * -1.f;
                 }
@@ -83,7 +89,7 @@ bool CTaskSimpleRunNamedAnim::ProcessPed(CPed* ped) {
         }
     }
 
-    if (m_Timer.m_bStarted && m_Timer.IsOutOfTime()) {
+    if (m_Timer.IsStarted() && m_Timer.IsOutOfTime()) {
         if (!(m_animFlags & ANIMATION_IS_FINISH_AUTO_REMOVE)) {
             if (m_pAnim) {
                 m_pAnim->SetDefaultFinishCallback();
@@ -126,7 +132,7 @@ void CTaskSimpleRunNamedAnim::StartAnim(CPed* ped) {
 
 // 0x61AAA0
 void CTaskSimpleRunNamedAnim::FinishRunAnimMovePedCB(CAnimBlendAssociation* anim, void* data) {
-    const auto self = static_cast<CTaskSimpleRunNamedAnim*>(data);
+    const auto self = notsa::cast<CTaskSimpleRunNamedAnim>(static_cast<CTask*>(data));
 
     anim->GetNode(0)->GetCurrentTranslation(self->m_vecOffsetAtEnd, 0.f);
     self->m_bOffsetAvailable = true;
