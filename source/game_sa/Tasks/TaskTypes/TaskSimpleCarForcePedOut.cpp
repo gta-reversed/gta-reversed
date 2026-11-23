@@ -39,7 +39,7 @@ bool CTaskSimpleCarForcePedOut::ProcessPed(CPed* ped) {
         // NOTE: Only checks the passenger seats before the one of our door
         const auto passengerIdx = CCarEnterExit::ComputePassengerIndexFromCarDoor(m_Veh, m_Door);
         for (auto i = 0; i < passengerIdx; i++) {
-            if (m_Veh->m_apPassengers[i]) {
+            if (m_Veh->GetPassengers()[i]) {
                 return false;
             }
         }
