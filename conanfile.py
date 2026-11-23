@@ -52,7 +52,7 @@ class saRecipe(ConanFile):
         # Required for our custom stuff
         self.requires("nlohmann_json/3.12.0")
         self.requires("spdlog/1.17.0", options={"use_std_fmt": True})
-        self.requires("imgui/1.92.9b-docking")
+        self.requires("imgui/1.93.0")
         self.requires("boost/1.91.0", options={"header_only": True})
         self.requires("tracy/0.13.1", options={
             "enable": str(self.options.use_tracy) != 'False', 
@@ -62,7 +62,7 @@ class saRecipe(ConanFile):
         # Required for vanilla build
         self.requires("ogg/1.3.5")
         self.requires("vorbis/1.3.7")
-        self.requires("libjpeg-turbo/3.2.0")
+        self.requires("libjpeg-turbo/3.2.1")
 
     def layout(self):
         cmake_layout(self)
