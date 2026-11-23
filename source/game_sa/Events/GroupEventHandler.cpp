@@ -466,33 +466,22 @@ CTaskAllocator* CGroupEventHandler::ComputeResponseDamage(const CEventDamage& e,
 
 // 0x5F9530
 CTaskAllocator* CGroupEventHandler::ComputeResponsLeaderQuitEnteringCar(const CEvent& e, CPedGroup* pg, CPed* originator) {
-    auto& gi = pg->GetIntelligence();
+    auto& grpIntel = pg->GetIntelligence();
     for (auto i = 0; i < TOTAL_PED_GROUP_FOLLOWERS; i++) {
         auto* const m = pg->GetMembership().GetMember(i);
         if (!m) {
             continue;
         }
         const auto delay = i * 500;
-        if (m->bInVehicle && m->m_pVehicle) { // Get out, one after another
-            gi.SetTask(m, CTaskComplexLeaveCar{ m->m_pVehicle, 0, delay, true, false }, gi.GetPedTaskPairs());
-            continue;
+        if (m->IsInVehicle()) { // Get out, one after another
+            grpIntel.SetTask(m, CTaskComplexLeaveCar{ m->m_pVehicle, 0, delay, true, false }, grpIntel.GetPedTaskPairs());
+        } else if (auto* const veh = m->GetIntelligence()->GetCarBeingEnteredAsPassenger()) { // Stop getting in
+            grpIntel.SetTask(
+                m,
+                CTaskComplexLeaveCar{ veh, 0, delay + CGeneral::GetRandomNumberInRange(0, 500, true) + 250, false, false },
+                grpIntel.GetPedTaskPairs()
+            );
         }
-
-        // Stop getting in: leave the car they're entering (as a passenger)
-        CVehicle* veh = nullptr;
-        if (const auto t = m->GetIntelligence()->FindTaskByType(TASK_COMPLEX_ENTER_CAR_AS_PASSENGER_WAIT)) {
-            veh = static_cast<CTaskComplexEnterCarAsPassengerWait*>(t)->GetCar();
-        }
-        if (!veh) {
-            if (const auto t = m->GetIntelligence()->FindTaskByType(TASK_COMPLEX_ENTER_CAR_AS_PASSENGER)) {
-                veh = static_cast<CTaskComplexEnterCarAsPassenger*>(t)->GetTargetCar();
-            }
-        }
-        if (!veh) {
-            continue;
-        }
-        const auto rnd = (int32)((float)CGeneral::GetRandomNumber() * RAND_MAX_FLOAT_RECIPROCAL * -500.f); // (-500, 0]
-        gi.SetTask(m, CTaskComplexLeaveCar{ veh, 0, delay - rnd + 250, false, false }, gi.GetPedTaskPairs());
     }
     return nullptr;
 }
