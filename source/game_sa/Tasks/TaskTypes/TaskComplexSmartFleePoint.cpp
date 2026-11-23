@@ -114,7 +114,7 @@ CTask* CTaskComplexSmartFleePoint::CreateNextSubTask(CPed* ped) {
         return CreateSubTask(TASK_COMPLEX_WANDER, ped);
     }
     default: // 0x65c12e - e.g. the flee wander finished
-        NOTSA_UNREACHABLE_CASE(tt);
+        return nullptr;
     }
 }
 
