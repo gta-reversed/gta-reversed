@@ -72,8 +72,6 @@ public:
 
     static void LoadMeleeData();
 
-    CMeleeInfo& GetComboData() const; // NOTSA
-
     void BeHitWhileBlocking(CPed* ped1, CPed* ped2, int8, int8);
     void ChooseAttackAI(CPed* ped);
     void ChooseAttackPlayer(CPed* ped);

@@ -19,25 +19,17 @@ bool CTaskSimpleFight::ControlFight(CEntity* entity, uint8 command) {
 
 // 0x4ABDC0
 bool CTaskSimpleFight::IsComboSet() {
-    return GetComboData().m_wFlags & (0x10u << ((uint8)m_nCurrentMove & 31)); // x86 SHL masks the count
+    return plugin::CallMethodAndReturn<bool, 0x4ABDC0, CTaskSimpleFight*>(this);
 }
 
 // 0x4ABDF0
 bool CTaskSimpleFight::IsHitComboSet() {
-    if (m_nCurrentMove > FIGHT_ATTACK_HIT_3) {
-        return false;
-    }
-    return GetComboData().m_wFlags & (0x1000u << ((uint8)m_nCurrentMove & 31)); // x86 SHL masks the count
+    return plugin::CallMethodAndReturn<bool, 0x4ABDF0, CTaskSimpleFight*>(this);
 }
 
 // 0x4ABDA0
 AssocGroupId CTaskSimpleFight::GetComboAnimGroupID() {
-    return GetComboData().m_nAnimGroup;
-}
-
-// NOTSA (inlined) - Combo sets below `MELEE_COMBO_UNARMED_1` use the first entry
-CMeleeInfo& CTaskSimpleFight::GetComboData() const {
-    return m_aComboData[std::max(m_nComboSet - MELEE_COMBO_UNARMED_1, 0)];
+    return plugin::CallMethodAndReturn<AssocGroupId, 0x4ABDA0, CTaskSimpleFight*>(this);
 }
 
 // 0x5BEDC0
@@ -62,9 +54,9 @@ void CTaskSimpleFight::InjectHooks() {
     RH_ScopedCategory("Tasks/TaskTypes");
 
     RH_ScopedInstall(ControlFight, 0x61C5E0, { .Reversed = false });
-    RH_ScopedInstall(IsComboSet, 0x4ABDC0);
-    RH_ScopedInstall(IsHitComboSet, 0x4ABDF0);
-    RH_ScopedInstall(GetComboAnimGroupID, 0x4ABDA0);
+    RH_ScopedInstall(IsComboSet, 0x4ABDC0, { .Reversed = false });
+    RH_ScopedInstall(IsHitComboSet, 0x4ABDF0, { .Reversed = false });
+    RH_ScopedInstall(GetComboAnimGroupID, 0x4ABDA0, { .Reversed = false });
     RH_ScopedInstall(LoadMeleeData, 0x5BEDC0, { .Reversed = false });
 }
 
