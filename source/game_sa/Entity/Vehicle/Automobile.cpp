@@ -6256,7 +6256,7 @@ bool CAutomobile::RcbanditCheck1CarWheels(CPtrListDoubleLink<CVehicle*>& ptrList
 
         auto* const other     = vehicle->AsAutomobile();
         auto* const modelInfo = vehicle->GetVehicleModelInfo();
-        for (int32 i = 0; i < 4; i++) {
+        for (int32 i = 0; i < MAX_CARWHEELS; i++) {
             // Only wheels of the other car that touch the ground (or if it's in simple physics mode)
             if (other->m_fWheelsSuspensionCompressionPrev[i] >= 1.0f && other->GetStatus() != STATUS_SIMPLE) {
                 continue;
