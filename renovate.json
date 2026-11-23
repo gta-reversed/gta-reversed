@@ -25,7 +25,8 @@
     {
       "matchManagers": ["conan"],
       "matchPackageNames": ["imgui"],
-      "allowedVersions": "/-docking$/"
+      "allowedVersions": "/-docking$/",
+      "extractVersion": "^(?<version>.+)-docking$"
     }
   ]
 }
