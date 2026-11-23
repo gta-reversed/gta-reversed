@@ -63,6 +63,11 @@ void CDecision::MakeDecision(int32, bool, int32, int32, int32, int32, int16&, in
 
 }
 
+// 0x600710
+bool CDecision::HasResponse() {
+
+}
+
 // 0x600600
 void CDecision::Add(int32, float*, int32*) {
 
