@@ -14,6 +14,7 @@ public:
 
     bool WillChat(const CPed& first, const CPed& second);
     void SetNextMinScanTime(CPed* ped);
+    void SetMinNextScanTime(uint32 time) { m_nMinNextScanTime = time; } // 0x66B150
     bool LookForSexyCars(CPed* ped);
     bool LookForChatPartners(CPed* ped);
     bool LookForGangMembers(CPed* ped);
