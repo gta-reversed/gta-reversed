@@ -68,7 +68,6 @@ CTaskAllocator* CTaskAllocatorKillThreatsBasic::ProcessGroup(CPedGroupIntelligen
 }
 
 // 0x69C850
-// 0x69C850
 void CTaskAllocatorKillThreatsBasic::ComputeClosestPeds(CPedGroup& group1, CPedGroup& group2, CPed** peds) {
     auto& ms1 = group1.GetMembership();
     auto& ms2 = group2.GetMembership();
@@ -76,8 +75,10 @@ void CTaskAllocatorKillThreatsBasic::ComputeClosestPeds(CPedGroup& group1, CPedG
     std::fill_n(peds, TOTAL_PED_GROUP_MEMBERS, nullptr);
 
     // Squared distance of every (alive, non-player) member of group1 to every alive member of group2
-    float distSq[TOTAL_PED_GROUP_MEMBERS][TOTAL_PED_GROUP_MEMBERS];
-    std::fill_n(&distSq[0][0], TOTAL_PED_GROUP_MEMBERS * TOTAL_PED_GROUP_MEMBERS, FLT_MAX);
+    notsa::mdarray<float, TOTAL_PED_GROUP_MEMBERS, TOTAL_PED_GROUP_MEMBERS> distSq;
+    for (auto& row : distSq) {
+        row.fill(FLT_MAX);
+    }
     for (auto i = 0; i < TOTAL_PED_GROUP_MEMBERS; i++) {
         auto* const m1 = ms1.GetMember(i);
         if (!m1 || !m1->IsAlive() || m1->IsPlayer()) {
@@ -88,8 +89,7 @@ void CTaskAllocatorKillThreatsBasic::ComputeClosestPeds(CPedGroup& group1, CPedG
             if (!m2 || !m2->IsAlive()) {
                 continue;
             }
-            const auto d = m1->GetPosition() - m2->GetPosition();
-            distSq[i][j] = d.z * d.z + d.x * d.x + d.y * d.y; // Same summation order as the original
+            distSq[i][j] = (m1->GetPosition() - m2->GetPosition()).SquaredMagnitude(); // NOTE: The original sums `z*z + x*x + y*y`
         }
     }
 
