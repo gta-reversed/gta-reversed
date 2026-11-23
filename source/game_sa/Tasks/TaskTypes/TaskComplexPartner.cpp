@@ -47,8 +47,10 @@ void CTaskComplexPartner::CalcTargetPositions(CPed * ped, CVector * point, CVect
 
 // 0x6822B0
 int32 CTaskComplexPartner::GetPartnerState() {
-    if (const auto* const tComplexPartnerOfPartner = m_partner->GetTaskManager().Find<CTaskComplexPartner>(true)) {
-        return (int32)tComplexPartnerOfPartner->m_partnerState;
+    // NOTE: Looked up by `m_taskId` (the derived task's type, e.g. `TASK_COMPLEX_PARTNER_DEAL`), so `Find<CTaskComplexPartner>()` /
+    //       `notsa::cast` can't be used: they check for `TASK_COMPLEX_PARTNER`, which the derived tasks never return from `GetTaskType()`
+    if (const auto* const tPartnerOfPartner = static_cast<CTaskComplexPartner*>(m_partner->GetTaskManager().FindActiveTaskByType((eTaskType)m_taskId))) {
+        return (int32)tPartnerOfPartner->m_partnerState;
     }
     return 0;
 }
