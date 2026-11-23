@@ -30,6 +30,12 @@ public:
     CTask*    ControlSubTask(CPed* ped) override;
     CTask*    CreateSubTask(eTaskType taskType, CPed* ped);
 
+    void SetVehicleFlags(CPed* ped);
+    void CreateTaskUtilityLineUpPedWithCar(CPed* ped);
+    void ClearVehicleFlags(); // NOTSA
+
+    static void GetDoorUsage(const CVehicle* veh, int32 door, bool& isGettingIn, bool& isGettingOut);
+
 public:
     static void InjectHooks();
 
