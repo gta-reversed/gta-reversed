@@ -48,8 +48,7 @@ CTaskSimpleRunNamedAnim::CTaskSimpleRunNamedAnim(const CTaskSimpleRunNamedAnim& 
         o.m_bRunInSequence,
         o.m_bOffsetAtEnd,
         o.m_bHoldLastFrame
-    }
-{
+    } {
 }
 
 // 0x61B770
