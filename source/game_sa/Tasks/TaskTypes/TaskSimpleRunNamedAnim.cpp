@@ -2,22 +2,6 @@
 
 #include "TaskSimpleRunNamedAnim.h"
 
-void CTaskSimpleRunNamedAnim::InjectHooks() {
-    RH_ScopedVirtualClass(CTaskSimpleRunNamedAnim, 0x86D54C, 9);
-    RH_ScopedCategory("Tasks/TaskTypes");
-
-    RH_ScopedOverloadedInstall(Constructor, "Default", 0x6674B0, CTaskSimpleRunNamedAnim*(CTaskSimpleRunNamedAnim::*)());
-    RH_ScopedOverloadedInstall(Constructor, "Anim", 0x61A990, CTaskSimpleRunNamedAnim*(CTaskSimpleRunNamedAnim::*)(char const*, char const*, int32, float, int32, bool, bool, bool, bool));
-    RH_ScopedInstall(Destructor, 0x61BF10);
-
-    //RH_ScopedInstall(FinishRunAnimMovePedCB, 0x61AAA0, { .Reversed = false });
-    //RH_ScopedInstall(StartAnim, 0x61BB10, { .Reversed = false });
-    RH_ScopedVMTInstall(Clone, 0x61B770, { .Reversed = false });
-    RH_ScopedVMTInstall(GetTaskType, 0x61AA90);
-    RH_ScopedVMTInstall(ProcessPed, 0x61BF20, { .Reversed = false });
-    RH_ScopedInstall(OffsetPedPosition, 0x61AB00);
-}
-
 // 0x6674B0
 CTaskSimpleRunNamedAnim::CTaskSimpleRunNamedAnim() :
     CTaskSimpleAnim{ false }
@@ -52,11 +36,108 @@ CTaskSimpleRunNamedAnim::CTaskSimpleRunNamedAnim(
     }
 }
 
-// 0x61BF20
+// 0x61B770
+CTask* CTaskSimpleRunNamedAnim::Clone() const {
+    return new CTaskSimpleRunNamedAnim{
+        m_animName,
+        m_animGroupName,
+        m_animFlags,
+        m_fBlendDelta,
+        m_Time,
+        m_bDontInterrupt,
+        m_bRunInSequence,
+        m_bOffsetAtEnd,
+        m_bHoldLastFrame
+    };
+}
 
-// 0x0
+// 0x61BF20
 bool CTaskSimpleRunNamedAnim::ProcessPed(CPed* ped) {
-    return plugin::CallMethodAndReturn<bool, 0x61BF20>(this, ped);
+    if (m_bOffsetAvailable) {
+        OffsetPedPosition(ped);
+    }
+
+    if (m_bIsFinished) {
+        if (!m_bOffsetAtEnd) {
+            const auto anim    = RpAnimBlendClumpGetAssociation(ped->GetRpClump(), true, m_pAnimHierarchy);
+            const auto bonePos = ped->GetBonePosition(BONE_SPINE1, false);
+            if (m_fBlendDelta > 100.f && anim) {
+                if (CVector::Dist(ped->GetPosition(), bonePos) > 1.f) {
+                    anim->m_Flags |= ANIMATION_IS_BLEND_AUTO_REMOVE;
+                    anim->m_BlendDelta = m_fBlendDelta * -1.f;
+                }
+            }
+        }
+        return true;
+    }
+
+    if (!m_pAnimHierarchy || !m_pAnimHierarchy->m_pSequences) { // Not loaded yet
+        return true;
+    }
+
+    if (m_bDontInterrupt) {
+        if (!(m_animFlags & ANIMATION_IS_FINISH_AUTO_REMOVE) || (m_animFlags & ANIMATION_IS_LOOPED)) {
+            auto& eventGroup = ped->GetEventGroup();
+            eventGroup.RemoveInvalidEvents(true);
+            eventGroup.Reorganise();
+        }
+    }
+
+    if (m_Timer.m_bStarted && m_Timer.IsOutOfTime()) {
+        if (!(m_animFlags & ANIMATION_IS_FINISH_AUTO_REMOVE)) {
+            if (m_pAnim) {
+                m_pAnim->SetDefaultFinishCallback();
+            }
+            m_bIsFinished = true;
+            m_pAnim       = nullptr;
+            return true;
+        }
+        MakeAbortable(ped, ABORT_PRIORITY_LEISURE);
+    }
+
+    if (!m_pAnim) {
+        if (const auto anim = RpAnimBlendClumpGetAssociation(ped->GetRpClump(), true, m_pAnimHierarchy); anim && anim->m_pCallbackData) {
+            return true;
+        }
+        StartAnim(ped);
+    }
+
+    return m_bIsFinished;
+}
+
+// 0x61BB10
+void CTaskSimpleRunNamedAnim::StartAnim(CPed* ped) {
+    m_Timer.Start((int32)(m_Time));
+
+    if (!(m_animFlags & ANIMATION_IS_FINISH_AUTO_REMOVE)) {
+        m_animFlags |= ANIMATION_IS_BLEND_AUTO_REMOVE;
+    }
+
+    m_pAnim = CAnimManager::BlendAnimation(ped->GetRpClump(), m_pAnimHierarchy, m_animFlags, m_fBlendDelta);
+    if (m_bOffsetAtEnd) {
+        m_pAnim->SetFinishCallback(FinishRunAnimMovePedCB, this);
+    } else if (!(m_animFlags & ANIMATION_IS_FINISH_AUTO_REMOVE) && !m_bRunInSequence) {
+        m_pAnim->SetDeleteCallback(FinishRunAnimCB, this);
+    } else {
+        m_pAnim->SetFinishCallback(FinishRunAnimCB, this);
+    }
+    m_nAnimId = (int16)(m_pAnim->GetAnimId());
+}
+
+// 0x61AAA0
+void CTaskSimpleRunNamedAnim::FinishRunAnimMovePedCB(CAnimBlendAssociation* anim, void* data) {
+    const auto self = static_cast<CTaskSimpleRunNamedAnim*>(data);
+
+    anim->GetNode(0)->GetCurrentTranslation(self->m_vecOffsetAtEnd, 0.f);
+    self->m_bOffsetAvailable = true;
+    anim->m_Flags |= ANIMATION_IGNORE_ROOT_TRANSLATION;
+
+    if (!(anim->m_Flags & ANIMATION_IS_FINISH_AUTO_REMOVE) && anim->m_nCallbackType != ANIM_BLEND_CALLBACK_DELETE) {
+        anim->SetDeleteCallback(FinishRunAnimCB, self);
+    } else {
+        self->m_bIsFinished = true;
+        self->m_pAnim       = nullptr;
+    }
 }
 
 // 0x61AB00
@@ -66,4 +147,20 @@ void CTaskSimpleRunNamedAnim::OffsetPedPosition(CPed* ped) {
     auto& pos = ped->GetPosition();
     pos += ped->m_matrix->TransformVector(m_vecOffsetAtEnd);
     m_bOffsetAvailable = false;
+}
+
+void CTaskSimpleRunNamedAnim::InjectHooks() {
+    RH_ScopedVirtualClass(CTaskSimpleRunNamedAnim, 0x86D54C, 9);
+    RH_ScopedCategory("Tasks/TaskTypes");
+
+    RH_ScopedConstructorInstall(0x6674B0, "0", {});
+    RH_ScopedConstructorInstall(0x61A990, "1", {}, const char*, const char*, uint32, float, uint32, bool, bool, bool, bool);
+    RH_ScopedDestructorInstall(0x61BF10);
+
+    RH_ScopedInstall(FinishRunAnimMovePedCB, 0x61AAA0);
+    RH_ScopedInstall(StartAnim, 0x61BB10);
+    RH_ScopedInstall(OffsetPedPosition, 0x61AB00);
+    RH_ScopedVMTInstall(Clone, 0x61B770);
+    RH_ScopedVMTInstall(GetTaskType, 0x61AA90);
+    RH_ScopedVMTInstall(ProcessPed, 0x61BF20);
 }
