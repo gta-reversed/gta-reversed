@@ -8297,17 +8297,17 @@
   {
     "Category": "CStats",
     "Name": "UpdateStatsWhenWeaponHit",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CStats",
     "Name": "UpdateStatsOnRespawn",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CStats",
     "Name": "UpdateStatsAddToHealth",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CCarCtrl",
