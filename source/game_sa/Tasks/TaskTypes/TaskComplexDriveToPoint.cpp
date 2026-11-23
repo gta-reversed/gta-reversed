@@ -96,7 +96,7 @@ bool CTaskComplexDriveToPoint::IsTargetBlocked(CPed* ped, CEntity** entities, in
         }
 
         // And we must be close enough to it
-        if (vehDistSq < sq(entityRadius + vehRadius) * 1.5) { // NOTE: `1.5` is a double in the original
+        if (vehDistSq < sq(entityRadius + vehRadius) * 1.5f) { // NOTE: The original scales the squared distance (= dist < (entityRadius + vehRadius) * sqrt(1.5))
             return true;
         }
     }
