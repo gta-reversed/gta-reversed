@@ -555,9 +555,6 @@ bool CAnimManager::IsAnimInBlock(const CAnimBlendHierarchy* h, const CAnimBlock*
 //! Usual usage would be: `StreamAnimBlock(m_animBlockName, CTaskComplexGangLeader::ShouldLoadGangAnims(), m_areAnimsReferenced)`
 void CAnimManager::StreamAnimBlock(const char* blck, bool shouldBeLoaded, bool& isLoaded) {
     if (shouldBeLoaded && !isLoaded) {
-        RemoveAnimBlockRef(GetAnimationBlockIndex(blck));
-        isLoaded = false;
-    } else if (!shouldBeLoaded && isLoaded) {
         const auto blkIdx = GetAnimationBlockIndex(blck);
         if (GetAnimBlocks()[blkIdx].IsLoaded) {
             AddAnimBlockRef(blkIdx);
@@ -565,6 +562,9 @@ void CAnimManager::StreamAnimBlock(const char* blck, bool shouldBeLoaded, bool& 
         } else {
             CStreaming::RequestModel(IFPToModelId(blkIdx), STREAMING_KEEP_IN_MEMORY);
         }
+    } else if (!shouldBeLoaded && isLoaded) {
+        RemoveAnimBlockRef(GetAnimationBlockIndex(blck));
+        isLoaded = false;
     }
 }
 

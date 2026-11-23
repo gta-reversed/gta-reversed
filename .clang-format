@@ -131,7 +131,7 @@ RemoveBracesLLVM: false
 RemoveSemicolon: true
 RequiresClausePosition: OwnLine
 RequiresExpressionIndentation: OuterScope
-SeparateDefinitionBlocks: Always
+SeparateDefinitionBlocks: Leave
 ShortNamespaceLines: 1
 SortIncludes: Never
 SortUsingDeclarations: Never

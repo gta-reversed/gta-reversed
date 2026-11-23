@@ -52,7 +52,7 @@ void CCarCtrl::InjectHooks()
     RH_ScopedInstall(FindMaxSteerAngle, 0x427FE0);
     RH_ScopedInstall(GenerateRandomCars, 0x4341C0);
     RH_ScopedInstall(ChooseModel, 0x424CE0, { .Reversed = false });
-    RH_ScopedInstall(ClearInterestingVehicleList, 0x423F00, { .Reversed = false });
+    RH_ScopedInstall(ClearInterestingVehicleList, 0x423F00);
     RH_ScopedInstall(ClitargetOrientationToLink, 0x422760, { .Reversed = false });
     RH_ScopedInstall(CreateConvoy, 0x42C740, { .Reversed = false });
     RH_ScopedInstall(CreatePoliceChase, 0x42C2B0, { .Reversed = false });
@@ -251,7 +251,7 @@ int32 CCarCtrl::ChoosePoliceCarModel(uint32 ignoreCopBike) {
 
 // 0x423F00
 void CCarCtrl::ClearInterestingVehicleList() {
-    plugin::Call<0x423F00>();
+    rng::fill(apCarsToKeep, nullptr);
 }
 
 // 0x422760
@@ -677,7 +677,7 @@ bool CCarCtrl::PickNextNodeAccordingStrategy(CVehicle* vehicle) {
 void CCarCtrl::InitSequence(int32 numSequenceElements) {
     SequenceElements = numSequenceElements;
     SequenceRandomOffset = CGeneral::GetRandomNumber() % numSequenceElements;
-    bSequenceOtherWay = (CGeneral::GetRandomNumber() / 4) % 2;
+    bSequenceOtherWay = (CGeneral::GetRandomNumber() / 16) % 2 != 0;
 }
 
 // 0x42DE80
@@ -705,13 +705,11 @@ void CCarCtrl::PossiblyFireHSMissile(CVehicle* entityLauncher, CEntity* targetEn
 
     const CVector launcherPos = entityLauncher->GetPosition();
     const CVector targetPos = targetEntity->GetPosition();
-    CVector dir = targetPos - launcherPos;
+    const CVector dir = targetPos - launcherPos;
     const float dist = dir.Magnitude();
     if (dist < 160.0f && dist > 30.0f) {
         CMatrix launcherMat = entityLauncher->GetMatrix();
-        CVector dirNormalized = dir;
-        dir.Normalise();
-        if (DotProduct(launcherMat.GetForward(), dirNormalized) > 0.8f) {
+        if (DotProduct(launcherMat.GetForward(), dir / dist) > 0.8f) {
             CProjectileInfo::AddProjectile(
                 entityLauncher,
                 eWeaponType::WEAPON_ROCKET_HS,

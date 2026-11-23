@@ -140,9 +140,7 @@ void CBulletTraces::AddTrace(const CVector& posMuzzle, const CVector& posBulletH
         }
     }
 
-    CVector dir = posBulletHit - posMuzzle;
-    const float traceLengthOriginal = dir.Magnitude();
-    dir.Normalise();
+    const auto [dir, traceLengthOriginal] = (posBulletHit - posMuzzle).NormalizedAndMag();
 
     const float traceLengthNew = CGeneral::GetRandomNumberInRange(0.0f, traceLengthOriginal);
     const float fRadius = std::min(CGeneral::GetRandomNumberInRange(2.0f, 5.0f), traceLengthOriginal - traceLengthNew);

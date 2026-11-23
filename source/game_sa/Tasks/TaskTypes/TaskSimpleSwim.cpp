@@ -678,13 +678,11 @@ void CTaskSimpleSwim::ProcessControlAI(CPed* ped) {
     m_nSwimState = SWIM_TREAD;
     if (m_pPed) {
         const auto& taskPedPos = m_pPed->GetPosition();
-        CVector vecPosition(taskPedPos - pedPos);
-        vecPosition.Normalise();
         if (m_fRandomMoveBlendRatio == 0.0f) {
             m_fRandomMoveBlendRatio = float(CGeneral::GetRandomNumber() % 4) / 2.0f + 1.5f;
         }
 
-        vecPosition *= m_fRandomMoveBlendRatio;
+        const auto vecPosition = (taskPedPos - pedPos).Normalized() * m_fRandomMoveBlendRatio;
         m_vecPos = taskPedPos - vecPosition;
     }
 

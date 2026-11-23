@@ -1,12 +1,10 @@
 #include "StdInc.h"
 #include "EventSignalAtPed.h"
 
-
 CEventSignalAtPed::CEventSignalAtPed(CPed* signalAt, int32 initialPause, bool bPlayAnimAtEnd) :
-    m_SignalAt{signalAt},
-    m_InitialPause{initialPause},
-    m_bPlayAnimAtEnd{bPlayAnimAtEnd}
-{
+    m_SignalAt{ signalAt },
+    m_InitialPause{ initialPause },
+    m_bPlayAnimAtEnd{ bPlayAnimAtEnd } {
     CEntity::SafeRegisterRef(m_SignalAt);
 }
 
@@ -19,9 +17,9 @@ bool CEventSignalAtPed::AffectsPed(CPed* ped) {
 }
 
 bool CEventSignalAtPed::IsValid(CPed* ped) {
-    if (ped)
+    if (ped) {
         return ped->IsAlive();
-    else
+    } else {
         return CEvent::IsValid(nullptr);
+    }
 }
-

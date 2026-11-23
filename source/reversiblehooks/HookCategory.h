@@ -39,7 +39,9 @@ public:
 
     //! Add one item to this category (Deal with possible state change)
     void AddItem(std::shared_ptr<HookCategoryItem> item) {
-        assert(!FindItem(item->GetName()) && "Category already contains an item with such name");
+        if (FindItem(item->GetName())) {
+            throw std::logic_error{ std::format("Category `{}` already contains an item with name `{}`", Name(), item->GetName()) };
+        }
         item->SetCategory(shared_from_this());
         m_Items.emplace_back(std::move(item));
     }

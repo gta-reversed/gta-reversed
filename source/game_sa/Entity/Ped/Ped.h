@@ -111,6 +111,7 @@ static_assert(CANT_BE_KNOCKED_OFF_ALWAYS_HARD <= 0b11, "eCantBeKnockedOffBike mu
 class NOTSA_EXPORT_VTABLE CPed : public CPhysical {
 public:
     using Ref = notsa::EntityRef<CPed>;
+    using ConstRef = notsa::EntityRef<const CPed>;
 
     static inline int16 m_sGunFlashBlendStart = 10'000; // 0x8D1370
 

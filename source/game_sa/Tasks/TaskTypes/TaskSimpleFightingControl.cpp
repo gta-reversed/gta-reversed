@@ -154,7 +154,7 @@ bool CTaskSimpleFightingControl::MakeAbortable(CPed* ped, eAbortPriority priorit
                 }();
 
                 // Check if vector are opposing each other with 45deg tolerance
-                if (-DotProduct(Normalized(m_target->GetPosition() - ped->GetPosition()), impactNormal) < SQRT_2 / 2) {
+                if (-DotProduct((m_target->GetPosition() - ped->GetPosition()).Normalized(), impactNormal) < SQRT_2 / 2) {
                     return false; // They aren't
                 }
             }
