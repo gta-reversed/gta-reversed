@@ -17,7 +17,7 @@ bool CPedStuckChecker::TestPedStuck(CPed* ped, CEventGroup* eventGroup) {
         m_FramesInAir = 0;
         m_state       = PED_STUCK_STATE_NONE;
     };
-    const auto timeStep = std::max(CTimer::GetTimeStep(), 0.01f);
+    const auto timeStep        = std::max(CTimer::GetTimeStep(), 0.01f);
     const auto WasPushedByAPed = [ped] { // Don't move peds that are being pushed by other peds
         return ped->m_fDamageIntensity > 0.f
             && ped->m_pDamageEntity
@@ -79,7 +79,7 @@ bool CPedStuckChecker::TestPedStuck(CPed* ped, CEventGroup* eventGroup) {
         }
     } else if (ped->m_nNumEntitiesCollided == 1 && ped->m_apCollidedEntities[0] && ped->m_apCollidedEntities[0]->GetIsTypeBuilding() && HasntFallen()) { // 0x603048
         // Leaning against a building: find ground to the left/right of the direction the ped moved in, push it there
-        const auto dir = CVector{ -moved.y, moved.x, 1.f }.Normalized();
+        const auto dir        = CVector{ -moved.y, moved.x, 1.f }.Normalized();
 
         const auto GetGroundZ = [&](const CVector& at, CColPoint& cp, float noGroundZ) {
             if (CWorld::ProcessVerticalLine(at, -20.f, cp, hitEntity, true)
