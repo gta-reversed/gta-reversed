@@ -1,6 +1,15 @@
 #include "StdInc.h"
 #include "InteriorGroup_c.h"
 
+#include <array>
+
+#include "BaseModelInfo.h"
+#include "Box.h"
+#include "ColModel.h"
+#include "Entity.h"
+#include "Matrix.h"
+#include "PathFind.h"
+
 void InteriorGroup_c::InjectHooks() {
     RH_ScopedClass(InteriorGroup_c);
     RH_ScopedCategory("Interior");
@@ -14,8 +23,8 @@ void InteriorGroup_c::InjectHooks() {
     RH_ScopedInstall(UpdatePeds, 0x596830, { .Reversed = false });
     RH_ScopedInstall(SetupHousePeds, 0x5965E0, { .Reversed = false });
     RH_ScopedInstall(SetupPaths, 0x595590, { .Reversed = false });
-    RH_ScopedInstall(ArePathsLoaded, 0x595380, { .Reversed = false });
-    RH_ScopedInstall(Setup, 0x595320, { .Reversed = false });
+    RH_ScopedInstall(ArePathsLoaded, 0x595380);
+    RH_ScopedInstall(Setup, 0x595320);
     RH_ScopedInstall(Exit, 0x595290, { .Reversed = false });
     RH_ScopedInstall(ContainsInteriorType, 0x595250, { .Reversed = false });
     RH_ScopedInstall(CalcIsVisible, 0x595200, { .Reversed = false });
@@ -82,12 +91,52 @@ int8 InteriorGroup_c::SetupPaths() {
 
 // 0x595380
 int8 InteriorGroup_c::ArePathsLoaded() {
-    return plugin::CallMethodAndReturn<int8, 0x595380, InteriorGroup_c*>(this);
+    auto* entity = m_pEntity;
+
+    // Bounding box of the entity's collision model
+    const auto& bbox = entity->GetModelInfo()->GetColModel()->GetBoundingBox();
+    const CVector& boxMin = bbox.m_vecMin;
+    const CVector& boxMax = bbox.m_vecMax;
+
+    // The 8 corners of the box, in the exact order the binary builds them
+    const auto corners = std::array{
+        CVector{ boxMin.x, boxMin.y, boxMin.z },
+        CVector{ boxMin.x, boxMax.y, boxMin.z },
+        CVector{ boxMax.x, boxMax.y, boxMin.z },
+        CVector{ boxMax.x, boxMin.y, boxMin.z },
+        CVector{ boxMin.x, boxMin.y, boxMax.z },
+        CVector{ boxMin.x, boxMax.y, boxMax.z },
+        CVector{ boxMax.x, boxMax.y, boxMax.z },
+        CVector{ boxMax.x, boxMin.y, boxMax.z },
+    };
+
+    CBox worldBounds{
+        CVector{ 999999.0f, 999999.0f, 999999.0f },
+        CVector{ -999999.0f, -999999.0f, -999999.0f }
+    };
+
+    const auto& matrix = entity->GetMatrix();
+    for (const auto& corner : corners) {
+        worldBounds.StretchToPoint(matrix.TransformPoint(corner));
+    }
+
+    return ThePaths.AreNodesLoadedForArea(worldBounds.m_vecMin.x, worldBounds.m_vecMax.x, worldBounds.m_vecMin.y, worldBounds.m_vecMax.y);
 }
 
 // 0x595320
 void InteriorGroup_c::Setup() {
-    plugin::CallMethod<0x595320, InteriorGroup_c*>(this);
+    if (ContainsInteriorType(2)) {
+        m_groupType = 0; // HOUSE
+        ReferenceAnims();
+        return;
+    }
+
+    if (ContainsInteriorType(0) || ContainsInteriorType(6)) {
+        m_groupType = 1; // SHOP
+    } else {
+        m_groupType = static_cast<uint8>(ContainsInteriorType(1) ? 2 : -1); // OFFICE / none (0xFF)
+    }
+    ReferenceAnims();
 }
 
 // 0x595290
