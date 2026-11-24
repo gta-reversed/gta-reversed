@@ -70,17 +70,15 @@ bool CTaskComplexWanderStandard::LookForSexyCars(CPed* ped) {
     constexpr auto MIN_HEALTH         = 500.f;
     constexpr auto MAX_DIST           = 5.f;
 
-    const auto& pedPos                = ped->GetPosition();
     for (auto& veh : ped->GetIntelligence()->GetVehicleScanner().GetEntities<CVehicle>()) {
         if (&veh == ped->m_pVehicle || veh.m_pHandlingData->m_nMonetaryValue <= MIN_MONETARY_VALUE || veh.GetHealth() <= MIN_HEALTH) {
             continue;
         }
-        const auto& vehPos = veh.GetPosition();
-        const auto  dir    = vehPos - pedPos;
+        const auto dir = veh.GetPosition() - ped->GetPosition();
         if (dir.SquaredMagnitude() >= sq(MAX_DIST) || dir.Dot(ped->GetForward()) <= 0.f) { // Close and in front of us
             continue;
         }
-        if (!CWorld::GetIsLineOfSightClear(pedPos, vehPos, true, false, false, true, false, false, false)) {
+        if (!CWorld::GetIsLineOfSightClear(ped->GetPosition(), veh.GetPosition(), true, false, false, true, false, false, false)) {
             continue;
         }
         ped->GetEventGroup().Add(CEventSexyVehicle{ &veh });
@@ -111,7 +109,6 @@ bool CTaskComplexWanderStandard::LookForChatPartners(CPed* ped) {
             || p.GetTaskManager().Find<CTaskComplexBeInCouple>(false);
     };
 
-    const auto& pedPos = ped->GetPosition();
     for (auto& partner : ped->GetIntelligence()->GetPedScanner().GetEntities<CPed>()) {
         if (!g_surfaceInfos.IsPavement(partner.m_nContactSurface)) {
             continue;
@@ -123,15 +120,14 @@ bool CTaskComplexWanderStandard::LookForChatPartners(CPed* ped) {
         if (IsBusy(*ped) || IsBusy(partner) || !WillChat(*ped, partner)) {
             continue;
         }
-        const auto& partnerPos = partner.GetPosition();
-        const auto  dir        = partnerPos - pedPos;
+        const auto dir = partner.GetPosition() - ped->GetPosition();
         if (dir.SquaredMagnitude() >= sq(MAX_DIST)) {
             continue;
         }
         if (dir.Dot(ped->GetForward()) <= 0.f || dir.Dot(partner.GetForward()) >= 0.f) { // Facing each other
             continue;
         }
-        if (!CWorld::GetIsLineOfSightClear(pedPos, partnerPos, true, false, false, true, false, false, false)) {
+        if (!CWorld::GetIsLineOfSightClear(ped->GetPosition(), partner.GetPosition(), true, false, false, true, false, false, false)) {
             continue;
         }
         ped->GetEventGroup().Add(CEventChatPartner{ true, &partner });
@@ -153,10 +149,10 @@ bool CTaskComplexWanderStandard::LookForGangMembers(CPed* ped) {
 
     CVector targetPos;
     ComputeTargetPos(ped, targetPos, m_NextNode);
-    const auto pedDir = ped->GetPosition() - targetPos;
+    const auto usToTarget = ped->GetPosition() - targetPos;
     for (auto& other : ped->GetIntelligence()->GetPedScanner().GetEntities<CPed>()) {
-        const auto dir = other.GetPosition() - targetPos;
-        if (dir.Dot(pedDir) <= 0.f || dir.SquaredMagnitude() >= sq(MAX_DIST)) { // Close to our target, on our side of it
+        const auto otherToTarget = other.GetPosition() - targetPos;
+        if (otherToTarget.Dot(usToTarget) <= 0.f || otherToTarget.SquaredMagnitude() >= sq(MAX_DIST)) { // Close to our target, on our side of it
             continue;
         }
         auto* const grp = CPedGroups::GetPedsGroup(&other);
