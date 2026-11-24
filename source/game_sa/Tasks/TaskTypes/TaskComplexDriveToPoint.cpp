@@ -2,6 +2,7 @@
 
 #include "TaskComplexDriveToPoint.h"
 #include "TaskComplexGoToPointAnyMeans.h"
+#include <reversiblebugfixes/Bugs.hpp>
 
 // 0x63CE00
 CTaskComplexDriveToPoint::CTaskComplexDriveToPoint(CVehicle* vehicle, const CVector& point, float speed, int32 arg4, eModelID carModelIndexToCreate, float radius, eCarDrivingStyle drivingStyle) :
@@ -96,7 +97,10 @@ bool CTaskComplexDriveToPoint::IsTargetBlocked(CPed* ped, CEntity** entities, in
         }
 
         // And we must be close enough to it
-        if (vehDistSq < sq(entityRadius + vehRadius) * 1.5f) { // NOTE: The original scales the squared distance (= dist < (entityRadius + vehRadius) * sqrt(1.5))
+        const auto maxDistSq = notsa::bugfixes::CTaskComplexDriveToPoint_IsTargetBlocked_DistScale
+            ? sq((entityRadius + vehRadius) * 1.5f)
+            : sq(entityRadius + vehRadius) * 1.5f; // The original scales the squared distance (= dist < (entityRadius + vehRadius) * sqrt(1.5))
+        if (vehDistSq < maxDistSq) {
             return true;
         }
     }
