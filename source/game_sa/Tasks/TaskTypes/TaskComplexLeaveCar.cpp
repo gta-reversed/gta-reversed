@@ -11,7 +11,7 @@ void CTaskComplexLeaveCar::InjectHooks() {
     RH_ScopedConstructorInstall(0x63B8C0, "2", {}, CVehicle*, int32, int32, bool, bool);
     RH_ScopedDestructorInstall(0x63B970);
 
-    RH_ScopedInstall(ComputeTargetDoor, 0x63BAB0, { .Reversed = false });
+    RH_ScopedInstall(ComputeTargetDoor, 0x63BAB0);
     RH_ScopedInstall(CreateSubTask, 0x641530, { .Reversed = false });
     RH_ScopedVMTInstall(Clone, 0x63D9E0);
     RH_ScopedVMTInstall(GetTaskType, 0x63B960);
@@ -51,7 +51,9 @@ CTaskComplexLeaveCar::~CTaskComplexLeaveCar() {
 
 // 0x63BAB0
 void CTaskComplexLeaveCar::ComputeTargetDoor(CPed* ped) {
-    return plugin::CallMethodAndReturn<void, 0x63BAB0, CTaskComplexLeaveCar*, CPed*>(this, ped);
+    if (!m_nTargetDoor) {
+        m_nTargetDoor = CCarEnterExit::ComputeTargetDoorToExit(m_pTargetVehicle, ped);
+    }
 }
 
 // 0x641100

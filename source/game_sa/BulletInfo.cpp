@@ -214,8 +214,7 @@ void CBulletInfo::Update() {
 
             if (info.m_nWeaponType == eWeaponType::WEAPON_SNIPERRIFLE) {
                 // std::cout << "Register sniper bullet hit\n";
-                CVector dir = newPosition - info.m_vecPosition;
-                dir.Normalise();
+                const auto dir = (newPosition - info.m_vecPosition).Normalized();
                 const float dirDotColPointNorm = DotProduct(dir, colPoint.m_vecNormal);
                 if (dirDotColPointNorm < 0.0f) {
                     AudioEngine.ReportBulletHit(hitEntity, colPoint.m_nSurfaceTypeB, colPoint.m_vecPoint, RadiansToDegrees(asin(-dirDotColPointNorm)));

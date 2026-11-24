@@ -38,7 +38,8 @@ public:
     static void InjectHooks();
 
 private:
-    CVector   m_Positions[MaxPoints]{};
-    PointInfo m_Infos[MaxPoints]{};
     size_t    m_Count{};
+    PointInfo m_Infos[MaxPoints]{};
+    CVector   m_Positions[MaxPoints]{};
 };
+VALIDATE_SIZE(CPatrolRoute, 0x1A4);

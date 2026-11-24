@@ -11,7 +11,7 @@ void CTaskComplexPartnerDeal::InjectHooks() {
 
     RH_ScopedVMTInstall(Clone, 0x684D10);
     RH_ScopedVMTInstall(GetTaskType, 0x681DF0);
-    RH_ScopedVMTInstall(CreateFirstSubTask, 0x6823B0, { .Reversed = false });
+    RH_ScopedVMTInstall(CreateFirstSubTask, 0x6823B0);
     RH_ScopedVMTInstall(StreamRequiredAnims, 0x6823C0, { .Reversed = false });
     RH_ScopedVMTInstall(GetPartnerSequence, 0x682440, { .Reversed = false });
 }
@@ -22,8 +22,9 @@ CTaskComplexPartnerDeal::CTaskComplexPartnerDeal(const char* commandName, CPed* 
     strcpy_s(m_animBlockName, "gangs");
 }
 
+// 0x6823B0
 CTask* CTaskComplexPartnerDeal::CreateFirstSubTask(CPed* ped) {
-    return plugin::CallMethodAndReturn<CTask*, 0x6823B0, CTask*, CPed*>(this, ped);
+    return CTaskComplexPartner::CreateFirstSubTask(ped);
 }
 
 void CTaskComplexPartnerDeal::StreamRequiredAnims() {

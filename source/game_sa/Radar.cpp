@@ -361,8 +361,7 @@ float CRadar::LimitRadarPoint(CVector2D& point) {
         return mag;
 
     if (mag > 1.0f) {
-        // not in unit circle
-        point.Normalise();
+        point = point.Normalized(); // not in unit circle
     }
 
     return mag;

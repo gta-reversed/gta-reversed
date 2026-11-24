@@ -487,7 +487,7 @@ void CCoronas::RenderSunReflection() {
     t *= 0.25f;
 
     const auto center2D         = CVector2D{ vecToSun3D } * 40.f + CVector2D{ camPos };
-    const auto vecToSun2D       = Normalized2D(vecToSun3D);
+    const auto vecToSun2D       = CVector2D{ vecToSun3D }.Normalized();
     const auto vecToSunCore2D   = vecToSun2D * (REFLECTION_SIZE / 2.f);
     const auto vecToSunCorona2D = vecToSun2D * REFLECTION_SIZE;
 

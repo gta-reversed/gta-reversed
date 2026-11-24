@@ -1053,8 +1053,7 @@ bool CPhysical::ApplySoftCollision(CEntity* entity, const CColPoint& colPoint, f
 
         if (fForwardsDotProduct < 0.0f)
         {
-            vecMoveDirection -= fForwardsDotProduct * GetUp();
-            vecMoveDirection.Normalise();
+            vecMoveDirection = (vecMoveDirection - fForwardsDotProduct * GetUp()).Normalized();
         }
         else if (fForwardsDotProduct > 0.5f)
         {
@@ -1747,8 +1746,7 @@ bool CPhysical::ApplyFriction(float fFriction, CColPoint& colPoint)
 
         CVector across = vecMoveDirection * (fMoveSpeedMagnitude * 0.25f);
         CVector direction = vecMoveDirection + (colPoint.m_vecNormal * 0.1f);
-        CVector vecSpeedCrossProduct = CrossProduct(colPoint.m_vecNormal, m_vecMoveSpeed); // todo: shadow var
-        vecSpeedCrossProduct.Normalise();
+        const auto vecSpeedCrossProduct = CrossProduct(colPoint.m_vecNormal, m_vecMoveSpeed).Normalized(); // todo: shadow var
 
         for (int32 i = 0; i < 8; i++)
         {

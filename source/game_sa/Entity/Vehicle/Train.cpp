@@ -677,10 +677,8 @@ void CTrain::ProcessControl() {
                     CTrainNode* pPreviousTrainNode = &trainNodes[previousNodeIndex];
                     CTrainNode* pPreviousTrainNode2 = &trainNodes[previousNodeIndex2];
 
-                    CVector vecDifference1 = pCurrentTrainNode->GetPosn() - pPreviousTrainNode->GetPosn();
-                    CVector vecDifference2 = pPreviousTrainNode->GetPosn() - pPreviousTrainNode2->GetPosn();
-                    vecDifference1.Normalise();
-                    vecDifference2.Normalise();
+                    const auto vecDifference1 = (pCurrentTrainNode->GetPosn() - pPreviousTrainNode->GetPosn()).Normalized();
+                    const auto vecDifference2 = (pPreviousTrainNode->GetPosn() - pPreviousTrainNode2->GetPosn()).Normalized();
 
                     if (DotProduct(vecDifference1, vecDifference2) < 0.996f) {
                         CTrain* carriage = this;
@@ -812,15 +810,14 @@ void CTrain::ProcessControl() {
             vecVehiclePosition.z += m_pHandlingData->m_fSuspensionLowerLimit - bbox.m_vecMin.z;
         }
 
-        GetForward() = vecPosition2 - vecPosition1;
-        GetForward().Normalise();
+        GetForward() = (vecPosition2 - vecPosition1).Normalized();
         if (!trainFlags.bClockwiseDirection) {
             GetForward() *= -1.0f;
         }
 
         CVector vecTemp(0.0f, 0.0f, 1.0f);
         CrossProduct(&GetRight(), &GetForward(), &vecTemp);
-        GetRight().Normalise();
+        GetRight() = GetRight().Normalized();
         CrossProduct(&GetUp(), &GetRight(), &GetForward());
 
         auto fTrainNodeLighting     = theTrainNode->GetLightingFromCollision().GetCurrentLighting();
