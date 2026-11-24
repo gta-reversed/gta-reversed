@@ -34,14 +34,14 @@ public:
     static void InjectHooks();
 
 protected:
-    char                 m_animName[24]{};
-    char                 m_animGroupName[16]{};
-    float                m_fBlendDelta{};
-    CAnimBlendHierarchy* m_pAnimHierarchy{};
+    char                 m_AnimName[24]{};
+    char                 m_AnimGroupName[16]{};
+    float                m_BlendDelta{};
+    CAnimBlendHierarchy* m_AnimHierarchy{};
     uint32               m_Time{};
     CTaskTimer           m_Timer{};
-    CVector              m_vecOffsetAtEnd{};
-    uint32               m_animFlags{};
-    int16                m_nAnimId{};
+    CVector              m_OffsetAtEnd{};
+    uint32               m_AnimFlags{};
+    int16                m_AnimId{};
 };
 VALIDATE_SIZE(CTaskSimpleRunNamedAnim, 0x64);

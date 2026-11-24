@@ -23,26 +23,26 @@ CTaskSimpleRunNamedAnim::CTaskSimpleRunNamedAnim(
 ) :
     CTaskSimpleAnim(bHoldLastFrame),
     m_Time{ endTime },
-    m_animFlags{ animFlags }
+    m_AnimFlags{ animFlags }
 {
     m_bDontInterrupt = bDontInterrupt;
     m_bRunInSequence = bRunInSequence;
     m_bOffsetAtEnd = bOffsetPed;
-    m_fBlendDelta = blendDelta;
-    strcpy_s(m_animName, animName);
-    strcpy_s(m_animGroupName, animGroupName);
-    if (const auto block = CAnimManager::GetAnimationBlock(m_animGroupName)) {
-        m_pAnimHierarchy = CAnimManager::GetAnimation(m_animName, block);
+    m_BlendDelta = blendDelta;
+    strcpy_s(m_AnimName, animName);
+    strcpy_s(m_AnimGroupName, animGroupName);
+    if (const auto block = CAnimManager::GetAnimationBlock(m_AnimGroupName)) {
+        m_AnimHierarchy = CAnimManager::GetAnimation(m_AnimName, block);
     }
 }
 
 // NOTSA
 CTaskSimpleRunNamedAnim::CTaskSimpleRunNamedAnim(const CTaskSimpleRunNamedAnim& o) :
     CTaskSimpleRunNamedAnim{
-        o.m_animName,
-        o.m_animGroupName,
-        o.m_animFlags,
-        o.m_fBlendDelta,
+        o.m_AnimName,
+        o.m_AnimGroupName,
+        o.m_AnimFlags,
+        o.m_BlendDelta,
         o.m_Time,
         o.m_bDontInterrupt,
         o.m_bRunInSequence,
@@ -64,24 +64,24 @@ bool CTaskSimpleRunNamedAnim::ProcessPed(CPed* ped) {
 
     if (m_bIsFinished) {
         if (!m_bOffsetAtEnd) {
-            const auto anim    = RpAnimBlendClumpGetAssociation(ped->GetRpClump(), true, m_pAnimHierarchy);
+            const auto anim    = RpAnimBlendClumpGetAssociation(ped->GetRpClump(), true, m_AnimHierarchy);
             const auto bonePos = ped->GetBonePosition(BONE_SPINE1, false);
-            if (m_fBlendDelta > 100.f && anim) {
+            if (m_BlendDelta > 100.f && anim) {
                 if (CVector::DistSqr(ped->GetPosition(), bonePos) > sq(1.f)) {
                     anim->m_Flags |= ANIMATION_IS_BLEND_AUTO_REMOVE;
-                    anim->m_BlendDelta = m_fBlendDelta * -1.f;
+                    anim->m_BlendDelta = m_BlendDelta * -1.f;
                 }
             }
         }
         return true;
     }
 
-    if (!m_pAnimHierarchy || !m_pAnimHierarchy->m_pSequences) { // Not loaded yet
+    if (!m_AnimHierarchy || !m_AnimHierarchy->m_pSequences) { // Not loaded yet
         return true;
     }
 
     if (m_bDontInterrupt) {
-        if (!(m_animFlags & ANIMATION_IS_FINISH_AUTO_REMOVE) || (m_animFlags & ANIMATION_IS_LOOPED)) {
+        if (!(m_AnimFlags & ANIMATION_IS_FINISH_AUTO_REMOVE) || (m_AnimFlags & ANIMATION_IS_LOOPED)) {
             auto& eventGroup = ped->GetEventGroup();
             eventGroup.RemoveInvalidEvents(true);
             eventGroup.Reorganise();
@@ -89,7 +89,7 @@ bool CTaskSimpleRunNamedAnim::ProcessPed(CPed* ped) {
     }
 
     if (m_Timer.IsStarted() && m_Timer.IsOutOfTime()) {
-        if (!(m_animFlags & ANIMATION_IS_FINISH_AUTO_REMOVE)) {
+        if (!(m_AnimFlags & ANIMATION_IS_FINISH_AUTO_REMOVE)) {
             if (m_pAnim) {
                 m_pAnim->SetDefaultFinishCallback();
             }
@@ -101,7 +101,7 @@ bool CTaskSimpleRunNamedAnim::ProcessPed(CPed* ped) {
     }
 
     if (!m_pAnim) {
-        if (const auto anim = RpAnimBlendClumpGetAssociation(ped->GetRpClump(), true, m_pAnimHierarchy); anim && anim->m_pCallbackData) {
+        if (const auto anim = RpAnimBlendClumpGetAssociation(ped->GetRpClump(), true, m_AnimHierarchy); anim && anim->m_pCallbackData) {
             return true;
         }
         StartAnim(ped);
@@ -114,26 +114,26 @@ bool CTaskSimpleRunNamedAnim::ProcessPed(CPed* ped) {
 void CTaskSimpleRunNamedAnim::StartAnim(CPed* ped) {
     m_Timer.Start((int32)(m_Time));
 
-    if (!(m_animFlags & ANIMATION_IS_FINISH_AUTO_REMOVE)) {
-        m_animFlags |= ANIMATION_IS_BLEND_AUTO_REMOVE;
+    if (!(m_AnimFlags & ANIMATION_IS_FINISH_AUTO_REMOVE)) {
+        m_AnimFlags |= ANIMATION_IS_BLEND_AUTO_REMOVE;
     }
 
-    m_pAnim = CAnimManager::BlendAnimation(ped->GetRpClump(), m_pAnimHierarchy, m_animFlags, m_fBlendDelta);
+    m_pAnim = CAnimManager::BlendAnimation(ped->GetRpClump(), m_AnimHierarchy, m_AnimFlags, m_BlendDelta);
     if (m_bOffsetAtEnd) {
         m_pAnim->SetFinishCallback(FinishRunAnimMovePedCB, this);
-    } else if (!(m_animFlags & ANIMATION_IS_FINISH_AUTO_REMOVE) && !m_bRunInSequence) {
+    } else if (!(m_AnimFlags & ANIMATION_IS_FINISH_AUTO_REMOVE) && !m_bRunInSequence) {
         m_pAnim->SetDeleteCallback(FinishRunAnimCB, this);
     } else {
         m_pAnim->SetFinishCallback(FinishRunAnimCB, this);
     }
-    m_nAnimId = (int16)(m_pAnim->GetAnimId());
+    m_AnimId = (int16)(m_pAnim->GetAnimId());
 }
 
 // 0x61AAA0
 void CTaskSimpleRunNamedAnim::FinishRunAnimMovePedCB(CAnimBlendAssociation* anim, void* data) {
     const auto self = notsa::cast<CTaskSimpleRunNamedAnim>(static_cast<CTask*>(data));
 
-    anim->GetNode(0)->GetCurrentTranslation(self->m_vecOffsetAtEnd, 0.f);
+    anim->GetNode(0)->GetCurrentTranslation(self->m_OffsetAtEnd, 0.f);
     self->m_bOffsetAvailable = true;
     anim->m_Flags |= ANIMATION_IGNORE_ROOT_TRANSLATION;
 
@@ -150,7 +150,7 @@ void CTaskSimpleRunNamedAnim::OffsetPedPosition(CPed* ped) {
     ped->UpdateRpHAnim();
     ped->m_bDontUpdateHierarchy = true;
     auto& pos = ped->GetPosition();
-    pos += ped->m_matrix->TransformVector(m_vecOffsetAtEnd);
+    pos += ped->m_matrix->TransformVector(m_OffsetAtEnd);
     m_bOffsetAvailable = false;
 }
 
