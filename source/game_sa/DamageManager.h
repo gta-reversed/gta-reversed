@@ -215,8 +215,13 @@ public:
 private: 
     // Wrapper functions
 
-    // Return type has to be uint32, but we want to return `eCarWheelStatus` in our code.
+    // Return type has to be uint32 (the original returns the whole `EAX`), but we want to return the enums in our code.
     uint32 GetWheelStatus_Hooked(eCarWheel wheel) { return (uint32)GetWheelStatus(wheel); }
+    uint32 GetDoorStatus_Hooked(eDoors door) const { return (uint32)GetDoorStatus(door); }
+    uint32 GetDoorStatus_Component_Hooked(tComponent door) const { return (uint32)GetDoorStatus_Component(door); }
+    uint32 GetPanelStatus_Hooked(ePanels panel) const { return (uint32)GetPanelStatus(panel); }
+    uint32 GetLightStatus_Hooked(eLights light) const { return (uint32)GetLightStatus(light); }
+    uint32 GetAeroplaneCompStatus_Hooked(uint8 frame) { return (uint32)GetAeroplaneCompStatus(frame); }
 };
 
 VALIDATE_SIZE(CDamageManager, 0x18);
