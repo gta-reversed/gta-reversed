@@ -13,22 +13,21 @@ CTaskSimpleRunNamedAnim::CTaskSimpleRunNamedAnim() :
 CTaskSimpleRunNamedAnim::CTaskSimpleRunNamedAnim(
     const char* animName,
     const char* animGroupName,
-    uint32 animFlags,
-    float blendDelta,
-    uint32 endTime,
-    bool bDontInterrupt,
-    bool bRunInSequence,
-    bool bOffsetPed,
-    bool bHoldLastFrame
+    uint32      animFlags,
+    float       blendDelta,
+    uint32      endTime,
+    bool        bDontInterrupt,
+    bool        bRunInSequence,
+    bool        bOffsetPed,
+    bool        bHoldLastFrame
 ) :
     CTaskSimpleAnim(bHoldLastFrame),
     m_Time{ endTime },
-    m_AnimFlags{ animFlags }
-{
+    m_AnimFlags{ animFlags } {
     m_bDontInterrupt = bDontInterrupt;
     m_bRunInSequence = bRunInSequence;
     m_bOffsetAtEnd = bOffsetPed;
-    m_BlendDelta = blendDelta;
+    m_BlendDelta     = blendDelta;
     strcpy_s(m_AnimName, animName);
     strcpy_s(m_AnimGroupName, animGroupName);
     if (const auto block = CAnimManager::GetAnimationBlock(m_AnimGroupName)) {
