@@ -288,9 +288,7 @@ bool CGangWars::CreateDefendingGroup(int32 unused) {
 
         auto gangCarModel = CPopulation::PickGangCar(Gang1);
         if (gangCarModel != MODEL_INVALID && CStreaming::GetInfo(gangCarModel).IsLoaded()) {
-            auto fwd = carNodePos - nodePos;
-            fwd.z = 0.0f;
-            fwd.Normalise();
+            const CVector fwd{ CVector2D{ carNodePos - nodePos }.Normalized() };
 
             auto car = CCarCtrl::CreateCarForScript(gangCarModel, carNodePos, false);
             car->m_matrix->GetForward() = fwd;

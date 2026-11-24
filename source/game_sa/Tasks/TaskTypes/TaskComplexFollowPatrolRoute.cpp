@@ -16,17 +16,19 @@ void CTaskComplexFollowPatrolRoute::InjectHooks() {
     RH_ScopedVMTInstall(MakeAbortable, 0x66BA90, { .Reversed = false });
     RH_ScopedVMTInstall(CreateNextSubTask, 0x670D80, { .Reversed = false });
     RH_ScopedVMTInstall(CreateFirstSubTask, 0x670E20, { .Reversed = false });
-    RH_ScopedVMTInstall(ControlSubTask, 0x66BB00, { .Reversed = false });
+    RH_ScopedVMTInstall(ControlSubTask, 0x66BB00);
 }
 
 // 0x674930
 CTaskComplexFollowPatrolRoute::CTaskComplexFollowPatrolRoute(eMoveStateS32 moveState, const CPatrolRoute& route, int32 mode, float targetRadius, float slowDownDistance) :
-    m_MoveState(moveState),
-    m_Route(new CPatrolRoute(route)),
-    m_Mode(mode),
-    m_TargetRadius(targetRadius),
-    m_SlowDownDistance(slowDownDistance) {
+    m_MoveState{ moveState },
+    m_Route{ new CPatrolRoute(route) },
+    m_Mode{ (int16)(mode) },
+    m_TargetRadius{ targetRadius },
+    m_SlowDownDistance{ slowDownDistance },
+    m_IsNewRoute{ true } {
 }
+
 
 // 0x674BB0
 CTaskComplexFollowPatrolRoute::CTaskComplexFollowPatrolRoute(const CTaskComplexFollowPatrolRoute& o) :
@@ -66,5 +68,9 @@ CTask* CTaskComplexFollowPatrolRoute::CreateFirstSubTask(CPed* ped) {
 
 // 0x66BB00
 CTask* CTaskComplexFollowPatrolRoute::ControlSubTask(CPed* ped) {
-    return plugin::CallMethodAndReturn<CTask*, 0x66BB00, CTaskComplexFollowPatrolRoute*, CPed*>(this, ped);
+    if (m_IsNewRoute || m_IsAborting) { // Start over
+        m_Progress = 0;
+        return CreateFirstSubTask(ped);
+    }
+    return m_pSubTask;
 }
