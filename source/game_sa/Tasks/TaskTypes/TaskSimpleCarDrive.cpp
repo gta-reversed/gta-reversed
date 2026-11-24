@@ -243,8 +243,8 @@ void CTaskSimpleCarDrive::ProcessArmBopping(CPed* ped, bool canBop, float camDis
             && !CCarEnterExit::CarHasDoorToClose(m_Vehicle, door)
             && m_Vehicle->CanPedLeanOut(ped);
 
-        const auto mi       = m_Vehicle->GetModelInfo()->AsVehicleModelInfoPtr();
-        const auto handRest = mi->GetModelDummyPosition(DUMMY_HAND_REST);
+        const auto* mi       = m_Vehicle->GetModelInfo()->AsVehicleModelInfoPtr();
+        const auto& handRest = mi->GetModelDummyPosition(DUMMY_HAND_REST);
         if (handRest.IsZero() || m_Vehicle->vehicleFlags.bLowVehicle) {
             return;
         }
