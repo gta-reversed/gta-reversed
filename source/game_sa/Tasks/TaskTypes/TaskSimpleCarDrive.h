@@ -10,10 +10,7 @@ public:
     CVehicle*                     m_pVehicle;
     CAnimBlendAssociation*        m_pAnimCloseDoorRolling;
     CTaskUtilityLineUpPedWithCar* m_pTaskUtilityLineUpPedWithCar;
-    CTaskTimer*                   m_TaskTimer;
-    int32                         field_18;
-    char                          field_1C;
-    char                          field_1D;
+    CTaskTimer                    m_NoDriverTimer; //!< Passenger in the front seat of a car without a driver takes over after this
     int32                         m_nBoppingStartTime;
     int32                         field_24;
     int32                         m_nBoppingEndTime;  // Seemingly not a tick count, but rather the bopping interval
@@ -29,12 +26,12 @@ public:
     CTaskTimer                    m_copCarStolenTimer;
 
     // Inited according to: 0x63C3AE
-    uint8 m_b01 : 1;
-    uint8 m_b02 : 1;
+    uint8 m_b01 : 1; //!< Is head bopping
+    uint8 m_b02 : 1; //!< Is arm bopping
     uint8 m_bUpdateCurrentVehicle : 1; // m_bUpdateCurrentVehicle : 1; // updates m_pVehicle pointer to the current occupied vehicle by ped
     uint8 m_b08 : 1;
-    uint8 m_b10 : 1;
-    uint8 m_b20 : 1;
+    uint8 m_b10 : 1; //!< Bike passenger anim was blended
+    uint8 m_b20 : 1; //!< Playing the roll-door anim (`m_pAnimCloseDoorRolling`)
 
 public:
     static constexpr auto Type = TASK_SIMPLE_CAR_DRIVE;
@@ -55,13 +52,16 @@ eTaskType GetTaskType() const override { return Type; }
     void TriggerIK(CPed* ped) const;
     void UpdateBopping();
     void StartBopping(CPed* ped);
-    void ProcessHeadBopping(CPed* ped, bool a3, float a4);
-    void ProcessArmBopping(CPed* pPed, bool a3, float a4);
+    void ProcessHeadBopping(CPed* ped, bool canBop, float camDistSq);
+    void ProcessArmBopping(CPed* ped, bool canBop, float camDistSq);
     void ProcessBopping(CPed* ped, bool a3);
 
     [[nodiscard]] auto GetVehicle() const { return m_pVehicle; }
 
 private:
+    void StartRollingDoor(CPed* ped);
+    static void FinishRollingDoorCB(CAnimBlendAssociation* anim, void* data);
+
     friend void InjectHooksMain();
     static void InjectHooks();
 
