@@ -13,7 +13,7 @@ public:
     ~CTaskSimpleCarDriveTimed() override = default;
 
     eTaskType GetTaskType() const override { return Type; }
-    CTask*    Clone() const override { return new CTaskSimpleCarDriveTimed(m_pVehicle, m_nTime); }
+    CTask*    Clone() const override { return new CTaskSimpleCarDriveTimed(m_Vehicle, m_nTime); }
     bool      ProcessPed(class CPed* ped) override;
 
 public:
