@@ -24,8 +24,7 @@ CTaskSimpleCarSetTempAction::CTaskSimpleCarSetTempAction(CVehicle* veh, eAutoPil
 
 // NOTSA
 CTaskSimpleCarSetTempAction::CTaskSimpleCarSetTempAction(const CTaskSimpleCarSetTempAction& o) :
-    CTaskSimpleCarSetTempAction{ o.m_Vehicle, o.m_TempAct, o.m_DurMs }
-{
+    CTaskSimpleCarSetTempAction{ o.m_Vehicle, o.m_TempAct, o.m_DurMs } {
 }
 
 // 0x63D740
