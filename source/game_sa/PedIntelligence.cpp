@@ -27,6 +27,7 @@
 #include "PlayerRelationshipRecorder.h"
 #include "TaskComplexEnterCarAsDriver.h"
 #include "TaskComplexEnterCarAsPassenger.h"
+#include "TaskComplexEnterCarAsPassengerWait.h"
 #include "TaskSimpleCarDrive.h"
 #include "TaskSimpleFight.h"
 #include "TaskSimpleUseGun.h"
@@ -1001,6 +1002,17 @@ CVehicle* CPedIntelligence::GetEnteringVehicle() {
         if (const auto task = FindTaskByType(taskt)) {
             return static_cast<CTaskComplexEnterCar*>(task)->GetTargetCar();
         }
+    }
+    return nullptr;
+}
+
+// NOTSA
+CVehicle* CPedIntelligence::GetCarBeingEnteredAsPassenger() {
+    if (const auto* const tEnterWait = m_TaskMgr.Find<CTaskComplexEnterCarAsPassengerWait>(false); tEnterWait && tEnterWait->GetCar()) {
+        return tEnterWait->GetCar();
+    }
+    if (const auto* const tEnter = m_TaskMgr.Find<CTaskComplexEnterCarAsPassenger>(false)) {
+        return tEnter->GetTargetCar();
     }
     return nullptr;
 }

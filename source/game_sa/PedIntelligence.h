@@ -157,6 +157,9 @@ public:
     //! Get the vehicle the ped is entering now (If any)
     CVehicle* GetEnteringVehicle();
 
+    //! Get the vehicle the ped is getting into as a passenger (If any)
+    CVehicle* GetCarBeingEnteredAsPassenger();
+
     CTaskManager&    GetTaskManager()                  { return m_TaskMgr; }
     CEventHandler&   GetEventHandler()                 { return m_eventHandler; }
     CEventGroup&     GetEventGroup()                   { return m_eventGroup; }
