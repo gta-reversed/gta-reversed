@@ -404,10 +404,10 @@ void CPathFind::DoPathSearch(
                     if (IsAreaLoaded(naviLinkAddr.m_wAreaId)) {
                         const auto& naviLink = GetCarPathLink(naviLinkAddr);
                         if (naviLink.m_attachedTo == linked.GetAddress()) {
-                            if (!naviLink.m_numSameDirLanes) {
+                            if (!naviLink.m_numOppositeDirLanes) {
                                 continue;
                             }
-                        } else if (!naviLink.m_numOppositeDirLanes) {
+                        } else if (!naviLink.m_numSameDirLanes) {
                             continue;
                         }
                     }

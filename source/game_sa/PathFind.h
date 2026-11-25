@@ -88,7 +88,7 @@ public:
     CNodeAddress               m_attachedTo;                 ///< Identifies the target node a navi node is attached to.
     FixedVector2D<int8, 100.f> m_dir;                        ///< This is a normalized vector pointing towards the [above mentioned] target node, thus defining the general direction of the path segment.
     FixedFloat<int8, 16.f>     m_nPathNodeWidth;             ///< Usually a copy of the linked node's path width (byte)
-    uint8                      m_numSameDirLanes : 3;        ///< Number of lanes going the same way as `m_dir`, that is towards `m_attachedTo` (see `CCarCtrl::PickNextNodeRandomly`, 0x42DE80)
+    uint8                      m_numSameDirLanes : 3;        ///< Number of lanes going the same way as `m_dir`, that is towards `m_attachedTo` (see `CPathFind::DoPathSearch` at 0x451840: it searches from the target back, so a link attached to the node it steps to is driven against `m_dir` and needs `m_numOppositeDirLanes`)
     uint8                      m_numOppositeDirLanes : 3;    ///< Number of lanes going against `m_dir`, that is away from `m_attachedTo`
     uint8                      m_bTrafficLightDirection : 1; ///< `1` if the navi node has the same direction as the traffic light and `0` if the navi node points somewhere else
     uint8                      : 1;                          ///< Unused
