@@ -17,7 +17,7 @@ void FxEmitterBP_c::InjectHooks() {
     RH_ScopedInstall(Constructor, 0x4A18D0);
     RH_ScopedInstall(RenderHeatHaze, 0x4A1940, {.Reversed = false});
     RH_ScopedInstall(UpdateParticle, 0x4A21D0, {.Reversed = false});
-    RH_ScopedVMTInstall(CreateInstance, 0x4A2B40, {.Reversed = false}); // bad
+    RH_ScopedVMTInstall(CreateInstance, 0x4A2B40, {.Locked = true, .State = HS::RedirectToGTA}); // bad
     RH_ScopedVMTInstall(Update, 0x4A2BC0, {.Reversed = false});
     RH_ScopedVMTInstall(Load, 0x5C25F0, {.Reversed = false});
     RH_ScopedVMTInstall(LoadTextures, 0x5C0A30, {.Reversed = true});
