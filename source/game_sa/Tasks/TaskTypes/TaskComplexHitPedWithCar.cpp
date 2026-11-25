@@ -40,7 +40,7 @@ CTaskComplexHitPedWithCar::~CTaskComplexHitPedWithCar() {
 
 // 0x653B40
 CVector CTaskComplexHitPedWithCar::ComputeEvasiveStepMoveDir(const CPed* ped, CVehicle* veh) {
-    return CPedGeometryAnalyser::ComputeEntityDir(*veh, (eDirection)CPedGeometryAnalyser::ComputeEntityHitSide(*ped, *veh)); // Same shit, difference packaging
+    return CPedGeometryAnalyser::ComputeEntityDir(*veh, CPedGeometryAnalyser::ComputeEntityHitSide(*ped, *veh)); // Same shit, difference packaging
 }
 
 // 0x653AE0

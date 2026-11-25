@@ -9,7 +9,7 @@ class CEvent;
 
 class NOTSA_EXPORT_VTABLE CTaskComplexHitByGunResponse : public CTaskComplex {
 public:
-    notsa::WEnumS32<eDirection> m_HitSide{};
+    eDirectionS32 m_HitSide{};
 
 public:
     static constexpr auto Type = eTaskType::TASK_COMPLEX_HIT_BY_GUN_RESPONSE;
