@@ -91,7 +91,7 @@ void CVehicleModelInfo::InjectHooks()
     RH_ScopedInstall(GetMatFXEffectMaterialCB, 0x4C8810);
     RH_ScopedInstall(SetEnvironmentMapCB, 0x4C8840);
     RH_ScopedInstall(SetEnvMapCoeffCB, 0x4C88B0);
-    RH_ScopedInstall(SetRenderPipelinesCB, 0x4C88F4);
+    RH_ScopedInstall(SetRenderPipelinesCB, 0x4C88F0);
     RH_ScopedInstall(CollapseFramesCB, 0x4C8E30);
     RH_ScopedInstall(SetEnvironmentMapAtomicCB, 0x4C9410);
     RH_ScopedInstall(SetEnvMapCoeffAtomicCB, 0x4C9430);
@@ -239,6 +239,7 @@ void CVehicleModelInfo::SetClump(RpClump* clump)
     m_nCurrentTertiaryColor = 255;
     m_nCurrentQuaternaryColor = 255;
     SetCarCustomPlate();
+    FindDirtMaterials(); // NOTSA
 }
 
 // 0x4C7B10
@@ -519,6 +520,42 @@ void CVehicleModelInfo::SetCarCustomPlate()
     CCustomCarPlateMgr::GeneratePlateText(plateBuffer, sizeof(plateBuffer) - 1);
     if (auto* material = CCustomCarPlateMgr::SetupClump(GetRpClump(), plateBuffer, m_nPlateType)) {
         m_pPlateMaterial = material;
+    }
+}
+
+// NOTSA: The original never fills `m_apDirtMaterials` (see the bugfix description), so collect them like the unused 0x5D5D50 does
+void CVehicleModelInfo::FindDirtMaterials() {
+    rng::fill(m_apDirtMaterials, nullptr);
+    if (!notsa::bugfixes::CVehicleModelInfo_SetClump_DirtMaterialsNeverFound) {
+        return;
+    }
+
+    struct Context {
+        CVehicleModelInfo* ModelInfo;
+        size_t             NumMaterials;
+    } context{ this, 0 };
+
+    const auto StoreDirtMaterialsCB = [](RpAtomic* atomic, void* data) {
+        RpGeometryForAllMaterials(RpAtomicGetGeometry(atomic), [](RpMaterial* material, void* data) -> RpMaterial* {
+            auto&             ctx     = *static_cast<Context*>(data);
+            const auto* const texture = RpMaterialGetTexture(material);
+            if (!texture || std::string_view{ RwTextureGetName(texture) } != "vehiclegrunge256") {
+                return material;
+            }
+            if (ctx.NumMaterials >= CCarFXRenderer::NUM_DIRT_TEXTURES) { // `SetDirtTextures` only looks at the first 16
+                return nullptr;
+            }
+            const auto materials = std::span{ ctx.ModelInfo->m_apDirtMaterials.data(), ctx.NumMaterials };
+            if (rng::find(materials, material) == materials.end()) { // Cloned atomics (wheels, train bogies) share their geometry, so the same material can come up more than once
+                ctx.ModelInfo->m_apDirtMaterials[ctx.NumMaterials++] = material;
+            }
+            return material;
+        }, data);
+        return atomic;
+    };
+    RpClumpForAllAtomics(GetRpClump(), StoreDirtMaterialsCB, &context);
+    for (auto* const extra : std::span{ m_pVehicleStruct->m_apExtras.data(), m_pVehicleStruct->m_nNumExtras }) { // Extras were removed from the clump in `PreprocessHierarchy`
+        StoreDirtMaterialsCB(extra, &context);
     }
 }
 
@@ -1150,6 +1187,7 @@ RpMaterial* CVehicleModelInfo::SetEnvMapCoeffCB(RpMaterial* material, void* data
     return material;
 }
 
+// 0x4C88F0
 RpAtomic* CVehicleModelInfo::SetRenderPipelinesCB(RpAtomic* atomic, void* data)
 {
     return atomic;

@@ -277,24 +277,33 @@ void AdjustPresentParams(D3DPRESENT_PARAMETERS* pp) {
 
     auto [desktopW, desktopH] = GetDesktopRes();
 
-    RsGlobal.maximumWidth  = pp->BackBufferWidth;
-    RsGlobal.maximumHeight = pp->BackBufferHeight;
-
     RECT rcClient = { 0, 0, (LONG)pp->BackBufferWidth, (LONG)pp->BackBufferHeight };
     AdjustWindowRectEx(&rcClient, GetWindowLong(WindowHandle, GWL_STYLE), FALSE, GetWindowLong(WindowHandle, GWL_EXSTYLE));
 
+    // Resize the window to the selected video mode, unless RW requested 0x0 (which means "use the window size", eg.: the windowed video mode)
+    const bool hasRequestedSize = pp->BackBufferWidth != 0 && pp->BackBufferHeight != 0;
     SetWindowPos(
         WindowHandle,
         HWND_NOTOPMOST,
         0, 0,
         std::min<LONG>(desktopW, rcClient.right - rcClient.left), std::min<LONG>(rcClient.bottom - rcClient.top, desktopH),
-        SWP_NOACTIVATE | SWP_NOSIZE | (bFullMode ? 0 : SWP_NOMOVE)
+        SWP_NOACTIVATE | (hasRequestedSize ? 0 : SWP_NOSIZE) | (bFullMode ? 0 : SWP_NOMOVE)
     );
     GetClientRect(WindowHandle, &rcClient);
 
     pp->BackBufferWidth  = rcClient.right;
     pp->BackBufferHeight = rcClient.bottom;
     pp->hDeviceWindow    = WindowHandle;
+
+    // The camera raster is created with this size, so it must match the backbuffer we actually get
+    // (In windowed mode RW requests 0x0 here, meaning "use the window size", and the window may not have been resized yet)
+    RsGlobal.maximumWidth  = pp->BackBufferWidth;
+    RsGlobal.maximumHeight = pp->BackBufferHeight;
+
+    // `CameraSize` sizes the camera raster from the video mode in fullscreen video modes, so it must have the backbuffer's size too (Same as in `Proxy_Reset`)
+    auto& vm       = DisplayModes[RwEngineGetCurrentVideoMode()];
+    vm.mode.Width  = pp->BackBufferWidth;
+    vm.mode.Height = pp->BackBufferHeight;
 }
 
 struct ScopedRestoreWindowInfo {

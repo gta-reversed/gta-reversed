@@ -436,7 +436,7 @@ bool CMenuManager::ProcessPCMenuOptions(int8 pressedLR, bool acceptPressed) {
         // scroll loop
         auto maxLevels = std::min(4u, RwD3D9EngineGetMaxMultiSamplingLevels());
         if (pressedLR > 0) {
-            m_nDisplayAntialiasing = m_nDisplayAntialiasing == maxLevels ? 1 : m_nDisplayAntialiasing + 1;
+            m_nDisplayAntialiasing = std::cmp_greater(m_nDisplayAntialiasing + 1, maxLevels) ? 1 : m_nDisplayAntialiasing + 1;
         } else {
             m_nDisplayAntialiasing = m_nDisplayAntialiasing > 1 ? m_nDisplayAntialiasing - 1 : maxLevels;
         }
@@ -487,14 +487,17 @@ bool CMenuManager::ProcessPCMenuOptions(int8 pressedLR, bool acceptPressed) {
         SwitchToNewScreen(SCREEN_GO_BACK);
         return true;
     case MENU_ACTION_RESOLUTION: {
-        if (acceptPressed && m_nDisplayVideoMode != m_nPrefsVideoMode) {
-            m_nPrefsVideoMode = m_nDisplayVideoMode;
-            SetVideoMode(m_nDisplayVideoMode);
-            CentreMousePointer();
-            m_DisplayTheMouse = true;
-            m_nCurrentScreenItem = 5;
-            SaveSettings();
-            CPostEffects::DoScreenModeDependentInitializations();
+        if (acceptPressed) {
+            if (m_nDisplayVideoMode != m_nPrefsVideoMode) {
+                m_nPrefsVideoMode = m_nDisplayVideoMode;
+                SetVideoMode(m_nDisplayVideoMode);
+                CentreMousePointer();
+                m_DisplayTheMouse = true;
+                m_nCurrentScreenItem = 5;
+                SaveSettings();
+                CPostEffects::DoScreenModeDependentInitializations();
+            }
+            return true;
         }
 
         auto numVideoModes = RwEngineGetNumVideoModes();

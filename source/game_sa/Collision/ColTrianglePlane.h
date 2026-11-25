@@ -10,7 +10,7 @@
 #include <extensions/FixedFloat.hpp>
 #include "Vector.h"
 
-class CStoredCollPoly;
+struct CStoredCollPoly;
 class CColTriangle;
     
 class CColTrianglePlane {

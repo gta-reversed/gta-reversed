@@ -2,7 +2,7 @@
 
 #include "EventEditableResponse.h"
 
-class C2dEffectPedAttractor;
+struct C2dEffectPedAttractor;
 class CEntity;
 
 class NOTSA_EXPORT_VTABLE CEventAttractor : public CEventEditableResponse {

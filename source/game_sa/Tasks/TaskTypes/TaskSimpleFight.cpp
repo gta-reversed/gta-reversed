@@ -53,6 +53,11 @@ void CTaskSimpleFight::InjectHooks() {
     RH_ScopedVirtualClass(CTaskSimpleFight, 0x86D684, 9);
     RH_ScopedCategory("Tasks/TaskTypes");
 
+    RH_ScopedInstall(ControlFight, 0x61C5E0, { .Reversed = false });
+    RH_ScopedInstall(IsComboSet, 0x4ABDC0, { .Reversed = false });
+    RH_ScopedInstall(IsHitComboSet, 0x4ABDF0, { .Reversed = false });
+    RH_ScopedInstall(GetComboAnimGroupID, 0x4ABDA0, { .Reversed = false });
+    RH_ScopedInstall(LoadMeleeData, 0x5BEDC0, { .Reversed = false });
 }
 
 CTaskSimpleFight* CTaskSimpleFight::Constructor(CEntity* entity, int32 nCommand, uint32 nIdlePeriod) {

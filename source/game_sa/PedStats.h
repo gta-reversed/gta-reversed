@@ -33,5 +33,5 @@ public:
     static ePedStats GetPedStatType(const char* statName);
     static CPedStat* GetPedStatInfo(const char* statName);
     static CPedStat* GetPedStatByArrayIndex(uint32 statIndex);
-    static void FindIndexWithPedStat(void* a1);
+    static int32     FindIndexWithPedStat(const CPedStat* pedStat);
 };

@@ -22,6 +22,7 @@ void CCustomCarPlateMgr::InjectHooks() {
     RH_ScopedInstall(AtomicSetCarplateTextureCB, 0x6FE0D0);
     RH_ScopedInstall(SetupClump, 0x6FE0F0);
     RH_ScopedInstall(RenderLicenseplateTextToRaster, 0x6FDD70);
+    RH_ScopedInstall(LoadPlatecharsetDat, 0x6FDC00, { .Reversed = false });
 }
 
 // 0x6FD500

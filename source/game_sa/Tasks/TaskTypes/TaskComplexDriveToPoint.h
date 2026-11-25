@@ -36,5 +36,8 @@ public:
 
     /// NOTSA
     void GoToPoint(const CVector& point);
+
+public:
+    static void InjectHooks();
 };
 VALIDATE_SIZE(CTaskComplexDriveToPoint, 0x3C);

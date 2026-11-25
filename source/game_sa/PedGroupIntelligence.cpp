@@ -37,6 +37,7 @@ void CPedGroupIntelligence::InjectHooks() {
     RH_ScopedInstall(ComputeEventResponseTasks, 0x5FC440);
     RH_ScopedInstall(Process, 0x5FC4A0);
     RH_ScopedInstall(ReportAllTasksFinished, 0x5F7730);
+    RH_ScopedInstall(ComputeScriptCommandTasks, 0x5F7800, { .Reversed = false });
 }
 
 // 0x5F7250
@@ -78,16 +79,16 @@ bool CPedGroupIntelligence::AddEvent(CEvent* event) {
     if (!eGrpEvent) {
         return false;
     }
-    if (!eGrpEvent->AffectsPedGroup(m_pPedGroup) || !eGrpEvent->GetEvent().AffectsPedGroup(m_pPedGroup)) {
+    if (!eGrpEvent->AffectsPedGroup(m_pPedGroup) || !eGrpEvent->GetGroupEvent().AffectsPedGroup(m_pPedGroup)) {
         return false;
     }
-    if (const auto src = eGrpEvent->GetEvent().GetSourceEntity()) {
+    if (const auto src = eGrpEvent->GetGroupEvent().GetSourceEntity()) {
         if (src->GetIsTypePed() && m_pPedGroup->GetMembership().IsMember(src->AsPed())) {
             return false;
         }
     }
-    if (eGrpEvent->GetEvent().HasEditableResponse()) {
-        const auto eEditableResponse = notsa::cast<CEventEditableResponse>(&eGrpEvent->GetEvent());
+    if (eGrpEvent->GetGroupEvent().HasEditableResponse()) {
+        const auto eEditableResponse = notsa::cast<CEventEditableResponse>(&eGrpEvent->GetGroupEvent());
         eEditableResponse->ComputeResponseTaskType(m_pPedGroup);
         if (!eEditableResponse->WillRespond()) {
             return false;
@@ -143,7 +144,7 @@ eSecondaryTask CPedGroupIntelligence::GetTaskSecondarySlot(CPed* ped) {
     if (const auto tp = GetPedsTaskPair(ped, m_SecondaryPedTaskPairs)) {
         return tp->Slot;
     }
-    NOTSA_UNREACHABLE(); // Otherwise returned `0`, which is a valid slot...
+    return TASK_SECONDARY_INVALID;
 }
 
 // 0x5FC4A0
@@ -195,8 +196,8 @@ void CPedGroupIntelligence::Process() {
             }
             delete std::exchange(m_EventResponseTaskAllocator, ComputeEventResponseTasks());
         } else if ( // 0x5FC6F6
-               m_HighestPriorityEvent->GetEvent().GetEventType() == m_CurrentEvent->GetEvent().GetEventType()
-            && m_HighestPriorityEvent->GetEvent().CanBeInterruptedBySameEvent()
+               m_HighestPriorityEvent->GetGroupEvent().GetEventType() == m_CurrentEvent->GetGroupEvent().GetEventType()
+            && m_HighestPriorityEvent->GetGroupEvent().CanBeInterruptedBySameEvent()
         ) {
             eventToAdd = m_HighestPriorityEvent->Clone();
         }
@@ -212,7 +213,7 @@ void CPedGroupIntelligence::Process() {
 
     if (!m_PrimaryTaskAllocator && m_CurrentEvent) { // 0x5FC7A7
         if (m_EventResponseTaskAllocator) {
-            m_PrimaryTaskAllocator = m_EventResponseTaskAllocator->ProcessGroup(this);
+            m_EventResponseTaskAllocator->ProcessGroup(this); // NOTE: The original doesn't use the return value (Which may be the allocator itself)
         }
     }
 
@@ -309,8 +310,8 @@ bool CPedGroupIntelligence::ShouldSetHighestPriorityEventAsCurrent() {
     }
 
     // Same type, but current can't be interrupted by it?
-    if (m_HighestPriorityEvent->GetEvent().GetEventType() == m_CurrentEvent->GetEvent().GetEventType()) {
-        if (!m_CurrentEvent->GetEvent().CanBeInterruptedBySameEvent()) {
+    if (m_HighestPriorityEvent->GetGroupEvent().GetEventType() == m_CurrentEvent->GetGroupEvent().GetEventType()) {
+        if (!m_CurrentEvent->GetGroupEvent().CanBeInterruptedBySameEvent()) {
             return false;
         }
     }
@@ -355,7 +356,7 @@ void CPedGroupIntelligence::ProcessIgnorePlayerGroup() {
         return;
     }
     if (m_CurrentEvent) {
-        switch (m_CurrentEvent->GetEvent().GetEventType()) {
+        switch (m_CurrentEvent->GetGroupEvent().GetEventType()) {
         case EVENT_LEADER_ENTRY_EXIT:
         case EVENT_LEADER_ENTERED_CAR_AS_DRIVER:
             return;
@@ -365,7 +366,7 @@ void CPedGroupIntelligence::ProcessIgnorePlayerGroup() {
         if (!m_CurrentEvent) {
             return;
         }
-        const auto src = m_CurrentEvent->GetEvent().GetSourceEntity();
+        const auto src = m_CurrentEvent->GetGroupEvent().GetSourceEntity();
         if (!src || !src->GetIsTypePed()) {
             return;
         }
@@ -397,7 +398,7 @@ void CPedGroupIntelligence::ReportAllTasksFinished(PedTaskPairs& taskPairs) {
 // 0x5F77A0
 bool CPedGroupIntelligence::IsCurrentEventValid() {
     if (m_CurrentEvent) {
-        const auto event = &m_CurrentEvent->GetEvent();
+        const auto event = &m_CurrentEvent->GetGroupEvent();
         if (event->GetEventType() == EVENT_PLAYER_COMMAND_TO_GROUP) {
             if (const auto src = event->GetSourceEntity()) {
                 if (src->GetIsTypePed()) {

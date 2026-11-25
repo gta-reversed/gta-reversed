@@ -149,15 +149,15 @@ bool CTaskSimpleCarSlowDragPedOut::ProcessPed(CPed* ped) {
         // Make peds say something
         if (m_Vehicle) { // Redundant check, maybe inlined?
             if (const auto jackedPed = GetJackedPed()) {
-                const auto DoTalk = [this](auto ped1, auto ped2) {
-                    if (!SayJacked(ped1, m_Vehicle)) {
-                        SayJacking(ped2, ped1, m_Vehicle);
-                    }
-                };
+                // Randomly pick which of the two says something first
                 if (CGeneral::GetRandomNumber() % 1024 <= 512) {
-                    DoTalk(jackedPed, ped);
+                    if (!SayJacked(jackedPed, m_Vehicle)) {
+                        SayJacking(ped, jackedPed, m_Vehicle);
+                    }
                 } else {
-                    DoTalk(ped, jackedPed);
+                    if (!SayJacking(ped, jackedPed, m_Vehicle)) {
+                        SayJacked(jackedPed, m_Vehicle);
+                    }
                 }
             }
         }

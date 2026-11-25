@@ -827,20 +827,14 @@ RpMaterial* MaterialUpdateUVAnimCB(RpMaterial* material, void* data) {
 // to make it point in the direction of the current wind
 // 0x532DB0
 void CEntity::BuildWindSockMatrix() {
-    auto vecWindDir = CVector(CWeather::WindDir.x + 0.01F, CWeather::WindDir.y + 0.01F, 0.1F);
+    const auto forward  = CVector{ CWeather::WindDir.x + 0.01F, CWeather::WindDir.y + 0.01F, 0.1F }.Normalized();
+    const auto right    = CVector{ 0.0F, 0.0F, 1.0F }.Cross(forward).Normalized();
 
-    auto forward = vecWindDir;
-    forward.Normalise();
-
-    constexpr CVector side{ 0.0F, 0.0F, 1.0F };
-    auto right = side.Cross(forward);
-    right.Normalise();
-
-    const auto up = forward.Cross(right);
-    auto& matrix = GetMatrix();
-    matrix.GetRight() = right;
+    const auto up       = forward.Cross(right);
+    auto&      matrix   = GetMatrix();
+    matrix.GetRight()   = right;
     matrix.GetForward() = forward;
-    matrix.GetUp() = up;
+    matrix.GetUp()      = up;
 
     UpdateRwMatrix();
     UpdateRwFrame();
@@ -1418,9 +1412,8 @@ void CEntity::ModifyMatrixForBannerInWind() {
     auto fZPos = sqrt(1.0F - pow(fWindOffset, 2.0F));
 
     CMatrix& matrix = GetMatrix();
-    auto vecCross = matrix.GetForward().Cross(matrix.GetUp());
-    vecCross.z = 0.0F;
-    vecCross.Normalise();
+    const auto vecCrossUnnormalized = matrix.GetForward().Cross(matrix.GetUp());
+    const auto vecCross = CVector{ vecCrossUnnormalized.x, vecCrossUnnormalized.y, 0.0F }.Normalized();
 
     auto vecWind = CVector(vecCross * fWindOffset, fZPos);
     auto vecCross2 = matrix.GetForward().Cross(vecWind);
@@ -1503,35 +1496,35 @@ void CEntity::CalculateBBProjection(CVector* point1, CVector* point2, CVector* p
 
     // Determine dominant axis and compute direction vectors
     if (totalSizeX > totalSizeY && totalSizeX > totalSizeZ) {
-        main = CVector(right.x, right.y, 0.0F);
+        main = CVector{ right.x, right.y, 0.0F };
         higherPoint = pos + main * sizeBBX;
         lowerPoint = pos - main * sizeBBX;
 
-        main.Normalise();
-        offsetLength1 = (main.x * forward.x + main.y * forward.y) * sizeBBY;
-        offsetWidth1  = (main.x * forward.y - main.y * forward.x) * sizeBBY;
-        offsetLength2 = (main.x * up.x      + main.y * up.y)      * sizeBBZ;
-        offsetWidth2  = (main.x * up.y      - main.y * up.x)      * sizeBBZ;
+        const auto normalizedMain = main.Normalized();
+        offsetLength1 = (normalizedMain.x * forward.x + normalizedMain.y * forward.y) * sizeBBY;
+        offsetWidth1  = (normalizedMain.x * forward.y - normalizedMain.y * forward.x) * sizeBBY;
+        offsetLength2 = (normalizedMain.x * up.x      + normalizedMain.y * up.y)      * sizeBBZ;
+        offsetWidth2  = (normalizedMain.x * up.y      - normalizedMain.y * up.x)      * sizeBBZ;
     } else if (totalSizeY > totalSizeZ) {
-        main = CVector(forward.x, forward.y, 0.0F);
+        main = CVector{ forward.x, forward.y, 0.0F };
         higherPoint = pos + main * sizeBBY;
         lowerPoint = pos - main * sizeBBY;
 
-        main.Normalise();
-        offsetLength1 = (main.x * right.x + main.y * right.y) * sizeBBX;
-        offsetWidth1  = (main.x * right.y - main.y * right.x) * sizeBBX;
-        offsetLength2 = (main.x * up.x    + main.y * up.y)    * sizeBBZ;
-        offsetWidth2  = (main.x * up.y    - main.y * up.x)    * sizeBBZ;
+        const auto normalizedMain = main.Normalized();
+        offsetLength1 = (normalizedMain.x * right.x + normalizedMain.y * right.y) * sizeBBX;
+        offsetWidth1  = (normalizedMain.x * right.y - normalizedMain.y * right.x) * sizeBBX;
+        offsetLength2 = (normalizedMain.x * up.x    + normalizedMain.y * up.y)    * sizeBBZ;
+        offsetWidth2  = (normalizedMain.x * up.y    - normalizedMain.y * up.x)    * sizeBBZ;
     } else {
-        main = CVector(up.x, up.y, 0.0F);
+        main = CVector{ up.x, up.y, 0.0F };
         higherPoint = pos + main * sizeBBZ;
         lowerPoint = pos - main * sizeBBZ;
 
-        main.Normalise();
-        offsetLength1 = (main.x * right.x   + main.y * right.y)   * sizeBBX;
-        offsetWidth1  = (main.x * right.y   - main.y * right.x)   * sizeBBX;
-        offsetLength2 = (main.x * forward.x + main.y * forward.y) * sizeBBY;
-        offsetWidth2  = (main.x * forward.y - main.y * forward.x) * sizeBBY;
+        const auto normalizedMain = main.Normalized();
+        offsetLength1 = (normalizedMain.x * right.x   + normalizedMain.y * right.y)   * sizeBBX;
+        offsetWidth1  = (normalizedMain.x * right.y   - normalizedMain.y * right.x)   * sizeBBX;
+        offsetLength2 = (normalizedMain.x * forward.x + normalizedMain.y * forward.y) * sizeBBY;
+        offsetWidth2  = (normalizedMain.x * forward.y - normalizedMain.y * forward.x) * sizeBBY;
     }
 
     // Compute absolute values and sums
@@ -1539,7 +1532,7 @@ void CEntity::CalculateBBProjection(CVector* point1, CVector* point2, CVector* p
     offsetWidth  = std::fabs(offsetWidth1)  + std::fabs(offsetWidth2);
 
     // Helper lambda for corner calculation
-    const auto calcCorner = [&](const CVector& base, float sign1, float sign2) -> CVector {
+    const auto CalcCorner = [&](const CVector& base, float sign1, float sign2) -> CVector {
         return {
             base.x + sign1 * (main.x * offsetLength) + sign2 * (main.y * offsetWidth),
             base.y + sign1 * (main.y * offsetLength) + sign2 * (-main.x * offsetWidth),
@@ -1547,10 +1540,10 @@ void CEntity::CalculateBBProjection(CVector* point1, CVector* point2, CVector* p
         };
     };
 
-    *point1 = calcCorner(higherPoint, 1.0F, -1.0F);
-    *point2 = calcCorner(higherPoint, 1.0F, 1.0F);
-    *point3 = calcCorner(lowerPoint, -1.0F, 1.0F);
-    *point4 = calcCorner(lowerPoint, -1.0F, -1.0F);
+    *point1 = CalcCorner(higherPoint, 1.0F, -1.0F);
+    *point2 = CalcCorner(higherPoint, 1.0F, 1.0F);
+    *point3 = CalcCorner(lowerPoint, -1.0F, 1.0F);
+    *point4 = CalcCorner(lowerPoint, -1.0F, -1.0F);
 }
 
 // Updates the animations for the entity's RenderWare clump, if it has any
@@ -1764,19 +1757,17 @@ void CEntity::ProcessLightsForEntity() {
 
         if (effect->m_Type == e2dEffectType::EFFECT_SUN_GLARE && CWeather::SunGlare >= 0.0f) {
             auto effectPos = TransformFromObjectSpace(effect->m_Pos);
-            auto direction = effectPos - GetPosition();
-            direction.Normalise();
+            const auto direction = (effectPos - GetPosition()).Normalized();
 
             const auto cameraPos = TheCamera.GetPosition();
-            auto cameraDir = cameraPos - effectPos;
+            const auto cameraDir = cameraPos - effectPos;
             const auto cameraDist = cameraDir.Magnitude();
             const auto scale = 2.0f / cameraDist;
-            auto scaledCameraDir = cameraDir * scale;
+            const auto scaledCameraDir = cameraDir * scale;
 
-            direction += scaledCameraDir;
-            direction.Normalise();
+            const auto combinedDirection = (direction + scaledCameraDir).Normalized();
 
-            const auto dotProduct = -direction.Dot(CTimeCycle::m_VectorToSun[CTimeCycle::m_CurrentStoredValue]);
+            const auto dotProduct = -combinedDirection.Dot(CTimeCycle::m_VectorToSun[CTimeCycle::m_CurrentStoredValue]);
             if (dotProduct > 0.0f) {
                 const auto glare = sqrt(dotProduct) * CWeather::SunGlare;
                 const auto radius = sqrt(cameraDist) * CWeather::SunGlare * 0.5f;

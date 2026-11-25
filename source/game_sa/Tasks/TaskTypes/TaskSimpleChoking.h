@@ -13,7 +13,7 @@ class NOTSA_EXPORT_VTABLE CTaskSimpleChoking : public CTaskSimple {
 public:
     static constexpr auto Type = TASK_SIMPLE_CHOKING;
 
-    static void InjectHooks();
+    static CTaskSimpleChoking* DeleteAnimChokeCB(CAnimBlendAssociation*, void*);
 
     CTaskSimpleChoking(CPed* attacker, bool bIsTeargas);
     CTaskSimpleChoking(const CTaskSimpleChoking&);
@@ -25,18 +25,8 @@ public:
 
     void UpdateChoke(CPed* victim, CPed* attacker, bool bIsTeargas);
 
-private: // Wrappers for hooks
-    // 0x6202C0
-    CTaskSimpleChoking* Constructor(CPed* attacker, uint8 isTeargas) {
-        this->CTaskSimpleChoking::CTaskSimpleChoking(attacker, isTeargas);
-        return this;
-    }
-
-    // 0x620370
-    CTaskSimpleChoking* Destructor() {
-        this->CTaskSimpleChoking::~CTaskSimpleChoking();
-        return this;
-    }
+public:
+    static void InjectHooks();
 
 public:
     CPed*                  m_pAttacker;

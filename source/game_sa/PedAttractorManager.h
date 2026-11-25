@@ -16,7 +16,7 @@
 #include <extensions/Casting.hpp>
 
 class CPedAttractor;
-class C2dEffect;
+struct C2dEffect;
 class CEntity;
 class CPed;
 
@@ -63,6 +63,7 @@ public:
         a->BroadcastDeparture(ped);
         if (!a->GetNoOfRegisteredPeds()) {
             attractors.erase(it);
+            delete a; // 0x5EC72E
         }
         return true;
     }
@@ -82,6 +83,7 @@ public:
         a->DeRegisterPed(ped);
         if (!a->GetNoOfRegisteredPeds()) {
             attractors.erase(it);
+            delete a; // 0x5EC80E
         }
         return true;
     }

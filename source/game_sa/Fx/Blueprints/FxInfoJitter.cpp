@@ -22,10 +22,7 @@ void FxInfoJitter_c::GetValue(float currentTime, float mult, float totalTime, fl
     float value;
     m_InterpInfo.GetVal(&value, mult);
 
-    CVector in((float)(CGeneral::GetRandomNumber() % 10'000) / 5000.0f - 1.0f);
-    in.Normalise();
-    in *= value * totalTime;
-
-    auto& movement = *static_cast<MovementInfo_t*>(info);
-    movement.m_Pos += in;
+    static_cast<MovementInfo_t*>(info)->m_Pos += CVector{ (float)(CGeneral::GetRandomNumber() % 10'000) / 5000.0f - 1.0f }.Normalized()
+        * value
+        * totalTime;
 }

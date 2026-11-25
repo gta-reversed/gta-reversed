@@ -95,7 +95,7 @@ void CCamera::InjectHooks() {
     RH_ScopedInstall(UpdateTargetEntity, 0x50C360);
     RH_ScopedInstall(TakeControl, 0x50C7C0);
     RH_ScopedInstall(TakeControlNoEntity, 0x50C8B0);
-    RH_ScopedInstall(TakeControlAttachToEntity, 0x50C910);
+    RH_ScopedInstall(TakeControlAttachToEntity, 0x50C910, { .Reversed = false });
     RH_ScopedInstall(TakeControlWithSpline, 0x50CAE0);
     RH_ScopedInstall(SetCamCollisionVarDataSet, 0x50CB60);
     RH_ScopedInstall(SetNearClipBasedOnPedCollision, 0x50CB90, { .Reversed = false });
@@ -139,9 +139,12 @@ void CCamera::InjectHooks() {
     RH_ScopedOverloadedInstall(ProcessVectorMoveLinear, "wo-ratio", 0x5164A0, void(CCamera::*)());
     RH_ScopedOverloadedInstall(ProcessFOVLerp, "with-ratio", 0x50D510, void(CCamera::*)(float));
     RH_ScopedOverloadedInstall(ProcessFOVLerp, "wo-ratio", 0x516500, void(CCamera::*)());
-    //RH_ScopedOverloadedInstall(ProcessJiggle, "0", 0x516560, { .Reversed = false });
+    RH_ScopedOverloadedInstall(ProcessShake, "float", 0x516560, CVector*(CCamera::*)(float), { .Reversed = false });
 
     RH_ScopedGlobalInstall(CamShakeNoPos, 0x50A970);
+    RH_ScopedInstall(UpdateSoundDistances, 0x515BD0, { .Reversed = false });
+    RH_ScopedOverloadedInstall(IsSphereVisible, "", 0x420C40, bool(CCamera::*)(const CVector&, float, RwMatrix*), { .Reversed = false });
+    RH_ScopedOverloadedInstall(ProcessShake, "void", 0x51A6F0, void(CCamera::*)(), { .Reversed = false });
 }
 
 CCamera* CCamera::Constructor() { this->CCamera::CCamera(); return this; }
@@ -1329,7 +1332,7 @@ void CCamera::ProcessFade() {
 
     if (m_nFadeInOutFlag == eFadeFlag::FADE_OUT) {
         m_fFadeDuration == 0.0f
-            ? (m_fFadeAlpha += 0.0f)
+            ? (m_fFadeAlpha = 0.0f)
             : (m_fFadeAlpha -= CTimer::GetTimeStepInSeconds() / m_fFadeDuration * 255.0f);
 
         if (m_fFadeAlpha > 0.0f) {
@@ -1581,13 +1584,9 @@ void CCamera::Find3rdPersonCamTargetVector(float range, CVector gunMuzzle, CVect
         // Horizontal offset
         const auto right = pActiveCam->m_vecFront.Cross(pActiveCam->m_vecUp);
         dir += right * (tanHalfFOV * ((m_f3rdPersonCHairMultX - 0.5f) * 2.0f));
-        
-        // Handle zero magnitude case
-        if (dir.Magnitude() <= 0.0f) {
-            dir = CVector(1.0f, 0.0f, 0.0f);
-        } else {
-            dir.Normalise();
-        }
+       
+        // Make it a unit vector
+        dir = dir.Normalized();
     }
     
     // Calculate intersection point with muzzle

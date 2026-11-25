@@ -106,4 +106,53 @@ inline const ReversibleBugFix CDamageManager_GetLightStatus_IncorrectStatusCheck
     .Description = "Fixes incorrect use of `LIGHT_REAR_LEFT` instead of `LIGHT_REAR_RIGHT` for checking light status",
     .Credit      = "aeaeo"
 };
+inline const ReversibleBugFix CTaskSimpleSlideToCoord_Constructor_UninitializedTimer{
+    .Name        = "CTaskSimpleSlideToCoord - Uninitialized timer",
+    .Description = "The constructor without an anim doesn't initialize the timer, so `ProcessPed` never starts the 2 second timeout, "
+                   "and a ped that can't reach the target position or heading slides forever",
+    .Credit      = "W4liss0n"
+};
+inline const ReversibleBugFix CPedGeometryAnalyser_ComputeRouteRoundSphere_IncorrectDetourPosition{
+    .Name        = "CPedGeometryAnalyser::ComputeRouteRoundSphere - Incorrect detour position",
+    .Description = "Fix incorrect calculation of detour position in `CPedGeometryAnalyser::ComputeRouteRoundSphere` due to the direction being calculated in 3D instead of 2D (Sometimes giving points that would lead the ped to go into the sphere, instead of around it)",
+    .Credit      = "Pirulax"
+};
+inline const ReversibleBugFix CPedGeometryAnalyser_IsEntityBlockingTarget_IncorrectRadiusCheck{
+    .Name        = "CPedGeometryAnalyser::IsEntityBlockingTarget - Incorrect radius check",
+    .Description = "Fix incorrect radius check in `CPedGeometryAnalyser::IsEntityBlockingTarget`",
+    .Credit      = "Pirulax"
+};
+inline const ReversibleBugFix CPedGeometryAnalyser_ComputeRouteRoundSphere_AmbigousDetourTarget{
+    .Name        = "CPedGeometryAnalyser::ComputeRouteRoundSphere - Fix ambiguous detour target",
+    .Description = "Fix missing setting of detour target when the ped is on the edge of the sphere in `CPedGeometryAnalyser::ComputeRouteRoundSphere`",
+    .Credit      = "Pirulax"
+};
+inline const ReversibleBugFix CObjectData_SetObjectData_UninitializedPhysics{
+    .Name        = "Physics of objects without object.dat data",
+    .Description = "Give an object with no object.dat entry the default elasticity and buoyancy - neither SetObjectData nor CPhysical's constructor sets them, so they held the pool slot's leftovers and could launch a vehicle that touched the object to infinity",
+    .Credit      = "mrxenginner"
+};
+inline const ReversibleBugFix CObject_Render_DetachedPartRendering{
+    .Name        = "CObject::Render - Detached car part rendering",
+    .Description = "Detached car parts share their materials with the vehicle model, but nothing applies the vehicle's colours and paintjob to them, "
+                   "so they were rendered with the placeholder colours. Apply them before rendering the part, and render both of its sides",
+    .Credit      = "SilentPatch Contributors"
+};
+inline const ReversibleBugFix CVehicleModelInfo_SetClump_DirtMaterialsNeverFound{
+    .Name            = "Vehicle dirt levels",
+    .Description     = "The game never fills `CVehicleModelInfo::m_apDirtMaterials`, so every vehicle is rendered with the maximum dirt "
+                       "regardless of its dirt level. The fix fills it with the materials that use the `vehiclegrunge256` texture (like SilentPatch does)",
+    .Credit          = "SilentPatch Contributors, W4liss0n",
+    .RequiresRestart = true
+};
+inline const ReversibleBugFix CVehicle_ProcessWheel_and_ProcessBikeWheel_AlreadySkiddingNotReset{
+    .Name        = "CVehicle::ProcessWheel/ProcessBikeWheel - alreadySkidding reset",
+    .Description = "There are 3 and 4 statics, respectively, describing wheel state which are reset every frame EXCEPT for alreadySkidding. The fix makes alreadySkidding resetable, it has an impact on physics model since traction loss is now calculated as originally intended",
+    .Credit      = "re3/VC Contributors"
+};
+inline const ReversibleBugFix CVehicle_ScanAndMarkTargetForHeatSeekingMissile_NotProperlyStashedLOSTimestamps{
+    .Name        = "CVehicle::CVehicle_ScanAndMarkTargetForHeatSeekingMissile - LOS timestamps",
+    .Description = "Idea is to stash LOS target visibility var to not call CWorld::GetIsLineOfSightClear every frame, for some reason they use == 0 and > 1 ops respectively for last time LOS check and then flag set, so check performed every frame and not each ~1 sec",
+    .Credit      = "aeaeo"
+};
 };

@@ -24,6 +24,13 @@ static LPCRITICAL_SECTION gpScratchPadCS;
 void CMemoryMgr::InjectHooks() {
     RH_ScopedClass(CMemoryMgr);
     RH_ScopedCategory("Memory");
+    RH_ScopedInstall(InitScratchPad, 0x72F480, { .Reversed = false });
+    RH_ScopedOverloadedInstall(Malloc, "", 0x72F420, void*(*)(uint32, uint32), { .Reversed = false });
+    RH_ScopedInstall(Free, 0x72F430, { .Reversed = false });
+    RH_ScopedOverloadedInstall(Realloc, "", 0x72F440, uint8*(*)(void*, uint32, uint32), { .Reversed = false });
+    RH_ScopedOverloadedInstall(Calloc, "", 0x72F460, uint8*(*)(uint32, uint32, uint32), { .Reversed = false });
+    RH_ScopedInstall(FreeAlign, 0x72F4F0, { .Reversed = false });
+    RH_ScopedOverloadedInstall(MallocAlign, "", 0x72F4C0, void*(*)(uint32, uint32), { .Reversed = false });
 }
 
 // 0x72F3B0

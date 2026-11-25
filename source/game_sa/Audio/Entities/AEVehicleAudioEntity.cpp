@@ -64,6 +64,12 @@ CAEVehicleAudioEntity::~CAEVehicleAudioEntity() {
     if (m_IsInitialized) {
         Terminate();
     }
+    // Some sounds use this entity as their audio entity, but their lifespan is tied to another entity, and `Terminate` doesn't stop them.
+    // E.g.: `AE_BONNET_FLUBBER_FLUBBER` is tied to the flying component (bonnet), so if the component outlives
+    // the vehicle, the sound keeps calling `UpdateParameters` on this (by then deleted) audio entity.
+    if (notsa::bugfixes::GenericUB) {
+        AESoundManager.CancelSoundsOwnedByAudioEntity(this, true);
+    }
 }
 
 // 0x4F7670
@@ -95,8 +101,8 @@ void CAEVehicleAudioEntity::Initialise(CEntity* entity) {
     m_ACPlayPositionWhenStopped   = 0;
     m_ACPlayPercentWhenStopped    = 0;
     m_FramesAgoACLooped           = 0;
-    m_HornVolume                  = -100.0f;
-    m_CurrentDummyEngineVolume    = -100.0f;
+    m_HornVolume                  = VOLUME_SILENCE;
+    m_CurrentDummyEngineVolume    = VOLUME_SILENCE;
     m_SurfaceSoundType            = -1;
     m_RoadNoiseSoundType          = -1;
     m_FlatTireSoundType           = -1;
@@ -290,13 +296,13 @@ tVehicleAudioSettings* CAEVehicleAudioEntity::StaticGetPlayerVehicleAudioSetting
     return s_pVehicleAudioSettingsForRadio;
 }
 
-// 0x4F4EE0
-void CAEVehicleAudioEntity::EnableHelicoptors() {
+// 0x4F4EE0 (This is the correct address, these two were swapped by mistake in the original)
+void CAEVehicleAudioEntity::DisableHelicoptors() {
     s_HelicoptorsDisabled = true;
 }
 
-// 0x4F4EF0
-void CAEVehicleAudioEntity::DisableHelicoptors() {
+// 0x4F4EF0 (This is the correct address, these two were swapped by mistake in the original)
+void CAEVehicleAudioEntity::EnableHelicoptors() {
     s_HelicoptorsDisabled = false;
 }
 
@@ -1140,7 +1146,7 @@ void CAEVehicleAudioEntity::ProcessDummyStateTransition(eAEState newState, float
             );
 
             m_FadeIn = 0.f;
-            UpdateVehicleEngineSound(
+            StartVehicleEngineSound(
                 AE_SOUND_CAR_REV,
                 GetFrequencyForDummyRev(ratio, m_FadeIn),
                 GetVolumeForDummyRev(ratio, 0.f)
@@ -1158,14 +1164,14 @@ void CAEVehicleAudioEntity::ProcessDummyStateTransition(eAEState newState, float
             m_FadeOut = 0.f;
             UpdateVehicleEngineSound(
                 AE_SOUND_CAR_REV,
-                GetFrequencyForDummyRev(ratio, m_FadeIn),
+                GetFrequencyForDummyRev(ratio, m_FadeOut),
                 GetVolumeForDummyRev(ratio, 0.f)
             );
 
             m_FadeIn = 0.f;
-            UpdateVehicleEngineSound(
+            StartVehicleEngineSound(
                 AE_SOUND_CAR_ID,
-                GetFrequencyForDummyIdle(ratio, m_FadeOut),
+                GetFrequencyForDummyIdle(ratio, m_FadeIn),
                 GetVolumeForDummyIdle(ratio, 0.f)
             );
             break;
@@ -1385,7 +1391,7 @@ void CAEVehicleAudioEntity::CancelVehicleEngineSound(eVehicleEngineSoundType st)
 // notsa
 void CAEVehicleAudioEntity::CancelAllVehicleEngineSounds(std::optional<eVehicleEngineSoundType> except) {
     for (int32 i{}; i < (int32)(std::size(m_EngineSounds)); i++) {
-        if (!except.has_value() || *except == i) {
+        if (!except.has_value() || *except != i) {
             CancelVehicleEngineSound((eVehicleEngineSoundType)(i));
         }
     }
@@ -1437,6 +1443,10 @@ void CAEVehicleAudioEntity::RequestNewPlayerCarEngineSound(eVehicleEngineSoundTy
         break;
     default:
         NOTSA_UNREACHABLE();
+    }
+
+    if (m_EngineSounds[st].Sound && st != AE_SOUND_PLAYER_OFF) { // 0x4F7AFC
+        CancelVehicleEngineSound(st);
     }
 
     const auto DoPlayEngineSoundSound = [&](eSoundBankSlot slot, eSoundID sfx, float rollOffFactor, uint32 flags = 0, int16 playTime = 0) {
@@ -1616,7 +1626,7 @@ void CAEVehicleAudioEntity::JustGotOutOfVehicleAsDriver() {
     case AE_AIRCRAFT_SEAPLANE: { // 0x4FCFC8
         CancelAllVehicleEngineSounds();
         m_CurrentRotorFrequency    = -1.0f;
-        m_CurrentDummyEngineVolume = -100.0f;
+        m_CurrentDummyEngineVolume = VOLUME_SILENCE;
         break;
     }
     case AE_BMX:
@@ -1691,7 +1701,7 @@ void CAEVehicleAudioEntity::JustGotInVehicleAsDriver() {
         }
 
         m_CurrentRotorFrequency    = -1.0f;
-        m_CurrentDummyEngineVolume = -100.0f;
+        m_CurrentDummyEngineVolume = VOLUME_SILENCE;
 
         break;
     }
@@ -2012,8 +2022,8 @@ void CAEVehicleAudioEntity::PlayHornOrSiren(bool isHornOn, bool isSirenOn, bool 
             return;
         }
     } else if (m_AuSettings.HornType == eAEVehicleHornType::BIKE) { 
-        m_HornVolume = std::max(m_HornVolume - std::pow(s_Config.Horn.BikeBellFadeOut, CTimer::GetTimeStep()), -100.0f); // NB: Framerate bugfix with `std::pow`
-        if (m_HornVolume <= -100.0f) {
+        m_HornVolume = std::max(m_HornVolume - std::pow(s_Config.Horn.BikeBellFadeOut, CTimer::GetTimeStep()), VOLUME_SILENCE); // NB: Framerate bugfix with `std::pow`
+        if (m_HornVolume <= VOLUME_SILENCE) {
             StopAndForgetSound(m_HornSound);
         } else if (m_HornSound) {
             m_HornSound->SetVolume(m_HornVolume);
@@ -2146,7 +2156,7 @@ void CAEVehicleAudioEntity::ProcessVehicleSkidding(tVehicleParams& vp) {
         const float skidPerWheel = sumWheelSkid / (float)(numWheels);
         if (skidPerWheel > 0.00001f) {
             volume += CAEAudioUtility::AudioLog10(skidPerWheel) * 20.0f + s_Config.Skid.VolBase;
-            if (volume >= -100.0f) {
+            if (volume >= VOLUME_SILENCE) {
                 return PlaySkidSound(sfx, speed, volume);
             }
         }
@@ -2386,10 +2396,10 @@ void CAEVehicleAudioEntity::ProcessReverseGear(tVehicleParams& vp) {
             cfg->FrqBase + std::abs(revs) * cfg->FrqRevsFactor,
             std::abs(revs) > 0.0f
                 ? cfg->VolBase + CAEAudioUtility::AudioLog10(std::abs(revs)) * 20.0f
-                : -100.0f
+                : VOLUME_SILENCE
         );
     } else { // Cancel sound otherwise
-        PlayReverseSound(-1, 1.0f, -100.0f);
+        PlayReverseSound(-1, 1.0f, VOLUME_SILENCE);
     }
 }
 
@@ -2400,7 +2410,7 @@ void CAEVehicleAudioEntity::ProcessRainOnVehicle(tVehicleParams& params) {
     if (!AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_RAIN, SND_BANK_SLOT_WEATHER)) {
         return;
     }
-    if (CAEWeatherAudioEntity::m_sfRainVolume <= -100.0f) {
+    if (CAEWeatherAudioEntity::m_sfRainVolume <= VOLUME_SILENCE) {
         return;
     }
     if (++m_RainDropCounter < 3) {
@@ -2544,7 +2554,7 @@ void CAEVehicleAudioEntity::ProcessMovingParts(tVehicleParams& vp) {
     const auto* const params = &props->SoundParamsByPartDir[delta <= 0.f ? 0 : 1];
 
     const auto volume = params->Vol + CAEAudioUtility::AudioLog10(m_MovingPartSmoothedSpeed) * 20.0f;
-    if (volume <= -100.0f) {
+    if (volume <= VOLUME_SILENCE) {
         StopGenericEngineSound(AE_SOUND_MOVING_PARTS);
     } else {
         UpdateGenericVehicleSound(
@@ -2563,6 +2573,10 @@ void CAEVehicleAudioEntity::ProcessMovingParts(tVehicleParams& vp) {
 float CAEVehicleAudioEntity::GetVolForPlayerEngineSound(tVehicleParams& vp, eVehicleEngineSoundType st) const noexcept {
     const auto& cfg = s_Config.PlayerEngine;
 
+    if (st == AE_SOUND_PLAYER_OFF) { // 0x4F5DB1
+        return GetVolForPlayerEngineSound(vp, AE_SOUND_CAR_ID);
+    }
+
     float volume = [&]{
         switch (st) {
         case AE_SOUND_CAR_REV:
@@ -2570,7 +2584,7 @@ float CAEVehicleAudioEntity::GetVolForPlayerEngineSound(tVehicleParams& vp, eVeh
         case AE_SOUND_CAR_ID:
             return vp.Vehicle->GetModelIndex() == MODEL_CADDY
                 ? cfg.ID.VolMin - 30.f
-                : lerp(cfg.ID.VolMin, cfg.ID.VolMax, vp.RealRevsRatio);
+                : lerp(cfg.ID.VolMin, cfg.ID.VolMax, vp.SpeedRatio);
         case AE_SOUND_PLAYER_CRZ:
             return m_IsSingleGear
                 ? cfg.SingleGearVolume
@@ -2579,8 +2593,6 @@ float CAEVehicleAudioEntity::GetVolForPlayerEngineSound(tVehicleParams& vp, eVeh
             return m_IsSingleGear
                 ? cfg.SingleGearVolume
                 : lerp(cfg.AC.VolMin, cfg.AC.VolMax, m_AuGear / (float)(cfg.MaxAuGear)); // NOTE: May be wrong
-        case AE_SOUND_PLAYER_OFF:
-            return GetVolForPlayerEngineSound(vp, AE_SOUND_CAR_ID);
         default:
             return 0.f;
         }
@@ -2613,8 +2625,8 @@ float CAEVehicleAudioEntity::GetFreqForPlayerEngineSound(tVehicleParams& vp, eVe
     auto* const cfg = &s_Config.PlayerEngine;
 
     float f;
-    if (st == AE_SOUND_CAR_ID && vp.Vehicle->GetModelId() == MODEL_CADDY) { // Moved out here to simplify logic...
-        f = 0.f;
+    if (st == AE_SOUND_CAR_ID && vp.Vehicle->GetModelId() == MODEL_CADDY) { // 0x4F8213 - Moved out here to simplify logic...
+        f = 1.f;
     } else {
         // 0x4F80A6 - Calculate z move speed factor
         auto zf = vp.ZOverSpeed <= 0.f
@@ -2633,7 +2645,7 @@ float CAEVehicleAudioEntity::GetFreqForPlayerEngineSound(tVehicleParams& vp, eVe
         if (m_AuSettings.VehicleAudioType == AE_BIKE) {
             auto* const bike = vp.Vehicle->AsBike();
 
-            bf = std::sin(bike->GetRideAnimData()->LeanAngle) * cfg->FrqBikeLeanFactor;
+            bf = std::abs(std::sin(bike->GetRideAnimData()->LeanAngle)) * cfg->FrqBikeLeanFactor;
             if (bike->bikeFlags.bPlayerBoost) {
                 bf += cfg->FrqPlayerBikeBoostOffset;
             }
@@ -2677,7 +2689,7 @@ float CAEVehicleAudioEntity::GetFreqForPlayerEngineSound(tVehicleParams& vp, eVe
         f *= ((gf * zf) + 1.f) * (bf + 1.f);
     }
 
-    if (vp.Vehicle->m_bUnderwater) {
+    if (GetVehicle()->vehicleFlags.bIsDrowning) { // 0x4F82E8
         f *= s_Config.FreqUnderwaterFactor;
     }
 
@@ -2705,7 +2717,7 @@ void CAEVehicleAudioEntity::ProcessPlayerVehicleEngine(tVehicleParams& vp) {
 
     auto* const gear = &vp.Transmission->m_aGears[vp.RealGear];
     vp.RealRevsRatio = vp.RealGear
-        ? invLerp(gear->ChangeDownVelocity, gear->MaxVelocity, vp.AbsSpeed)
+        ? std::clamp(invLerp(gear->ChangeDownVelocity, gear->MaxVelocity, vp.AbsSpeed), 0.f, 1.f)
         : 0.f;
 
     vp.WheelSpin     = vp.Vehicle->m_fWheelSpinForAudio;
@@ -2761,7 +2773,7 @@ void CAEVehicleAudioEntity::ProcessPlayerVehicleEngine(tVehicleParams& vp) {
         } else {
             assert(vp.NumGears == vp.Transmission->m_nNumberOfGears);
             assert(vp.NumGears > 0);
-            m_AuGear = std::clamp<uint8>(std::min(vp.RealGear, m_AuGear), 1, vp.NumGears - 1);
+            m_AuGear = (uint8)(std::min<int32>({ std::max<uint8>(vp.RealGear, 1), m_AuGear, vp.NumGears - 1 })); // 0x4FC003
         }
         RequestEngineSound(AE_SOUND_PLAYER_AC);
         m_State = eAEState::PLAYER_AC_FULL;
@@ -3069,8 +3081,9 @@ void CAEVehicleAudioEntity::ProcessPlayerVehicleEngine(tVehicleParams& vp) {
                 CancelVehicleEngineSound(AE_SOUND_PLAYER_OFF);
                 RequestEngineSound(AE_SOUND_CAR_REV);
                 m_State = eAEState::PLAYER_WHEEL_SPIN;
-
-                break;
+            } else { // 0x4FC471
+                UpdateEngineSound(AE_SOUND_CAR_ID);
+                m_State = eAEState::PLAYER_ID;
             }
         } else if (!IsAccInhibitedForLowSpeed(vp) && vp.ThisAccel > cfg->AC.WheelSpinThreshold) {
             CancelVehicleEngineSound(AE_SOUND_CAR_ID);
@@ -3081,7 +3094,7 @@ void CAEVehicleAudioEntity::ProcessPlayerVehicleEngine(tVehicleParams& vp) {
                 && vp.ZOverSpeed > cfg->ZMoveSpeedThreshold
             ) {
                 vp.Vehicle->vehicleFlags.bAudioChangingGear = true;
-                RequestEngineSound(AE_SOUND_CAR_REV);
+                RequestEngineSound(AE_SOUND_PLAYER_CRZ);
                 m_State = eAEState::PLAYER_CRZ;
             } else {
                 DoFullAcceleration();
@@ -3123,11 +3136,12 @@ auto GetAircraftDistantSoundVolume(const CPhysical* v, float baseVol) {
     if (distSq <= sq(48.f)) {
         return -100.f;
     }
-    auto vol = baseVol;
-    if (distSq <= 128.f) {
-        vol += invLerp(48.f, 128.f, std::sqrtf(distSq)); // NB: I think this should be substracted (The closer the plane is, the less volume the distant sound should have)
+    auto vol = CAEAudioUtility::AudioLog10(baseVol) * 20.f;
+    if (distSq < sq(128.f)) {
+        // NOTE: The factor is below 1 here, so its log is negative: the closer the plane is, the quieter its distant sound
+        vol += CAEAudioUtility::AudioLog10(invLerp(48.f, 128.f, std::sqrtf(distSq))) * 20.f;
     }
-    return CAEAudioUtility::AudioLog10(vol) * 20.f + 8.f;
+    return vol + 8.f;
 }
 
 // notsa - See 0x4FE5E5
@@ -3386,7 +3400,7 @@ void CAEVehicleAudioEntity::ProcessDummyOrPlayerProp(tVehicleParams& vp, bool is
         AE_SOUND_AIRCRAFT_DISTANT,
         SND_BANK_SLOT_VEHICLE_GEN,
         16,
-        GetAircraftDistantSoundVolume(plane, propStalledVol), // <- 0x4FDC90
+        propStalledVol + GetAircraftDistantSoundVolume(plane, propSpeedFactor), // <- 0x4FDC90
         1.f
     );
 }
@@ -3752,7 +3766,7 @@ void CAEVehicleAudioEntity::ProcessDummySeaPlane(tVehicleParams& vp) {
         AE_SOUND_AIRCRAFT_NEAR,
         SND_BANK_SLOT_VEHICLE_GEN,
         17,
-        GetAircraftDistantSoundVolume(plane, 0.f),
+        CAEAudioUtility::AudioLog10(GetDummyRCRotorSpeedFactor(plane->m_EngineSpeed / 0.22f)) * 20.f + 8.f, // 0x4FF82D
         1.f
     );
 }
@@ -3761,8 +3775,88 @@ void CAEVehicleAudioEntity::ProcessDummySeaPlane(tVehicleParams& vp) {
 #pragma region Jet
 
 // 0x4FF900
-void CAEVehicleAudioEntity::ProcessGenericJet(bool bEngineOn, tVehicleParams& params, float fEngineSpeed, float fAccelRatio, float fBrakeRatio, float fStalledVolume, float fStalledFrequency) {
-    plugin::CallMethod<0x4FF900, CAEVehicleAudioEntity*, uint8, tVehicleParams&, float, float, float, float, float>(this, bEngineOn, params, fEngineSpeed, fAccelRatio, fBrakeRatio, fStalledVolume, fStalledFrequency);
+void CAEVehicleAudioEntity::ProcessGenericJet(bool engineOn, tVehicleParams& params, float engineSpeed, float accelRatio, float brakeRatio, float stalledVolume, float stalledFrequency) {
+    if (!AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_VEHICLE_GEN, SND_BANK_SLOT_VEHICLE_GEN)) {
+        NOTSA_LOG_WARN("Sound bank SND_BANK_GENRL_VEHICLE_GEN, SND_BANK_SLOT_VEHICLE_GEN not loaded yet!");
+        return;
+    }
+
+    if (!engineOn) {
+        CancelAllVehicleEngineSounds();
+        return;
+    }
+
+    const auto ProcessSoundWithParams = [&](
+        float volMaxThrust,
+        float volRearBase,
+        float distantJetVolume,
+        float volFrontBase
+    ) {
+        const auto camToEntityDir       = (m_Entity->GetPosition() - TheCamera.GetPosition()).Normalized();
+        const auto camToEntityDirFwdDot = camToEntityDir.Dot(params.Vehicle->GetForward());
+
+        // + 0.1 when accelerating, - 0.5 when breaking
+        float throttlePitchMod = accelRatio > 0.0f ? 0.1f : 0.0f;
+        if (brakeRatio > 0.0f)
+            throttlePitchMod -= 0.05f;
+
+        // Pans between front and rear according to the where camera looks at.
+        const auto camPan = (camToEntityDirFwdDot + 1.0f) * 0.5f;
+
+        const auto volumeFront = CAEAudioUtility::AudioLog10((1.0f - 0.67f * camPan) * engineSpeed) * 20.0f + volFrontBase;
+        const auto volumeRear  = CAEAudioUtility::AudioLog10((camPan * 0.5f + 0.5f) * engineSpeed) * 20.0f + volRearBase;
+
+        m_CurrentDummyEngineVolume = accelRatio <= 0.0f ? m_CurrentDummyEngineVolume - 1 : volMaxThrust;
+
+        const auto vehRightZ = params.Vehicle->GetRight().z;
+        const auto vehFwdZ   = params.Vehicle->GetForward().z;
+
+        const auto thrustVolume = CAEAudioUtility::AudioLog10(engineSpeed) * 20.0f + m_CurrentDummyEngineVolume;
+        const auto targetFreq = (std::abs(vehRightZ) * 0.1f - vehFwdZ * 0.15f + throttlePitchMod + 1.0f) * stalledFrequency;
+
+        if (m_CurrentRotorFrequency < 0.0f) {
+            m_CurrentRotorFrequency = targetFreq;
+        }
+
+        constexpr float FreqStep = 1.0f / 187.5f;
+        m_CurrentRotorFrequency = notsa::step_to(m_CurrentRotorFrequency, targetFreq, FreqStep);
+
+        PlayAircraftSound(
+            AE_SOUND_AIRCRAFT_FRONT,
+            SND_BANK_SLOT_VEHICLE_GEN,
+            SND_GENRL_VEHICLE_GEN_HARRIER_FRONT,
+            volumeFront,
+            m_CurrentRotorFrequency
+        );
+        PlayAircraftSound(
+            AE_SOUND_AIRCRAFT_REAR,
+            SND_BANK_SLOT_VEHICLE_GEN,
+            SND_GENRL_VEHICLE_GEN_HARRIER_REAR,
+            volumeRear,
+            m_CurrentRotorFrequency
+        );
+        PlayAircraftSound(
+            AE_SOUND_AIRCRAFT_THRUST,
+            SND_BANK_SLOT_VEHICLE_GEN,
+            SND_GENRL_VEHICLE_GEN_THRUST,
+            thrustVolume + stalledVolume,
+            1.0f
+        );
+        PlayAircraftSound(
+            AE_SOUND_AIRCRAFT_JET_DISTANT,
+            SND_BANK_SLOT_VEHICLE_GEN,
+            SND_GENRL_VEHICLE_GEN_JET_DIST,
+            distantJetVolume,
+            1.0f
+        );
+    };
+    switch (params.Vehicle->m_nModelIndex) {
+        case MODEL_SHAMAL: ProcessSoundWithParams(0.0f, 8.0f, VOLUME_SILENCE, 8.0f); break; // TODO: 0xB6B9F4, i read zero all the time so left there. not sure though
+        case MODEL_HYDRA:  ProcessSoundWithParams(0.0f, 8.0f, VOLUME_SILENCE, 8.0f); break; // TODO: 0xB6B9F8, i read zero all the time so left there. not sure though
+        case MODEL_AT400:  ProcessSoundWithParams(6.0f, 20.0f, -8.0f, 20.0);         break;
+        case MODEL_ANDROM: ProcessSoundWithParams(0.0f, 8.0f, -12.0f, 8.0f);         break; // TODO: 0xB6B9FC, i read zero all the time so left there. not sure though
+        default:           CancelAllVehicleEngineSounds();                           break;
+    }
 }
 
 // 0x501960
@@ -4837,7 +4931,7 @@ void CAEVehicleAudioEntity::InjectHooks() {
     // Jet
     RH_ScopedInstall(ProcessPlayerJet, 0x501650);
     RH_ScopedInstall(ProcessDummyJet, 0x501960);
-    RH_ScopedInstall(ProcessGenericJet, 0x4FF900, { .Reversed = false });
+    RH_ScopedInstall(ProcessGenericJet, 0x4FF900);
 
     // Bicycle
     RH_ScopedInstall(PlayBicycleSound, 0x4F9710);

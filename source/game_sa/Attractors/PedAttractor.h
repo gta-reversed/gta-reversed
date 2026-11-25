@@ -32,11 +32,10 @@ public:
         float                  deltaHeading
     );
 
+    virtual ePedAttractorType GetType() const { return PED_ATTRACTOR_UNDEFINED; }
     virtual ~CPedAttractor() {}
 
     static void Shutdown();
-
-    virtual ePedAttractorType GetType() const { return PED_ATTRACTOR_UNDEFINED; }
 
     void SetTaskForPed(CPed* ped, CTask* task);
     bool RegisterPed(CPed* ped);

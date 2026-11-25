@@ -161,10 +161,7 @@ void BreakObject_c::SetGroupData(const RwMatrix* matrix, const CVector* vecVeloc
 
         group.m_RotationSpeed = CGeneral::GetRandomNumberInRange(3.0f, 6.0f);
 
-        group.m_RotationAxis.x = CGeneral::GetRandomNumberInRange(-1.0f, 1.0f);
-        group.m_RotationAxis.y = CGeneral::GetRandomNumberInRange(-1.0f, 1.0f);
-        group.m_RotationAxis.z = CGeneral::GetRandomNumberInRange(-1.0f, 1.0f);
-        group.m_RotationAxis.Normalise();
+        group.m_RotationAxis = CVector::Random(-1.0f, 1.0f).Normalized();
 
         group.m_bStoppedMoving = false;
     }
@@ -258,22 +255,19 @@ void BreakObject_c::DoCollisionResponse(BreakGroup_t* group, float timeStep, con
     newVelocity -= velocityChange;
 
     auto fTimeScale = timeStep * timestepScaling;
-    CVector vecRand{
+    const auto vecRand = CVector{
         CGeneral::GetRandomNumberInRange(-1.0f, 1.0f),
         CGeneral::GetRandomNumberInRange(-1.0f, 1.0f),
         CGeneral::GetRandomNumberInRange(-1.0f, 1.0f),
-    };
-    vecRand.Normalise();
-    vecRand *= fTimeScale;
+    }.Normalized() * fTimeScale;
 
     auto fOriginalVelocityScale = newVelocity.Magnitude();
     newVelocity += vecRand;
-    newVelocity.Normalise();
-    newVelocity *= fOriginalVelocityScale;
-    newVelocity *= velocityScaling;
 
     group->m_RotationSpeed = 0.0f;
-    group->m_Velocity = newVelocity;
+    group->m_Velocity = newVelocity.Normalized()
+        * fOriginalVelocityScale
+        * velocityScaling;
     RwMatrixGetPos(&group->m_Matrix)->z = groundZ + group->m_BoundingSize;
 
     if (fOriginalVelocityScale >= 0.05f) {
@@ -346,8 +340,7 @@ void BreakObject_c::Update(float timeStep) {
 
                 auto fAngleRad = std::acos(DotProduct(m_VecNormal, *vecFacing));
                 if (std::fabs(fAngleRad) > 0.01f) {
-                    CVector axis = CrossProduct(*vecFacing, m_VecNormal);
-                    axis.Normalise();
+                    const auto axis = CrossProduct(*vecFacing, m_VecNormal).Normalized();
 
                     auto fAngleDeg = RadiansToDegrees(fAngleRad) * timeStep / 20.0f;
                     CVector savedPos = *pos;

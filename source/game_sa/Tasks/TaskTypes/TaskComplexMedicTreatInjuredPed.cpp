@@ -9,7 +9,7 @@
 #include "TaskComplexLeaveCar.h"
 #include "TaskSimpleCarDrive.h"
 #include "TaskComplexDriveToPoint.h"
-#include "TaskComplexDriveWander.h"
+#include "TaskComplexCarDriveWander.h"
 #include "TaskComplexGoToPointAndStandStill.h"
 #include "TaskComplexWanderMedic.h"
 #include "TaskComplexGoToPointAndStandStill.h"
@@ -228,7 +228,7 @@ CTask* CTaskComplexMedicTreatInjuredPed::ControlSubTask(CPed* ped) {
         auto subTask = reinterpret_cast<CTaskComplexGoToPointAndStandStill*>(m_pSubTask);
         if (subTask->m_moveState != PEDMOVE_WALK && DistanceBetweenPointsSquared(ped->GetPosition(), m_vecAccidentPosition) < 25.0F) {
             for (auto& entity : ped->GetIntelligence()->m_vehicleScanner.GetEntities<CEntity>()) {
-                if (CPedGeometryAnalyser::IsEntityBlockingTarget(&entity, m_vecAccidentPosition, 0.125F)) {
+                if (CPedGeometryAnalyser::IsEntityBlockingTarget(entity, m_vecAccidentPosition, 0.125F)) {
                     return CreateDealWithNextAccidentTask(ped, nullptr);
                 }
             }

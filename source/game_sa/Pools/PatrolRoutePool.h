@@ -1,9 +1,9 @@
 #pragma once
 
 #include "Pool.h"
-//#include <PatrolRoute.h>
+#include <PatrolRoute.h>
 
-class CPatrolRoutePool : public CPool<void*> {
+class CPatrolRoutePool : public CPool<CPatrolRoute> {
 //public:
 //    static void InjectHooks() {
 //        RH_ScopedClass(CPatrolRoutePool);

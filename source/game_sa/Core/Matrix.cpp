@@ -289,11 +289,9 @@ void CMatrix::Rotate(CVector rotation)
 
 void CMatrix::Reorthogonalise()
 {
-    auto vecCross = CrossProduct(m_right, m_forward);
-    vecCross.Normalise();
+    const auto vecCross = CrossProduct(m_right, m_forward).Normalized();
 
-    auto vecCross2 = CrossProduct(m_forward, vecCross);
-    vecCross2.Normalise();
+    const auto vecCross2 = CrossProduct(m_forward, vecCross).Normalized();
 
     auto vecCross3 = CrossProduct(vecCross, vecCross2);
 
@@ -347,6 +345,8 @@ void CMatrix::ForceUpVector(CVector vecUp) {
 
 void CMatrix::ConvertToEulerAngles(float* pX, float* pY, float* pZ, uint32 uiFlags)
 {
+    const auto EPSILON = std::scalbn(1.0f, -19);
+    
     float fArr[3][3];
 
     fArr[0][0] = m_right.x;
@@ -391,10 +391,10 @@ void CMatrix::ConvertToEulerAngles(float* pX, float* pY, float* pZ, uint32 uiFla
         auto r13 = fArr[iInd1][iInd3];
         auto r12 = fArr[iInd1][iInd2];
         auto cy = sqrt(r12 * r12 + r13 * r13);
-        if (cy > 0.0000019073486) { // Some epsilon?
+        if (cy > EPSILON) {
             *pX = atan2(r12, r13);
             *pY = atan2(cy, fArr[iInd1][iInd1]);
-            *pZ = atan2(fArr[iInd2][iInd3], -fArr[iInd3][iInd1]);
+            *pZ = atan2(fArr[iInd2][iInd1], -fArr[iInd3][iInd1]);
         }
         else {
             *pX = atan2(-fArr[iInd2][iInd3], fArr[iInd2][iInd2]);
@@ -406,7 +406,7 @@ void CMatrix::ConvertToEulerAngles(float* pX, float* pY, float* pZ, uint32 uiFla
         auto r21 = fArr[iInd2][iInd1];
         auto r11 = fArr[iInd1][iInd1];
         auto cy = sqrt(r11 * r11 + r21 * r21);
-        if (cy > 0.0000019073486) { // Some epsilon?
+        if (cy > EPSILON) {
             *pX = atan2(fArr[iInd3][iInd2], fArr[iInd3][iInd3]);
             *pY = atan2(-fArr[iInd3][iInd1], cy);
             *pZ = atan2(r21, r11);
@@ -558,7 +558,12 @@ CMatrix operator+(const CMatrix& a, const CMatrix& b)
 
 CMatrix& Invert(CMatrix& in, CMatrix& out)
 {
-    out = in.Inverted();
+    // NOTE: Not `out = ...`: `out` may not be constructed yet, so like the original only set the matrix itself (See #1012)
+    const auto inv = in.Inverted();
+    out.GetRight()    = inv.GetRight();
+    out.GetForward()  = inv.GetForward();
+    out.GetUp()       = inv.GetUp();
+    out.GetPosition() = inv.GetPosition();
     return out;
 }
 
