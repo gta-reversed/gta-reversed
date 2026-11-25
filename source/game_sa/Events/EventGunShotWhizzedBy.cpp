@@ -28,8 +28,7 @@ CEventGunShotWhizzedBy* CEventGunShotWhizzedBy::Constructor(CEntity* entity, con
 bool CEventGunShotWhizzedBy::AffectsPed(CPed* ped)
 {
     if (!ped->IsPlayer() && ped->IsAlive()) {
-        CVector direction = m_endPoint - m_startPoint;
-        direction.Normalise();
+        const auto direction = (m_endPoint - m_startPoint).Normalized();
         CVector distance = ped->GetPosition() - m_startPoint;
         float squaredMagnitude = (distance * direction).SquaredMagnitude();
         if (squaredMagnitude > 0.0f) {

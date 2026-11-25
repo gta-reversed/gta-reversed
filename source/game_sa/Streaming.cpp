@@ -2732,10 +2732,10 @@ int32 CStreaming::GetDefaultCabDriverModel() {
 }
 
 // 0x407C50
-eModelID CStreaming::GetDefaultCopCarModel(bool ignoreLvpd1Model) {
+eModelID CStreaming::GetDefaultCopCarModel(bool ignoreCopBike) {
     eModelID carModelId = (eModelID)ms_DefaultCopBikeModel;
     if (!m_bCopBikeLoaded
-        || ignoreLvpd1Model
+        || ignoreCopBike
         || !GetInfo(ms_DefaultCopBikerModel).IsLoaded()
         || !GetInfo(ms_DefaultCopBikeModel).IsLoaded()
     ) {
@@ -2744,7 +2744,7 @@ eModelID CStreaming::GetDefaultCopCarModel(bool ignoreLvpd1Model) {
         if (!GetInfo(ms_aDefaultCopModel[CTheZones::m_CurrLevel]).IsLoaded()
          || !GetInfo(carModelId).IsLoaded()
         ) {
-            for (int32 i = 0; i < (ignoreLvpd1Model ? 3 : 4); i++) {
+            for (int32 i = 0; i < (ignoreCopBike ? 4 : 5); i++) {
                 if (GetInfo(ms_aDefaultCopModel[i]).IsLoaded()
                  && GetInfo(ms_aDefaultCopCarModel[i]).IsLoaded()
                 ) {

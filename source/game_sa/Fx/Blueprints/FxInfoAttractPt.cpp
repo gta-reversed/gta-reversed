@@ -23,13 +23,9 @@ void FxInfoAttractPt_c::GetValue(float currentTime, float mult, float totalTime,
     m_InterpInfo.GetVal(values, mult);
 
     auto& movement = *static_cast<MovementInfo_t*>(info);
-    CVector in = *(CVector*)&values[0] - movement.m_Pos;
-
-    auto length = in.Magnitude();
-    if (length > 0.0f)
-        in.Normalise();
+    const auto [dir, length] = (*(CVector*)&values[0] - movement.m_Pos).NormalizedAndMag();
 
     if (length > 0.1f) {
-        movement.m_Vel += in * values[0] * totalTime;
+        movement.m_Vel += dir * values[0] * totalTime;
     }
 }

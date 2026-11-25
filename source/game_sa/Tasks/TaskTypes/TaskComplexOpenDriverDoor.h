@@ -7,15 +7,13 @@ class NOTSA_EXPORT_VTABLE CTaskComplexOpenDriverDoor : public CTaskComplexEnterC
 public:
     static constexpr auto Type = TASK_COMPLEX_CAR_OPEN_DRIVER_DOOR;
 
-    explicit CTaskComplexOpenDriverDoor(CVehicle* vehicle) : CTaskComplexEnterCar(vehicle, true, true, false, false) {
-        m_TargetSeat = 10;
-    } // 0x640390
+    CTaskComplexOpenDriverDoor(CVehicle* vehicle);
+    CTaskComplexOpenDriverDoor(const CTaskComplexOpenDriverDoor&);
     ~CTaskComplexOpenDriverDoor() override = default;
 
-    eTaskType GetTaskType() const override { return Type; } // 0x6403C0
-    CTask* Clone() const override {
-        auto task = new CTaskComplexOpenDriverDoor(m_Car);
-        task->m_MoveState = m_MoveState;
-        return task;
-    } // 0x643870
+    eTaskType GetTaskType() const override { return Type; }                              // 0x6403C0
+    CTask*    Clone() const override { return new CTaskComplexOpenDriverDoor{ *this }; } // 0x643870
+
+public:
+    static void InjectHooks();
 };

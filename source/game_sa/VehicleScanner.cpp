@@ -3,7 +3,7 @@
 #include "VehicleScanner.h"
 
 // 0x5FFE60
-void CVehicleScanner::ScanForVehiclesInRange(const CPed& ped) {
+void CVehicleScanner::ScanForVehiclesInRange(CPed& ped) {
     if (!ped.IsAlive())
         return;
 

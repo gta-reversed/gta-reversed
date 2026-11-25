@@ -8,6 +8,6 @@ class CVehicle;
 
 class CVehicleScanner : public CEntityScanner {
 public:
-    void ScanForVehiclesInRange(const CPed& ped);
+    void ScanForVehiclesInRange(CPed& ped);
     CVehicle* GetClosestVehicleInRange() const;
 };

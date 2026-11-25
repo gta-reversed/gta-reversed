@@ -12,5 +12,8 @@ public:
 
     eTaskType GetTaskType() const override { return Type; }
     CTask* Clone() const override { return new CTaskComplexBeCop(m_nMoveState, m_nDir, m_pGoToPointAndStandStillTask->Clone()); }
+
+public:
+    static void InjectHooks();
 };
 VALIDATE_SIZE(CTaskComplexBeCop, 0x50);

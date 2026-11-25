@@ -280,7 +280,7 @@ bool CEntryExit::TransitionStarted(CPed* ped) {
     } else {
         ms_bWarping = spawnPointExitToUs.SquaredMagnitude() > sq(10.f);
 
-        const auto spawnPointExitToUsDir = Normalized(spawnPointExitToUs);
+        const auto spawnPointExitToUsDir = spawnPointExitToUs.Normalized();
 
         const auto SetupFixedCamera = [this](CVector lookAtDir) {
             // 0x44031A
@@ -297,7 +297,7 @@ bool CEntryExit::TransitionStarted(CPed* ped) {
             AddPedScriptCommand(new CTaskComplexGotoDoorAndOpen(door));
             ms_pDoor = door;
 
-            SetupFixedCamera(Normalized(CVector{ CVector2D{door->GetPosition()} - GetPosition2D(), 0.f }));
+            SetupFixedCamera(CVector{ CVector2D{door->GetPosition()} - GetPosition2D(), 0.f }.Normalized());
         } else {
             // 0x440246
             if (ms_bWarping) {

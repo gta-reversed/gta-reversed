@@ -226,8 +226,7 @@ void CCam::Finalise_DW_CineyCams(const CVector& src, const CVector& dest, float 
     gLastFrameProcessedDWCineyCam = CTimer::GetFrameCounter();
 
     gHandShaker[0].Process(shakeDegree);
-    m_vecFront = gHandShaker[0].m_resultMat.TransformVector(m_vecFront);
-    m_vecFront.Normalise();
+    m_vecFront = gHandShaker[0].m_resultMat.TransformVector(m_vecFront).Normalized();
 
     {
         auto rightDir = m_vecFront.Cross({ std::sin(roll), 0.0f, std::cos(roll) }).Normalized();
@@ -315,7 +314,7 @@ bool CCam::GetLookFromLampPostPos(CEntity* target, CPed* cop, const CVector& tar
 
 // 0x509CE0
 void CCam::GetVectorsReadyForRW() {
-    m_vecFront.Normalise();
+    m_vecFront = m_vecFront.Normalized();
     if (m_vecFront.x == 0.0f && m_vecFront.y == 0.0f) {
         m_vecFront.x = m_vecFront.y = 0.0001f;
     }
@@ -349,7 +348,7 @@ void CCam::Get_TwoPlayer_AimVector(CVector& out) {
 
         out = m_fX_Targetting * m_fY_Targetting * tanFov * right + m_vecFront - tanFov / CDraw::ms_fAspectRatio * m_vecUp;
     }
-    out.Normalise();
+    out = out.Normalized();
 }
 
 // 0x517400

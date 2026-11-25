@@ -52,9 +52,8 @@ void CTaskSimpleGoTo::SetUpIK(CPed* ped)
         if (!m_Parent || m_Parent->GetTaskType() != TASK_COMPLEX_AVOID_OTHER_PED_WHILE_WANDERING && m_Parent->GetTaskType() != TASK_COMPLEX_AVOID_ENTITY) {
             CVector vecDistance = m_vecTargetPoint - ped->GetPosition();
             if (vecDistance.SquaredMagnitude() > 9.0f) {
-                CVector direction(vecDistance);
-                direction.Normalise();
-                if (DotProduct(&direction, &ped->GetForward()) < ms_fLookAtThresholdDotProduct) {
+                const auto direction = vecDistance.Normalized();
+                if (direction.Dot(ped->GetForward()) < ms_fLookAtThresholdDotProduct) {
                     CVector position = direction + direction;
                     position.x += m_vecTargetPoint.x;
                     position.y += m_vecTargetPoint.y;

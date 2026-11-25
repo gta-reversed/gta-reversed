@@ -517,7 +517,7 @@ auto StoreCarCharIsIn(CRunningScript& S, CPed& ped) { // 0x469481
     if (GetVehiclePool()->GetRef(veh) != CTheScripts::StoreVehicleIndex && S.m_UsesMissionCleanup) {
         // Unstore previous (If it still exists)
         if (CTheScripts::StoreVehicleIndex != -1) { // NOTSA: Bugfix
-            if (const auto stored = GetVehiclePool()->GetAt(CTheScripts::StoreVehicleIndex)) {
+            if (const auto stored = GetVehiclePool()->GetAtRef(CTheScripts::StoreVehicleIndex)) {
                 CCarCtrl::RemoveFromInterestingVehicleList(stored);
                 if (stored->IsMissionVehicle() && CTheScripts::StoreVehicleWasRandom) {
                     stored->SetVehicleCreatedBy(RANDOM_VEHICLE);
@@ -2766,7 +2766,7 @@ auto SetLoadCollisionForCharFlag(CRunningScript& S, CPed& ped, bool loadCol) {
 auto TaskKillCharOnFoot(CRunningScript& S, eScriptCommands opcode, CPed& ped, CPed& target) {
     S.GivePedScriptedTask(
         &ped,
-        new CTaskComplexKillPedOnFoot{ &target, -1, 0, 0, 0, true },
+        new CTaskComplexKillPedOnFoot{ &target },
         (int32)(opcode)
     );
 }
@@ -2995,7 +2995,6 @@ auto TaskKillCharOnFootWhileDucking(eScriptCommands command, CRunningScript& S, 
             flags,
             actionDelay,
             actionChance,
-            true
         },
         command
     );
