@@ -2561,7 +2561,7 @@ void CVehicle::RemoveWinch() {
     //       the original code uses `&this[29]` as the rope index (and not `GetRopeID()`).
     //       BUT it's not used anywhere, so..
 
-    NOTSA_UNREACHABLE("Unused function");
+    NOTSA_UNUSED_FUNCTION();
 
     if (const auto ropeIdx = GetRopeID(); ropeIdx >= 0) {
         CRopes::GetRope(ropeIdx).Remove();

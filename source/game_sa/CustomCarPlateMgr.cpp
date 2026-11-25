@@ -22,7 +22,7 @@ void CCustomCarPlateMgr::InjectHooks() {
     RH_ScopedInstall(AtomicSetCarplateTextureCB, 0x6FE0D0);
     RH_ScopedInstall(SetupClump, 0x6FE0F0);
     RH_ScopedInstall(RenderLicenseplateTextToRaster, 0x6FDD70);
-    RH_ScopedInstall(LoadPlatecharsetDat, 0x6FDC00, { .Reversed = false });
+    RH_ScopedInstall(LoadPlatecharsetDat, 0x6FDC00);
 }
 
 // 0x6FD500
@@ -95,7 +95,7 @@ int8 CCustomCarPlateMgr::GetMapRegionPlateDesign() {
 // 0x6FDC00
 // unused
 int8 CCustomCarPlateMgr::LoadPlatecharsetDat(const char* filename, uint8* data) {
-    return plugin::CallAndReturn<int8, 0x6FDC00, const char*, uint8*>(filename, data);
+    NOTSA_UNUSED_FUNCTION();
 }
 
 auto ResolvePlateType(uint8 plateType) {

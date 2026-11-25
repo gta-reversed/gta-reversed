@@ -244,12 +244,12 @@ CCoverPoint* CCover::AddCoverPoint(CCoverPoint::eType type, CEntity* coverEntity
 
 // 0x6987F0
 float CCover::CalculateHorizontalSize(CColTriangle* triangle, CVector* vertPositions) {
-    NOTSA_UNREACHABLE("Unused"); //return plugin::CallAndReturn<float, 0x6987F0, CColTriangle*, CVector*>(triangle, vertPositions);
+    NOTSA_UNUSED_FUNCTION(); //return plugin::CallAndReturn<float, 0x6987F0, CColTriangle*, CVector*>(triangle, vertPositions);
 }
 
 // 0x698990
 bool CCover::DoLineCheckWithinObject(CColTriangle* triangle, int32 a2, CVector* a3, CVector* a4, CVector a5, CVector a6) {
-    NOTSA_UNREACHABLE("Unused"); // return plugin::CallAndReturn<bool, 0x698990, CColTriangle*, int32, CVector*, CVector*, CVector, CVector>(triangle, a2, a3, a4, a5, a6);
+    NOTSA_UNUSED_FUNCTION(); // return plugin::CallAndReturn<bool, 0x698990, CColTriangle*, int32, CVector*, CVector*, CVector, CVector>(triangle, a2, a3, a4, a5, a6);
 }
 
 // 0x698DD0
@@ -273,7 +273,7 @@ bool CCover::DoesCoverPointStillProvideCover(CCoverPoint* cpt, CVector pos) {
 
 // 0x6988E0
 void CCover::Find2HighestPoints(CColTriangle* triangle, CVector* vertPositions, int32& outPoint1, int32& outPoint2) {
-    NOTSA_UNREACHABLE("Unused"); // plugin::Call<0x6988E0, CColTriangle*, CVector*, int32&, int32&>(triangle, vertPositions, outPoint1, outPoint2);
+    NOTSA_UNUSED_FUNCTION(); // plugin::Call<0x6988E0, CColTriangle*, CVector*, int32&, int32&>(triangle, vertPositions, outPoint1, outPoint2);
 }
 
 // 0x6992B0

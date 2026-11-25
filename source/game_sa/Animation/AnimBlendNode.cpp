@@ -106,7 +106,7 @@ void CAnimBlendNode::CalcDeltasCompressed() {
 
 // 0x4CFB90 - Unused
 bool CAnimBlendNode::NextKeyFrameNoCalc() {
-    NOTSA_UNREACHABLE("Unused Function");
+    NOTSA_UNUSED_FUNCTION();
 }
 
 // 0x4D0650

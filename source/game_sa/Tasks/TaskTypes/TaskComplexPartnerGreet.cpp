@@ -42,5 +42,5 @@ void CTaskComplexPartnerGreet::StreamRequiredAnims() {
 }
 
 CTaskComplexSequence* CTaskComplexPartnerGreet::GetPartnerSequence() {
-    NOTSA_UNREACHABLE(); // In theory this is unused
+    NOTSA_UNUSED_FUNCTION(); // In theory this is unused
 }
