@@ -2,6 +2,7 @@
 
 #include "TaskComplexDriveToPoint.h"
 #include "TaskComplexGoToPointAnyMeans.h"
+#include <reversiblebugfixes/Bugs.hpp>
 
 // 0x63CE00
 CTaskComplexDriveToPoint::CTaskComplexDriveToPoint(CVehicle* vehicle, const CVector& point, float speed, int32 arg4, eModelID carModelIndexToCreate, float radius, eCarDrivingStyle drivingStyle) :
@@ -35,76 +36,71 @@ void CTaskComplexDriveToPoint::SetUpCar() {
 
 // 0x645420
 CTask* CTaskComplexDriveToPoint::Drive(CPed* ped) {
-    return plugin::CallMethodAndReturn<CTask*, 0x645420, CTaskComplexDriveToPoint*, CPed*>(this, ped); // untested
-
-    auto dist = DistanceBetweenPoints(m_Veh->GetPosition(), m_Point);
+    const auto dist = DistanceBetweenPoints(m_Point, m_Veh->GetPosition());
     if (dist < m_Radius) {
         m_Veh->m_autoPilot.SetCarMission(MISSION_NONE);
         field_38 = true;
-        return CTaskComplexCarDrive::CreateSubTask(TASK_FINISHED, ped);
+        return CreateSubTask(TASK_FINISHED, ped);
     }
 
-    if (dist >= 3.0f || m_Veh->m_autoPilot.m_nCarMission) {
-        if (!m_Veh->m_autoPilot.m_nCruiseSpeed) {
-            assert(m_CruiseSpeed < 255.0f);
-            m_Veh->m_autoPilot.SetCruiseSpeed((uint8)m_CruiseSpeed);
-        }
-
-        if (IsTargetBlocked(ped)) {
-            field_38 = true;
-            return CTaskComplexCarDrive::CreateSubTask(TASK_FINISHED, ped);
-        }
-
-        switch (field_30) {
-        case field_30_enum::DEFAULT:       CCarAI::GetCarToGoToCoors(m_Veh, m_Point, m_CarDrivingStyle, false); break;
-        case field_30_enum::ACCURATE:      CCarAI::GetCarToGoToCoorsAccurate(m_Veh, m_Point, m_CarDrivingStyle, false); break;
-        case field_30_enum::STRAIGHT_LINE: CCarAI::GetCarToGoToCoorsStraightLine(m_Veh, m_Point, m_CarDrivingStyle, false); break;
-        case field_30_enum::RACING:        CCarAI::GetCarToGoToCoorsRacing(m_Veh, m_Point, m_CarDrivingStyle, false); break;
-        default:                           NOTSA_UNREACHABLE();
-        }
-        return m_pSubTask;
+    if (dist < 3.0f && m_Veh->m_autoPilot.m_nCarMission == MISSION_NONE) {
+        field_38 = true;
+        return CreateSubTask(TASK_FINISHED, ped);
     }
 
-    field_38 = true;
-    return CTaskComplexCarDrive::CreateSubTask(TASK_FINISHED, ped);
+    if (!m_Veh->m_autoPilot.m_nCruiseSpeed) {
+        m_Veh->m_autoPilot.m_nCruiseSpeed = (uint8)((int32)(m_CruiseSpeed)); // NOTE: Truncated, not clamped (`-1.0f` gives `255`)
+    }
+
+    if (IsTargetBlocked(ped)) {
+        field_38 = true;
+        return CreateSubTask(TASK_FINISHED, ped);
+    }
+
+    switch (field_30) {
+    case field_30_enum::DEFAULT:       CCarAI::GetCarToGoToCoors(m_Veh, m_Point, m_CarDrivingStyle, false); break;
+    case field_30_enum::ACCURATE:      CCarAI::GetCarToGoToCoorsAccurate(m_Veh, m_Point, m_CarDrivingStyle, false); break;
+    case field_30_enum::STRAIGHT_LINE: CCarAI::GetCarToGoToCoorsStraightLine(m_Veh, m_Point, m_CarDrivingStyle, false); break;
+    case field_30_enum::RACING:        CCarAI::GetCarToGoToCoorsRacing(m_Veh, m_Point, m_CarDrivingStyle, false); break;
+    }
+    return m_pSubTask;
 }
 
 // 0x6452C0
 bool CTaskComplexDriveToPoint::IsTargetBlocked(CPed* ped) const {
-    return plugin::CallMethodAndReturn<bool, 0x6452C0, const CTaskComplexDriveToPoint*, CPed*>(this, ped); // untested
-
-    if (DistanceBetweenPointsSquared(ped->GetPosition(), m_Point) > sq(6.0f)) {
+    if (CVector::DistSqr(ped->GetPosition(), m_Point) > sq(6.0f)) {
         return false;
     }
-
-    auto intel = ped->GetIntelligence();
-    return IsTargetBlocked(ped, intel->GetPedEntities(), 16) || IsTargetBlocked(ped, intel->GetVehicleEntities(), 16);
+    auto* const intel = ped->GetIntelligence();
+    return IsTargetBlocked(ped, intel->GetPedEntities(), 16)
+        || IsTargetBlocked(ped, intel->GetVehicleEntities(), 16);
 }
 
 // 0x6432A0
 bool CTaskComplexDriveToPoint::IsTargetBlocked(CPed* ped, CEntity** entities, int32 numEntities) const {
-    return plugin::CallMethodAndReturn<bool, 0x6432A0, const CTaskComplexDriveToPoint*, CPed*, CEntity**, int32>(this, ped, entities, numEntities); // untested
-
-    if (!ped->m_pVehicle) {
+    auto* const veh = ped->m_pVehicle;
+    if (!veh) {
         return false;
     }
 
-    const auto& vehPos = ped->m_pVehicle->GetPosition();
-    auto        dist   = vehPos - m_Point;
-
-    for (auto i = 0; i < numEntities; ++i) {
-        CEntity* entity = entities[i];
-        if (!entity || entity == ped->m_pVehicle) {
+    const auto vehRadius = veh->GetModelInfo()->GetColModel()->GetBoundRadius();
+    const auto vehDistSq = CVector::DistSqr(veh->GetPosition(), m_Point);
+    for (auto* const entity : std::span{ entities, (size_t)(numEntities) }) {
+        if (!entity || entity == veh) {
             continue;
         }
 
-        const auto& vehicleRadius = ped->m_pVehicle->GetModelInfo()->GetColModel()->GetBoundRadius();
-        if (DistanceBetweenPointsSquared(vehPos, entity->GetPosition()) > sq(vehicleRadius)) {
+        // Entity must be (roughly) on the target point
+        const auto entityRadius = entity->GetModelInfo()->GetColModel()->GetBoundRadius();
+        if (CVector::DistSqr(entity->GetPosition(), m_Point) >= sq(entityRadius)) {
             continue;
         }
 
-        const auto& entityRadius = entity->GetModelInfo()->GetColModel()->GetBoundRadius();
-        if ((entityRadius + vehicleRadius) * (entityRadius + vehicleRadius) * 1.5f > dist.SquaredMagnitude()) {
+        // And we must be close enough to it
+        const auto maxDistSq = notsa::bugfixes::CTaskComplexDriveToPoint_IsTargetBlocked_DistScale
+            ? sq((entityRadius + vehRadius) * 1.5f)
+            : sq(entityRadius + vehRadius) * 1.5f; // The original scales the squared distance (= dist < (entityRadius + vehRadius) * sqrt(1.5))
+        if (vehDistSq < maxDistSq) {
             return true;
         }
     }
@@ -122,11 +118,11 @@ void CTaskComplexDriveToPoint::InjectHooks() {
     RH_ScopedConstructorInstall(0x63CE00, "1", {}, CVehicle *, CVector const&, float, int32, eModelID, float, eCarDrivingStyle);
     RH_ScopedDestructorInstall(0x63CE70);
 
-    RH_ScopedOverloadedInstall(IsTargetBlocked, "Any", 0x6452C0, bool(CTaskComplexDriveToPoint::*)(CPed*) const, { .Reversed = false });
-    RH_ScopedOverloadedInstall(IsTargetBlocked, "Array", 0x6432A0, bool(CTaskComplexDriveToPoint::*)(CPed*, CEntity**, int32) const, { .Reversed = false });
+    RH_ScopedOverloadedInstall(IsTargetBlocked, "Any", 0x6452C0, bool(CTaskComplexDriveToPoint::*)(CPed*) const);
+    RH_ScopedOverloadedInstall(IsTargetBlocked, "Array", 0x6432A0, bool(CTaskComplexDriveToPoint::*)(CPed*, CEntity**, int32) const);
     RH_ScopedVMTInstall(Clone, 0x63DDE0);
     RH_ScopedVMTInstall(GetTaskType, 0x63CE60);
     RH_ScopedVMTInstall(SetUpCar, 0x63CF00);
     RH_ScopedVMTInstall(CreateSubTaskCannotGetInCar, 0x63CE80);
-    RH_ScopedVMTInstall(Drive, 0x645420, { .Reversed = false });
+    RH_ScopedVMTInstall(Drive, 0x645420);
 }
