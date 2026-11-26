@@ -71,9 +71,9 @@ void CTaskSimpleCarDrive::TriggerIK(CPed* ped) const {
     }
     case MISSION_RAMCAR_FARAWAY:
     case MISSION_RAMCAR_CLOSE: {
-        if (const auto vehTargetCar = m_Vehicle->m_autoPilot.m_TargetEntity) {
+        if (auto* const vehTargetCar = m_Vehicle->m_autoPilot.m_TargetEntity) {
             if (vehTargetCar->GetIsTypeVehicle()) {
-                if (const auto driver = vehTargetCar->m_pDriver) { // Make ped look at target car or it's driver (if any)
+                if (auto* const driver = vehTargetCar->m_pDriver) { // Make ped look at target car or it's driver (if any)
                     g_ikChainMan.LookAt("DriveCar", ped, driver, 3000, BONE_HEAD, nullptr, false, 0.25f, 500, 3, false);
                 } else {
                     g_ikChainMan.LookAt("DriveCar", ped, vehTargetCar, 3000, BONE_UNKNOWN, nullptr, false, 0.25f, 500, 3, false);
@@ -95,12 +95,12 @@ void CTaskSimpleCarDrive::UpdateBopping() {
 // 0x642760
 void CTaskSimpleCarDrive::StartBopping(CPed* ped) {
     // Bop to the same beat as the others in the car (NOTE: Only the first 3 passengers are checked)
-    const auto veh = ped->m_pVehicle;
+    auto* const veh = ped->m_pVehicle;
     for (const auto occupant : { veh->m_pDriver, veh->m_apPassengers[0], veh->m_apPassengers[1], veh->m_apPassengers[2] }) {
         if (!occupant || occupant == ped) {
             continue;
         }
-        const auto tDrive = occupant->GetTaskManager().Find<CTaskSimpleCarDrive>();
+        auto* const tDrive = occupant->GetTaskManager().Find<CTaskSimpleCarDrive>();
         if (!tDrive || tDrive->m_BoppingStartTime == -1) {
             continue;
         }
@@ -156,7 +156,7 @@ void CTaskSimpleCarDrive::ProcessHeadBopping(CPed* ped, bool canBop, float camDi
         return;
     }
     const auto angle = m_HeadBoppingMultiplier * m_HeadBoppingOrientation;
-    const auto headQ = &ped->m_apBones[PED_NODE_HEAD]->KeyFrame->q;
+    auto* const headQ = &ped->m_apBones[PED_NODE_HEAD]->KeyFrame->q;
     if (m_HeadBoppingDirection >= 1) {
         RtQuatRotate(headQ, &CPedIK::XaxisIK, m_BoppingCompletedTimes ? -angle : angle, rwCOMBINEPRECONCAT);
     }
@@ -170,12 +170,12 @@ void CTaskSimpleCarDrive::ProcessArmBopping(CPed* ped, bool canBop, float camDis
         return;
     }
 
-    const auto veh = ped->m_pVehicle;
-    if (CWeather::Rain > 0.f) { // Close the windows
+    auto* const veh       = ped->m_pVehicle;
+    const auto  isRaining = CWeather::Rain > 0.f;
+    if (isRaining) { // Close the windows
         for (const auto door : { CAR_DOOR_LF, CAR_DOOR_RF, CAR_DOOR_LR, CAR_DOOR_RR }) {
             veh->ClearWindowOpenFlag(door);
         }
-        canBop = false;
     } else if (veh->m_pDriver == ped) { // NOTE: Raw `m_apPassengers`: the original reads seats 0-2 even if the vehicle has fewer (`GetPassengers()` stops at `m_nMaxPassengers`)
         veh->SetWindowOpenFlag(CAR_DOOR_LF);
     } else if (veh->m_apPassengers[0] == ped) {
@@ -189,9 +189,9 @@ void CTaskSimpleCarDrive::ProcessArmBopping(CPed* ped, bool canBop, float camDis
     const auto tapAnimId = veh->m_apPassengers[0] == ped || veh->m_apPassengers[2] == ped
         ? ANIM_ID_TAP_HANDP
         : ANIM_ID_TAP_HAND;
-    const auto tapAnim   = RpAnimBlendClumpGetAssociation(ped->GetRpClump(), tapAnimId);
+    auto* const tapAnim   = RpAnimBlendClumpGetAssociation(ped->GetRpClump(), tapAnimId);
 
-    if (!canBop) {
+    if (!canBop || isRaining) {
         if (tapAnim) {
             tapAnim->SetBlendDelta(-4.f);
         }
@@ -208,7 +208,7 @@ void CTaskSimpleCarDrive::ProcessArmBopping(CPed* ped, bool canBop, float camDis
             const auto angle = m_BoppingProgress >= 0.75f
                 ? (m_BoppingProgress - 0.75f) * 45.f
                 : 0.f;
-            const auto hand  = ped->m_apBones[tapAnimId == ANIM_ID_TAP_HAND ? PED_NODE_LEFT_HAND : PED_NODE_RIGHT_HAND];
+            auto* const hand  = ped->m_apBones[tapAnimId == ANIM_ID_TAP_HAND ? PED_NODE_LEFT_HAND : PED_NODE_RIGHT_HAND];
             RtQuatRotate(&hand->KeyFrame->q, &CPedIK::ZaxisIK, -angle, rwCOMBINEPRECONCAT);
             ped->bUpdateMatricesRequired = true;
         }
@@ -312,7 +312,7 @@ bool CTaskSimpleCarDrive::ProcessPed(CPed* ped) {
         return true;
     }
 
-    const auto pedGrp = CPedGroups::GetPedsGroup(ped);
+    auto* const pedGrp = CPedGroups::GetPedsGroup(ped);
     if (CTheScripts::UpsideDownCars.IsCarUpsideDown(m_Vehicle)) { // 0x64451c
         if (ped != FindPlayerPed() && FindPlayerPed()->IsInVehicle(m_Vehicle)) {
             ped->Say(CTX_GLOBAL_CAR_FLIPPED);
@@ -349,7 +349,7 @@ bool CTaskSimpleCarDrive::ProcessPed(CPed* ped) {
     };
 
     if (ped->IsPlayer() && m_Vehicle->m_pDriver == ped) { // 0x6446ad
-        const auto pad = ped->AsPlayer()->GetPadFromPlayer();
+        auto* const pad = ped->AsPlayer()->GetPadFromPlayer();
         if (CCheat::IsActive(CHEAT_WEAPON_AIMING_WHILE_DRIVING) && CanDoDriveBy()) {
             StartDriveBy(false);
         }
@@ -357,14 +357,14 @@ bool CTaskSimpleCarDrive::ProcessPed(CPed* ped) {
         const auto IsPadIdle = [pad] {
             return !pad || (pad->GetAccelerate() == 0 && pad->GetSteeringLeftRight() == 0 && pad->GetBrake() == 0);
         };
-        const auto pedVeh = ped->m_pVehicle;
+        auto* const pedVeh = ped->m_pVehicle;
         if (pedVeh->GetModelId() != MODEL_STREAKC && pedVeh->IsTrain() && !pedVeh->AsTrain()->m_aDoors[DOOR_LEFT_FRONT].IsClosed()) { // 0x644789
             if (IsPadIdle()) {
                 pedVeh->ProcessOpenDoor(ped, CAR_DOOR_LF, m_Vehicle->GetAnimGroup().GetGroup(ANIM_ID_CAR_ROLLDOOR), ANIM_ID_CAR_ROLLDOOR, 1.f);
             }
         } else if (pedVeh->IsAutomobile() && pedVeh->AsAutomobile()->GetDamageManager().GetDoorStatus(DOOR_LEFT_FRONT) == DAMSTATE_OPENED) { // 0x644846
             if (!pedVeh->IsDoorMissing(DOOR_LEFT_FRONT)) {
-                if (const auto rollAnim = RpAnimBlendClumpGetAssociation(ped->GetRpClump(), ANIM_ID_CAR_ROLLDOOR)) { // 0x64493e
+                if (auto* const rollAnim = RpAnimBlendClumpGetAssociation(ped->GetRpClump(), ANIM_ID_CAR_ROLLDOOR)) { // 0x64493e
                     pedVeh->ProcessOpenDoor(ped, CAR_DOOR_LF, m_Vehicle->GetAnimGroup().GetGroup(rollAnim->GetAnimId()), ANIM_ID_CAR_ROLLDOOR, rollAnim->GetCurrentTime());
                 } else if (!(pedVeh->m_nGettingOutFlags & 1) && !(pedVeh->m_nGettingInFlags & 1) && IsPadIdle()) { // 0x64491a
                     pedVeh->SetGettingOutFlags(1);
@@ -383,7 +383,7 @@ bool CTaskSimpleCarDrive::ProcessPed(CPed* ped) {
         ProcessBopping(ped, true);
     } else if (m_Vehicle->IsPassenger(ped)) { // 0x6449c4
         if (!m_b08 && !m_IsPassengerAnimBlended) {
-            if (const auto rideData = m_Vehicle->GetRideAnimData()) {
+            if (auto* const rideData = m_Vehicle->GetRideAnimData()) {
                 CAnimManager::BlendAnimation(ped->GetRpClump(), rideData->AnimGroup, ANIM_ID_BIKE_PASSENGER);
             }
             m_IsPassengerAnimBlended = true;
@@ -394,8 +394,8 @@ bool CTaskSimpleCarDrive::ProcessPed(CPed* ped) {
         }
     }
 
-    if (const auto held = ped->GetEntityThatThisPedIsHolding(); held && held->GetModelId() == ModelIndices::MI_GANG_SMOKE && !g_ikChainMan.IsLooking(ped) && CGeneral::GetRandomNumberInRange(0, 60) == 15) { // 0x644af7
-        if (const auto tHold = ped->GetTaskManager().Find<CTaskSimpleHoldEntity>()) {
+    if (auto* const held = ped->GetEntityThatThisPedIsHolding(); held && held->GetModelId() == ModelIndices::MI_GANG_SMOKE && !g_ikChainMan.IsLooking(ped) && CGeneral::GetRandomNumberInRange(0, 60) == 15) { // 0x644af7
+        if (auto* const tHold = ped->GetTaskManager().Find<CTaskSimpleHoldEntity>()) {
             tHold->PlayAnim(m_Vehicle->IsPassenger(ped) ? ANIM_ID_PASS_SMOKE_IN_CAR : ANIM_ID_SMOKE_IN_CAR, ANIM_GROUP_DEFAULT);
         }
     }
@@ -421,7 +421,7 @@ bool CTaskSimpleCarDrive::ProcessPed(CPed* ped) {
     }
 
     if (((ped->m_nRandomSeed + CTimer::GetFrameCounter()) & 0x3FFF) == 0) { // 0x644d00
-        if (const auto driver = m_Vehicle->m_pDriver; driver && driver != ped && driver->IsPlayer()) {
+        if (auto* const driver = m_Vehicle->m_pDriver; driver && driver != ped && driver->IsPlayer()) {
             if (m_Vehicle->GetMoveSpeed().Magnitude2D() > 0.7f) {
                 ped->Say(CTX_GLOBAL_CAR_FAST);
             }
@@ -444,13 +444,13 @@ void CTaskSimpleCarDrive::StartRollingDoor(CPed* ped) {
 // 0x63C840
 void CTaskSimpleCarDrive::FinishRollingDoorCB(CAnimBlendAssociation* anim, void* data) {
     // NOTE: Not `notsa::cast`, subclasses (`CTaskSimpleCarDriveTimed`, ...) report their own type
-    const auto self              = static_cast<CTaskSimpleCarDrive*>(data);
+    auto* const self             = static_cast<CTaskSimpleCarDrive*>(data);
 
     self->m_IsRollingDoor        = false;
     self->m_AnimCloseDoorRolling = nullptr;
-    if (const auto veh = self->m_Vehicle) {
+    if (auto* const veh = self->m_Vehicle) {
         veh->ClearGettingOutFlags(1);
-        if (const auto driver = veh->m_pDriver) {
+        if (auto* const driver = veh->m_pDriver) {
             veh->ProcessOpenDoor(driver, CAR_DOOR_LF, veh->GetAnimGroup().GetGroup(ANIM_ID_CAR_ROLLDOOR), ANIM_ID_CAR_ROLLDOOR, 1.f);
         }
     }
@@ -459,7 +459,7 @@ void CTaskSimpleCarDrive::FinishRollingDoorCB(CAnimBlendAssociation* anim, void*
 // 0x63C770
 bool CTaskSimpleCarDrive::SetPedPosition(CPed* ped) {
     if (m_b08) {
-        const auto tDrive = notsa::cast_if_present<CTaskSimpleCarDrive>(ped->GetTaskManager().FindTaskByType(TASK_PRIMARY_DEFAULT, TASK_SIMPLE_CAR_DRIVE));
+        auto* const tDrive = notsa::cast_if_present<CTaskSimpleCarDrive>(ped->GetTaskManager().FindTaskByType(TASK_PRIMARY_DEFAULT, TASK_SIMPLE_CAR_DRIVE));
         if (tDrive && tDrive != this && tDrive->m_TaskUtilityLineUpPedWithCar) {
             m_TaskUtilityLineUpPedWithCar = std::exchange(tDrive->m_TaskUtilityLineUpPedWithCar, nullptr);
         }
