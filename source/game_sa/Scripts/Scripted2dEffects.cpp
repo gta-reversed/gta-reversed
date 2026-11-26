@@ -11,24 +11,18 @@ void CScripted2dEffects::InjectHooks() {
     RH_ScopedInstall(GetIndex, 0x6F9F60);
     RH_ScopedInstall(AddScripted2DEffect, 0x6FA7C0);
     RH_ScopedInstall(ReturnScripted2DEffect, 0x6F9E80);
-
-    {
-        RH_ScopedClass(CScriptedEffectPairs);
-        RH_ScopedCategory("Scripts");
-        RH_ScopedInstall(Flush, 0x6F9EB0);
-    }
+    RH_ScopedGlobalInstall(CScriptedEffectPairs::Flush, 0x6F9EB0);
 }
 
 // 0x6F9EB0
 void CScriptedEffectPairs::Flush() {
     for (auto& pair : Pairs) {
-        for (auto& fx : pair.Effects) {
-            fx.Effect         = -1;
-            fx.WaitingTask    = -1;
-            fx.PartnerUseMode = CScriptedEffectPair::eMode::NONE;
+        const auto secondPartnerTask = pair.Effects[1].PartnerTask;
+        pair.Effects.fill({});
+        if (!notsa::bugfixes::CScriptedEffectPairs_Flush_SecondPartnerTaskNotReset) {
+            pair.Effects[1].PartnerTask = secondPartnerTask;
         }
-        pair.Effects[0].PartnerTask = -1; // NOTE/BUG: The original doesn't reset `Effects[1].PartnerTask`
-        pair.UsePartnerImmediately  = false;
+        pair.UsePartnerImmediately = false;
     }
     NumPairs = 0;
 }

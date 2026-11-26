@@ -11,12 +11,13 @@ public:
     };
 
 public:
-    struct {
+    struct EffectInfo {
         int32 Effect{ -1 };                  //!< Index of the effect (See `CScripted2dEffects::GetEffect`)
         int32 WaitingTask{ -1 };             //!< Task sequence index (Used in `CTaskComplexAttractorPartnerWait`)
         int32 PartnerTask{ -1 };             //!< Task sequence index (Used in `CTaskComplexUseAttractorPartner`)
         eMode PartnerUseMode{ eMode::NONE }; //!< Use mode
-    } Effects[2];
+    };
+    std::array<EffectInfo, 2> Effects{};
     bool UsePartnerImmediately{ false };
 };
 

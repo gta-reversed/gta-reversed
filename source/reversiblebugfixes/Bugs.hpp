@@ -165,4 +165,9 @@ inline const ReversibleBugFix CTaskComplexSignalAtPed_Constructor_InitialPause{
     .Description = "The original constructor ignores the initial pause argument, so the ped always pauses for a random time between 0 and 2 seconds before signaling. The fix uses the provided initial pause value.",
     .Credit      = "Pirulax"
 };
+inline const ReversibleBugFix CScriptedEffectPairs_Flush_SecondPartnerTaskNotReset{
+    .Name        = "CScriptedEffectPairs::Flush - PartnerTask of the second effect",
+    .Description = "The original resets every field of a pair's 2 effects except the `PartnerTask` of the second one. The fix resets that one too.",
+    .Credit      = "TheReal-Kaze"
+};
 };
