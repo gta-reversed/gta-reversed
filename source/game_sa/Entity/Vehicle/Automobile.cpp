@@ -6262,10 +6262,12 @@ bool CAutomobile::RcbanditCheck1CarWheels(CPtrListDoubleLink<CVehicle*>& ptrList
                 continue;
             }
 
-            static CMatrix wheelMatrix;
-            CVector        wheelPos;
+            CVector wheelPos;
             modelInfo->GetWheelPosn(i, wheelPos, false);
-            wheelMatrix = Invert(*m_matrix, wheelMatrix);
+
+            // NOTE: The original uses the static `matW2B` (0xC1C220), but nothing else reads it and it's overwritten before every use, so a local is equivalent
+            CMatrix wheelMatrix;
+            Invert(*m_matrix, wheelMatrix);
 
             CColSphere sphere;
             sphere.m_vecCenter = wheelMatrix.TransformPoint(vehicle->m_matrix->TransformPoint(wheelPos));
