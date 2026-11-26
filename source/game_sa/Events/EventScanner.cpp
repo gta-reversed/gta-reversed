@@ -4,7 +4,7 @@
 
 // 0x605300
 CEventScanner::CEventScanner() {
-    m_nNextScanTime = CTimer::GetTimeInMS() + CGeneral::GetRandomNumberInRange(3000u); // Originally should be -3000.0f (float value)
+    m_nNextScanTime = CTimer::GetTimeInMS() + CGeneral::GetRandomNumberInRange(3'000u); // Originally should be -3000.0f (float value)
 }
 
 void CEventScanner::Clear() {
@@ -18,14 +18,15 @@ void CEventScanner::ScanForEvents(CPed& ped) {
 
 // 0x6053D0
 void CEventScanner::ScanForEventsNow(const CPed& ped, bool bDontScan) {
-    if (bDontScan)
+    if (bDontScan) {
         return;
+    }
 
     auto scanner = &m_vehiclePotentialCollisionScanner;
     if (scanner->m_timer.m_bStarted) { // todo: inlined?
         scanner->m_timer.m_nStartTime = CTimer::GetTimeInMS();
-        scanner->m_timer.m_nInterval = -1;
-        scanner->m_timer.m_bStarted = true;
+        scanner->m_timer.m_nInterval  = -1;
+        scanner->m_timer.m_bStarted   = true;
     }
     scanner->ScanForVehiclePotentialCollisionEvents(ped, ped.GetIntelligence()->GetVehicleEntities(), 16);
 }
@@ -33,4 +34,15 @@ void CEventScanner::ScanForEventsNow(const CPed& ped, bool bDontScan) {
 // 0x603720
 void CVehiclePotentialCollisionScanner::ScanForVehiclePotentialCollisionEvents(const CPed& ped, CEntity** entities, int32 count) {
     plugin::CallMethod<0x603720, CVehiclePotentialCollisionScanner*, const CPed&, CEntity**, int32>(this, ped, entities, count);
+}
+
+void CEventScanner::InjectHooks() {
+    RH_ScopedClass(CEventScanner);
+    RH_ScopedCategory("Events");
+
+    RH_ScopedConstructorInstall(0x605300, "1", {});
+
+    RH_ScopedInstall(Clear, 0x5FFF90, { .Reversed = false });
+    RH_ScopedInstall(ScanForEventsNow, 0x6053D0, { .Reversed = false });
+    RH_ScopedInstall(ScanForEvents, 0x607E30, { .Reversed = false });
 }

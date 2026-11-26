@@ -51,9 +51,9 @@ void CStats::InjectHooks() {
 
     RH_ScopedInstall(Load, 0x5D3BF0);
     RH_ScopedInstall(Save, 0x5D3B40);
-    RH_ScopedInstall(PopulateFavoriteRadioStationList, 0x558EC0, { .Reversed = false });
-    RH_ScopedInstall(FindMostFavoriteRadioStation, 0x558FA0, { .Reversed = false });
-    RH_ScopedInstall(FindLeastFavoriteRadioStation, 0x559010, { .Reversed = false });
+    RH_ScopedInstall(PopulateFavoriteRadioStationList, 0x558EC0);
+    RH_ScopedInstall(FindMostFavoriteRadioStation, 0x558FA0);
+    RH_ScopedInstall(FindLeastFavoriteRadioStation, 0x559010);
     RH_ScopedInstall(BuildStatLine, 0x559230, { .Reversed = false });
     RH_ScopedInstall(CheckForStatsMessage, 0x559760, { .Reversed = false });
     RH_ScopedInstall(LoadStatUpdateConditions, 0x559860, { .Reversed = false });
@@ -67,9 +67,9 @@ void CStats::InjectHooks() {
     RH_ScopedInstall(UpdateStatsWhenSwimming, 0x55C990, { .Reversed = false });
     RH_ScopedInstall(UpdateStatsWhenDriving, 0x55CAC0, { .Reversed = false });
     RH_ScopedInstall(UpdateStatsWhenFlying, 0x55CC00, { .Reversed = false });
-    RH_ScopedInstall(UpdateStatsWhenWeaponHit, 0x55CEB0, { .Reversed = false });
-    RH_ScopedInstall(UpdateStatsOnRespawn, 0x55CFC0, { .Reversed = false });
-    RH_ScopedInstall(UpdateStatsAddToHealth, 0x55D030, { .Reversed = false });
+    RH_ScopedInstall(UpdateStatsWhenWeaponHit, 0x55CEB0);
+    RH_ScopedInstall(UpdateStatsOnRespawn, 0x55CFC0);
+    RH_ScopedInstall(UpdateStatsAddToHealth, 0x55D030);
 }
 
 // 0x55C0C0
@@ -132,17 +132,41 @@ bool CStats::IsStatFloat(eStats stat) {
 
 // 0x558EC0
 bool CStats::PopulateFavoriteRadioStationList() {
-    return plugin::CallAndReturn<bool, 0x558EC0>();
+    const auto* listenTimes = AudioEngine.GetRadioStationListenTimes();
+    auto allZero = true;
+    for (auto&& [i, time] : rngv::enumerate(FavoriteRadioStationList)) {
+        time = listenTimes[i];
+        if (time != 0) {
+            allZero = false;
+        }
+    }
+    return allZero;
 }
 
 // 0x558FA0
 eRadioID CStats::FindMostFavoriteRadioStation() {
-    return plugin::CallAndReturn<eRadioID, 0x558FA0>();
+    auto favorite = RADIO_CLASSIC_HIP_HOP;
+    auto longestTime = 0;
+    for (auto station = (int32)RADIO_CLASSIC_HIP_HOP; station <= RADIO_USER_TRACKS; station++) {
+        if (FavoriteRadioStationList[station] > longestTime) {
+            longestTime = FavoriteRadioStationList[station];
+            favorite = (eRadioID)station;
+        }
+    }
+    return favorite;
 }
 
 // 0x559010
 int32 CStats::FindLeastFavoriteRadioStation() {
-    return plugin::CallAndReturn<int32, 0x559010>();
+    auto favorite = (int32)RADIO_CLASSIC_HIP_HOP;
+    auto shortestTime = FavoriteRadioStationList[favorite];
+    for (auto station = (int32)RADIO_COUNTRY; station <= RADIO_USER_TRACKS; station++) {
+        if (FavoriteRadioStationList[station] < shortestTime) {
+            shortestTime = FavoriteRadioStationList[station];
+            favorite = station;
+        }
+    }
+    return favorite;
 }
 
 // 0x559080
@@ -626,7 +650,27 @@ void CStats::UpdateStatsWhenOnMotorBike(CBike* bike) {
 
 // 0x55CEB0
 void CStats::UpdateStatsWhenWeaponHit(eWeaponType weaponType) {
-    plugin::Call<0x55CEB0, eWeaponType>(weaponType);
+    const auto stat = CWeaponInfo::GetSkillStatIndex(weaponType);
+    const auto weaponIndex = (uint32)(stat - STAT_PISTOL_SKILL);
+    const auto skill = GetStatValue(stat);
+    if (CGameLogic::IsCoopGameGoingOn() || skill >= 1000.0f) {
+        return;
+    }
+
+    IncrementStat(stat, StatReactionValue[STAT_INC_PISTOL_SKILL + weaponIndex]);
+    if (m_LastWeaponTypeFired != weaponIndex) {
+        m_LastWeaponTypeFired = weaponIndex;
+        m_WeaponCounter = 0;
+    } else if ((float)m_WeaponCounter > StatReactionValue[STAT_TIMELIMIT_PISTOL_SKILL + weaponIndex]) {
+        DisplayScriptStatUpdateMessage(
+            STAT_UPDATE_INCREASE,
+            stat,
+            (float)m_WeaponCounter * StatReactionValue[STAT_INC_PISTOL_SKILL + weaponIndex]
+        );
+        m_WeaponCounter = 0;
+    } else {
+        m_WeaponCounter++;
+    }
 }
 
 // 0x55CFA0
@@ -636,12 +680,25 @@ void CStats::UpdateStatsWhenFighting() {
 
 // 0x55CFC0
 void CStats::UpdateStatsOnRespawn() {
-    plugin::Call<0x55CFC0>();
+    if ((float)m_DeathCounter > StatReactionValue[STAT_TIMELIMIT_DEATH_HEALTH]) {
+        if (GetStatValue(STAT_MAX_HEALTH) > 400.0f) {
+            IncrementStat(STAT_MAX_HEALTH, StatReactionValue[STAT_DEC_MAX_HEALTH]);
+            DisplayScriptStatUpdateMessage(STAT_UPDATE_DECREASE, STAT_MAX_HEALTH, StatReactionValue[STAT_DEC_MAX_HEALTH]);
+        }
+        m_DeathCounter = 0;
+    } else {
+        m_DeathCounter++;
+    }
 }
 
 // 0x55D030
 void CStats::UpdateStatsAddToHealth(uint32 addToHealth) {
-    plugin::Call<0x55D030, uint32>(addToHealth);
+    m_AddToHealthCounter += addToHealth;
+    if ((float)m_AddToHealthCounter > StatReactionValue[STAT_TIMELIMIT_ADD_TO_HEALTH]) {
+        IncrementStat(STAT_MAX_HEALTH, StatReactionValue[STAT_INC_MAX_HEALTH]);
+        DisplayScriptStatUpdateMessage(STAT_UPDATE_INCREASE, STAT_MAX_HEALTH, StatReactionValue[STAT_INC_MAX_HEALTH]);
+        m_AddToHealthCounter = 0;
+    }
 }
 
 // 0x55D090

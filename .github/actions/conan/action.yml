@@ -48,7 +48,7 @@ runs:
   using: "composite"
   steps:
     - name: Install Conan
-      uses: conan-io/setup-conan@v1
+      uses: conan-io/setup-conan@2c7f599b76d52302b8e122bf890878e696d4577b # v1.5.1
       with:
         profile_detect: true
         cache_packages: true

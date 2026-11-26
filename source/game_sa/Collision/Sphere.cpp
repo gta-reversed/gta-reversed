@@ -15,42 +15,66 @@ bool CSphere::IsPointWithin(const CVector& p) const {
 }
 
 // NOTSA
-void CSphere::DrawWireFrame(CRGBA color, const CMatrix& transform) const {
-    const CVector center = transform.TransformPoint(m_vecCenter);
- 
-    CVector v13 = center;
-    v13.z += m_fRadius;
+void CSphere::DrawWireFrame(CRGBA color, const CMatrix& transform, size_t resolution) const {
+    assert(resolution > 3 && "Resolution must be greater than 3 to draw a sphere wireframe!");
 
-    CVector v21 = center;
-    v21.z -= m_fRadius;
+    RenderBuffer::ClearRenderBuffer();
 
-    CVector v32 = center;
-    v32.x += m_fRadius;
+    // Generate vertices
+    for (size_t x = 0; x < resolution; x++) {
+        const auto ax = TWO_PI / (float)(resolution - 1) * x;
+        const auto sx = std::sin(ax),
+                   cx = std::cos(ax);
+        for (size_t y = 0; y < resolution; y++) {
+            const auto ay = PI / (float)(resolution - 1) * y;
+            const auto sy = std::sin(ay),
+                       cy = std::cos(ay);
+            RenderBuffer::PushVertex(transform.TransformPoint(m_vecCenter + CVector{
+                m_fRadius * cx * sy,
+                m_fRadius * sx * sy,
+                m_fRadius * cy
+            }), color);
+        }
+    }
 
-    CVector v41 = center;
-    v41.x -= m_fRadius;
+    // Generate indices
+    const auto res = (int32)(resolution);
+    for (int32 i = 0; i < res - 1; i++) {
+        for (int32 j = 0; j < res - 1; j++) {
+            const auto off = i * res + j;
 
-    CVector v52 = center;
-    v52.y += m_fRadius;
+            // Horizontal line
+            RenderBuffer::PushIndices({
+                off,
+                off + 1
+            }, false);
 
-    CVector v61 = center;
-    v61.y -= m_fRadius;
+            // Vertical line
+            RenderBuffer::PushIndices({
+                off,
+                off + res
+            }, false);
+        }
+    }
 
-    const auto colorARGB = color.ToIntARGB();
-    CLines::RenderLineNoClipping(v13, v32, colorARGB, colorARGB);
-    CLines::RenderLineNoClipping(v13, v41, colorARGB, colorARGB);
-    CLines::RenderLineNoClipping(v21, v32, colorARGB, colorARGB);
-    CLines::RenderLineNoClipping(v21, v41, colorARGB, colorARGB);
-    CLines::RenderLineNoClipping(v13, v52, colorARGB, colorARGB);
-    CLines::RenderLineNoClipping(v13, v61, colorARGB, colorARGB);
-    CLines::RenderLineNoClipping(v21, v52, colorARGB, colorARGB);
-    CLines::RenderLineNoClipping(v21, v61, colorARGB, colorARGB);
+    // Render the lines
+    RenderBuffer::Render(rwPRIMTYPELINELIST);
 }
 
+// notsa
 auto CSphere::GetTransformed(const CMatrix& transform) const -> CSphere {
     return { transform.TransformPoint(m_vecCenter), m_fRadius };
 }
 
+// notsa
+auto CSphere::GetBoundingBox() const -> CBox {
+    return {
+        m_vecCenter - CVector{ m_fRadius },
+        m_vecCenter + CVector{ m_fRadius }
+    };
+}
+
+// notsa
 auto TransformObject(const CSphere& sp, const CMatrix& transform) -> CSphere {
     return { transform.TransformPoint(sp.m_vecCenter), sp.m_fRadius };
 }

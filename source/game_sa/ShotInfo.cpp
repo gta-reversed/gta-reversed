@@ -47,6 +47,7 @@ bool CShotInfo::AddShot(CEntity* creator, eWeaponType weaponType, CVector origin
     shot->m_pCreator        = creator;
     shot->m_fRange          = weapInfo->m_fRadius;
     shot->m_vecOrigin       = origin;
+
     shot->m_vecTargetOffset = target - origin;
     if (weapInfo->m_fSpread != 0.0f) {
         shot->m_vecTargetOffset += CVector{
@@ -55,10 +56,8 @@ bool CShotInfo::AddShot(CEntity* creator, eWeaponType weaponType, CVector origin
             CGeneral::RandomChoice(RandTable)
         };
     }
-    shot->m_vecTargetOffset.Normalise();
-
-    const auto speed = weapInfo->m_Speed + (weapInfo->flags.bRandSpeed ? CGeneral::RandomChoice(RandTable) : 0.0f);
-    shot->m_vecTargetOffset *= speed;
+    shot->m_vecTargetOffset = shot->m_vecTargetOffset.Normalized() 
+        * (weapInfo->m_Speed + (weapInfo->flags.bRandSpeed ? CGeneral::RandomChoice(RandTable) : 0.0f));
 
     // TODO: overflow handling?
     const auto now      = (float)(double(CTimer::GetTimeInMS()) + ((CTimer::GetTimeInMS() & 0x80000000) ? 4294967300.0 : 0.0));

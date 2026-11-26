@@ -1,0 +1,32 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    "group:recommended",
+    "group:allNonMajor",
+    "helpers:pinGitHubActionDigestsToSemver"
+  ],
+  "timezone": "Europe/Budapest",
+  "schedule": [
+    "* 22 * * *"
+  ],
+  "platformAutomerge": true,
+  "automerge": true,
+  "packageRules": [
+    {
+      "matchUpdateTypes": ["major"],
+      "automerge": false
+    },
+    {
+      "matchManagers": ["github-actions"],
+      "groupName": "ci dependencies"
+    },
+    // Use only `-docking` branch of imgui (otherwise Renovate tracks the stable master)
+    {
+      "matchManagers": ["conan"],
+      "matchPackageNames": ["imgui"],
+      "allowedVersions": "/-docking$/",
+      "extractVersion": "^(?<version>.+)-docking$"
+    }
+  ]
+}

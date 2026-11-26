@@ -7,8 +7,8 @@ void CTaskComplexLeaveBoat::InjectHooks() {
     RH_ScopedCategory("Tasks/TaskTypes");
 
     RH_ScopedInstall(Constructor, 0x63BB60);
-    RH_ScopedInstall(Destructor, 0x642250);
-    
+    RH_ScopedInstall(Destructor, 0x63BBD0);
+
     RH_ScopedInstall(CreateSubTask, 0x63BC50);
 
     RH_ScopedVMTInstall(Clone, 0x63DA60);
@@ -31,6 +31,7 @@ CTaskComplexLeaveBoat::CTaskComplexLeaveBoat(const CTaskComplexLeaveBoat& o) :
 {
 }
 
+// 0x63BBD0
 CTaskComplexLeaveBoat::~CTaskComplexLeaveBoat() {
     CEntity::SafeCleanUpRef(m_veh);
 }

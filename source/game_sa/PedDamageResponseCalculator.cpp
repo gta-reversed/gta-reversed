@@ -2,18 +2,19 @@
 
 #include <reversiblebugfixes/Bugs.hpp>
 #include "PedDamageResponseCalculator.h"
+#include "TaskSimpleFight.h"
+#include "PedStats.h"
 
 void CPedDamageResponseCalculator::InjectHooks() {
     RH_ScopedClass(CPedDamageResponseCalculator);
     RH_ScopedCategoryGlobal();
 
     RH_ScopedInstall(Constructor, 0x4AD3F0);
-    RH_ScopedInstall(AccountForPedDamageStats, 0x4AD430, { .Reversed = false });
-    RH_ScopedInstall(AccountForPedArmour, 0x4AD550, { .Reversed = false });
-    RH_ScopedInstall(ComputeWillForceDeath, 0x4AD610, { .Reversed = false });
+    RH_ScopedInstall(AccountForPedDamageStats, 0x4AD430);
+    RH_ScopedInstall(AccountForPedArmour, 0x4AD550);
+    RH_ScopedInstall(ComputeWillForceDeath, 0x4AD610);
     RH_ScopedInstall(ComputeWillKillPed, 0x4B3210);
-    RH_ScopedInstall(IsBleedingWeapon, 0x4B5C2A, { .Reversed = false });
-    RH_ScopedInstall(ComputeDamageResponse, 0x4B5AC0, { .Reversed = false });
+    RH_ScopedInstall(ComputeDamageResponse, 0x4B5AC0);
 }
 
 // 0x4AD3F0
@@ -37,7 +38,28 @@ CPedDamageResponseCalculator* CPedDamageResponseCalculator::Constructor(CEntity*
  * @addr 0x4AD430
  */
 void CPedDamageResponseCalculator::AccountForPedDamageStats(CPed* ped, CPedDamageResponse& response) {
-    plugin::CallMethod<0x4AD430, CPedDamageResponseCalculator*, CPed*, CPedDamageResponse&>(this, ped, response);
+    const auto isStealthKill = m_fDamageFactor == ms_damageFactor;
+
+    m_fDamageFactor *= ped->IsPlayer()
+        ? 0.33f
+        : ped->m_pStats->m_fDefendWeakness;
+
+    const auto* const damagerPed = m_pDamager && m_pDamager->GetIsTypePed()
+        ? m_pDamager->AsPed()
+        : nullptr;
+    const auto isExplosiveOrFire = notsa::contains({ WEAPON_EXPLOSION, WEAPON_FLAMETHROWER }, m_weaponType);
+
+    if (damagerPed && damagerPed->IsPlayer()) {
+        if (!CPedGroups::AreInSameGroup(ped, damagerPed) || isExplosiveOrFire || isStealthKill) {
+            return;
+        }
+    } else if (!ped->IsPlayer() || !damagerPed || !CPedIntelligence::AreFriends(*ped, *damagerPed)) {
+        if (!damagerPed || !ped->IsCreatedBy(PED_MISSION) || !CPedGroups::AreInSameGroup(ped, damagerPed) || isExplosiveOrFire) {
+            return;
+        }
+    }
+
+    m_fDamageFactor = std::min(12.5f, m_fDamageFactor * 0.1f);
 }
 
 /*!
@@ -47,9 +69,6 @@ void CPedDamageResponseCalculator::AccountForPedDamageStats(CPed* ped, CPedDamag
  * @addr 0x4AD550
  */
 void CPedDamageResponseCalculator::AccountForPedArmour(CPed* ped, CPedDamageResponse& response) {
-    plugin::CallMethod<0x4AD550, CPedDamageResponseCalculator*, CPed*, CPedDamageResponse&>(this, ped, response);
-    return; // todo: not tested
-
     if (ped->m_fArmour == 0.0f)
         return;
 
@@ -109,7 +128,66 @@ void CPedDamageResponseCalculator::AdjustPedDamage(CPed* ped) {
  * @addr 0x4AD610
  */
 bool CPedDamageResponseCalculator::ComputeWillForceDeath(CPed* ped, CPedDamageResponse& response) {
-    return plugin::CallMethodAndReturn<bool, 0x4AD610, CPedDamageResponseCalculator*, CPed*, CPedDamageResponse&>(this, ped, response);
+    if (ped->bNoCriticalHits) {
+        return false;
+    }
+
+    const auto* const damagerPed = m_pDamager && m_pDamager->GetIsTypePed()
+        ? m_pDamager->AsPed()
+        : nullptr;
+
+    switch (m_weaponType) {
+    case WEAPON_KATANA: {
+        if (!damagerPed || !damagerPed->IsPlayer()) {
+            return false;
+        }
+        const auto* const fight = damagerPed->GetIntelligence()->GetTaskFighting();
+        if (!fight || fight->m_nComboSet != MELEE_COMBO_SWORD) {
+            return false;
+        }
+        if (fight->m_nCurrentMove == FIGHT_ATTACK_HIT_3 && CGeneral::GetRandomNumber() % 2) {
+            return true;
+        }
+        return CGeneral::GetRandomNumber() % 8 == 0;
+    }
+    case WEAPON_PISTOL:
+    case WEAPON_PISTOL_SILENCED:
+    case WEAPON_DESERT_EAGLE:
+    case WEAPON_SHOTGUN:
+    case WEAPON_SAWNOFF_SHOTGUN:
+    case WEAPON_SPAS12_SHOTGUN:
+    case WEAPON_MICRO_UZI:
+    case WEAPON_MP5:
+    case WEAPON_AK47:
+    case WEAPON_M4:
+    case WEAPON_TEC9:
+    case WEAPON_COUNTRYRIFLE:
+    case WEAPON_SNIPERRIFLE:
+    case WEAPON_MINIGUN:
+    case WEAPON_UZI_DRIVEBY: {
+        const auto canSurviveHeadshot = ped->IsPlayer() || ped->bNoCriticalHits
+            || (!notsa::contains({ WEAPON_SNIPERRIFLE, WEAPON_COUNTRYRIFLE }, m_weaponType) && CGeneral::GetRandomNumber() % 8 != 0);
+
+        if (ped->IsInVehicle() && !ped->IsPlayer() && !ped->bNoCriticalHits) {
+            return m_bodyPart == PED_PIECE_HEAD;
+        }
+        if (!ped->IsPlayer() && damagerPed && damagerPed->IsPlayer()) {
+            const auto* const playerData = damagerPed->GetPlayerData();
+            if (playerData->m_nTargetBone == BONE_HEAD || playerData->m_bFreeAiming) {
+                return m_bodyPart == PED_PIECE_HEAD;
+            }
+        }
+        return !canSurviveHeadshot && m_bodyPart == PED_PIECE_HEAD;
+    }
+    case WEAPON_GRENADE:
+    case WEAPON_RLAUNCHER:
+    case WEAPON_RLAUNCHER_HS:
+    case WEAPON_REMOTE_SATCHEL_CHARGE:
+    case WEAPON_EXPLOSION:
+        return CLocalisation::KillPeds() && !ped->IsPlayer() && !ped->bInVehicle && m_fDamageFactor + 1.0f > ped->m_fHealth;
+    default:
+        return false;
+    }
 }
 
 /*!
@@ -121,7 +199,7 @@ bool CPedDamageResponseCalculator::ComputeWillForceDeath(CPed* ped, CPedDamageRe
  */
 void CPedDamageResponseCalculator::ComputeWillKillPed(CPed* ped, CPedDamageResponse& rsp, bool bSpeak) {
     if (ped->IsPlayer()) {
-        if (CCheat::IsActive(CHEAT_NO_ONE_CAN_STOP_US) && m_weaponType < WEAPON_LAST_WEAPON) {
+        if (CCheat::IsActive(CHEAT_INFINITE_HEALTH) && m_weaponType < WEAPON_LAST_WEAPON) {
             return;
         }
     }
@@ -191,6 +269,50 @@ bool CPedDamageResponseCalculator::IsBleedingWeapon(CPed* ped) const {
  * @addr 0x4B5AC0
  */
 void CPedDamageResponseCalculator::ComputeDamageResponse(CPed* ped, CPedDamageResponse& response, bool bSpeak) {
-    plugin::CallMethod<0x4B5AC0, CPedDamageResponseCalculator*, CPed*, CPedDamageResponse&, bool>(this, ped, response, bSpeak);
+    if (response.m_bDamageCalculated) {
+        return;
+    }
+    response                      = {};
+    response.m_bDamageCalculated  = true;
+    response.m_bCheckIfAffectsPed = true;
+
+    AccountForPedDamageStats(ped, response);
+    AccountForPedArmour(ped, response);
+    ComputeWillKillPed(ped, response, bSpeak);
+
+    if (m_pDamager && (m_pDamager == FindPlayerPed() || m_pDamager == FindPlayerVehicle())) {
+        if (m_pDamager != ped && response.GetTotalDamage() > 3.0f) {
+            FindPlayerInfo().m_nHavocCaused++;
+        }
+    }
+
+    if (ped == FindPlayerPed()) {
+        FindPlayerPed()->AnnoyPlayerPed(false);
+    }
+
+    if (ped->IsPlayer() && m_pDamager && m_pDamager->GetIsTypePed()) {
+        CEventDamage event{ const_cast<CEntity*>(m_pDamager), 0, m_weaponType, m_bodyPart, 0, false, ped->bInVehicle };
+        ped->AsPlayer()->MakeGroupRespondToPlayerTakingDamage(event);
+    }
+
+    if (response.GetTotalDamage() <= 0.0f) {
+        return;
+    }
+
+    if (IsBleedingWeapon(ped)) {
+        ped->field_72F = 200;
+    }
+
+    if (ped == FindPlayerPed()) {
+        FindPlayerInfo().m_nLastTimeEnergyLost = CTimer::GetTimeInMS();
+    }
+
+    ped->m_nLastWeaponDamage = (char)m_weaponType;
+    if (m_pDamager) {
+        CEntity::SetEntityReference(ped->m_pLastEntityDamage, const_cast<CEntity*>(m_pDamager));
+        ped->field_768 = CTimer::GetTimeInMS();
+
+        // NOTE: Here the original calls `IsMember(ped)` on the player's group if the damager is the player, then ignores the result
+    }
 }
 

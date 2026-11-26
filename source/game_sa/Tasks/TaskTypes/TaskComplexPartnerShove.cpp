@@ -2,27 +2,29 @@
 
 #include "TaskComplexPartnerShove.h"
 
-void CTaskComplexPartnerShove::InjectHooks()
-{
+void CTaskComplexPartnerShove::InjectHooks() {
     RH_ScopedVirtualClass(CTaskComplexPartnerShove, 0x870800, 14);
     RH_ScopedCategory("Tasks/TaskTypes");
-    RH_ScopedInstall(Constructor, 0x6846F0);
+
+    RH_ScopedConstructorInstall(0x6846F0, "1", {}, const char *, CPed *, bool, float, int8, CVector);
+    RH_ScopedDestructorInstall(0x684750);
+
+    RH_ScopedVMTInstall(Clone, 0x684ED0);
+    RH_ScopedVMTInstall(GetTaskType, 0x681E20);
+    RH_ScopedVMTInstall(GetPartnerSequence, 0x683120, { .Reversed = false });
 }
 
 CTaskComplexPartnerShove::CTaskComplexPartnerShove(const char* commandName, CPed* partner, bool leadSpeaker, float distanceMultiplier, int8 updateDirectionCount, CVector point) :
-    CTaskComplexPartner(commandName, partner, leadSpeaker, distanceMultiplier, false, updateDirectionCount, point)
-{
+    CTaskComplexPartner(commandName, partner, leadSpeaker, distanceMultiplier, false, updateDirectionCount, point) {
     m_updateDirectionCount = updateDirectionCount;
-    m_taskId = TASK_COMPLEX_PARTNER_SHOVE;
+    m_taskId               = TASK_COMPLEX_PARTNER_SHOVE;
 }
 
-CTaskComplexPartnerShove* CTaskComplexPartnerShove::Constructor(const char* commandName, CPed* partner, bool leadSpeaker, float distanceMultiplier, int8 updateDirectionCount, CVector point)
-{
+CTaskComplexPartnerShove* CTaskComplexPartnerShove::Constructor(const char* commandName, CPed* partner, bool leadSpeaker, float distanceMultiplier, int8 updateDirectionCount, CVector point) {
     this->CTaskComplexPartnerShove::CTaskComplexPartnerShove(commandName, partner, leadSpeaker, distanceMultiplier, updateDirectionCount, point);
     return this;
 }
 
-CTaskComplexSequence* CTaskComplexPartnerShove::GetPartnerSequence()
-{
+CTaskComplexSequence* CTaskComplexPartnerShove::GetPartnerSequence() {
     return plugin::CallMethodAndReturn<CTaskComplexSequence*, 0x683120, CTask*>(this);
 }

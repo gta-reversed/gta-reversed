@@ -14,7 +14,7 @@ void CConversations::InjectHooks() {
     RH_ScopedInstall(IsConversationGoingOn, 0x43AAC0);
     RH_ScopedInstall(IsConversationAtNode, 0x43B000);
     RH_ScopedInstall(AwkwardSay, 0x43A810);
-    RH_ScopedInstall(EnableConversation, 0x43A7F0);
+    RH_ScopedInstall(EnableConversation, 0x43AA40);
     RH_ScopedInstall(StartSettingUpConversation, 0x43A840);
     RH_ScopedInstall(DoneSettingUpConversation, 0x43ADB0, {.Reversed = false});
 }
@@ -133,7 +133,7 @@ bool CConversations::IsConversationAtNode(const char* pName, CPed* pPed) {
 }
 
 // 0x43A810
-void CConversations::AwkwardSay(int32 whatToSay, CPed* speaker) {
+void CConversations::AwkwardSay(eAudioEvents whatToSay, CPed* speaker) {
     AudioEngine.PreloadMissionAudio(0, whatToSay);
     AudioEngine.AttachMissionAudioToPed(0, speaker);
     m_AwkwardSayStatus = eAwkwardSayStatus::LOADING;

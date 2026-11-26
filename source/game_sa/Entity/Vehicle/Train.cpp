@@ -53,7 +53,7 @@ void CTrain::InjectHooks() {
     RH_ScopedInstall(IsInTunnel, 0x6F6320);
     RH_ScopedInstall(RemoveRandomPassenger, 0x6F6850, { .Reversed = false });
     RH_ScopedInstall(RemoveMissionTrains, 0x6F6A20);
-    RH_ScopedInstall(RemoveAllTrains, 0x6F6AA0, { .Reversed = false });
+    RH_ScopedInstall(RemoveAllTrains, 0x6F6AA0);
     RH_ScopedInstall(ReleaseMissionTrains, 0x6F6B60);
     RH_ScopedInstall(FindClosestTrackNode, 0x6F6BD0, { .Reversed = false });
     RH_ScopedInstall(FindPositionOnTrackFromCoors, 0x6F6CC0, { .Reversed = false });
@@ -360,7 +360,30 @@ void CTrain::RemoveMissionTrains() {
 
 // 0x6F6AA0
 void CTrain::RemoveAllTrains() {
-    ((void(__cdecl*)())0x6F6AA0)();
+    const auto IsPlayerInTrain = [] (CTrain* train) {
+        for (auto* t = train; t; t = t->m_pPrevCarriage) {
+            if (t == FindPlayerVehicle()) {
+                return true;
+            }
+        }
+        for (auto* t = train; t; t = t->m_pNextCarriage) {
+            if (t == FindPlayerVehicle()) {
+                return true;
+            }
+        }
+        return false;
+    };
+    for (auto& vehicle : GetVehiclePool()->GetAllValid()) {
+        if (!vehicle.IsTrain()) {
+            continue;
+        }
+        auto* const train = vehicle.AsTrain();
+        if (IsPlayerInTrain(train)) {
+            continue;
+        }
+        CWorld::Remove(train);
+        delete train;
+    }
 }
 
 // 0x6F6B60
@@ -654,10 +677,8 @@ void CTrain::ProcessControl() {
                     CTrainNode* pPreviousTrainNode = &trainNodes[previousNodeIndex];
                     CTrainNode* pPreviousTrainNode2 = &trainNodes[previousNodeIndex2];
 
-                    CVector vecDifference1 = pCurrentTrainNode->GetPosn() - pPreviousTrainNode->GetPosn();
-                    CVector vecDifference2 = pPreviousTrainNode->GetPosn() - pPreviousTrainNode2->GetPosn();
-                    vecDifference1.Normalise();
-                    vecDifference2.Normalise();
+                    const auto vecDifference1 = (pCurrentTrainNode->GetPosn() - pPreviousTrainNode->GetPosn()).Normalized();
+                    const auto vecDifference2 = (pPreviousTrainNode->GetPosn() - pPreviousTrainNode2->GetPosn()).Normalized();
 
                     if (DotProduct(vecDifference1, vecDifference2) < 0.996f) {
                         CTrain* carriage = this;
@@ -789,15 +810,14 @@ void CTrain::ProcessControl() {
             vecVehiclePosition.z += m_pHandlingData->m_fSuspensionLowerLimit - bbox.m_vecMin.z;
         }
 
-        GetForward() = vecPosition2 - vecPosition1;
-        GetForward().Normalise();
+        GetForward() = (vecPosition2 - vecPosition1).Normalized();
         if (!trainFlags.bClockwiseDirection) {
             GetForward() *= -1.0f;
         }
 
         CVector vecTemp(0.0f, 0.0f, 1.0f);
         CrossProduct(&GetRight(), &GetForward(), &vecTemp);
-        GetRight().Normalise();
+        GetRight() = GetRight().Normalized();
         CrossProduct(&GetUp(), &GetRight(), &GetForward());
 
         auto fTrainNodeLighting     = theTrainNode->GetLightingFromCollision().GetCurrentLighting();

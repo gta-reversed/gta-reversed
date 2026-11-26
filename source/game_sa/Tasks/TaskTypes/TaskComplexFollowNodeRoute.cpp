@@ -373,7 +373,7 @@ bool CTaskComplexFollowNodeRoute::MakeAbortable(CPed* ped, eAbortPriority priori
                 case TASK_SIMPLE_GO_TO_POINT:
                 case TASK_SIMPLE_GO_TO_POINT_FINE: {
                     const auto tGoToSubTask = static_cast<CTaskSimpleGoTo*>(m_pSubTask);
-                    if (CPedGeometryAnalyser::IsEntityBlockingTarget(vehicle, tGoToSubTask->GetTargetPt(), tGoToSubTask->GetTargetPtRadius())) {
+                    if (CPedGeometryAnalyser::IsEntityBlockingTarget(*vehicle, tGoToSubTask->GetTargetPt(), tGoToSubTask->GetTargetPtRadius())) {
                         tGoToSubTask->SetTargetPtRadius((ped->GetPosition() - vehicle->GetPosition()).Magnitude2D());
                     }
                 }

@@ -90,7 +90,7 @@ bool CEventDamage::AffectsPed(CPed* ped) {
         if (m_pSourceEntity) {
             if (m_pSourceEntity->GetIsTypePed() && pedSourceEntity->m_nPedType == PED_TYPE_GANG2 && m_weaponType >= WEAPON_GRENADE) {
                 const auto task = pedSourceEntity->GetTaskManager().Find<CTaskComplexKillPedOnFoot>();
-                if (!task || task->m_target != ped){
+                if (!task || task->m_PedToKill != ped){
                     return false;
                 }
             }
@@ -131,10 +131,8 @@ bool CEventDamage::AffectsPed(CPed* ped) {
             if (m_pSourceEntity->GetIsTypePed()) {
                 CTask* activeTask = pedSourceEntity->GetTaskManager().GetActiveTask();
                 if (activeTask && activeTask->GetTaskType() == TASK_SIMPLE_STEALTH_KILL) {
-                    CVector vecDirection = m_pSourceEntity->GetPosition() - ped->GetPosition();
-                    vecDirection.Normalise();
                     if (ped->GetIntelligence()->CanSeeEntityWithLights(m_pSourceEntity, 0) <= 0.0f
-                        || DotProduct(&vecDirection, &ped->GetForward()) < CPedAcquaintanceScanner::ms_fThresholdDotProduct)
+                        || (m_pSourceEntity->GetPosition() - ped->GetPosition()).Normalized().Dot(ped->GetForward()) < CPedAcquaintanceScanner::ms_fThresholdDotProduct)
                     {
                         return false;
                     }
@@ -183,10 +181,8 @@ bool CEventDamage::AffectsPedGroup(CPedGroup* pedGroup) {
     for (auto memberId = 0; memberId < 8; memberId++) { // todo: magic number
         CPed* groupMember = pedGroup->GetMembership().GetMember(memberId);
         if (groupMember) {
-            CVector vecDirection = m_pSourceEntity->GetPosition() - groupMember->GetPosition();
-            vecDirection.Normalise();
             if (groupMember->GetIntelligence()->CanSeeEntityWithLights(m_pSourceEntity, 0) > 0.0f) {
-                if (DotProduct(&vecDirection, &groupMember->GetForward()) > CPedAcquaintanceScanner::ms_fThresholdDotProduct)
+                if ((m_pSourceEntity->GetPosition() - groupMember->GetPosition()).Normalized().Dot(groupMember->GetForward()) > CPedAcquaintanceScanner::ms_fThresholdDotProduct)
                     return true;
             }
         }
@@ -624,10 +620,8 @@ void CEventDamage::ComputeDeathAnim(CPed* ped, bool bMakeActiveTaskAbortable) {
                 fForceFactor *= -5.0f;
                 ped->bWasStanding = false;
                 ped->bIsStanding = false;
-                CVector vecForce = m_pSourceEntity->GetPosition() - ped->GetPosition();
-                vecForce.Normalise();
-                vecForce *= fForceFactor;
-                vecForce.z = 5.0f;
+                const auto direction = (m_pSourceEntity->GetPosition() - ped->GetPosition()).Normalized();
+                const CVector vecForce{ direction.x * fForceFactor, direction.y * fForceFactor, 5.0f };
                 ped->ApplyMoveForce(vecForce);
             }
         }
@@ -898,10 +892,8 @@ void CEventDamage::ComputeDamageAnim(CPed* ped, bool bMakeActiveTaskAbortable) {
         if (fForceFactor > 0.0f) {
             ped->bWasStanding = false;
             ped->bIsStanding = false;
-            CVector force = m_pSourceEntity->GetPosition() - ped->GetPosition();
-            force.Normalise();
-            force *= -fForceFactor;
-            force.z = 5.0f;
+            const auto direction = (m_pSourceEntity->GetPosition() - ped->GetPosition()).Normalized();
+            const CVector force{ direction.x * -fForceFactor, direction.y * -fForceFactor, 5.0f };
             ped->ApplyMoveForce(force);
         }
     }

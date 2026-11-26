@@ -30,6 +30,18 @@ public:
 
     CVector2D(const CVector& vec3d);
 
+    /*!
+    * @returns A vector with each of its components set to a number in the given range [min, max)
+    */
+    static CVector2D Random(CVector2D min, CVector2D max);
+
+    /*!
+     * @param min Minimum value of any component
+     * @param max Maximum value of any component
+     * @return A vector with each of its components set to a number in the given range [min, max)  
+     */
+    static CVector2D Random(float min, float max);
+
     static void InjectHooks();
 
     /*!
@@ -222,6 +234,8 @@ public:
     static inline float DistSqr(CVector2D a, CVector2D b) {
         return (a - b).SquaredMagnitude();
     }
+
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE(CVector2D, x, y);
 };
 
 /// Negate all components of the vector
@@ -289,5 +303,3 @@ constexpr static bool IsPointWithinBounds2D(CVector2D min, CVector2D max, CVecto
 constexpr static bool IsPointInRectangle2D(CVector2D rectTopLeft, CVector2D rectSize, CVector2D point) {
     return IsPointWithinBounds2D(rectTopLeft + rectSize, rectTopLeft, point);
 }
-
-static CVector2D Normalized2D(CVector2D v) { v.Normalise(); return v; }

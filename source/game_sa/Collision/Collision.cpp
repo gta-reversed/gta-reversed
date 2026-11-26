@@ -468,7 +468,6 @@ float CCollision::DistAlongLine2D(float lineX, float lineY, float lineDirX, floa
     return (pointX - lineX) * lineDirX + (pointY - lineY) * lineDirY;
 }
 
-
 /*!
 * Calculate point closest to `point` on line (l0 - l1)
 *
@@ -476,9 +475,9 @@ float CCollision::DistAlongLine2D(float lineX, float lineY, float lineDirX, floa
 */
 CVector CCollision::GetClosestPtOnLine(const CVector& l0, const CVector& l1, const CVector& point) {
     ZoneScoped;
-
-    const auto lnMagSq = (l1 - l0).SquaredMagnitude();
-	const auto dot = (point - l0).Dot(l1 - l0);
+    const auto lnDir   = l1 - l0;
+    const auto lnMagSq = lnDir.SquaredMagnitude();
+    const auto dot     = (point - l0).Dot(lnDir);
     if (dot <= 0.0f) {
 		return l0;
     }
@@ -487,7 +486,6 @@ CVector CCollision::GetClosestPtOnLine(const CVector& l0, const CVector& l1, con
     }
     return lerp(l0, l1, dot / lnMagSq);
 }
-
 
 // 0x417FD0
 void CCollision::ClosestPointOnLine(const CVector& l0, const CVector& l1, const CVector& point, CVector& closest) {
@@ -1878,15 +1876,19 @@ void CCollision::ClosestPointOnPoly(CColTriangle* arg0, CVector* arg1, CVector* 
 void CCollision::CalculateTrianglePlanes(CColModel* colModel) {
     ZoneScoped;
 
-    plugin::Call<0x418580, CColModel*>(colModel);
-    if (colModel->m_pColData && colModel->m_pColData->m_pTriangles) {
-        assert(colModel->m_pColData->m_pTrianglePlanes); // If model has triangles it should also have triPls by now (otherwise random crashes will occour)
+    if (colModel->m_pColData) {
+        CalculateTrianglePlanes(colModel->m_pColData);
+        if (colModel->m_pColData->m_pTriangles) {
+            assert(colModel->m_pColData->m_pTrianglePlanes); // If model has triangles it should also have triPls by now (otherwise random crashes will occour)
+        }
     }
 }
 
 // 0x4185A0
 void CCollision::RemoveTrianglePlanes(CColModel* colModel) {
-    plugin::Call<0x4185A0, CColModel*>(colModel);
+    if (colModel->m_pColData) {
+        RemoveTrianglePlanes(colModel->m_pColData);
+    }
 }
 
 // TODO: This function could be refactored to use ranges instead of these ugly static variables :D
@@ -3461,8 +3463,8 @@ void CCollision::InjectHooks() {
 
     RH_ScopedOverloadedInstall(CalculateTrianglePlanes, "colData", 0x416330, void (*)(CCollisionData*), { .State = state, .Locked = locked });
     RH_ScopedOverloadedInstall(RemoveTrianglePlanes, "colData", 0x416400, void (*)(CCollisionData*), { .State = state, .Locked = locked });
-    RH_ScopedOverloadedInstall(CalculateTrianglePlanes, "CColModelPtr", 0x418580, void(*)(CColModel*), { .Reversed = false });
-    RH_ScopedOverloadedInstall(RemoveTrianglePlanes, "CColModelPtr", 0x4185A0, void(*)(CColModel*), { .Reversed = false });
+    RH_ScopedOverloadedInstall(CalculateTrianglePlanes, "CColModelPtr", 0x418580, void(*)(CColModel*), { .State = state, .Locked = locked });
+    RH_ScopedOverloadedInstall(RemoveTrianglePlanes, "CColModelPtr", 0x4185A0, void(*)(CColModel*), { .State = state, .Locked = locked });
 }
 
 void CCollision::Tests(int32 i) {

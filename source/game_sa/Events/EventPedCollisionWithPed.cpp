@@ -85,7 +85,7 @@ bool CEventPedCollisionWithPed::AffectsPed(CPed* ped) {
     }
 
     if (const auto task = ped->GetTaskManager().Find<CTaskComplexKillPedOnFoot>()) {
-        if (task->m_target == m_victim) {
+        if (task->m_PedToKill == m_victim) {
             if (ped->GetTaskManager().Find<TASK_SIMPLE_FIGHT_CTRL>()) {
                 return false;
             }

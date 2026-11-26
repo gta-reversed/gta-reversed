@@ -706,26 +706,14 @@ void CClouds::Render() {
 
 // 0x714650
 void CClouds::RenderSkyPolys() {
-    CVector norm{}, pos{};
+    const auto    pos = TheCamera.GetPosition();
+    const CVector norm{ CVector2D{ TheCamera.GetForward() }.Normalized() };
+    const CVector invNorm      = -norm;
+    float         fBlendFactor = (pos.z - 25.0f) * (1.0f / 80.0f);
+    fBlendFactor               = std::clamp(fBlendFactor, 0.f, 1.f);
+    fBlendFactor               = std::max(fBlendFactor, CWeather::Foggyness);
 
-    if (TheCamera.m_matrix) {
-        pos = TheCamera.m_matrix->GetPosition();
-        norm = TheCamera.m_matrix->GetForward();
-    } else {
-        pos = TheCamera.m_placement.m_vPosn;
-        float fHeading = TheCamera.m_placement.m_fHeading;
-        norm.x = -sin(fHeading);
-        norm.y = cos(fHeading);
-    }
-    norm.z = 0.f;
-    norm.Normalise();
-
-    CVector invNorm = -norm;
-    float fBlendFactor = (pos.z - 25.0f) * (1.0f / 80.0f);
-    fBlendFactor = std::clamp(fBlendFactor, 0.f, 1.f);
-    fBlendFactor = std::max(fBlendFactor, CWeather::Foggyness);
-
-    RwRGBA belowHorizonGrey = CTimeCycle::m_BelowHorizonGrey;
+    RwRGBA belowHorizonGrey    = CTimeCycle::m_BelowHorizonGrey;
     belowHorizonGrey.red   += static_cast<RwUInt8>(fBlendFactor * static_cast<float>(CTimeCycle::m_CurrentColours.m_nSkyBottomRed - belowHorizonGrey.red));
     belowHorizonGrey.green += static_cast<RwUInt8>(fBlendFactor * static_cast<float>(CTimeCycle::m_CurrentColours.m_nSkyBottomGreen - belowHorizonGrey.green));
     belowHorizonGrey.blue  += static_cast<RwUInt8>(fBlendFactor * static_cast<float>(CTimeCycle::m_CurrentColours.m_nSkyBottomBlue - belowHorizonGrey.blue));
@@ -748,10 +736,13 @@ void CClouds::RenderSkyPolys() {
 
     aPos2D[0].x = pos.x + (invNorm.x - scale.x) * SKYP_CAM_DIST;
     aPos2D[0].y = pos.y + (invNorm.y - scale.y) * SKYP_CAM_DIST;
+
     aPos2D[1].x = pos.x + (invNorm.x + scale.x) * SKYP_CAM_DIST;
     aPos2D[1].y = pos.y + (invNorm.y + scale.y) * SKYP_CAM_DIST;
+
     aPos2D[2].x = pos.x + (norm.x - scale.x) * SKYP_CAM_DIST;
     aPos2D[2].y = pos.y + (norm.y - scale.y) * SKYP_CAM_DIST;
+    
     aPos2D[3].x = pos.x + (norm.x + scale.x) * SKYP_CAM_DIST;
     aPos2D[3].y = pos.y + (norm.y + scale.y) * SKYP_CAM_DIST;
 
