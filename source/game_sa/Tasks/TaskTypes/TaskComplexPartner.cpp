@@ -48,8 +48,8 @@ CTaskComplexPartner::~CTaskComplexPartner() {
 
 // 0x681FE0
 void CTaskComplexPartner::CalcTargetPositions(CPed * ped, CVector * point, CVector * targetPoint) {
-    const auto& pedPos     = ped->GetPosition();
-    const auto& partnerPos = m_partner->GetPosition();
+    const auto& pedPos      = ped->GetPosition();
+    const auto& partnerPos  = m_partner->GetPosition();
 
     const CVector toPartner = partnerPos - pedPos;
     const CVector dir       = toPartner.Normalized();
@@ -166,7 +166,7 @@ CTask * CTaskComplexPartner::CreateNextSubTask(CPed * ped) {
                 auto* const defaultTask = ped->GetTaskManager().GetTaskPrimary(TASK_PRIMARY_DEFAULT);
                 if (defaultTask && defaultTask->GetTaskType() == TASK_COMPLEX_WANDER && static_cast<CTaskComplexWander*>(defaultTask)->GetWanderType() == WANDER_TYPE_STANDARD) {
                     const auto& fwd    = ped->GetForward();
-                    auto*      wander = new CTaskComplexWanderStandard{ PEDMOVE_WALK, (uint8)CGeneral::GetNodeHeadingFromVector(-fwd.x, -fwd.y), true };
+                    auto*       wander = new CTaskComplexWanderStandard{ PEDMOVE_WALK, (uint8)CGeneral::GetNodeHeadingFromVector(-fwd.x, -fwd.y), true };
                     wander->SetMinNextScanTime(CTimer::GetTimeInMS() + 100'000);
                     ped->GetTaskManager().SetTask(wander, TASK_PRIMARY_DEFAULT);
                 }
@@ -178,17 +178,17 @@ CTask * CTaskComplexPartner::CreateNextSubTask(CPed * ped) {
             }
         } else {
             // Shuffle (max 0.02 per step) until we're 1m away from the partner
-            const auto pedPos     = CVector2D{ ped->GetPosition() };
-            const auto partnerPos = CVector2D{ m_partner->GetPosition() };
+            const auto pedPos       = CVector2D{ ped->GetPosition() };
+            const auto partnerPos   = CVector2D{ m_partner->GetPosition() };
             const auto partnerToPed = pedPos - partnerPos;
             if (const auto dist = partnerToPed.Magnitude(); dist > 0.99f && dist < 1.01f) {
                 m_partnerState = (ePartnerState)6;
             } else {
-                const CVector2D toSpot = partnerPos + partnerToPed.Normalized() - pedPos;
-                const CVector2D shift  = toSpot.Magnitude() > 0.02f
+                const CVector2D toSpot         = partnerPos + partnerToPed.Normalized() - pedPos;
+                const CVector2D shift          = toSpot.Magnitude() > 0.02f
                     ? toSpot.Normalized() * 0.02f
                     : toSpot;
-                const auto& mat                = ped->GetMatrix();
+                const auto&     mat            = ped->GetMatrix();
                 ped->m_vecAnimMovingShiftLocal = CVector2D{
                     mat.GetRight().x * shift.x + mat.GetRight().y * shift.y,
                     mat.GetForward().x * shift.x + mat.GetForward().y * shift.y,
