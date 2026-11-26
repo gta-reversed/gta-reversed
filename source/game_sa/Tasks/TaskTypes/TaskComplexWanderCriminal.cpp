@@ -30,8 +30,12 @@ void CTaskComplexWanderCriminal::ScanForStuff(CPed* ped) {
 void CTaskComplexWanderCriminal::LookForCarsToSteal(CPed* ped) {
     const auto [closestVeh, closestDistSq] = notsa::SpatialQuery(
         ped->GetIntelligence()->GetVehicleScanner().GetEntities<CVehicle>()
-            | rngv::filter([ped](CVehicle& veh) { return CCarEnterExit::IsVehicleStealable(&veh, ped); })
-            | rngv::transform([](CVehicle& veh) { return &veh; }),
+            | rngv::filter([ped](CVehicle& veh) {
+                  return CCarEnterExit::IsVehicleStealable(&veh, ped);
+              })
+            | rngv::transform([](CVehicle& veh) {
+                  return &veh;
+              }),
         ped->GetPosition(),
         static_cast<CVehicle*>(nullptr)
     );
