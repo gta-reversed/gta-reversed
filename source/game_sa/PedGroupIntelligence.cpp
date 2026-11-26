@@ -37,7 +37,7 @@ void CPedGroupIntelligence::InjectHooks() {
     RH_ScopedInstall(ComputeEventResponseTasks, 0x5FC440);
     RH_ScopedInstall(Process, 0x5FC4A0);
     RH_ScopedInstall(ReportAllTasksFinished, 0x5F7730);
-    RH_ScopedInstall(ComputeScriptCommandTasks, 0x5F7800, { .Reversed = false });
+    RH_ScopedInstall(ComputeScriptCommandTasks, 0x5F7800);
 }
 
 // 0x5F7250
@@ -439,5 +439,34 @@ CTaskAllocator* CPedGroupIntelligence::ComputeEventResponseTasks() {
 }
 
 void CPedGroupIntelligence::ComputeScriptCommandTasks() {
-    plugin::CallMethod<0x5F7800>(this);
+    PedTaskPairs pairs{};
+    for (auto&& [i, tp] : rngv::enumerate(pairs)) {
+        const auto& oldTp  = m_ScriptCommandPedTaskPairs[i];
+        CPed* const member = m_pPedGroup->GetMembership().GetMember((int32)i);
+        if (member == oldTp.Ped) {
+            tp.Ped  = oldTp.Ped;
+            tp.Task = oldTp.Task;
+            continue;
+        }
+        const auto* const memberTp = GetPedsTaskPair(member, m_ScriptCommandPedTaskPairs); // 0x5F7860
+        tp.Ped  = member;
+        tp.Task = memberTp ? memberTp->Task : nullptr;
+    }
+
+    for (auto& tp : m_ScriptCommandPedTaskPairs) { // 0x5F78AD
+        if (!tp.Task) {
+            continue;
+        }
+        if (const auto* const newTp = GetPedsTaskPair(tp.Ped, pairs); newTp && newTp->Task) {
+            continue;
+        }
+        delete std::exchange(tp.Task, nullptr);
+        tp.Ped = nullptr;
+    }
+
+    // NOTE: Only the ped and the task are copied back, the other fields of the pairs stay
+    for (auto&& [tp, newTp] : rngv::zip(m_ScriptCommandPedTaskPairs, pairs)) { // 0x5F78FA
+        tp.Ped  = newTp.Ped;
+        tp.Task = newTp.Task;
+    }
 }
