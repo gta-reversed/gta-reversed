@@ -36,18 +36,15 @@ public:
                 delete task;
             }
         };
-        SetDefaultTask(CPedGroupMembership::LEADER_MEM_ID, new CTaskComplexSequence{
-            new CTaskComplexEnterCarAsDriver{ veh },
-            new CTaskSimpleCarDrive{ veh }
-        });
+        SetDefaultTask(CPedGroupMembership::LEADER_MEM_ID, new CTaskComplexSequence{ new CTaskComplexEnterCarAsDriver{ veh }, new CTaskSimpleCarDrive{ veh } });
         int32 seat{};
         for (int32 memId = 0; memId < CPedGroupMembership::LEADER_MEM_ID; memId++) { // 0x5F70E0
             if (!pedGroup->GetMembership().GetMember(memId) || seat >= veh->m_nMaxPassengers) {
                 continue;
             }
             SetDefaultTask(memId, new CTaskComplexSequence{
-                new CTaskComplexEnterCarAsPassenger{ veh, CCarEnterExit::ComputeTargetDoorToEnterAsPassenger(veh, seat) },
-                new CTaskSimpleCarDrive{ veh }
+                                      new CTaskComplexEnterCarAsPassenger{ veh, CCarEnterExit::ComputeTargetDoorToEnterAsPassenger(veh, seat) },
+                                       new CTaskSimpleCarDrive{ veh }
             });
             seat++;
         }
