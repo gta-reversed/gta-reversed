@@ -12,3 +12,9 @@ void CTaskComplexOpenPassengerDoor::InjectHooks() {
     RH_ScopedVMTInstall(Clone, 0x6438E0);
     RH_ScopedVMTInstall(GetTaskType, 0x640410);
 }
+
+// NOTSA
+CTaskComplexOpenPassengerDoor::CTaskComplexOpenPassengerDoor(const CTaskComplexOpenPassengerDoor& o) :
+    CTaskComplexOpenPassengerDoor{ o.m_Car, o.m_TargetSeat } {
+    m_MoveState = o.m_MoveState;
+}
