@@ -9,7 +9,7 @@ CTaskComplexWanderProstitute::CTaskComplexWanderProstitute(eMoveState MoveState,
     CTaskComplexWanderStandard(MoveState, Dir, bWanderSensibly) {
 }
 
-constexpr uint32 SCAN_INTERVAL_MS   = 2000;
+constexpr uint32 SCAN_INTERVAL_MS   = 2'000;
 constexpr uint32 MAX_MONETARY_VALUE = 50'000;
 constexpr float  MAX_CAR_SPEED      = 2.f;
 
@@ -20,10 +20,12 @@ void CTaskComplexWanderProstitute::ScanForStuff(CPed* ped) {
     if (CTimer::GetTimeInMS() <= m_NextScanTimeMs) {
         return;
     }
-    m_NextScanTimeMs = CTimer::GetTimeInMS() + SCAN_INTERVAL_MS;
+    m_NextScanTimeMs    = CTimer::GetTimeInMS() + SCAN_INTERVAL_MS;
 
     const auto& scanner = ped->GetIntelligence()->GetPedScanner();
-    if (rng::any_of(scanner.GetEntities<CPed>(), [](const CPed& other) { return other.IsCop(); })) {
+    if (rng::any_of(scanner.GetEntities<CPed>(), [](const CPed& other) {
+            return other.IsCop();
+        })) {
         return;
     }
 
