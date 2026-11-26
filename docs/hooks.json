@@ -27556,12 +27556,12 @@
   },
   {
     "Category": "CTaskComplexSignalAtPed",
-    "Name": "Constructor",
+    "Name": "Constructor-0",
     "IsReversed": true
   },
   {
     "Category": "CTaskComplexSignalAtPed",
-    "Name": "Destructor",
+    "Name": "Desructor",
     "IsReversed": true
   },
   {
@@ -27577,17 +27577,17 @@
   {
     "Category": "CTaskComplexSignalAtPed",
     "Name": "CreateNextSubTask",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexSignalAtPed",
     "Name": "CreateFirstSubTask",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexSignalAtPed",
     "Name": "ControlSubTask",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexSitDownThenIdleThenStandUp",
@@ -28226,18 +28226,18 @@
   },
   {
     "Category": "CTaskComplexWaitForBus",
-    "Name": "Constructor",
+    "Name": "Constructor-0",
     "IsReversed": true
   },
   {
     "Category": "CTaskComplexWaitForBus",
-    "Name": "Destructor",
+    "Name": "Desructor",
     "IsReversed": true
   },
   {
     "Category": "CTaskComplexWaitForBus",
     "Name": "Clone",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexWaitForBus",
@@ -28247,12 +28247,12 @@
   {
     "Category": "CTaskComplexWaitForBus",
     "Name": "CreateNextSubTask",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexWaitForBus",
     "Name": "CreateFirstSubTask",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexWaitForBus",

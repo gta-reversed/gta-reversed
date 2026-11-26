@@ -1,17 +1,17 @@
 # Reimplementation progress (*): 92%
 This file is updated automatically every time the `hooks.json` file is updated (which happens every time there are changes to hooks made by a commit), and shows the current progress of reversed categories in the project.
 
-Last update was at Nov 26, 2026 at 13:01:02 UTC
-(Triggered by commit [256533ff](https://github.com/gta-reversed/gta-reversed/commit/256533ff14a729249d0494885895eaffc18170f3))
+Last update was at Nov 26, 2026 at 13:21:14 UTC
+(Triggered by commit [a7feeb6c](https://github.com/gta-reversed/gta-reversed/commit/a7feeb6cd497dec7a437bd1d0cff684a1275a85e))
 
 ## (*) Disclaimers
 **The progress** is based on the number of functions we have documented and reimplemented, so it might not completely reflect the actual progress, it's meant to be a rough estimate.
 
 **The percentages and the number of categories** shown here may not be completely accurate, because not all categories and functions are documented yet.
 
-## Stats (8160 out of 8901 functions done in 797 categories)
+## Stats (8166 out of 8901 functions done in 797 categories)
 
-#### Completely reversed categories (651/797) [82%]
+#### Completely reversed categories (653/797) [82%]
 
 <details>
 <summary>See list of categories</summary>
@@ -399,6 +399,7 @@ Last update was at Nov 26, 2026 at 13:01:02 UTC
 - CTaskComplexSeekEntityAiming (7)<br />
 - CTaskComplexSeekEntityAnyMeansXYOffset (5)<br />
 - CTaskComplexShuffleSeats (10)<br />
+- CTaskComplexSignalAtPed (7)<br />
 - CTaskComplexSitDownThenIdleThenStandUp (9)<br />
 - CTaskComplexSmartFleeEntity (7)<br />
 - CTaskComplexSmartFleePoint (12)<br />
@@ -416,6 +417,7 @@ Last update was at Nov 26, 2026 at 13:01:02 UTC
 - CTaskComplexUseScriptedBrain (8)<br />
 - CTaskComplexUseScriptedAttractor (7)<br />
 - CTaskComplexWaitAtAttractor (7)<br />
+- CTaskComplexWaitForBus (7)<br />
 - CTaskComplexWaitForBackup (8)<br />
 - CTaskComplexWaitForDryWeather (7)<br />
 - CTaskComplexWalkAlongsidePed (9)<br />
@@ -669,7 +671,7 @@ Last update was at Nov 26, 2026 at 13:01:02 UTC
 
 </details>
 
-#### Partially reversed categories (134/797) [17%]
+#### Partially reversed categories (132/797) [17%]
 
 <details>
 <summary>See list of categories</summary>
@@ -739,8 +741,6 @@ Last update was at Nov 26, 2026 at 13:01:02 UTC
 - CTaskComplexKillPedOnFootArmed (9/11) [82%]<br />
 - CTaskComplexLeaveCarAndWander (4/8) [50%]<br />
 - CTaskComplexOpenPassengerDoor (3/4) [75%]<br />
-- CTaskComplexSignalAtPed (4/7) [57%]<br />
-- CTaskComplexWaitForBus (4/7) [57%]<br />
 - CTaskSimpleBeKickedOnGround (4/8) [50%]<br />
 - CTaskSimpleCarForcePedOut (4/6) [67%]<br />
 - CTaskSimpleDead (5/6) [83%]<br />
