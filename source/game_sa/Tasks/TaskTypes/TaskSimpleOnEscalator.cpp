@@ -23,7 +23,7 @@ bool CTaskSimpleOnEscalator::ProcessPed(CPed* ped) {
     }
 
     // NOTE: Not `CVector::Heading()`, the original handles a zero move speed differently
-    const auto& moveSpeed = step->AsPhysical()->GetMoveSpeed();
+    const auto& moveSpeed  = step->AsPhysical()->GetMoveSpeed();
     ped->m_fAimingRotation = CGeneral::LimitRadianAngle(CGeneral::GetRadianAngleBetweenPoints(moveSpeed.x, moveSpeed.y, 0.0f, 0.0f));
     return false;
 }
