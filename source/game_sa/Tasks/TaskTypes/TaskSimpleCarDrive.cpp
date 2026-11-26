@@ -172,11 +172,13 @@ void CTaskSimpleCarDrive::ProcessArmBopping(CPed* ped, bool canBop, float camDis
 
     auto* const veh       = ped->m_pVehicle;
     const auto  isRaining = CWeather::Rain > 0.f;
+
+    // NOTE: Not using `GetPassengers()`: The original checks seats 0-2 even if the vehicle has fewer
     if (isRaining) { // Close the windows
         for (const auto door : { CAR_DOOR_LF, CAR_DOOR_RF, CAR_DOOR_LR, CAR_DOOR_RR }) {
             veh->ClearWindowOpenFlag(door);
         }
-    } else if (veh->m_pDriver == ped) { // NOTE: Raw `m_apPassengers`: the original reads seats 0-2 even if the vehicle has fewer (`GetPassengers()` stops at `m_nMaxPassengers`)
+    } else if (veh->m_pDriver == ped) {
         veh->SetWindowOpenFlag(CAR_DOOR_LF);
     } else if (veh->m_apPassengers[0] == ped) {
         veh->SetWindowOpenFlag(CAR_DOOR_RF);
