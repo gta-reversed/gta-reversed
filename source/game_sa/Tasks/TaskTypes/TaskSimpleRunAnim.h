@@ -17,7 +17,7 @@ public:
     uint16       m_nTaskType;
 
 public:
-    static constexpr auto Type = TASK_SIMPLE_NAMED_ANIM;
+    static constexpr auto Type = TASK_SIMPLE_ANIM;
 
     CTaskSimpleRunAnim(AssocGroupId animGroup, AnimationId animId, float fBlendDelta = 4.f, bool bHoldLastFrame = false);
     CTaskSimpleRunAnim(AssocGroupId animGroup, AnimationId animId, float fBlendDelta, int32 nTaskType, const char* taskName _IGNORED_, bool bHoldLastFrame);
