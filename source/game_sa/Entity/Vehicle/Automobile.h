@@ -141,6 +141,7 @@ public:
     ~CAutomobile() override;
 
     // CEntity
+    void SetModelIndex(uint32 index) override;
     void Teleport(CVector destination, bool resetRotation) override;
 
     // CPhysical

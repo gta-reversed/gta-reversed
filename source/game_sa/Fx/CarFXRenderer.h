@@ -13,7 +13,7 @@ public:
     static bool RegisterPlugins();
 
     static bool Initialise();
-    static void InitialiseDirtTexture();
+    static bool InitialiseDirtTexture();
     static void Shutdown();
     static void PreRenderUpdate();
 

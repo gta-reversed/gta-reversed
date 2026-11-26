@@ -13,7 +13,7 @@ void CInterestingEvents::InjectHooks() {
 
     RH_ScopedInstall(Constructor, 0x6023A0, { .Reversed = false });
     RH_ScopedInstall(Destructor, 0x856880, { .Reversed = false });
-    RH_ScopedInstall(Add, 0x602590, { .Reversed = false });
+    RH_ScopedInstall(Add, 0x602590);
     RH_ScopedInstall(ScanForNearbyEntities, 0x605A30, { .Reversed = false });
     RH_ScopedInstall(GetInterestingEvent, 0x6028A0, { .Reversed = false });
     RH_ScopedInstall(InvalidateEvent, 0x602960);
@@ -86,8 +86,6 @@ CInterestingEvents* CInterestingEvents::Destructor() {
 
 // 0x602590
 void CInterestingEvents::Add(CInterestingEvents::EType type, CEntity* entity) {
-    return plugin::CallMethod<0x602590, CInterestingEvents*, CInterestingEvents::EType, CEntity*>(this, type, entity);
-
     if (!m_b1 || !entity)
         return;
 
@@ -121,7 +119,7 @@ void CInterestingEvents::Add(CInterestingEvents::EType type, CEntity* entity) {
 
     uint32 time = CTimer::GetTimeInMS();
     for (auto index = 0; index < MAX_INTERESTING_EVENTS; index++) {
-        TInterestingEvent& event = g_InterestingEvents.m_Events[index];
+        TInterestingEvent& event = m_Events[index];
         if (event.entity) {
             if (m_nPriorities[type] < m_nPriorities[event.type] && CTimer::GetTimeInMS() <= event.time + static_cast<uint32>(m_nDelays[event.type]))
                 continue;
@@ -137,9 +135,9 @@ void CInterestingEvents::Add(CInterestingEvents::EType type, CEntity* entity) {
         event.time = time;
         entity->RegisterReference(&event.entity);
         if (m_b8)
-            m_nEndsOfTime[type] = time;
-        else
             m_nEndsOfTime[type] = time + (m_nDelays[type] >> 1);
+        else
+            m_nEndsOfTime[type] = time;
         break;
     }
 }

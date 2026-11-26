@@ -26,6 +26,7 @@ CTaskComplexStareAtPed::CTaskComplexStareAtPed(CPedGroup* pedGroip, CPed* pedToS
     m_pPed{pedToStareAt},
     m_timeout{timeout}
 {
+    assert(!pedToStareAt || IsEntityPointerValid(pedToStareAt)); // May be null if this is a clone of a task whose ped was deleted (`ControlSubTask` handles that)
     CEntity::SafeRegisterRef(m_pPed);
 }
 
@@ -65,6 +66,7 @@ CTask* CTaskComplexStareAtPed::CreateFirstSubTask(CPed* ped) {
 
 // 0x6605C0
 CTask* CTaskComplexStareAtPed::ControlSubTask(CPed* ped) {
+    const auto isOutOfTime = m_timer.IsOutOfTime(); /* Has side-effects, must call is separately */
 
     // Below code copied from `CTaskComplexGangLeader::ControlSubTask`
     // Make sure anmims are loaded (if they can/need to be)
@@ -80,6 +82,11 @@ CTask* CTaskComplexStareAtPed::ControlSubTask(CPed* ped) {
         } else {
             CStreaming::RequestModel(IFPToModelId(blk), STREAMING_KEEP_IN_MEMORY);
         }
+    }
+
+    if (!m_pPed || isOutOfTime) {
+        AbortIK(ped);
+        return nullptr;
     }
 
     CTaskComplexGangLeader::DoGangAbuseSpeech(ped, m_pPed);

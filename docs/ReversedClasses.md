@@ -1,28 +1,32 @@
-# Reimplementation progress (*): 91%
+# Reimplementation progress (*): 92%
 This file is updated automatically every time the `hooks.json` file is updated (which happens every time there are changes to hooks made by a commit), and shows the current progress of reversed categories in the project.
 
-Last update was at Oct 18, 2026 at 16:54:44 UTC
-(Triggered by commit [4bece456](https://github.com/gta-reversed/gta-reversed/commit/4bece456cf8fb589a281ce0d66ef50f0341916a9))
+Last update was at Nov 23, 2026 at 21:08:46 UTC
+(Triggered by commit [a5d4a2da](https://github.com/gta-reversed/gta-reversed/commit/a5d4a2daaf390c224287f88ba708328c6b076043))
 
 ## (*) Disclaimers
 **The progress** is based on the number of functions we have documented and reimplemented, so it might not completely reflect the actual progress, it's meant to be a rough estimate.
 
 **The percentages and the number of categories** shown here may not be completely accurate, because not all categories and functions are documented yet.
 
-## Stats (7518 out of 8289 functions done in 718 categories)
+## Stats (8149 out of 8898 functions done in 797 categories)
 
-#### Completely reversed categories (580/718) [81%]
+#### Completely reversed categories (649/797) [81%]
 
 <details>
 <summary>See list of categories</summary>
 - CDoor (6)<br />
+- CPatrolRoute (2)<br />
 - CControllerConfigManager (58)<br />
 - CFormation (9)<br />
 - CHandShaker (3)<br />
 - CCutsceneMgr (35)<br />
 - CFileMgr (17)<br />
+- CPlayerRelationshipRecorder (5)<br />
+- CRemote (2)<br />
 - CLoadedCarGroup (8)<br />
 - RenderBuffer (4)<br />
+- CPedGroup (12)<br />
 - CPedGroupMembership (18)<br />
 - RwHelper (24)<br />
 - CPad (76)<br />
@@ -51,6 +55,7 @@ Last update was at Oct 18, 2026 at 16:54:44 UTC
 - CMirrors (8)<br />
 - CFire (5)<br />
 - CExplosion (12)<br />
+- CClothes (11)<br />
 - CBulletInfo (4)<br />
 - CRestart (11)<br />
 - CSetPiece (3)<br />
@@ -68,24 +73,27 @@ Last update was at Oct 18, 2026 at 16:54:44 UTC
 - CDirectory (10)<br />
 - CBulletTraces (5)<br />
 - CDebug (1)<br />
-- CGame (22)<br />
+- CGame (23)<br />
 - CControllerState (2)<br />
 - CKeyboardState (1)<br />
 - CMouseControllerState (3)<br />
 - CReferences (4)<br />
 - CShotInfo (5)<br />
+- SurfaceInfos_c (49)<br />
 - CRenderer (33)<br />
 - CObjectData (2)<br />
 - CObjectSaveStructure (2)<br />
 - CCompressedMatrixNotAligned (2)<br />
 - CVisibilityPlugins (84)<br />
 - CPedIntelligence (52)<br />
+- CCollision (61)<br />
 - CTrafficLights (12)<br />
 - CMotionBlurStreaks (4)<br />
 - CRegisteredMotionBlurStreak (2)<br />
 - CCover (16)<br />
 - CVehicleAnimGroup (5)<br />
 - CVehicleAnimGroupData (5)<br />
+- CPedDamageResponseCalculator (6)<br />
 - CPedClothesDesc (7)<br />
 - CTimer (13)<br />
 - CTagManager (19)<br />
@@ -107,6 +115,7 @@ Last update was at Oct 18, 2026 at 16:54:44 UTC
 - CActiveOccluder (2)<br />
 - CIniFile (1)<br />
 - CStencilShadowObject (3)<br />
+- CFont (39)<br />
 - CGameLogic (27)<br />
 - CStuckCarCheck (8)<br />
 - CUpsideDownCarCheck (5)<br />
@@ -140,11 +149,13 @@ Last update was at Oct 18, 2026 at 16:54:44 UTC
 - CGamma (2)<br />
 - CHudColours (5)<br />
 - CTxdStore (26)<br />
+- CEntityScanner (4)<br />
 - CPedType (13)<br />
 - CAcquaintance (5)<br />
 - CWeather (13)<br />
 - CPathNode (1)<br />
 - CLoadMonitor (7)<br />
+- CPedStats (5)<br />
 - CCarGenerator (8)<br />
 - CTheCarGenerators (7)<br />
 - CCullZones (21)<br />
@@ -153,12 +164,14 @@ Last update was at Oct 18, 2026 at 16:54:44 UTC
 - CStuntJumpManager (7)<br />
 - CLocalisation (18)<br />
 - CSimpleVariablesSaveStructure (2)<br />
+- CPedGeometryAnalyser (38)<br />
 - CIplStore (34)<br />
 - cHandlingDataMgr (11)<br />
 - CLoadingScreen (20)<br />
 - ModelIndices (2)<br />
 - CWaterCannons (4)<br />
 - CWaterCannon (5)<br />
+- CLines (3)<br />
 - CSprite (15)<br />
 - CPlaneTrail (3)<br />
 - CPlaneTrails (4)<br />
@@ -170,7 +183,20 @@ Last update was at Oct 18, 2026 at 16:54:44 UTC
 - VideoMode (4)<br />
 - CCoverPoint (3)<br />
 - CCredits (6)<br />
+- CIdleCam (14)<br />
 - CVehicleSaveStructure (2)<br />
+- CCopPed (7)<br />
+- CPlayerSkin (4)<br />
+- CCivilianPed (3)<br />
+- CPlaceable (16)<br />
+- CEntity (70)<br />
+- CDummy (1)<br />
+- CDummyObject (2)<br />
+- CObject (48)<br />
+- CCutsceneObject (6)<br />
+- CHandObject (3)<br />
+- CBuilding (2)<br />
+- CAnimatedBuilding (3)<br />
 - CStaticShadow (1)<br />
 - CRealTimeShadow (8)<br />
 - CShadowCamera (19)<br />
@@ -185,24 +211,17 @@ Last update was at Oct 18, 2026 at 16:54:44 UTC
 - RwCore (4)<br />
 - Common (9)<br />
 - CCarAI (25)<br />
+- CCarFXRenderer (10)<br />
 - FxSystemBP_c (10)<br />
 - FxSphere_c (4)<br />
 - FxMemoryPool_c (5)<br />
+- FxInfoManager_c (5)<br />
+- FxManager_c (25)<br />
 - FxEmitterPrt_c (1)<br />
 - Fx_c (8)<br />
+- CPedAttractor (20)<br />
 - CPedAttractorPedPlacer (1)<br />
-- CCopPed (7)<br />
-- CPlayerSkin (4)<br />
-- CCivilianPed (3)<br />
-- CPlaceable (16)<br />
-- CEntity (70)<br />
-- CDummy (1)<br />
-- CDummyObject (2)<br />
-- CObject (48)<br />
-- CCutsceneObject (6)<br />
-- CHandObject (3)<br />
-- CBuilding (2)<br />
-- CAnimatedBuilding (3)<br />
+- CPedShelterAttractor (4)<br />
 - CEvent (3)<br />
 - CEventSeenPanickedPed (2)<br />
 - CEventCarUpsideDown (2)<br />
@@ -210,6 +229,7 @@ Last update was at Oct 18, 2026 at 16:54:44 UTC
 - CEventLeanOnVehicle (2)<br />
 - CEventSeenCop (1)<br />
 - CEventOnFire (1)<br />
+- CEventRevived (7)<br />
 - CEventHandlerHistory (10)<br />
 - CEventEditableResponse (11)<br />
 - CEventDamage (20)<br />
@@ -217,9 +237,16 @@ Last update was at Oct 18, 2026 at 16:54:44 UTC
 - CEventScriptedAttractor (1)<br />
 - CEventGunShot (5)<br />
 - CEventGunShotWhizzedBy (2)<br />
+- CEventGunAimedAt (11)<br />
+- CEventDeath (8)<br />
+- CEventDeadPed (9)<br />
+- CEventDraggedOutCar (10)<br />
+- CEventGotKnockedOverByCar (9)<br />
 - CEventKnockOffBike (8)<br />
 - CEventScriptCommand (8)<br />
 - CEventSoundQuiet (3)<br />
+- CEventPedToChase (7)<br />
+- CEventPedToFlee (7)<br />
 - CEventPotentialWalkIntoVehicle (2)<br />
 - CEventPotentialWalkIntoObject (2)<br />
 - CEventPotentialWalkIntoFire (2)<br />
@@ -238,6 +265,8 @@ Last update was at Oct 18, 2026 at 16:54:44 UTC
 - CEventVehicleCollision (3)<br />
 - CEventVehicleDamageCollision (2)<br />
 - CEventHitByWaterCannon (2)<br />
+- CEventInWater (8)<br />
+- CEventCreatePartnerTask (7)<br />
 - CEventInAir (2)<br />
 - CEventStuckInAir (4)<br />
 - CEventAcquaintancePed (4)<br />
@@ -246,7 +275,11 @@ Last update was at Oct 18, 2026 at 16:54:44 UTC
 - CEventLeaderQuitEnteringCarAsDriver (2)<br />
 - CEventAreaCodes (3)<br />
 - CEventLeaderEntryExit (1)<br />
+- CEventSpecial (6)<br />
+- CEventFireNearby (8)<br />
+- CEventGroupEvent (10)<br />
 - CEventGroup (12)<br />
+- CEventHealthReallyLow (7)<br />
 - CEventGlobalGroup (3)<br />
 - CEventPlayerCommandToGroup (2)<br />
 - CEventPlayerCommandToGroupAttack (2)<br />
@@ -255,9 +288,16 @@ Last update was at Oct 18, 2026 at 16:54:44 UTC
 - CEventNewGangMember (1)<br />
 - CEventEscalator (1)<br />
 - CEventDanger (4)<br />
+- CEventSexyVehicle (7)<br />
+- CEventChatPartner (7)<br />
 - CEventCopCarBeingStolen (2)<br />
 - CEventAcquaintancePedHate (1)<br />
 - CEventAcquaintancePedHateBadlyLit (2)<br />
+- CEventInteriorUseInfo (8)<br />
+- CEventLowAngerAtPlayer (5)<br />
+- CEventPedEnteredMyVehicle (9)<br />
+- CEventPotentialGetRunOver (9)<br />
+- CEventSexyPed (8)<br />
 - CRect (8)<br />
 - CMatrixLink (2)<br />
 - CMatrixLinkList (10)<br />
@@ -267,6 +307,7 @@ Last update was at Oct 18, 2026 at 16:54:44 UTC
 - CNodeRoute (2)<br />
 - CKeyGen (4)<br />
 - CModelInfo (28)<br />
+- CBaseModelInfo (34)<br />
 - CAtomicModelInfo (9)<br />
 - CLodAtomicModelInfo (3)<br />
 - CLinkedUpgradeList (2)<br />
@@ -295,6 +336,7 @@ Last update was at Oct 18, 2026 at 16:54:44 UTC
 - CPedGroupDefaultTaskAllocatorFollowLimited (2)<br />
 - CPedGroupDefaultTaskAllocatorStandStill (2)<br />
 - CPedGroupDefaultTaskAllocatorChat (2)<br />
+- CPedGroupDefaultTaskAllocatorRandom (2)<br />
 - CTaskAllocator (3)<br />
 - CTaskAllocatorKillThreatsDriveby (5)<br />
 - CTaskAllocatorKillThreatsBasicRandomGroup (2)<br />
@@ -302,16 +344,19 @@ Last update was at Oct 18, 2026 at 16:54:44 UTC
 - CTaskAllocatorAttack (5)<br />
 - CTaskAllocatorPlayerCommandAttack (3)<br />
 - CTaskComplexUseClosestFreeScriptedAttractorRun (4)<br />
-- CTaskComplexEvasiveDiveAndGetUp (9)<br />
+- CTaskComplexUseClosestFreeScriptedAttractorSprint (4)<br />
 - CTaskSimpleLeaveGroup (2)<br />
 - CTaskComplexDiveFromAttachedEntityAndGetUp (7)<br />
 - CTaskComplexCarSlowBeDraggedOut (11)<br />
-- CTaskComplexDestroyCarArmed (10)<br />
+- CTaskComplexCarSlowBeDraggedOutAndStandUp (9)<br />
+- CTaskComplexDestroyCar (9)<br />
 - CTaskComplexDestroyCarMelee (10)<br />
 - CTaskComplexDieInCar (6)<br />
+- CTaskComplexDragPedFromCar (6)<br />
 - CTaskComplexDrivePointRoute (7)<br />
-- CTaskComplexEnterCarAsDriverTimed (9)<br />
-- CTaskComplexEnterCarAsPassengerTimed (9)<br />
+- CTaskComplexEvasiveCower (8)<br />
+- CTaskComplexEvasiveDiveAndGetUp (9)<br />
+- CTaskComplexEvasiveStep (8)<br />
 - CTaskComplexExtinguishFires (8)<br />
 - CTaskComplexFallToDeath (6)<br />
 - CTaskComplexFleeAnyMeans (8)<br />
@@ -324,6 +369,8 @@ Last update was at Oct 18, 2026 at 16:54:44 UTC
 - CTaskComplexGetOnBoatSeat (8)<br />
 - CTaskComplexGoToBoatSteeringWheel (6)<br />
 - CTaskComplexGoToCarDoorAndStandStill (11)<br />
+- CTaskComplexGoToPointAiming (8)<br />
+- CTaskComplexGoToPointAndStandStillAndAchieveHeading (8)<br />
 - CTaskComplexGoToPointShooting (3)<br />
 - CTaskComplexHitByGunResponse (8)<br />
 - CTaskComplexHitResponse (7)<br />
@@ -339,9 +386,11 @@ Last update was at Oct 18, 2026 at 16:54:44 UTC
 - CTaskComplexLeaveCarAsPassengerWait (10)<br />
 - CTaskComplexMoveBackAndJump (8)<br />
 - CTaskComplexOnFire (9)<br />
+- CTaskComplexOpenDriverDoor (4)<br />
 - CTaskComplexPassObject (9)<br />
 - CTaskComplexReactToGunAimedAt (8)<br />
 - CTaskComplexRoadRage (9)<br />
+- CTaskComplexScreamInCarThenLeave (9)<br />
 - CTaskComplexSeekCoverUntilTargetDead (10)<br />
 - CTaskComplexSeekEntityRadiusAngleOffset (9)<br />
 - CTaskComplexSeekEntityStandard (9)<br />
@@ -351,6 +400,7 @@ Last update was at Oct 18, 2026 at 16:54:44 UTC
 - CTaskComplexShuffleSeats (10)<br />
 - CTaskComplexSitDownThenIdleThenStandUp (9)<br />
 - CTaskComplexSmartFleeEntity (7)<br />
+- CTaskComplexSmartFleePoint (12)<br />
 - CTaskComplexStareAtPed (7)<br />
 - CTaskComplexStealCar (8)<br />
 - CTaskComplexTrackEntity (11)<br />
@@ -361,6 +411,7 @@ Last update was at Oct 18, 2026 at 16:54:44 UTC
 - CTaskComplexUseEffect (8)<br />
 - CTaskComplexUseEffectRunning (2)<br />
 - CTaskComplexUseEffectSprinting (2)<br />
+- CTaskComplexUsePairedAttractor (11)<br />
 - CTaskComplexUseScriptedBrain (8)<br />
 - CTaskComplexUseScriptedAttractor (7)<br />
 - CTaskComplexWaitAtAttractor (7)<br />
@@ -392,9 +443,13 @@ Last update was at Oct 18, 2026 at 16:54:44 UTC
 - CTaskSimpleCarWaitForDoorNotToBeInUse (7)<br />
 - CTaskSimpleCower (4)<br />
 - CTaskSimpleClearLookAt (6)<br />
+- CTaskSimpleDieInCar (5)<br />
+- CTaskSimpleDoHandSignal (6)<br />
 - CTaskSimpleDrown (1)<br />
 - CTaskSimpleDrownInCar (1)<br />
 - CTaskSimpleDuckToggle (6)<br />
+- CTaskSimpleEvasiveDive (8)<br />
+- CTaskSimpleEvasiveStep (6)<br />
 - CTaskSimpleFinishBrain (2)<br />
 - CTaskSimpleGunControl (6)<br />
 - CTaskSimpleHandsUp (4)<br />
@@ -436,12 +491,12 @@ Last update was at Oct 18, 2026 at 16:54:44 UTC
 - CTaskSimpleCreateCarAndGetIn (6)<br />
 - CTaskComplexEnterAnyCarAsDriver (5)<br />
 - CTaskComplexLeaveAnyCar (7)<br />
+- CTaskSimpleAbseil (3)<br />
 - CTaskComplexWanderCop (9)<br />
 - CTaskSimpleStandStill (3)<br />
-- CTaskComplexPartnerChat (1)<br />
+- CTaskSimpleScratchHead (4)<br />
 - CTaskComplexObserveTrafficLightsAndAchieveHeading (5)<br />
 - CTaskSimpleInAir (4)<br />
-- CTaskComplexFollowPedFootsteps (1)<br />
 - CTaskComplexGetUpAndStandStill (5)<br />
 - CTaskSimpleDie (7)<br />
 - CTaskSimpleDuck (15)<br />
@@ -454,13 +509,16 @@ Last update was at Oct 18, 2026 at 16:54:44 UTC
 - CTaskSimpleUninterruptable (1)<br />
 - CTaskComplexFallAndGetUp (9)<br />
 - CTaskComplexFollowNodeRoute (19)<br />
+- CTaskSimpleTriggerLookAt (6)<br />
 - CTaskSimpleHitHead (4)<br />
 - CTaskSimpleLand (6)<br />
+- CTaskSimpleSetStayInSamePlace (6)<br />
 - CTaskSimpleJump (8)<br />
 - CTaskSimpleFall (6)<br />
 - CTaskSimpleClimb (15)<br />
 - CTaskComplexJump (6)<br />
 - CTaskComplexEnterCar (14)<br />
+- CTaskSimpleTogglePedThreatScanner (6)<br />
 - CTaskComplexUseGoggles (5)<br />
 - CTaskComplexGoToPointAndStandStill (7)<br />
 - CTaskSimpleAchieveHeading (5)<br />
@@ -468,8 +526,15 @@ Last update was at Oct 18, 2026 at 16:54:44 UTC
 - CTaskComplexDriveFireTruck (6)<br />
 - CTaskSimpleSwim (11)<br />
 - CTaskSimplePause (4)<br />
+- CTaskComplexEnterCarAsDriver (3)<br />
+- CTaskComplexEnterCarAsDriverTimed (9)<br />
+- CTaskComplexEnterCarAsPassenger (4)<br />
+- CTaskComplexEnterCarAsPassengerTimed (9)<br />
+- CTaskSimpleNone (5)<br />
 - CTaskSimpleThrowProjectile (9)<br />
 - CTaskSimpleGoToPoint (6)<br />
+- CTaskComplexWanderMedic (5)<br />
+- CTaskSimpleCarDriveTimed (5)<br />
 - CTaskSimpleStealthKill (7)<br />
 - CTaskSimpleAnim (1)<br />
 - CTaskSimpleRunAnim (5)<br />
@@ -480,11 +545,10 @@ Last update was at Oct 18, 2026 at 16:54:44 UTC
 - CTaskComplexCarDriveMission (5)<br />
 - CTaskComplexTreatAccident (7)<br />
 - CTaskComplexGoToPointAndStandStillTimed (6)<br />
-- CTaskComplexPartnerShove (1)<br />
 - CTaskComplexStuckInAir (6)<br />
 - CTaskSimpleHoldEntity (14)<br />
 - CTaskSimpleGoTo (4)<br />
-- CTaskComplexPartner (1)<br />
+- CTaskComplexWander (16)<br />
 - CTaskSimplePutDownEntity (3)<br />
 - CTaskComplexUseSwatRope (7)<br />
 - CTaskSimpleGoToPointFine (8)<br />
@@ -497,6 +561,7 @@ Last update was at Oct 18, 2026 at 16:54:44 UTC
 - CTaskComplexUseWaterCannon (5)<br />
 - CTaskSimplePickUpEntity (4)<br />
 - CTaskComplexBeInGroup (10)<br />
+- CTaskComplexBeCop (4)<br />
 - CTaskComplexAvoidOtherPedWhileWandering (15)<br />
 - CEntitySeekPosCalculatorStandard (1)<br />
 - CEntitySeekPosCalculatorRadiusAngleOffset (1)<br />
@@ -516,6 +581,7 @@ Last update was at Oct 18, 2026 at 16:54:44 UTC
 - BreakablePlugin (6)<br />
 - RtAnim (1)<br />
 - CDecisionMakerTypesFileLoader (7)<br />
+- CDecision (3)<br />
 - CText (9)<br />
 - CMissionTextOffsets (1)<br />
 - CData (2)<br />
@@ -560,7 +626,7 @@ Last update was at Oct 18, 2026 at 16:54:44 UTC
 - CAEStreamThread (14)<br />
 - CAudioEngine (82)<br />
 - CAudioZones (5)<br />
-- CAECollisionAudioEntity (17)<br />
+- CAECollisionAudioEntity (18)<br />
 - CAEDoorAudioEntity (6)<br />
 - CAEExplosionAudioEntity (3)<br />
 - CAEFireAudioEntity (7)<br />
@@ -572,6 +638,9 @@ Last update was at Oct 18, 2026 at 16:54:44 UTC
 - CAEWaterCannonAudioEntity (7)<br />
 - CAEWeatherAudioEntity (5)<br />
 - CAEAudioChannel (12)<br />
+- CAEAudioHardware (55)<br />
+- CAEStaticChannel (8)<br />
+- CAEStreamingChannel (24)<br />
 - CAEBankLoader (6)<br />
 - CAEDataStream (20)<br />
 - CAEStreamTransformer (2)<br />
@@ -586,7 +655,7 @@ Last update was at Oct 18, 2026 at 16:54:44 UTC
 - CAECutsceneTrackManager (8)<br />
 - CAESoundManager (14)<br />
 - CAEUserRadioTrackManager (15)<br />
-- CAutomobile (99)<br />
+- CAutomobile (101)<br />
 - CBoat (23)<br />
 - CHeli (11)<br />
 - CTrailer (13)<br />
@@ -598,14 +667,13 @@ Last update was at Oct 18, 2026 at 16:54:44 UTC
 
 </details>
 
-#### Partially reversed categories (130/718) [18%]
+#### Partially reversed categories (136/797) [17%]
 
 <details>
 <summary>See list of categories</summary>
 - CPedGroupPlacer (1/4) [25%]<br />
-- CPedGroup (10/12) [83%]<br />
 - CPopCycle (14/15) [93%]<br />
-- CInterestingEvents (2/7) [29%]<br />
+- CInterestingEvents (3/7) [43%]<br />
 - CMenuSystem (20/21) [95%]<br />
 - CWeaponEffects (8/9) [89%]<br />
 - CPedList (5/7) [71%]<br />
@@ -615,21 +683,16 @@ Last update was at Oct 18, 2026 at 16:54:44 UTC
 - C_PcSave (4/5) [80%]<br />
 - CFileLoader (47/48) [98%]<br />
 - CClothesBuilder (15/23) [65%]<br />
-- CClothes (10/11) [91%]<br />
 - CPopulation (64/66) [97%]<br />
-- SurfaceInfos_c (47/48) [98%]<br />
 - CPedGroupIntelligence (26/27) [96%]<br />
-- CCollision (59/61) [97%]<br />
-- CPedDamageResponseCalculator (2/7) [29%]<br />
 - CWaterLevel (25/35) [71%]<br />
 - CWeapon (35/41) [85%]<br />
-- CStats (32/51) [63%]<br />
-- CCarCtrl (21/110) [19%]<br />
+- CStats (38/51) [75%]<br />
+- CCarCtrl (27/110) [25%]<br />
 - CGarage (4/18) [22%]<br />
 - CGarages (21/27) [78%]<br />
 - CPostEffects (35/38) [92%]<br />
 - CStencilShadows (9/13) [69%]<br />
-- CFont (32/36) [89%]<br />
 - CCamera (97/114) [85%]<br />
 - CGangWars (32/35) [91%]<br />
 - CRoadBlocks (7/8) [88%]<br />
@@ -639,113 +702,129 @@ Last update was at Oct 18, 2026 at 16:54:44 UTC
 - CEntryExit (10/11) [91%]<br />
 - CPlayerInfo (25/28) [89%]<br />
 - CCarEnterExit (27/32) [84%]<br />
-- CEntityScanner (3/4) [75%]<br />
 - CPathFind (54/62) [87%]<br />
-- CPedStats (4/5) [80%]<br />
-- CPedGeometryAnalyser (9/38) [24%]<br />
 - CRadar (63/65) [97%]<br />
 - CPickups (35/37) [95%]<br />
 - CCustomBuildingRenderer (3/7) [43%]<br />
-- CProjectileInfo (1/12) [8%]<br />
+- CProjectileInfo (2/12) [17%]<br />
 - CPools (16/19) [84%]<br />
-- CIdleCam (13/14) [93%]<br />
-- CRealTimeShadowManager (5/7) [71%]<br />
-- CShadows (21/31) [68%]<br />
-- CCam (20/45) [44%]<br />
-- CCarFXRenderer (9/10) [90%]<br />
-- FxSystem_c (31/35) [89%]<br />
-- FxPrimBP_c (1/2) [50%]<br />
-- FxInfoManager_c (4/5) [80%]<br />
-- FxManager_c (24/25) [96%]<br />
-- FxEmitterBP_c (2/9) [22%]<br />
 - CPed (137/145) [94%]<br />
 - CPlayerPed (50/65) [77%]<br />
 - CPhysical (54/56) [96%]<br />
+- CRealTimeShadowManager (5/7) [71%]<br />
+- CShadows (21/31) [68%]<br />
+- CCam (20/45) [44%]<br />
+- FxSystem_c (31/35) [89%]<br />
+- FxPrimBP_c (1/2) [50%]<br />
+- FxEmitterBP_c (2/9) [22%]<br />
 - CGroupEventHandler (30/32) [94%]<br />
 - CEventHandler (69/72) [96%]<br />
-- CBaseModelInfo (33/34) [97%]<br />
+- CEventScanner (1/4) [25%]<br />
 - CPedGroupDefaultTaskAllocatorSitInLeaderCar (1/2) [50%]<br />
-- CPedGroupDefaultTaskAllocatorRandom (1/2) [50%]<br />
 - CTaskAllocatorKillThreatsBasic (5/6) [83%]<br />
-- CTaskComplexUseClosestFreeScriptedAttractorSprint (2/4) [50%]<br />
 - CTaskComplexUseClosestFreeScriptedAttractor (6/8) [75%]<br />
-- CTaskSimpleChoking (5/7) [71%]<br />
+- CTaskSimpleChoking (5/8) [62%]<br />
 - CTaskGangHasslePed (2/5) [40%]<br />
-- CTaskGangHassleVehicle (2/8) [25%]<br />
+- CTaskGangHassleVehicle (3/8) [38%]<br />
 - CTaskGoToVehicleAndLean (2/7) [29%]<br />
 - CTaskLeanOnVehicle (4/5) [80%]<br />
-- CTaskComplexCarSlowBeDraggedOutAndStandUp (3/9) [33%]<br />
-- CTaskComplexDestroyCar (8/9) [89%]<br />
-- CTaskComplexDragPedFromCar (1/2) [50%]<br />
-- CTaskComplexGangJoinRespond (2/7) [29%]<br />
+- CTaskComplexDestroyCarArmed (9/10) [90%]<br />
+- CTaskComplexFollowPatrolRoute (5/9) [56%]<br />
+- CTaskComplexGangJoinRespond (3/7) [43%]<br />
 - CTaskComplexGoToAttractor (2/5) [40%]<br />
-- CTaskComplexGoToPointAiming (6/8) [75%]<br />
-- CTaskComplexGoToPointAndStandStillAndAchieveHeading (3/7) [43%]<br />
-- CTaskComplexGoToPointAnyMeans (3/7) [43%]<br />
+- CTaskComplexGoToPointAnyMeans (5/7) [71%]<br />
 - CTaskComplexGotoDoorAndOpen (3/7) [43%]<br />
 - CTaskComplexKillCriminal (9/11) [82%]<br />
 - CTaskComplexKillPedOnFootArmed (9/11) [82%]<br />
-- CTaskComplexLeaveCarAndWander (2/8) [25%]<br />
+- CTaskComplexLeaveCarAndWander (4/8) [50%]<br />
+- CTaskComplexOpenPassengerDoor (3/4) [75%]<br />
 - CTaskComplexSignalAtPed (4/7) [57%]<br />
-- CTaskComplexSmartFleePoint (2/12) [17%]<br />
-- CTaskComplexWaitForBus (2/7) [29%]<br />
+- CTaskComplexWaitForBus (4/7) [57%]<br />
+- CTaskSimpleBeKickedOnGround (4/8) [50%]<br />
+- CTaskSimpleCarForcePedOut (4/6) [67%]<br />
+- CTaskSimpleDead (5/6) [83%]<br />
 - CTaskSimpleFightingControl (6/7) [86%]<br />
+- CTaskSimpleOnEscalator (4/5) [80%]<br />
+- CTaskComplexUseMobilePhone (5/10) [50%]<br />
 - CTaskSimpleCarDrive (7/13) [54%]<br />
+- CTaskComplexPartnerChat (4/6) [67%]<br />
 - CTaskSimpleUseGun (18/19) [95%]<br />
+- CTaskSimpleGangDriveBy (4/12) [33%]<br />
+- CTaskComplexHitPedWithCar (6/10) [60%]<br />
 - CTaskSimplePlayerOnFoot (11/12) [92%]<br />
-- CTaskComplexFollowLeaderInFormation (1/7) [14%]<br />
+- CTaskComplexFollowPedFootsteps (5/9) [56%]<br />
+- CTaskComplexGoPickUpEntity (4/7) [57%]<br />
+- CTaskComplexFollowLeaderInFormation (6/8) [75%]<br />
 - CTaskUtilityLineUpPedWithCar (2/5) [40%]<br />
 - CTaskSimpleJetPack (13/14) [93%]<br />
-- CTaskComplexPlayHandSignalAnim (3/9) [33%]<br />
-- CTaskComplexSunbathe (2/8) [25%]<br />
-- CTaskComplexWalkRoundObject (1/2) [50%]<br />
-- CTaskComplexKillPedOnFoot (1/2) [50%]<br />
+- CTaskComplexPlayHandSignalAnim (4/9) [44%]<br />
+- CTaskComplexWaitForPed (7/8) [88%]<br />
+- CTaskComplexWanderStandard (5/10) [50%]<br />
+- CTaskComplexSunbathe (4/8) [50%]<br />
+- CTaskComplexCrossRoadLookAndAchieveHeading (5/9) [56%]<br />
+- CTaskComplexBeInCouple (7/9) [78%]<br />
+- CTaskSimpleCarSetPedInAsPassenger (5/6) [83%]<br />
+- CTaskComplexWalkRoundObject (5/8) [62%]<br />
+- CTaskComplexEnterCarAsPassengerWait (4/8) [50%]<br />
+- CTaskComplexKillPedOnFoot (3/8) [38%]<br />
+- CTaskComplexCarDriveWander (4/6) [67%]<br />
+- CTaskSimpleCarSetPedOut (5/7) [71%]<br />
+- CTaskComplexWanderCriminal (4/6) [67%]<br />
+- CTaskComplexWanderProstitute (4/5) [80%]<br />
 - CTaskComplexWalkRoundCar (9/13) [69%]<br />
-- CTaskComplexKillPedFromBoat (2/7) [29%]<br />
-- CTaskSimpleRunNamedAnim (4/7) [57%]<br />
-- CTaskComplexWander (13/14) [93%]<br />
+- CTaskComplexKillPedFromBoat (3/7) [43%]<br />
+- CTaskComplexLeaveCar (6/11) [55%]<br />
+- CTaskComplexPartnerShove (4/5) [80%]<br />
+- CTaskSimpleRunNamedAnim (5/7) [71%]<br />
+- CTaskComplexProstituteSolicit (7/11) [64%]<br />
+- CTaskComplexPartner (4/10) [40%]<br />
+- CTaskSimpleCarSetPedInAsDriver (5/6) [83%]<br />
+- CTaskComplexDriveToPoint (6/9) [67%]<br />
+- CTaskSimpleSlideToCoord (6/7) [86%]<br />
+- CTaskComplexPartnerDeal (5/7) [71%]<br />
 - CTaskComplexArrestPed (4/7) [57%]<br />
 - CScriptsForBrains (3/10) [30%]<br />
 - RpAnimBlend (42/43) [98%]<br />
-- CDecision (1/3) [33%]<br />
 - CCustomBuildingDNPipeline (14/16) [88%]<br />
 - CConversations (10/11) [91%]<br />
 - CPedToPlayerConversations (2/3) [67%]<br />
-- CAEFrontendAudioEntity (4/6) [67%]<br />
+- CAEFrontendAudioEntity (5/6) [83%]<br />
 - CAEPedAudioEntity (16/20) [80%]<br />
 - CAEPoliceScannerAudioEntity (13/17) [76%]<br />
-- CAEScriptAudioEntity (8/19) [42%]<br />
-- CAEVehicleAudioEntity (102/106) [96%]<br />
-- CAEAudioHardware (54/55) [98%]<br />
-- CAEStaticChannel (7/8) [88%]<br />
-- CAEStreamingChannel (21/24) [88%]<br />
+- CAEScriptAudioEntity (17/19) [89%]<br />
+- CAEVehicleAudioEntity (103/106) [97%]<br />
 - CAEAmbienceTrackManager (6/7) [86%]<br />
-- CAERadioTrackManager (29/43) [67%]<br />
+- CAERadioTrackManager (34/43) [79%]<br />
 - CBike (22/40) [55%]<br />
 - CBmx (7/10) [70%]<br />
 - CMonsterTruck (5/11) [45%]<br />
 - CPlane (14/23) [61%]<br />
 - CQuadBike (11/12) [92%]<br />
-- CTrain (20/40) [50%]<br />
-- CVehicle (145/149) [97%]<br />
-- InteriorGroup_c (2/24) [8%]<br />
+- CTrain (22/41) [54%]<br />
+- CVehicle (157/160) [98%]<br />
+- Interior_c (1/52) [2%]<br />
+- InteriorGroup_c (3/24) [12%]<br />
 - CRunningScript (24/39) [62%]<br />
 - CTheScripts (68/69) [99%]<br />
 - CScripted2dEffects (4/5) [80%]<br />
 
 </details>
 
-#### Not-at-all reversed categories (8/718) [1%]
+#### Not-at-all reversed categories (12/797) [2%]
 
 <details>
 <summary>See list of categories</summary>
+- CPedStuckChecker (1)<br />
+- CMentalState (2)<br />
+- CPedSaveStructure (2)<br />
+- D3DResourceSystem (12)<br />
 - FxEmitter_c (1)<br />
+- CEventSource (1)<br />
 - CTaskComplexGangFollower (7)<br />
 - CTaskSimpleFight (5)<br />
 - CDecisionMakerTypes (8)<br />
 - CConversationForPed (2)<br />
 - FurnitureSubGroup_c (3)<br />
-- Interior_c (52)<br />
 - CMemoryMgr (7)<br />
 
 </details>

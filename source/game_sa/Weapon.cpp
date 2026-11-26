@@ -302,9 +302,7 @@ bool CWeapon::FireSniper(CPed* shooter, CEntity* victim, CVector* target) {
     if (vecFrontZ_Y > 0.99699998f)
         CCoronas::MoonSize = (CCoronas::MoonSize + 1) % 8;
 
-    CVector velocity = activeCam.m_vecFront;
-    velocity.Normalise();
-    velocity *= 16.0f;
+    const auto velocity = activeCam.m_vecFront.Normalized() * 16.0f;
 
     CBulletInfo::AddBullet(shooter, m_Type, activeCam.m_vecSource, velocity);
 
@@ -824,7 +822,7 @@ bool CWeapon::TakePhotograph(CEntity* owner, const CVector* point) {
         }
 
         if (!CheckIsLOSBlocked(
-            pedHeadPos + Normalized(camPos - pedHeadPos) * 1.5f, // Point from ped's head towards camera
+            pedHeadPos + (camPos - pedHeadPos).Normalized() * 1.5f, // Point from ped's head towards camera
             &ped
         )) {
             ped.bHasBeenPhotographed = true;
@@ -1678,7 +1676,7 @@ bool CWeapon::Fire(CEntity* firedBy, CVector* startPosn, CVector* barrelPosn, CE
     case WEAPONSTATE_FIRING:
         break;
     default:
-        return false;
+               return false;
     }
 
     if (!m_AmmoInClip) {

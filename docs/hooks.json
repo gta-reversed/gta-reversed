@@ -30,6 +30,16 @@
     "IsReversed": true
   },
   {
+    "Category": "CPatrolRoute",
+    "Name": "operator new",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPatrolRoute",
+    "Name": "operator delete",
+    "IsReversed": true
+  },
+  {
     "Category": "CControllerConfigManager",
     "Name": "Constructor",
     "IsReversed": true
@@ -660,6 +670,46 @@
     "IsReversed": true
   },
   {
+    "Category": "CPedStuckChecker",
+    "Name": "TestPedStuck",
+    "IsReversed": false
+  },
+  {
+    "Category": "CPlayerRelationshipRecorder",
+    "Name": "Flush",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPlayerRelationshipRecorder",
+    "Name": "ClearRelationshipWithPlayer",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPlayerRelationshipRecorder",
+    "Name": "AddRelationship",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPlayerRelationshipRecorder",
+    "Name": "GetRelationshipWithPlayer",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPlayerRelationshipRecorder",
+    "Name": "RecordRelationshipWithPlayer",
+    "IsReversed": true
+  },
+  {
+    "Category": "CRemote",
+    "Name": "TakeRemoteControlledCarFromPlayer",
+    "IsReversed": true
+  },
+  {
+    "Category": "CRemote",
+    "Name": "GivePlayerRemoteControlledCar",
+    "IsReversed": true
+  },
+  {
     "Category": "CLoadedCarGroup",
     "Name": "Clear",
     "IsReversed": true
@@ -737,7 +787,7 @@
   {
     "Category": "CPedGroup",
     "Name": "PlayerGaveCommand_Gather",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CPedGroup",
@@ -757,7 +807,7 @@
   {
     "Category": "CPedGroup",
     "Name": "FindDistanceToFurthestMember",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CPedGroup",
@@ -1482,7 +1532,7 @@
   {
     "Category": "CInterestingEvents",
     "Name": "Add",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CInterestingEvents",
@@ -4057,7 +4107,7 @@
   {
     "Category": "CClothes",
     "Name": "GetTextureDependency",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CClothes",
@@ -4950,6 +5000,11 @@
     "IsReversed": true
   },
   {
+    "Category": "CGame",
+    "Name": "D3DDeviceRestoreCallback",
+    "IsReversed": true
+  },
+  {
     "Category": "CControllerState",
     "Name": "Clear",
     "IsReversed": true
@@ -5366,6 +5421,11 @@
   },
   {
     "Category": "SurfaceInfos_c",
+    "Name": "LoadSurfaceInfos",
+    "IsReversed": true
+  },
+  {
+    "Category": "SurfaceInfos_c",
     "Name": "GetAdhesionGroup",
     "IsReversed": true
   },
@@ -5592,7 +5652,7 @@
   {
     "Category": "SurfaceInfos_c",
     "Name": "LoadAdhesiveLimits",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CRenderer",
@@ -6902,12 +6962,12 @@
   {
     "Category": "CCollision",
     "Name": "CalculateTrianglePlanes-CColModelPtr",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CCollision",
     "Name": "RemoveTrianglePlanes-CColModelPtr",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTrafficLights",
@@ -7137,17 +7197,17 @@
   {
     "Category": "CPedDamageResponseCalculator",
     "Name": "AccountForPedDamageStats",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CPedDamageResponseCalculator",
     "Name": "AccountForPedArmour",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CPedDamageResponseCalculator",
     "Name": "ComputeWillForceDeath",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CPedDamageResponseCalculator",
@@ -7156,13 +7216,8 @@
   },
   {
     "Category": "CPedDamageResponseCalculator",
-    "Name": "IsBleedingWeapon",
-    "IsReversed": false
-  },
-  {
-    "Category": "CPedDamageResponseCalculator",
     "Name": "ComputeDamageResponse",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CPedClothesDesc",
@@ -8162,17 +8217,17 @@
   {
     "Category": "CStats",
     "Name": "PopulateFavoriteRadioStationList",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CStats",
     "Name": "FindMostFavoriteRadioStation",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CStats",
     "Name": "FindLeastFavoriteRadioStation",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CStats",
@@ -8242,17 +8297,17 @@
   {
     "Category": "CStats",
     "Name": "UpdateStatsWhenWeaponHit",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CStats",
     "Name": "UpdateStatsOnRespawn",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CStats",
     "Name": "UpdateStatsAddToHealth",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CCarCtrl",
@@ -8372,7 +8427,7 @@
   {
     "Category": "CCarCtrl",
     "Name": "ClearInterestingVehicleList",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CCarCtrl",
@@ -8407,7 +8462,7 @@
   {
     "Category": "CCarCtrl",
     "Name": "FindIntersection2Lines",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CCarCtrl",
@@ -8432,22 +8487,22 @@
   {
     "Category": "CCarCtrl",
     "Name": "FindPercDependingOnDistToLink",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CCarCtrl",
     "Name": "FindSequenceElement",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CCarCtrl",
     "Name": "FindSpeedMultiplier",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CCarCtrl",
     "Name": "FindSpeedMultiplierWithSpeedFromNodes",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CCarCtrl",
@@ -10426,16 +10481,6 @@
   },
   {
     "Category": "CFont",
-    "Name": "PrintChar",
-    "IsReversed": false
-  },
-  {
-    "Category": "CFont",
-    "Name": "ParseToken",
-    "IsReversed": true
-  },
-  {
-    "Category": "CFont",
     "Name": "SetScale",
     "IsReversed": true
   },
@@ -10531,8 +10576,23 @@
   },
   {
     "Category": "CFont",
+    "Name": "PrintChar",
+    "IsReversed": true
+  },
+  {
+    "Category": "CFont",
+    "Name": "GetNextSpace",
+    "IsReversed": true
+  },
+  {
+    "Category": "CFont",
+    "Name": "ParseToken",
+    "IsReversed": true
+  },
+  {
+    "Category": "CFont",
     "Name": "RenderFontBuffer",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CFont",
@@ -10547,7 +10607,7 @@
   {
     "Category": "CFont",
     "Name": "ProcessCurrentString",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CFont",
@@ -10566,7 +10626,12 @@
   },
   {
     "Category": "CFont",
-    "Name": "PrintString",
+    "Name": "PrintString-null-terminated",
+    "IsReversed": true
+  },
+  {
+    "Category": "CFont",
+    "Name": "PrintString-ranged",
     "IsReversed": true
   },
   {
@@ -10587,11 +10652,16 @@
   {
     "Category": "CFont",
     "Name": "FindSubFontCharacter",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CFont",
-    "Name": "GetLetterIdPropValue",
+    "Name": "GetScriptLetterSize",
+    "IsReversed": true
+  },
+  {
+    "Category": "CFont",
+    "Name": "GetLetterIdPropValue-",
     "IsReversed": true
   },
   {
@@ -13852,7 +13922,7 @@
   {
     "Category": "CEntityScanner",
     "Name": "ScanForEntitiesInRange",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CPedType",
@@ -14382,6 +14452,16 @@
   {
     "Category": "CPedStats",
     "Name": "FindIndexWithPedStat",
+    "IsReversed": true
+  },
+  {
+    "Category": "CMentalState",
+    "Name": "IncrementAnger",
+    "IsReversed": false
+  },
+  {
+    "Category": "CMentalState",
+    "Name": "Process",
     "IsReversed": false
   },
   {
@@ -14746,13 +14826,13 @@
   },
   {
     "Category": "CPedGeometryAnalyser",
-    "Name": "CanPedJumpObstacle-",
-    "IsReversed": false
+    "Name": "CanPedJumpObstacle-LoS",
+    "IsReversed": true
   },
   {
     "Category": "CPedGeometryAnalyser",
-    "Name": "CanPedJumpObstacle-contacted",
-    "IsReversed": false
+    "Name": "CanPedJumpObstacle-Contacted",
+    "IsReversed": true
   },
   {
     "Category": "CPedGeometryAnalyser",
@@ -14762,17 +14842,17 @@
   {
     "Category": "CPedGeometryAnalyser",
     "Name": "CanPedTargetPoint",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CPedGeometryAnalyser",
     "Name": "ComputeBuildingHitPoints",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CPedGeometryAnalyser",
     "Name": "ComputeClearTarget",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CPedGeometryAnalyser",
@@ -14781,13 +14861,13 @@
   },
   {
     "Category": "CPedGeometryAnalyser",
-    "Name": "ComputeClosestSurfacePoint-posn",
-    "IsReversed": false
+    "Name": "ComputeClosestSurfacePoint-pos",
+    "IsReversed": true
   },
   {
     "Category": "CPedGeometryAnalyser",
     "Name": "ComputeClosestSurfacePoint-rect",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CPedGeometryAnalyser",
@@ -14807,12 +14887,12 @@
   {
     "Category": "CPedGeometryAnalyser",
     "Name": "ComputeEntityBoundingBoxCornersUncached",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CPedGeometryAnalyser",
     "Name": "ComputeEntityBoundingBoxPlanes",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CPedGeometryAnalyser",
@@ -14832,7 +14912,7 @@
   {
     "Category": "CPedGeometryAnalyser",
     "Name": "ComputeEntityBoundingBoxSegmentPlanesUncached",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CPedGeometryAnalyser",
@@ -14842,97 +14922,97 @@
   {
     "Category": "CPedGeometryAnalyser",
     "Name": "ComputeEntityBoundingSphere",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CPedGeometryAnalyser",
-    "Name": "ComputeMoveDirToAvoidEntity",
-    "IsReversed": false
+    "Name": "ComputeMoveDirToAvoidEntity-OG",
+    "IsReversed": true
   },
   {
     "Category": "CPedGeometryAnalyser",
     "Name": "ComputeEntityDirs",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CPedGeometryAnalyser",
     "Name": "ComputeEntityHitSide-1",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CPedGeometryAnalyser",
     "Name": "ComputeEntityHitSide-2",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CPedGeometryAnalyser",
     "Name": "ComputeEntityHitSide-3",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CPedGeometryAnalyser",
     "Name": "ComputePedHitSide-physical",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CPedGeometryAnalyser",
-    "Name": "ComputePedHitSide-posn",
-    "IsReversed": false
+    "Name": "ComputePedHitSide-pos",
+    "IsReversed": true
   },
   {
     "Category": "CPedGeometryAnalyser",
     "Name": "ComputePedShotSide",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CPedGeometryAnalyser",
-    "Name": "ComputeRouteRoundEntityBoundingBox-1",
-    "IsReversed": false
+    "Name": "ComputeRouteRoundEntityBoundingBox-Entity",
+    "IsReversed": true
   },
   {
     "Category": "CPedGeometryAnalyser",
     "Name": "ComputeRouteRoundEntityBoundingBox-2",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CPedGeometryAnalyser",
     "Name": "ComputeRouteRoundSphere",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CPedGeometryAnalyser",
     "Name": "GetIsLineOfSightClear-ped",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CPedGeometryAnalyser",
     "Name": "GetIsLineOfSightClear-v3d",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CPedGeometryAnalyser",
     "Name": "GetNearestPed",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CPedGeometryAnalyser",
     "Name": "IsEntityBlockingTarget",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CPedGeometryAnalyser",
     "Name": "IsInAir",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CPedGeometryAnalyser",
     "Name": "IsWanderPathClear",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CPedGeometryAnalyser",
     "Name": "LiesInsideBoundingBox",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CIplStore",
@@ -15640,6 +15720,21 @@
     "IsReversed": true
   },
   {
+    "Category": "CLines",
+    "Name": "RenderLineNoClipping-",
+    "IsReversed": true
+  },
+  {
+    "Category": "CLines",
+    "Name": "RenderLineWithClipping-",
+    "IsReversed": true
+  },
+  {
+    "Category": "CLines",
+    "Name": "ImmediateLine2D-",
+    "IsReversed": true
+  },
+  {
     "Category": "CSprite",
     "Name": "Initialise",
     "IsReversed": true
@@ -16122,7 +16217,7 @@
   {
     "Category": "CProjectileInfo",
     "Name": "GetProjectileInfo",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CProjectileInfo",
@@ -16527,7 +16622,7 @@
   {
     "Category": "CIdleCam",
     "Name": "ProcessFOVZoom",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CIdleCam",
@@ -16555,1624 +16650,14 @@
     "IsReversed": true
   },
   {
-    "Category": "CStaticShadow",
-    "Name": "Free",
-    "IsReversed": true
-  },
-  {
-    "Category": "CRealTimeShadowManager",
-    "Name": "Init",
-    "IsReversed": true
-  },
-  {
-    "Category": "CRealTimeShadowManager",
-    "Name": "ReInit",
+    "Category": "CPedSaveStructure",
+    "Name": "Construct",
     "IsReversed": false
   },
   {
-    "Category": "CRealTimeShadowManager",
-    "Name": "ReturnRealTimeShadow",
-    "IsReversed": true
-  },
-  {
-    "Category": "CRealTimeShadowManager",
-    "Name": "GetRealTimeShadow",
+    "Category": "CPedSaveStructure",
+    "Name": "Extract",
     "IsReversed": false
-  },
-  {
-    "Category": "CRealTimeShadowManager",
-    "Name": "Update",
-    "IsReversed": true
-  },
-  {
-    "Category": "CRealTimeShadowManager",
-    "Name": "DoShadowThisFrame",
-    "IsReversed": true
-  },
-  {
-    "Category": "CRealTimeShadowManager",
-    "Name": "Exit",
-    "IsReversed": true
-  },
-  {
-    "Category": "CRealTimeShadow",
-    "Name": "Constructor",
-    "IsReversed": true
-  },
-  {
-    "Category": "CRealTimeShadow",
-    "Name": "Destructor",
-    "IsReversed": true
-  },
-  {
-    "Category": "CRealTimeShadow",
-    "Name": "SetLightProperties",
-    "IsReversed": true
-  },
-  {
-    "Category": "CRealTimeShadow",
-    "Name": "GetShadowRwTexture",
-    "IsReversed": true
-  },
-  {
-    "Category": "CRealTimeShadow",
-    "Name": "DrawBorderAroundTexture",
-    "IsReversed": true
-  },
-  {
-    "Category": "CRealTimeShadow",
-    "Name": "Create",
-    "IsReversed": true
-  },
-  {
-    "Category": "CRealTimeShadow",
-    "Name": "Update",
-    "IsReversed": true
-  },
-  {
-    "Category": "CRealTimeShadow",
-    "Name": "Destroy",
-    "IsReversed": true
-  },
-  {
-    "Category": "CShadowCamera",
-    "Name": "Constructor",
-    "IsReversed": true
-  },
-  {
-    "Category": "CShadowCamera",
-    "Name": "Destructor",
-    "IsReversed": true
-  },
-  {
-    "Category": "CShadowCamera",
-    "Name": "Destroy",
-    "IsReversed": true
-  },
-  {
-    "Category": "CShadowCamera",
-    "Name": "SetFrustum",
-    "IsReversed": true
-  },
-  {
-    "Category": "CShadowCamera",
-    "Name": "SetLight",
-    "IsReversed": true
-  },
-  {
-    "Category": "CShadowCamera",
-    "Name": "SetCenter",
-    "IsReversed": true
-  },
-  {
-    "Category": "CShadowCamera",
-    "Name": "InvertRaster",
-    "IsReversed": true
-  },
-  {
-    "Category": "CShadowCamera",
-    "Name": "GetRwRenderRaster",
-    "IsReversed": true
-  },
-  {
-    "Category": "CShadowCamera",
-    "Name": "GetRwRenderTexture",
-    "IsReversed": true
-  },
-  {
-    "Category": "CShadowCamera",
-    "Name": "DrawOutlineBorder",
-    "IsReversed": true
-  },
-  {
-    "Category": "CShadowCamera",
-    "Name": "Create",
-    "IsReversed": true
-  },
-  {
-    "Category": "CShadowCamera",
-    "Name": "Update-Clump",
-    "IsReversed": true
-  },
-  {
-    "Category": "CShadowCamera",
-    "Name": "Update-Atomic",
-    "IsReversed": true
-  },
-  {
-    "Category": "CShadowCamera",
-    "Name": "MakeGradientRaster",
-    "IsReversed": true
-  },
-  {
-    "Category": "CShadowCamera",
-    "Name": "RasterResample",
-    "IsReversed": true
-  },
-  {
-    "Category": "CShadowCamera",
-    "Name": "RasterBlur",
-    "IsReversed": true
-  },
-  {
-    "Category": "CShadowCamera",
-    "Name": "DrawBlurryRaster2",
-    "IsReversed": true
-  },
-  {
-    "Category": "CShadowCamera",
-    "Name": "atomicQuickRender",
-    "IsReversed": true
-  },
-  {
-    "Category": "CShadowCamera",
-    "Name": "Im2DRenderQuad",
-    "IsReversed": true
-  },
-  {
-    "Category": "CShadows",
-    "Name": "Init",
-    "IsReversed": true
-  },
-  {
-    "Category": "CShadows",
-    "Name": "Shutdown",
-    "IsReversed": true
-  },
-  {
-    "Category": "CShadows",
-    "Name": "TidyUpShadows",
-    "IsReversed": true
-  },
-  {
-    "Category": "CShadows",
-    "Name": "AddPermanentShadow",
-    "IsReversed": false
-  },
-  {
-    "Category": "CShadows",
-    "Name": "UpdatePermanentShadows",
-    "IsReversed": false
-  },
-  {
-    "Category": "CShadows",
-    "Name": "StoreShadowToBeRendered-Texture",
-    "IsReversed": true
-  },
-  {
-    "Category": "CShadows",
-    "Name": "StoreShadowToBeRendered-Type",
-    "IsReversed": true
-  },
-  {
-    "Category": "CShadows",
-    "Name": "SetRenderModeForShadowType",
-    "IsReversed": true
-  },
-  {
-    "Category": "CShadows",
-    "Name": "RemoveOilInArea",
-    "IsReversed": true
-  },
-  {
-    "Category": "CShadows",
-    "Name": "GunShotSetsOilOnFire",
-    "IsReversed": true
-  },
-  {
-    "Category": "CShadows",
-    "Name": "PrintDebugPoly",
-    "IsReversed": true
-  },
-  {
-    "Category": "CShadows",
-    "Name": "CalcPedShadowValues",
-    "IsReversed": true
-  },
-  {
-    "Category": "CShadows",
-    "Name": "AffectColourWithLighting",
-    "IsReversed": true
-  },
-  {
-    "Category": "CShadows",
-    "Name": "StoreShadowForPedObject",
-    "IsReversed": true
-  },
-  {
-    "Category": "CShadows",
-    "Name": "StoreRealTimeShadow",
-    "IsReversed": true
-  },
-  {
-    "Category": "CShadows",
-    "Name": "UpdateStaticShadows",
-    "IsReversed": true
-  },
-  {
-    "Category": "CShadows",
-    "Name": "RenderExtraPlayerShadows",
-    "IsReversed": true
-  },
-  {
-    "Category": "CShadows",
-    "Name": "RenderStaticShadows",
-    "IsReversed": true
-  },
-  {
-    "Category": "CShadows",
-    "Name": "CastShadowEntityXY",
-    "IsReversed": false
-  },
-  {
-    "Category": "CShadows",
-    "Name": "CastShadowEntityXYZ",
-    "IsReversed": false
-  },
-  {
-    "Category": "CShadows",
-    "Name": "CastPlayerShadowSectorList<CPtrListSingleLink<CPhysical*>>",
-    "IsReversed": true
-  },
-  {
-    "Category": "CShadows",
-    "Name": "CastShadowSectorList<CPtrListSingleLink<CPhysical*>>",
-    "IsReversed": false
-  },
-  {
-    "Category": "CShadows",
-    "Name": "CastRealTimeShadowSectorList<CPtrListSingleLink<CPhysical*>>",
-    "IsReversed": false
-  },
-  {
-    "Category": "CShadows",
-    "Name": "RenderStoredShadows",
-    "IsReversed": true
-  },
-  {
-    "Category": "CShadows",
-    "Name": "GeneratePolysForStaticShadow",
-    "IsReversed": false
-  },
-  {
-    "Category": "CShadows",
-    "Name": "StoreStaticShadow",
-    "IsReversed": false
-  },
-  {
-    "Category": "CShadows",
-    "Name": "StoreShadowForVehicle",
-    "IsReversed": false
-  },
-  {
-    "Category": "CShadows",
-    "Name": "StoreCarLightShadow",
-    "IsReversed": true
-  },
-  {
-    "Category": "CShadows",
-    "Name": "StoreShadowForPole",
-    "IsReversed": true
-  },
-  {
-    "Category": "CShadows",
-    "Name": "RenderIndicatorShadow",
-    "IsReversed": true
-  },
-  {
-    "Category": "CShadows",
-    "Name": "ShadowRenderTriangleCB",
-    "IsReversed": false
-  },
-  {
-    "Category": "ProcObjectMan_c",
-    "Name": "Init",
-    "IsReversed": true
-  },
-  {
-    "Category": "ProcObjectMan_c",
-    "Name": "Update",
-    "IsReversed": true
-  },
-  {
-    "Category": "ProcObjectMan_c",
-    "Name": "Exit",
-    "IsReversed": true
-  },
-  {
-    "Category": "ProcObjectMan_c",
-    "Name": "LoadDataFile",
-    "IsReversed": true
-  },
-  {
-    "Category": "ProcObjectMan_c",
-    "Name": "GetEntityFromPool",
-    "IsReversed": true
-  },
-  {
-    "Category": "ProcObjectMan_c",
-    "Name": "ReturnEntityToPool",
-    "IsReversed": true
-  },
-  {
-    "Category": "ProcObjectMan_c",
-    "Name": "ProcessTriangleAdded",
-    "IsReversed": true
-  },
-  {
-    "Category": "ProcObjectMan_c",
-    "Name": "ProcessTriangleRemoved",
-    "IsReversed": true
-  },
-  {
-    "Category": "ProcSurfaceInfo_c",
-    "Name": "Init",
-    "IsReversed": true
-  },
-  {
-    "Category": "ProcSurfaceInfo_c",
-    "Name": "Exit",
-    "IsReversed": true
-  },
-  {
-    "Category": "ProcSurfaceInfo_c",
-    "Name": "AddObject",
-    "IsReversed": true
-  },
-  {
-    "Category": "ProcSurfaceInfo_c",
-    "Name": "AddObjects",
-    "IsReversed": true
-  },
-  {
-    "Category": "CPlantColEntEntry",
-    "Name": "AddEntry",
-    "IsReversed": true
-  },
-  {
-    "Category": "CPlantColEntEntry",
-    "Name": "ReleaseEntry",
-    "IsReversed": true
-  },
-  {
-    "Category": "CPlantMgr",
-    "Name": "Initialise",
-    "IsReversed": true
-  },
-  {
-    "Category": "CPlantMgr",
-    "Name": "Shutdown",
-    "IsReversed": true
-  },
-  {
-    "Category": "CPlantMgr",
-    "Name": "ReloadConfig",
-    "IsReversed": true
-  },
-  {
-    "Category": "CPlantMgr",
-    "Name": "MoveLocTriToList",
-    "IsReversed": true
-  },
-  {
-    "Category": "CPlantMgr",
-    "Name": "MoveColEntToList",
-    "IsReversed": true
-  },
-  {
-    "Category": "CPlantMgr",
-    "Name": "SetPlantFriendlyFlagInAtomicMI",
-    "IsReversed": true
-  },
-  {
-    "Category": "CPlantMgr",
-    "Name": "Update",
-    "IsReversed": true
-  },
-  {
-    "Category": "CPlantMgr",
-    "Name": "PreUpdateOnceForNewCameraPos",
-    "IsReversed": true
-  },
-  {
-    "Category": "CPlantMgr",
-    "Name": "UpdateAmbientColor",
-    "IsReversed": true
-  },
-  {
-    "Category": "CPlantMgr",
-    "Name": "CalculateWindBending",
-    "IsReversed": true
-  },
-  {
-    "Category": "CPlantMgr",
-    "Name": "_ColEntityCache_Add",
-    "IsReversed": true
-  },
-  {
-    "Category": "CPlantMgr",
-    "Name": "_ColEntityCache_FindInCache",
-    "IsReversed": true
-  },
-  {
-    "Category": "CPlantMgr",
-    "Name": "_ColEntityCache_Remove",
-    "IsReversed": true
-  },
-  {
-    "Category": "CPlantMgr",
-    "Name": "_ColEntityCache_Update",
-    "IsReversed": true
-  },
-  {
-    "Category": "CPlantMgr",
-    "Name": "_ProcessEntryCollisionDataSections",
-    "IsReversed": true
-  },
-  {
-    "Category": "CPlantMgr",
-    "Name": "_ProcessEntryCollisionDataSections_AddLocTris",
-    "IsReversed": true
-  },
-  {
-    "Category": "CPlantMgr",
-    "Name": "_ProcessEntryCollisionDataSections_RemoveLocTris",
-    "IsReversed": true
-  },
-  {
-    "Category": "CPlantMgr",
-    "Name": "_UpdateLocTris",
-    "IsReversed": true
-  },
-  {
-    "Category": "CPlantMgr",
-    "Name": "Render",
-    "IsReversed": true
-  },
-  {
-    "Category": "CPlantLocTri",
-    "Name": "Add",
-    "IsReversed": true
-  },
-  {
-    "Category": "CPlantLocTri",
-    "Name": "Release",
-    "IsReversed": true
-  },
-  {
-    "Category": "CPlantLocTri",
-    "Name": "GetPlantDensity",
-    "IsReversed": true
-  },
-  {
-    "Category": "CGrassRenderer",
-    "Name": "Initialise",
-    "IsReversed": true
-  },
-  {
-    "Category": "CGrassRenderer",
-    "Name": "Shutdown",
-    "IsReversed": true
-  },
-  {
-    "Category": "CGrassRenderer",
-    "Name": "AddTriPlant",
-    "IsReversed": true
-  },
-  {
-    "Category": "CGrassRenderer",
-    "Name": "DrawTriPlants",
-    "IsReversed": true
-  },
-  {
-    "Category": "CGrassRenderer",
-    "Name": "FlushTriPlantBuffer",
-    "IsReversed": true
-  },
-  {
-    "Category": "CGrassRenderer",
-    "Name": "GetPlantModelsTab",
-    "IsReversed": true
-  },
-  {
-    "Category": "CGrassRenderer",
-    "Name": "SetPlantModelsTab",
-    "IsReversed": true
-  },
-  {
-    "Category": "CGrassRenderer",
-    "Name": "SetCloseFarAlphaDist",
-    "IsReversed": true
-  },
-  {
-    "Category": "CGrassRenderer",
-    "Name": "SetCurrentScanCode",
-    "IsReversed": true
-  },
-  {
-    "Category": "CGrassRenderer",
-    "Name": "SetGlobalCameraPos",
-    "IsReversed": true
-  },
-  {
-    "Category": "CGrassRenderer",
-    "Name": "SetGlobalWindBending",
-    "IsReversed": true
-  },
-  {
-    "Category": "CGrassRenderer",
-    "Name": "GenPointInTriangle",
-    "IsReversed": true
-  },
-  {
-    "Category": "CPPTriPlantBuffer",
-    "Name": "Flush",
-    "IsReversed": true
-  },
-  {
-    "Category": "CPPTriPlantBuffer",
-    "Name": "GetPPTriPlantPtr",
-    "IsReversed": true
-  },
-  {
-    "Category": "CPPTriPlantBuffer",
-    "Name": "ChangeCurrentPlantModelsSet",
-    "IsReversed": true
-  },
-  {
-    "Category": "CPPTriPlantBuffer",
-    "Name": "IncreaseBufferIndex",
-    "IsReversed": true
-  },
-  {
-    "Category": "CPPTriPlantBuffer",
-    "Name": "GetPlantModelsTab",
-    "IsReversed": true
-  },
-  {
-    "Category": "CPPTriPlantBuffer",
-    "Name": "SetPlantModelsTab",
-    "IsReversed": true
-  },
-  {
-    "Category": "CPPTriPlantBuffer",
-    "Name": "SetGrassMaterialCB",
-    "IsReversed": true
-  },
-  {
-    "Category": "CPlantSurfPropMgr",
-    "Name": "Initialise",
-    "IsReversed": true
-  },
-  {
-    "Category": "CPlantSurfPropMgr",
-    "Name": "AllocSurfProperties",
-    "IsReversed": true
-  },
-  {
-    "Category": "CPlantSurfPropMgr",
-    "Name": "GetSurfProperties",
-    "IsReversed": true
-  },
-  {
-    "Category": "CPlantSurfPropMgr",
-    "Name": "LoadPlantsDat",
-    "IsReversed": true
-  },
-  {
-    "Category": "RwCore",
-    "Name": "RwCameraBeginUpdate",
-    "IsReversed": true
-  },
-  {
-    "Category": "RwCore",
-    "Name": "RwCameraEndUpdate",
-    "IsReversed": true
-  },
-  {
-    "Category": "RwCore",
-    "Name": "RwCameraClear",
-    "IsReversed": true
-  },
-  {
-    "Category": "RwCore",
-    "Name": "RwCameraShowRaster",
-    "IsReversed": true
-  },
-  {
-    "Category": "Common",
-    "Name": "MakeUpperCase-",
-    "IsReversed": true
-  },
-  {
-    "Category": "Common",
-    "Name": "MakeUpperCase-in",
-    "IsReversed": true
-  },
-  {
-    "Category": "Common",
-    "Name": "AsciiToGxtChar",
-    "IsReversed": true
-  },
-  {
-    "Category": "Common",
-    "Name": "WriteRaster",
-    "IsReversed": true
-  },
-  {
-    "Category": "Common",
-    "Name": "CalcScreenCoors-VVff",
-    "IsReversed": true
-  },
-  {
-    "Category": "Common",
-    "Name": "CalcScreenCoors-VV",
-    "IsReversed": true
-  },
-  {
-    "Category": "Common",
-    "Name": "LittleTest",
-    "IsReversed": true
-  },
-  {
-    "Category": "Common",
-    "Name": "DoesInfiniteLineTouchScreen",
-    "IsReversed": true
-  },
-  {
-    "Category": "Common",
-    "Name": "IsPointInsideLine",
-    "IsReversed": true
-  },
-  {
-    "Category": "CCam",
-    "Name": "Constructor",
-    "IsReversed": true
-  },
-  {
-    "Category": "CCam",
-    "Name": "Init",
-    "IsReversed": true
-  },
-  {
-    "Category": "CCam",
-    "Name": "CacheLastSettingsDWCineyCam",
-    "IsReversed": true
-  },
-  {
-    "Category": "CCam",
-    "Name": "DoCamBump",
-    "IsReversed": true
-  },
-  {
-    "Category": "CCam",
-    "Name": "Finalise_DW_CineyCams",
-    "IsReversed": true
-  },
-  {
-    "Category": "CCam",
-    "Name": "GetCoreDataForDWCineyCamMode",
-    "IsReversed": true
-  },
-  {
-    "Category": "CCam",
-    "Name": "GetLookFromLampPostPos",
-    "IsReversed": true
-  },
-  {
-    "Category": "CCam",
-    "Name": "GetVectorsReadyForRW",
-    "IsReversed": true
-  },
-  {
-    "Category": "CCam",
-    "Name": "Get_TwoPlayer_AimVector",
-    "IsReversed": true
-  },
-  {
-    "Category": "CCam",
-    "Name": "IsTimeToExitThisDWCineyCamMode",
-    "IsReversed": true
-  },
-  {
-    "Category": "CCam",
-    "Name": "KeepTrackOfTheSpeed",
-    "IsReversed": true
-  },
-  {
-    "Category": "CCam",
-    "Name": "LookBehind",
-    "IsReversed": false
-  },
-  {
-    "Category": "CCam",
-    "Name": "LookRight",
-    "IsReversed": false
-  },
-  {
-    "Category": "CCam",
-    "Name": "RotCamIfInFrontCar",
-    "IsReversed": true
-  },
-  {
-    "Category": "CCam",
-    "Name": "Using3rdPersonMouseCam",
-    "IsReversed": true
-  },
-  {
-    "Category": "CCam",
-    "Name": "Process",
-    "IsReversed": false
-  },
-  {
-    "Category": "CCam",
-    "Name": "ProcessArrestCamOne",
-    "IsReversed": false
-  },
-  {
-    "Category": "CCam",
-    "Name": "ProcessPedsDeadBaby",
-    "IsReversed": false
-  },
-  {
-    "Category": "CCam",
-    "Name": "Process_1rstPersonPedOnPC",
-    "IsReversed": false
-  },
-  {
-    "Category": "CCam",
-    "Name": "Process_1stPerson",
-    "IsReversed": true
-  },
-  {
-    "Category": "CCam",
-    "Name": "Process_AimWeapon",
-    "IsReversed": false
-  },
-  {
-    "Category": "CCam",
-    "Name": "Process_AttachedCam",
-    "IsReversed": false
-  },
-  {
-    "Category": "CCam",
-    "Name": "Process_Cam_TwoPlayer",
-    "IsReversed": false
-  },
-  {
-    "Category": "CCam",
-    "Name": "Process_Cam_TwoPlayer_InCarAndShooting",
-    "IsReversed": false
-  },
-  {
-    "Category": "CCam",
-    "Name": "Process_Cam_TwoPlayer_Separate_Cars",
-    "IsReversed": false
-  },
-  {
-    "Category": "CCam",
-    "Name": "Process_Cam_TwoPlayer_Separate_Cars_TopDown",
-    "IsReversed": true
-  },
-  {
-    "Category": "CCam",
-    "Name": "Process_DW_BirdyCam",
-    "IsReversed": false
-  },
-  {
-    "Category": "CCam",
-    "Name": "Process_DW_CamManCam",
-    "IsReversed": false
-  },
-  {
-    "Category": "CCam",
-    "Name": "Process_DW_HeliChaseCam",
-    "IsReversed": false
-  },
-  {
-    "Category": "CCam",
-    "Name": "Process_DW_PlaneCam1",
-    "IsReversed": false
-  },
-  {
-    "Category": "CCam",
-    "Name": "Process_DW_PlaneCam2",
-    "IsReversed": false
-  },
-  {
-    "Category": "CCam",
-    "Name": "Process_DW_PlaneCam3",
-    "IsReversed": false
-  },
-  {
-    "Category": "CCam",
-    "Name": "Process_DW_PlaneSpotterCam",
-    "IsReversed": false
-  },
-  {
-    "Category": "CCam",
-    "Name": "Process_Editor",
-    "IsReversed": true
-  },
-  {
-    "Category": "CCam",
-    "Name": "Process_Fixed",
-    "IsReversed": true
-  },
-  {
-    "Category": "CCam",
-    "Name": "Process_FlyBy",
-    "IsReversed": false
-  },
-  {
-    "Category": "CCam",
-    "Name": "Process_FollowCar_SA",
-    "IsReversed": false
-  },
-  {
-    "Category": "CCam",
-    "Name": "Process_FollowPedWithMouse",
-    "IsReversed": false
-  },
-  {
-    "Category": "CCam",
-    "Name": "Process_FollowPed_SA",
-    "IsReversed": false
-  },
-  {
-    "Category": "CCam",
-    "Name": "Process_M16_1stPerson",
-    "IsReversed": false
-  },
-  {
-    "Category": "CCam",
-    "Name": "Process_Rocket",
-    "IsReversed": true
-  },
-  {
-    "Category": "CCam",
-    "Name": "Process_SpecialFixedForSyphon",
-    "IsReversed": false
-  },
-  {
-    "Category": "CCam",
-    "Name": "Process_WheelCam",
-    "IsReversed": false
-  },
-  {
-    "Category": "CCam",
-    "Name": "WellBufferMe",
-    "IsReversed": true
-  },
-  {
-    "Category": "CCam",
-    "Name": "WrapAngle",
-    "IsReversed": true
-  },
-  {
-    "Category": "CCarAI",
-    "Name": "AddAmbulanceOccupants",
-    "IsReversed": true
-  },
-  {
-    "Category": "CCarAI",
-    "Name": "AddFiretruckOccupants",
-    "IsReversed": true
-  },
-  {
-    "Category": "CCarAI",
-    "Name": "AddPoliceCarOccupants",
-    "IsReversed": true
-  },
-  {
-    "Category": "CCarAI",
-    "Name": "BackToCruisingIfNoWantedLevel",
-    "IsReversed": true
-  },
-  {
-    "Category": "CCarAI",
-    "Name": "CarHasReasonToStop",
-    "IsReversed": true
-  },
-  {
-    "Category": "CCarAI",
-    "Name": "EntitiesGoHeadOn",
-    "IsReversed": true
-  },
-  {
-    "Category": "CCarAI",
-    "Name": "FindPoliceBikeMissionForWantedLevel",
-    "IsReversed": true
-  },
-  {
-    "Category": "CCarAI",
-    "Name": "FindPoliceBoatMissionForWantedLevel",
-    "IsReversed": true
-  },
-  {
-    "Category": "CCarAI",
-    "Name": "FindPoliceCarMissionForWantedLevel",
-    "IsReversed": true
-  },
-  {
-    "Category": "CCarAI",
-    "Name": "FindPoliceCarSpeedForWantedLevel",
-    "IsReversed": true
-  },
-  {
-    "Category": "CCarAI",
-    "Name": "FindSwitchDistanceClose",
-    "IsReversed": true
-  },
-  {
-    "Category": "CCarAI",
-    "Name": "FindSwitchDistanceFar",
-    "IsReversed": true
-  },
-  {
-    "Category": "CCarAI",
-    "Name": "GetCarToGoToCoors",
-    "IsReversed": true
-  },
-  {
-    "Category": "CCarAI",
-    "Name": "GetCarToGoToCoorsAccurate",
-    "IsReversed": true
-  },
-  {
-    "Category": "CCarAI",
-    "Name": "GetCarToGoToCoorsRacing",
-    "IsReversed": true
-  },
-  {
-    "Category": "CCarAI",
-    "Name": "GetCarToGoToCoorsStraightLine",
-    "IsReversed": true
-  },
-  {
-    "Category": "CCarAI",
-    "Name": "GetCarToParkAtCoors",
-    "IsReversed": true
-  },
-  {
-    "Category": "CCarAI",
-    "Name": "MakeWayForCarWithSiren",
-    "IsReversed": true
-  },
-  {
-    "Category": "CCarAI",
-    "Name": "MellowOutChaseSpeed",
-    "IsReversed": true
-  },
-  {
-    "Category": "CCarAI",
-    "Name": "MellowOutChaseSpeedBoat",
-    "IsReversed": true
-  },
-  {
-    "Category": "CCarAI",
-    "Name": "TellCarToBlockOtherCar",
-    "IsReversed": true
-  },
-  {
-    "Category": "CCarAI",
-    "Name": "TellCarToFollowOtherCar",
-    "IsReversed": true
-  },
-  {
-    "Category": "CCarAI",
-    "Name": "TellCarToRamOtherCar",
-    "IsReversed": true
-  },
-  {
-    "Category": "CCarAI",
-    "Name": "TellOccupantsToLeaveCar",
-    "IsReversed": true
-  },
-  {
-    "Category": "CCarAI",
-    "Name": "UpdateCarAI",
-    "IsReversed": true
-  },
-  {
-    "Category": "CCarFXRenderer",
-    "Name": "RegisterPlugins",
-    "IsReversed": true
-  },
-  {
-    "Category": "CCarFXRenderer",
-    "Name": "Initialise",
-    "IsReversed": true
-  },
-  {
-    "Category": "CCarFXRenderer",
-    "Name": "InitialiseDirtTexture",
-    "IsReversed": false
-  },
-  {
-    "Category": "CCarFXRenderer",
-    "Name": "Shutdown",
-    "IsReversed": true
-  },
-  {
-    "Category": "CCarFXRenderer",
-    "Name": "PreRenderUpdate",
-    "IsReversed": true
-  },
-  {
-    "Category": "CCarFXRenderer",
-    "Name": "IsCCPCPipelineAttached",
-    "IsReversed": true
-  },
-  {
-    "Category": "CCarFXRenderer",
-    "Name": "CustomCarPipeAtomicSetup",
-    "IsReversed": true
-  },
-  {
-    "Category": "CCarFXRenderer",
-    "Name": "CustomCarPipeClumpSetup",
-    "IsReversed": true
-  },
-  {
-    "Category": "CCarFXRenderer",
-    "Name": "SetCustomFXAtomicRenderPipelinesVMICB",
-    "IsReversed": true
-  },
-  {
-    "Category": "CCarFXRenderer",
-    "Name": "SetFxEnvMapLightMult",
-    "IsReversed": true
-  },
-  {
-    "Category": "FxSystemBP_c",
-    "Name": "operator new",
-    "IsReversed": true
-  },
-  {
-    "Category": "FxSystemBP_c",
-    "Name": "Constructor",
-    "IsReversed": true
-  },
-  {
-    "Category": "FxSystemBP_c",
-    "Name": "Destructor",
-    "IsReversed": true
-  },
-  {
-    "Category": "FxSystemBP_c",
-    "Name": "Load",
-    "IsReversed": true
-  },
-  {
-    "Category": "FxSystemBP_c",
-    "Name": "Unload",
-    "IsReversed": true
-  },
-  {
-    "Category": "FxSystemBP_c",
-    "Name": "Update",
-    "IsReversed": true
-  },
-  {
-    "Category": "FxSystemBP_c",
-    "Name": "Render",
-    "IsReversed": true
-  },
-  {
-    "Category": "FxSystemBP_c",
-    "Name": "FreePrtFromSystem",
-    "IsReversed": true
-  },
-  {
-    "Category": "FxSystemBP_c",
-    "Name": "GetBoundingSphere",
-    "IsReversed": true
-  },
-  {
-    "Category": "FxSystemBP_c",
-    "Name": "SetBoundingSphere",
-    "IsReversed": true
-  },
-  {
-    "Category": "FxSystem_c",
-    "Name": "Constructor",
-    "IsReversed": true
-  },
-  {
-    "Category": "FxSystem_c",
-    "Name": "Destructor",
-    "IsReversed": true
-  },
-  {
-    "Category": "FxSystem_c",
-    "Name": "Init",
-    "IsReversed": true
-  },
-  {
-    "Category": "FxSystem_c",
-    "Name": "Exit",
-    "IsReversed": true
-  },
-  {
-    "Category": "FxSystem_c",
-    "Name": "Play",
-    "IsReversed": true
-  },
-  {
-    "Category": "FxSystem_c",
-    "Name": "Pause",
-    "IsReversed": true
-  },
-  {
-    "Category": "FxSystem_c",
-    "Name": "Stop",
-    "IsReversed": true
-  },
-  {
-    "Category": "FxSystem_c",
-    "Name": "PlayAndKill",
-    "IsReversed": true
-  },
-  {
-    "Category": "FxSystem_c",
-    "Name": "Kill",
-    "IsReversed": true
-  },
-  {
-    "Category": "FxSystem_c",
-    "Name": "AttachToBone",
-    "IsReversed": true
-  },
-  {
-    "Category": "FxSystem_c",
-    "Name": "AddParticle-v3d",
-    "IsReversed": false
-  },
-  {
-    "Category": "FxSystem_c",
-    "Name": "AddParticle-mat",
-    "IsReversed": false
-  },
-  {
-    "Category": "FxSystem_c",
-    "Name": "EnablePrim",
-    "IsReversed": true
-  },
-  {
-    "Category": "FxSystem_c",
-    "Name": "SetMatrix",
-    "IsReversed": true
-  },
-  {
-    "Category": "FxSystem_c",
-    "Name": "SetOffsetPos",
-    "IsReversed": true
-  },
-  {
-    "Category": "FxSystem_c",
-    "Name": "AddOffsetPos",
-    "IsReversed": true
-  },
-  {
-    "Category": "FxSystem_c",
-    "Name": "CopyParentMatrix",
-    "IsReversed": true
-  },
-  {
-    "Category": "FxSystem_c",
-    "Name": "GetCompositeMatrix",
-    "IsReversed": true
-  },
-  {
-    "Category": "FxSystem_c",
-    "Name": "GetPlayStatus",
-    "IsReversed": true
-  },
-  {
-    "Category": "FxSystem_c",
-    "Name": "ForAllParticles",
-    "IsReversed": true
-  },
-  {
-    "Category": "FxSystem_c",
-    "Name": "UpdateBoundingBoxCB",
-    "IsReversed": false
-  },
-  {
-    "Category": "FxSystem_c",
-    "Name": "GetBoundingSphereWld",
-    "IsReversed": true
-  },
-  {
-    "Category": "FxSystem_c",
-    "Name": "GetBoundingSphereLcl",
-    "IsReversed": true
-  },
-  {
-    "Category": "FxSystem_c",
-    "Name": "SetBoundingSphere",
-    "IsReversed": true
-  },
-  {
-    "Category": "FxSystem_c",
-    "Name": "ResetBoundingSphere",
-    "IsReversed": true
-  },
-  {
-    "Category": "FxSystem_c",
-    "Name": "SetConstTime",
-    "IsReversed": true
-  },
-  {
-    "Category": "FxSystem_c",
-    "Name": "SetRateMult",
-    "IsReversed": true
-  },
-  {
-    "Category": "FxSystem_c",
-    "Name": "SetTimeMult",
-    "IsReversed": true
-  },
-  {
-    "Category": "FxSystem_c",
-    "Name": "SetVelAdd",
-    "IsReversed": true
-  },
-  {
-    "Category": "FxSystem_c",
-    "Name": "SetLocalParticles",
-    "IsReversed": true
-  },
-  {
-    "Category": "FxSystem_c",
-    "Name": "SetZTestEnable",
-    "IsReversed": true
-  },
-  {
-    "Category": "FxSystem_c",
-    "Name": "SetMustCreatePrts",
-    "IsReversed": true
-  },
-  {
-    "Category": "FxSystem_c",
-    "Name": "DoFxAudio",
-    "IsReversed": true
-  },
-  {
-    "Category": "FxSystem_c",
-    "Name": "IsVisible",
-    "IsReversed": true
-  },
-  {
-    "Category": "FxSystem_c",
-    "Name": "Update",
-    "IsReversed": false
-  },
-  {
-    "Category": "FxSphere_c",
-    "Name": "operator new",
-    "IsReversed": true
-  },
-  {
-    "Category": "FxSphere_c",
-    "Name": "operator delete-",
-    "IsReversed": true
-  },
-  {
-    "Category": "FxSphere_c",
-    "Name": "IsCollision",
-    "IsReversed": true
-  },
-  {
-    "Category": "FxSphere_c",
-    "Name": "GetDistToPlane",
-    "IsReversed": true
-  },
-  {
-    "Category": "FxPrimBP_c",
-    "Name": "GetRWMatrix",
-    "IsReversed": true
-  },
-  {
-    "Category": "FxPrimBP_c",
-    "Name": "Load",
-    "IsReversed": false
-  },
-  {
-    "Category": "FxMemoryPool_c",
-    "Name": "Init",
-    "IsReversed": true
-  },
-  {
-    "Category": "FxMemoryPool_c",
-    "Name": "Exit",
-    "IsReversed": true
-  },
-  {
-    "Category": "FxMemoryPool_c",
-    "Name": "Reset",
-    "IsReversed": true
-  },
-  {
-    "Category": "FxMemoryPool_c",
-    "Name": "GetMem",
-    "IsReversed": true
-  },
-  {
-    "Category": "FxMemoryPool_c",
-    "Name": "Optimise",
-    "IsReversed": true
-  },
-  {
-    "Category": "FxInfoManager_c",
-    "Name": "AddFxInfo",
-    "IsReversed": true
-  },
-  {
-    "Category": "FxInfoManager_c",
-    "Name": "Load",
-    "IsReversed": false
-  },
-  {
-    "Category": "FxInfoManager_c",
-    "Name": "ProcessEmissionInfo",
-    "IsReversed": true
-  },
-  {
-    "Category": "FxInfoManager_c",
-    "Name": "ProcessMovementInfo",
-    "IsReversed": true
-  },
-  {
-    "Category": "FxInfoManager_c",
-    "Name": "ProcessRenderInfo",
-    "IsReversed": true
-  },
-  {
-    "Category": "FxManager_c",
-    "Name": "Constructor",
-    "IsReversed": true
-  },
-  {
-    "Category": "FxManager_c",
-    "Name": "Destructor",
-    "IsReversed": true
-  },
-  {
-    "Category": "FxManager_c",
-    "Name": "Init",
-    "IsReversed": true
-  },
-  {
-    "Category": "FxManager_c",
-    "Name": "Exit",
-    "IsReversed": true
-  },
-  {
-    "Category": "FxManager_c",
-    "Name": "DestroyFxSystem",
-    "IsReversed": true
-  },
-  {
-    "Category": "FxManager_c",
-    "Name": "DestroyAllFxSystems",
-    "IsReversed": false
-  },
-  {
-    "Category": "FxManager_c",
-    "Name": "Update",
-    "IsReversed": true
-  },
-  {
-    "Category": "FxManager_c",
-    "Name": "LoadFxProject",
-    "IsReversed": true
-  },
-  {
-    "Category": "FxManager_c",
-    "Name": "UnloadFxProject",
-    "IsReversed": true
-  },
-  {
-    "Category": "FxManager_c",
-    "Name": "LoadFxSystemBP",
-    "IsReversed": true
-  },
-  {
-    "Category": "FxManager_c",
-    "Name": "FindFxSystemBP",
-    "IsReversed": true
-  },
-  {
-    "Category": "FxManager_c",
-    "Name": "GetFrustumInfo",
-    "IsReversed": true
-  },
-  {
-    "Category": "FxManager_c",
-    "Name": "CalcFrustumInfo",
-    "IsReversed": true
-  },
-  {
-    "Category": "FxManager_c",
-    "Name": "Render",
-    "IsReversed": true
-  },
-  {
-    "Category": "FxManager_c",
-    "Name": "ReturnParticle",
-    "IsReversed": true
-  },
-  {
-    "Category": "FxManager_c",
-    "Name": "GetParticle",
-    "IsReversed": true
-  },
-  {
-    "Category": "FxManager_c",
-    "Name": "FreeUpParticle",
-    "IsReversed": true
-  },
-  {
-    "Category": "FxManager_c",
-    "Name": "SetWindData",
-    "IsReversed": true
-  },
-  {
-    "Category": "FxManager_c",
-    "Name": "FxRwMatrixCreate",
-    "IsReversed": true
-  },
-  {
-    "Category": "FxManager_c",
-    "Name": "FxRwMatrixDestroy",
-    "IsReversed": true
-  },
-  {
-    "Category": "FxManager_c",
-    "Name": "ShouldCreate",
-    "IsReversed": true
-  },
-  {
-    "Category": "FxManager_c",
-    "Name": "CreateFxSystem-2",
-    "IsReversed": true
-  },
-  {
-    "Category": "FxManager_c",
-    "Name": "CreateFxSystem-1",
-    "IsReversed": true
-  },
-  {
-    "Category": "FxManager_c",
-    "Name": "CreateFxSystem-4",
-    "IsReversed": true
-  },
-  {
-    "Category": "FxManager_c",
-    "Name": "CreateFxSystem-3",
-    "IsReversed": true
-  },
-  {
-    "Category": "FxEmitterPrt_c",
-    "Name": "operator new[]",
-    "IsReversed": true
-  },
-  {
-    "Category": "FxEmitterBP_c",
-    "Name": "Constructor",
-    "IsReversed": true
-  },
-  {
-    "Category": "FxEmitterBP_c",
-    "Name": "RenderHeatHaze",
-    "IsReversed": false
-  },
-  {
-    "Category": "FxEmitterBP_c",
-    "Name": "UpdateParticle",
-    "IsReversed": false
-  },
-  {
-    "Category": "FxEmitterBP_c",
-    "Name": "CreateInstance",
-    "IsReversed": false
-  },
-  {
-    "Category": "FxEmitterBP_c",
-    "Name": "Update",
-    "IsReversed": false
-  },
-  {
-    "Category": "FxEmitterBP_c",
-    "Name": "Load",
-    "IsReversed": false
-  },
-  {
-    "Category": "FxEmitterBP_c",
-    "Name": "LoadTextures",
-    "IsReversed": true
-  },
-  {
-    "Category": "FxEmitterBP_c",
-    "Name": "Render",
-    "IsReversed": false
-  },
-  {
-    "Category": "FxEmitterBP_c",
-    "Name": "FreePrtFromPrim",
-    "IsReversed": false
-  },
-  {
-    "Category": "FxEmitter_c",
-    "Name": "CreateParticles",
-    "IsReversed": false
-  },
-  {
-    "Category": "Fx_c",
-    "Name": "TriggerWaterSplash",
-    "IsReversed": true
-  },
-  {
-    "Category": "Fx_c",
-    "Name": "TriggerBulletSplash",
-    "IsReversed": true
-  },
-  {
-    "Category": "Fx_c",
-    "Name": "TriggerFootSplash",
-    "IsReversed": true
-  },
-  {
-    "Category": "Fx_c",
-    "Name": "RenderAddTri_",
-    "IsReversed": true
-  },
-  {
-    "Category": "Fx_c",
-    "Name": "RenderEnd",
-    "IsReversed": true
-  },
-  {
-    "Category": "Fx_c",
-    "Name": "RenderBegin",
-    "IsReversed": true
-  },
-  {
-    "Category": "Fx_c",
-    "Name": "RotateVecIntoVec",
-    "IsReversed": true
-  },
-  {
-    "Category": "Fx_c",
-    "Name": "RotateVecAboutVec",
-    "IsReversed": true
-  },
-  {
-    "Category": "CPedAttractorPedPlacer",
-    "Name": "PlacePedAtEffect",
-    "IsReversed": true
   },
   {
     "Category": "CCopPed",
@@ -20330,6 +18815,1806 @@
     "IsReversed": true
   },
   {
+    "Category": "D3DResourceSystem",
+    "Name": "CancelBuffering",
+    "IsReversed": false
+  },
+  {
+    "Category": "D3DResourceSystem",
+    "Name": "GetTotalIndexDataSize",
+    "IsReversed": false
+  },
+  {
+    "Category": "D3DResourceSystem",
+    "Name": "GetTotalPixelsSize",
+    "IsReversed": false
+  },
+  {
+    "Category": "D3DResourceSystem",
+    "Name": "Init",
+    "IsReversed": false
+  },
+  {
+    "Category": "D3DResourceSystem",
+    "Name": "SetUseD3DResourceBuffering",
+    "IsReversed": false
+  },
+  {
+    "Category": "D3DResourceSystem",
+    "Name": "Shutdown",
+    "IsReversed": false
+  },
+  {
+    "Category": "D3DResourceSystem",
+    "Name": "TidyUpD3DIndexBuffers",
+    "IsReversed": false
+  },
+  {
+    "Category": "D3DResourceSystem",
+    "Name": "TidyUpD3DTextures",
+    "IsReversed": false
+  },
+  {
+    "Category": "D3DResourceSystem",
+    "Name": "CreateIndexBuffer",
+    "IsReversed": false
+  },
+  {
+    "Category": "D3DResourceSystem",
+    "Name": "CreateTexture",
+    "IsReversed": false
+  },
+  {
+    "Category": "D3DResourceSystem",
+    "Name": "DestroyIndexBuffer",
+    "IsReversed": false
+  },
+  {
+    "Category": "D3DResourceSystem",
+    "Name": "DestroyTexture",
+    "IsReversed": false
+  },
+  {
+    "Category": "CStaticShadow",
+    "Name": "Free",
+    "IsReversed": true
+  },
+  {
+    "Category": "CRealTimeShadowManager",
+    "Name": "Init",
+    "IsReversed": true
+  },
+  {
+    "Category": "CRealTimeShadowManager",
+    "Name": "ReInit",
+    "IsReversed": false
+  },
+  {
+    "Category": "CRealTimeShadowManager",
+    "Name": "ReturnRealTimeShadow",
+    "IsReversed": true
+  },
+  {
+    "Category": "CRealTimeShadowManager",
+    "Name": "GetRealTimeShadow",
+    "IsReversed": false
+  },
+  {
+    "Category": "CRealTimeShadowManager",
+    "Name": "Update",
+    "IsReversed": true
+  },
+  {
+    "Category": "CRealTimeShadowManager",
+    "Name": "DoShadowThisFrame",
+    "IsReversed": true
+  },
+  {
+    "Category": "CRealTimeShadowManager",
+    "Name": "Exit",
+    "IsReversed": true
+  },
+  {
+    "Category": "CRealTimeShadow",
+    "Name": "Constructor",
+    "IsReversed": true
+  },
+  {
+    "Category": "CRealTimeShadow",
+    "Name": "Destructor",
+    "IsReversed": true
+  },
+  {
+    "Category": "CRealTimeShadow",
+    "Name": "SetLightProperties",
+    "IsReversed": true
+  },
+  {
+    "Category": "CRealTimeShadow",
+    "Name": "GetShadowRwTexture",
+    "IsReversed": true
+  },
+  {
+    "Category": "CRealTimeShadow",
+    "Name": "DrawBorderAroundTexture",
+    "IsReversed": true
+  },
+  {
+    "Category": "CRealTimeShadow",
+    "Name": "Create",
+    "IsReversed": true
+  },
+  {
+    "Category": "CRealTimeShadow",
+    "Name": "Update",
+    "IsReversed": true
+  },
+  {
+    "Category": "CRealTimeShadow",
+    "Name": "Destroy",
+    "IsReversed": true
+  },
+  {
+    "Category": "CShadowCamera",
+    "Name": "Constructor",
+    "IsReversed": true
+  },
+  {
+    "Category": "CShadowCamera",
+    "Name": "Destructor",
+    "IsReversed": true
+  },
+  {
+    "Category": "CShadowCamera",
+    "Name": "Destroy",
+    "IsReversed": true
+  },
+  {
+    "Category": "CShadowCamera",
+    "Name": "SetFrustum",
+    "IsReversed": true
+  },
+  {
+    "Category": "CShadowCamera",
+    "Name": "SetLight",
+    "IsReversed": true
+  },
+  {
+    "Category": "CShadowCamera",
+    "Name": "SetCenter",
+    "IsReversed": true
+  },
+  {
+    "Category": "CShadowCamera",
+    "Name": "InvertRaster",
+    "IsReversed": true
+  },
+  {
+    "Category": "CShadowCamera",
+    "Name": "GetRwRenderRaster",
+    "IsReversed": true
+  },
+  {
+    "Category": "CShadowCamera",
+    "Name": "GetRwRenderTexture",
+    "IsReversed": true
+  },
+  {
+    "Category": "CShadowCamera",
+    "Name": "DrawOutlineBorder",
+    "IsReversed": true
+  },
+  {
+    "Category": "CShadowCamera",
+    "Name": "Create",
+    "IsReversed": true
+  },
+  {
+    "Category": "CShadowCamera",
+    "Name": "Update-Clump",
+    "IsReversed": true
+  },
+  {
+    "Category": "CShadowCamera",
+    "Name": "Update-Atomic",
+    "IsReversed": true
+  },
+  {
+    "Category": "CShadowCamera",
+    "Name": "MakeGradientRaster",
+    "IsReversed": true
+  },
+  {
+    "Category": "CShadowCamera",
+    "Name": "RasterResample",
+    "IsReversed": true
+  },
+  {
+    "Category": "CShadowCamera",
+    "Name": "RasterBlur",
+    "IsReversed": true
+  },
+  {
+    "Category": "CShadowCamera",
+    "Name": "DrawBlurryRaster2",
+    "IsReversed": true
+  },
+  {
+    "Category": "CShadowCamera",
+    "Name": "atomicQuickRender",
+    "IsReversed": true
+  },
+  {
+    "Category": "CShadowCamera",
+    "Name": "Im2DRenderQuad",
+    "IsReversed": true
+  },
+  {
+    "Category": "CShadows",
+    "Name": "Init",
+    "IsReversed": true
+  },
+  {
+    "Category": "CShadows",
+    "Name": "Shutdown",
+    "IsReversed": true
+  },
+  {
+    "Category": "CShadows",
+    "Name": "TidyUpShadows",
+    "IsReversed": true
+  },
+  {
+    "Category": "CShadows",
+    "Name": "AddPermanentShadow",
+    "IsReversed": false
+  },
+  {
+    "Category": "CShadows",
+    "Name": "UpdatePermanentShadows",
+    "IsReversed": false
+  },
+  {
+    "Category": "CShadows",
+    "Name": "StoreShadowToBeRendered-Texture",
+    "IsReversed": true
+  },
+  {
+    "Category": "CShadows",
+    "Name": "StoreShadowToBeRendered-Type",
+    "IsReversed": true
+  },
+  {
+    "Category": "CShadows",
+    "Name": "SetRenderModeForShadowType",
+    "IsReversed": true
+  },
+  {
+    "Category": "CShadows",
+    "Name": "RemoveOilInArea",
+    "IsReversed": true
+  },
+  {
+    "Category": "CShadows",
+    "Name": "GunShotSetsOilOnFire",
+    "IsReversed": true
+  },
+  {
+    "Category": "CShadows",
+    "Name": "PrintDebugPoly",
+    "IsReversed": true
+  },
+  {
+    "Category": "CShadows",
+    "Name": "CalcPedShadowValues",
+    "IsReversed": true
+  },
+  {
+    "Category": "CShadows",
+    "Name": "AffectColourWithLighting",
+    "IsReversed": true
+  },
+  {
+    "Category": "CShadows",
+    "Name": "StoreShadowForPedObject",
+    "IsReversed": true
+  },
+  {
+    "Category": "CShadows",
+    "Name": "StoreRealTimeShadow",
+    "IsReversed": true
+  },
+  {
+    "Category": "CShadows",
+    "Name": "UpdateStaticShadows",
+    "IsReversed": true
+  },
+  {
+    "Category": "CShadows",
+    "Name": "RenderExtraPlayerShadows",
+    "IsReversed": true
+  },
+  {
+    "Category": "CShadows",
+    "Name": "RenderStaticShadows",
+    "IsReversed": true
+  },
+  {
+    "Category": "CShadows",
+    "Name": "CastShadowEntityXY",
+    "IsReversed": false
+  },
+  {
+    "Category": "CShadows",
+    "Name": "CastShadowEntityXYZ",
+    "IsReversed": false
+  },
+  {
+    "Category": "CShadows",
+    "Name": "CastPlayerShadowSectorList<CPtrListSingleLink<CPhysical*>>",
+    "IsReversed": true
+  },
+  {
+    "Category": "CShadows",
+    "Name": "CastShadowSectorList<CPtrListSingleLink<CPhysical*>>",
+    "IsReversed": false
+  },
+  {
+    "Category": "CShadows",
+    "Name": "CastRealTimeShadowSectorList<CPtrListSingleLink<CPhysical*>>",
+    "IsReversed": false
+  },
+  {
+    "Category": "CShadows",
+    "Name": "RenderStoredShadows",
+    "IsReversed": true
+  },
+  {
+    "Category": "CShadows",
+    "Name": "GeneratePolysForStaticShadow",
+    "IsReversed": false
+  },
+  {
+    "Category": "CShadows",
+    "Name": "StoreStaticShadow",
+    "IsReversed": false
+  },
+  {
+    "Category": "CShadows",
+    "Name": "StoreShadowForVehicle",
+    "IsReversed": false
+  },
+  {
+    "Category": "CShadows",
+    "Name": "StoreCarLightShadow",
+    "IsReversed": true
+  },
+  {
+    "Category": "CShadows",
+    "Name": "StoreShadowForPole",
+    "IsReversed": true
+  },
+  {
+    "Category": "CShadows",
+    "Name": "RenderIndicatorShadow",
+    "IsReversed": true
+  },
+  {
+    "Category": "CShadows",
+    "Name": "ShadowRenderTriangleCB",
+    "IsReversed": false
+  },
+  {
+    "Category": "ProcObjectMan_c",
+    "Name": "Init",
+    "IsReversed": true
+  },
+  {
+    "Category": "ProcObjectMan_c",
+    "Name": "Update",
+    "IsReversed": true
+  },
+  {
+    "Category": "ProcObjectMan_c",
+    "Name": "Exit",
+    "IsReversed": true
+  },
+  {
+    "Category": "ProcObjectMan_c",
+    "Name": "LoadDataFile",
+    "IsReversed": true
+  },
+  {
+    "Category": "ProcObjectMan_c",
+    "Name": "GetEntityFromPool",
+    "IsReversed": true
+  },
+  {
+    "Category": "ProcObjectMan_c",
+    "Name": "ReturnEntityToPool",
+    "IsReversed": true
+  },
+  {
+    "Category": "ProcObjectMan_c",
+    "Name": "ProcessTriangleAdded",
+    "IsReversed": true
+  },
+  {
+    "Category": "ProcObjectMan_c",
+    "Name": "ProcessTriangleRemoved",
+    "IsReversed": true
+  },
+  {
+    "Category": "ProcSurfaceInfo_c",
+    "Name": "Init",
+    "IsReversed": true
+  },
+  {
+    "Category": "ProcSurfaceInfo_c",
+    "Name": "Exit",
+    "IsReversed": true
+  },
+  {
+    "Category": "ProcSurfaceInfo_c",
+    "Name": "AddObject",
+    "IsReversed": true
+  },
+  {
+    "Category": "ProcSurfaceInfo_c",
+    "Name": "AddObjects",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPlantColEntEntry",
+    "Name": "AddEntry",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPlantColEntEntry",
+    "Name": "ReleaseEntry",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPlantMgr",
+    "Name": "Initialise",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPlantMgr",
+    "Name": "Shutdown",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPlantMgr",
+    "Name": "ReloadConfig",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPlantMgr",
+    "Name": "MoveLocTriToList",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPlantMgr",
+    "Name": "MoveColEntToList",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPlantMgr",
+    "Name": "SetPlantFriendlyFlagInAtomicMI",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPlantMgr",
+    "Name": "Update",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPlantMgr",
+    "Name": "PreUpdateOnceForNewCameraPos",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPlantMgr",
+    "Name": "UpdateAmbientColor",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPlantMgr",
+    "Name": "CalculateWindBending",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPlantMgr",
+    "Name": "_ColEntityCache_Add",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPlantMgr",
+    "Name": "_ColEntityCache_FindInCache",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPlantMgr",
+    "Name": "_ColEntityCache_Remove",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPlantMgr",
+    "Name": "_ColEntityCache_Update",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPlantMgr",
+    "Name": "_ProcessEntryCollisionDataSections",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPlantMgr",
+    "Name": "_ProcessEntryCollisionDataSections_AddLocTris",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPlantMgr",
+    "Name": "_ProcessEntryCollisionDataSections_RemoveLocTris",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPlantMgr",
+    "Name": "_UpdateLocTris",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPlantMgr",
+    "Name": "Render",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPlantLocTri",
+    "Name": "Add",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPlantLocTri",
+    "Name": "Release",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPlantLocTri",
+    "Name": "GetPlantDensity",
+    "IsReversed": true
+  },
+  {
+    "Category": "CGrassRenderer",
+    "Name": "Initialise",
+    "IsReversed": true
+  },
+  {
+    "Category": "CGrassRenderer",
+    "Name": "Shutdown",
+    "IsReversed": true
+  },
+  {
+    "Category": "CGrassRenderer",
+    "Name": "AddTriPlant",
+    "IsReversed": true
+  },
+  {
+    "Category": "CGrassRenderer",
+    "Name": "DrawTriPlants",
+    "IsReversed": true
+  },
+  {
+    "Category": "CGrassRenderer",
+    "Name": "FlushTriPlantBuffer",
+    "IsReversed": true
+  },
+  {
+    "Category": "CGrassRenderer",
+    "Name": "GetPlantModelsTab",
+    "IsReversed": true
+  },
+  {
+    "Category": "CGrassRenderer",
+    "Name": "SetPlantModelsTab",
+    "IsReversed": true
+  },
+  {
+    "Category": "CGrassRenderer",
+    "Name": "SetCloseFarAlphaDist",
+    "IsReversed": true
+  },
+  {
+    "Category": "CGrassRenderer",
+    "Name": "SetCurrentScanCode",
+    "IsReversed": true
+  },
+  {
+    "Category": "CGrassRenderer",
+    "Name": "SetGlobalCameraPos",
+    "IsReversed": true
+  },
+  {
+    "Category": "CGrassRenderer",
+    "Name": "SetGlobalWindBending",
+    "IsReversed": true
+  },
+  {
+    "Category": "CGrassRenderer",
+    "Name": "GenPointInTriangle",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPPTriPlantBuffer",
+    "Name": "Flush",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPPTriPlantBuffer",
+    "Name": "GetPPTriPlantPtr",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPPTriPlantBuffer",
+    "Name": "ChangeCurrentPlantModelsSet",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPPTriPlantBuffer",
+    "Name": "IncreaseBufferIndex",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPPTriPlantBuffer",
+    "Name": "GetPlantModelsTab",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPPTriPlantBuffer",
+    "Name": "SetPlantModelsTab",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPPTriPlantBuffer",
+    "Name": "SetGrassMaterialCB",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPlantSurfPropMgr",
+    "Name": "Initialise",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPlantSurfPropMgr",
+    "Name": "AllocSurfProperties",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPlantSurfPropMgr",
+    "Name": "GetSurfProperties",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPlantSurfPropMgr",
+    "Name": "LoadPlantsDat",
+    "IsReversed": true
+  },
+  {
+    "Category": "RwCore",
+    "Name": "RwCameraBeginUpdate",
+    "IsReversed": true
+  },
+  {
+    "Category": "RwCore",
+    "Name": "RwCameraEndUpdate",
+    "IsReversed": true
+  },
+  {
+    "Category": "RwCore",
+    "Name": "RwCameraClear",
+    "IsReversed": true
+  },
+  {
+    "Category": "RwCore",
+    "Name": "RwCameraShowRaster",
+    "IsReversed": true
+  },
+  {
+    "Category": "Common",
+    "Name": "MakeUpperCase-",
+    "IsReversed": true
+  },
+  {
+    "Category": "Common",
+    "Name": "MakeUpperCase-in",
+    "IsReversed": true
+  },
+  {
+    "Category": "Common",
+    "Name": "AsciiToGxtChar",
+    "IsReversed": true
+  },
+  {
+    "Category": "Common",
+    "Name": "WriteRaster",
+    "IsReversed": true
+  },
+  {
+    "Category": "Common",
+    "Name": "CalcScreenCoors-VVff",
+    "IsReversed": true
+  },
+  {
+    "Category": "Common",
+    "Name": "CalcScreenCoors-VV",
+    "IsReversed": true
+  },
+  {
+    "Category": "Common",
+    "Name": "LittleTest",
+    "IsReversed": true
+  },
+  {
+    "Category": "Common",
+    "Name": "DoesInfiniteLineTouchScreen",
+    "IsReversed": true
+  },
+  {
+    "Category": "Common",
+    "Name": "IsPointInsideLine",
+    "IsReversed": true
+  },
+  {
+    "Category": "CCam",
+    "Name": "Constructor",
+    "IsReversed": true
+  },
+  {
+    "Category": "CCam",
+    "Name": "Init",
+    "IsReversed": true
+  },
+  {
+    "Category": "CCam",
+    "Name": "CacheLastSettingsDWCineyCam",
+    "IsReversed": true
+  },
+  {
+    "Category": "CCam",
+    "Name": "DoCamBump",
+    "IsReversed": true
+  },
+  {
+    "Category": "CCam",
+    "Name": "Finalise_DW_CineyCams",
+    "IsReversed": true
+  },
+  {
+    "Category": "CCam",
+    "Name": "GetCoreDataForDWCineyCamMode",
+    "IsReversed": true
+  },
+  {
+    "Category": "CCam",
+    "Name": "GetLookFromLampPostPos",
+    "IsReversed": true
+  },
+  {
+    "Category": "CCam",
+    "Name": "GetVectorsReadyForRW",
+    "IsReversed": true
+  },
+  {
+    "Category": "CCam",
+    "Name": "Get_TwoPlayer_AimVector",
+    "IsReversed": true
+  },
+  {
+    "Category": "CCam",
+    "Name": "IsTimeToExitThisDWCineyCamMode",
+    "IsReversed": true
+  },
+  {
+    "Category": "CCam",
+    "Name": "KeepTrackOfTheSpeed",
+    "IsReversed": true
+  },
+  {
+    "Category": "CCam",
+    "Name": "LookBehind",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCam",
+    "Name": "LookRight",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCam",
+    "Name": "RotCamIfInFrontCar",
+    "IsReversed": true
+  },
+  {
+    "Category": "CCam",
+    "Name": "Using3rdPersonMouseCam",
+    "IsReversed": true
+  },
+  {
+    "Category": "CCam",
+    "Name": "Process",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCam",
+    "Name": "ProcessArrestCamOne",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCam",
+    "Name": "ProcessPedsDeadBaby",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCam",
+    "Name": "Process_1rstPersonPedOnPC",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCam",
+    "Name": "Process_1stPerson",
+    "IsReversed": true
+  },
+  {
+    "Category": "CCam",
+    "Name": "Process_AimWeapon",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCam",
+    "Name": "Process_AttachedCam",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCam",
+    "Name": "Process_Cam_TwoPlayer",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCam",
+    "Name": "Process_Cam_TwoPlayer_InCarAndShooting",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCam",
+    "Name": "Process_Cam_TwoPlayer_Separate_Cars",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCam",
+    "Name": "Process_Cam_TwoPlayer_Separate_Cars_TopDown",
+    "IsReversed": true
+  },
+  {
+    "Category": "CCam",
+    "Name": "Process_DW_BirdyCam",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCam",
+    "Name": "Process_DW_CamManCam",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCam",
+    "Name": "Process_DW_HeliChaseCam",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCam",
+    "Name": "Process_DW_PlaneCam1",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCam",
+    "Name": "Process_DW_PlaneCam2",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCam",
+    "Name": "Process_DW_PlaneCam3",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCam",
+    "Name": "Process_DW_PlaneSpotterCam",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCam",
+    "Name": "Process_Editor",
+    "IsReversed": true
+  },
+  {
+    "Category": "CCam",
+    "Name": "Process_Fixed",
+    "IsReversed": true
+  },
+  {
+    "Category": "CCam",
+    "Name": "Process_FlyBy",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCam",
+    "Name": "Process_FollowCar_SA",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCam",
+    "Name": "Process_FollowPedWithMouse",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCam",
+    "Name": "Process_FollowPed_SA",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCam",
+    "Name": "Process_M16_1stPerson",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCam",
+    "Name": "Process_Rocket",
+    "IsReversed": true
+  },
+  {
+    "Category": "CCam",
+    "Name": "Process_SpecialFixedForSyphon",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCam",
+    "Name": "Process_WheelCam",
+    "IsReversed": false
+  },
+  {
+    "Category": "CCam",
+    "Name": "WellBufferMe",
+    "IsReversed": true
+  },
+  {
+    "Category": "CCam",
+    "Name": "WrapAngle",
+    "IsReversed": true
+  },
+  {
+    "Category": "CCarAI",
+    "Name": "AddAmbulanceOccupants",
+    "IsReversed": true
+  },
+  {
+    "Category": "CCarAI",
+    "Name": "AddFiretruckOccupants",
+    "IsReversed": true
+  },
+  {
+    "Category": "CCarAI",
+    "Name": "AddPoliceCarOccupants",
+    "IsReversed": true
+  },
+  {
+    "Category": "CCarAI",
+    "Name": "BackToCruisingIfNoWantedLevel",
+    "IsReversed": true
+  },
+  {
+    "Category": "CCarAI",
+    "Name": "CarHasReasonToStop",
+    "IsReversed": true
+  },
+  {
+    "Category": "CCarAI",
+    "Name": "EntitiesGoHeadOn",
+    "IsReversed": true
+  },
+  {
+    "Category": "CCarAI",
+    "Name": "FindPoliceBikeMissionForWantedLevel",
+    "IsReversed": true
+  },
+  {
+    "Category": "CCarAI",
+    "Name": "FindPoliceBoatMissionForWantedLevel",
+    "IsReversed": true
+  },
+  {
+    "Category": "CCarAI",
+    "Name": "FindPoliceCarMissionForWantedLevel",
+    "IsReversed": true
+  },
+  {
+    "Category": "CCarAI",
+    "Name": "FindPoliceCarSpeedForWantedLevel",
+    "IsReversed": true
+  },
+  {
+    "Category": "CCarAI",
+    "Name": "FindSwitchDistanceClose",
+    "IsReversed": true
+  },
+  {
+    "Category": "CCarAI",
+    "Name": "FindSwitchDistanceFar",
+    "IsReversed": true
+  },
+  {
+    "Category": "CCarAI",
+    "Name": "GetCarToGoToCoors",
+    "IsReversed": true
+  },
+  {
+    "Category": "CCarAI",
+    "Name": "GetCarToGoToCoorsAccurate",
+    "IsReversed": true
+  },
+  {
+    "Category": "CCarAI",
+    "Name": "GetCarToGoToCoorsRacing",
+    "IsReversed": true
+  },
+  {
+    "Category": "CCarAI",
+    "Name": "GetCarToGoToCoorsStraightLine",
+    "IsReversed": true
+  },
+  {
+    "Category": "CCarAI",
+    "Name": "GetCarToParkAtCoors",
+    "IsReversed": true
+  },
+  {
+    "Category": "CCarAI",
+    "Name": "MakeWayForCarWithSiren",
+    "IsReversed": true
+  },
+  {
+    "Category": "CCarAI",
+    "Name": "MellowOutChaseSpeed",
+    "IsReversed": true
+  },
+  {
+    "Category": "CCarAI",
+    "Name": "MellowOutChaseSpeedBoat",
+    "IsReversed": true
+  },
+  {
+    "Category": "CCarAI",
+    "Name": "TellCarToBlockOtherCar",
+    "IsReversed": true
+  },
+  {
+    "Category": "CCarAI",
+    "Name": "TellCarToFollowOtherCar",
+    "IsReversed": true
+  },
+  {
+    "Category": "CCarAI",
+    "Name": "TellCarToRamOtherCar",
+    "IsReversed": true
+  },
+  {
+    "Category": "CCarAI",
+    "Name": "TellOccupantsToLeaveCar",
+    "IsReversed": true
+  },
+  {
+    "Category": "CCarAI",
+    "Name": "UpdateCarAI",
+    "IsReversed": true
+  },
+  {
+    "Category": "CCarFXRenderer",
+    "Name": "RegisterPlugins",
+    "IsReversed": true
+  },
+  {
+    "Category": "CCarFXRenderer",
+    "Name": "Initialise",
+    "IsReversed": true
+  },
+  {
+    "Category": "CCarFXRenderer",
+    "Name": "InitialiseDirtTexture",
+    "IsReversed": true
+  },
+  {
+    "Category": "CCarFXRenderer",
+    "Name": "Shutdown",
+    "IsReversed": true
+  },
+  {
+    "Category": "CCarFXRenderer",
+    "Name": "PreRenderUpdate",
+    "IsReversed": true
+  },
+  {
+    "Category": "CCarFXRenderer",
+    "Name": "IsCCPCPipelineAttached",
+    "IsReversed": true
+  },
+  {
+    "Category": "CCarFXRenderer",
+    "Name": "CustomCarPipeAtomicSetup",
+    "IsReversed": true
+  },
+  {
+    "Category": "CCarFXRenderer",
+    "Name": "CustomCarPipeClumpSetup",
+    "IsReversed": true
+  },
+  {
+    "Category": "CCarFXRenderer",
+    "Name": "SetCustomFXAtomicRenderPipelinesVMICB",
+    "IsReversed": true
+  },
+  {
+    "Category": "CCarFXRenderer",
+    "Name": "SetFxEnvMapLightMult",
+    "IsReversed": true
+  },
+  {
+    "Category": "FxSystemBP_c",
+    "Name": "operator new",
+    "IsReversed": true
+  },
+  {
+    "Category": "FxSystemBP_c",
+    "Name": "Constructor",
+    "IsReversed": true
+  },
+  {
+    "Category": "FxSystemBP_c",
+    "Name": "Destructor",
+    "IsReversed": true
+  },
+  {
+    "Category": "FxSystemBP_c",
+    "Name": "Load",
+    "IsReversed": true
+  },
+  {
+    "Category": "FxSystemBP_c",
+    "Name": "Unload",
+    "IsReversed": true
+  },
+  {
+    "Category": "FxSystemBP_c",
+    "Name": "Update",
+    "IsReversed": true
+  },
+  {
+    "Category": "FxSystemBP_c",
+    "Name": "Render",
+    "IsReversed": true
+  },
+  {
+    "Category": "FxSystemBP_c",
+    "Name": "FreePrtFromSystem",
+    "IsReversed": true
+  },
+  {
+    "Category": "FxSystemBP_c",
+    "Name": "GetBoundingSphere",
+    "IsReversed": true
+  },
+  {
+    "Category": "FxSystemBP_c",
+    "Name": "SetBoundingSphere",
+    "IsReversed": true
+  },
+  {
+    "Category": "FxSystem_c",
+    "Name": "Constructor",
+    "IsReversed": true
+  },
+  {
+    "Category": "FxSystem_c",
+    "Name": "Destructor",
+    "IsReversed": true
+  },
+  {
+    "Category": "FxSystem_c",
+    "Name": "Init",
+    "IsReversed": true
+  },
+  {
+    "Category": "FxSystem_c",
+    "Name": "Exit",
+    "IsReversed": true
+  },
+  {
+    "Category": "FxSystem_c",
+    "Name": "Play",
+    "IsReversed": true
+  },
+  {
+    "Category": "FxSystem_c",
+    "Name": "Pause",
+    "IsReversed": true
+  },
+  {
+    "Category": "FxSystem_c",
+    "Name": "Stop",
+    "IsReversed": true
+  },
+  {
+    "Category": "FxSystem_c",
+    "Name": "PlayAndKill",
+    "IsReversed": true
+  },
+  {
+    "Category": "FxSystem_c",
+    "Name": "Kill",
+    "IsReversed": true
+  },
+  {
+    "Category": "FxSystem_c",
+    "Name": "AttachToBone",
+    "IsReversed": true
+  },
+  {
+    "Category": "FxSystem_c",
+    "Name": "AddParticle-v3d",
+    "IsReversed": false
+  },
+  {
+    "Category": "FxSystem_c",
+    "Name": "AddParticle-mat",
+    "IsReversed": false
+  },
+  {
+    "Category": "FxSystem_c",
+    "Name": "EnablePrim",
+    "IsReversed": true
+  },
+  {
+    "Category": "FxSystem_c",
+    "Name": "SetMatrix",
+    "IsReversed": true
+  },
+  {
+    "Category": "FxSystem_c",
+    "Name": "SetOffsetPos",
+    "IsReversed": true
+  },
+  {
+    "Category": "FxSystem_c",
+    "Name": "AddOffsetPos",
+    "IsReversed": true
+  },
+  {
+    "Category": "FxSystem_c",
+    "Name": "CopyParentMatrix",
+    "IsReversed": true
+  },
+  {
+    "Category": "FxSystem_c",
+    "Name": "GetCompositeMatrix",
+    "IsReversed": true
+  },
+  {
+    "Category": "FxSystem_c",
+    "Name": "GetPlayStatus",
+    "IsReversed": true
+  },
+  {
+    "Category": "FxSystem_c",
+    "Name": "ForAllParticles",
+    "IsReversed": true
+  },
+  {
+    "Category": "FxSystem_c",
+    "Name": "UpdateBoundingBoxCB",
+    "IsReversed": false
+  },
+  {
+    "Category": "FxSystem_c",
+    "Name": "GetBoundingSphereWld",
+    "IsReversed": true
+  },
+  {
+    "Category": "FxSystem_c",
+    "Name": "GetBoundingSphereLcl",
+    "IsReversed": true
+  },
+  {
+    "Category": "FxSystem_c",
+    "Name": "SetBoundingSphere",
+    "IsReversed": true
+  },
+  {
+    "Category": "FxSystem_c",
+    "Name": "ResetBoundingSphere",
+    "IsReversed": true
+  },
+  {
+    "Category": "FxSystem_c",
+    "Name": "SetConstTime",
+    "IsReversed": true
+  },
+  {
+    "Category": "FxSystem_c",
+    "Name": "SetRateMult",
+    "IsReversed": true
+  },
+  {
+    "Category": "FxSystem_c",
+    "Name": "SetTimeMult",
+    "IsReversed": true
+  },
+  {
+    "Category": "FxSystem_c",
+    "Name": "SetVelAdd",
+    "IsReversed": true
+  },
+  {
+    "Category": "FxSystem_c",
+    "Name": "SetLocalParticles",
+    "IsReversed": true
+  },
+  {
+    "Category": "FxSystem_c",
+    "Name": "SetZTestEnable",
+    "IsReversed": true
+  },
+  {
+    "Category": "FxSystem_c",
+    "Name": "SetMustCreatePrts",
+    "IsReversed": true
+  },
+  {
+    "Category": "FxSystem_c",
+    "Name": "DoFxAudio",
+    "IsReversed": true
+  },
+  {
+    "Category": "FxSystem_c",
+    "Name": "IsVisible",
+    "IsReversed": true
+  },
+  {
+    "Category": "FxSystem_c",
+    "Name": "Update",
+    "IsReversed": false
+  },
+  {
+    "Category": "FxSphere_c",
+    "Name": "operator new",
+    "IsReversed": true
+  },
+  {
+    "Category": "FxSphere_c",
+    "Name": "operator delete-",
+    "IsReversed": true
+  },
+  {
+    "Category": "FxSphere_c",
+    "Name": "IsCollision",
+    "IsReversed": true
+  },
+  {
+    "Category": "FxSphere_c",
+    "Name": "GetDistToPlane",
+    "IsReversed": true
+  },
+  {
+    "Category": "FxPrimBP_c",
+    "Name": "GetRWMatrix",
+    "IsReversed": true
+  },
+  {
+    "Category": "FxPrimBP_c",
+    "Name": "Load",
+    "IsReversed": false
+  },
+  {
+    "Category": "FxMemoryPool_c",
+    "Name": "Init",
+    "IsReversed": true
+  },
+  {
+    "Category": "FxMemoryPool_c",
+    "Name": "Exit",
+    "IsReversed": true
+  },
+  {
+    "Category": "FxMemoryPool_c",
+    "Name": "Reset",
+    "IsReversed": true
+  },
+  {
+    "Category": "FxMemoryPool_c",
+    "Name": "GetMem",
+    "IsReversed": true
+  },
+  {
+    "Category": "FxMemoryPool_c",
+    "Name": "Optimise",
+    "IsReversed": true
+  },
+  {
+    "Category": "FxInfoManager_c",
+    "Name": "AddFxInfo",
+    "IsReversed": true
+  },
+  {
+    "Category": "FxInfoManager_c",
+    "Name": "Load",
+    "IsReversed": true
+  },
+  {
+    "Category": "FxInfoManager_c",
+    "Name": "ProcessEmissionInfo",
+    "IsReversed": true
+  },
+  {
+    "Category": "FxInfoManager_c",
+    "Name": "ProcessMovementInfo",
+    "IsReversed": true
+  },
+  {
+    "Category": "FxInfoManager_c",
+    "Name": "ProcessRenderInfo",
+    "IsReversed": true
+  },
+  {
+    "Category": "FxManager_c",
+    "Name": "Constructor",
+    "IsReversed": true
+  },
+  {
+    "Category": "FxManager_c",
+    "Name": "Destructor",
+    "IsReversed": true
+  },
+  {
+    "Category": "FxManager_c",
+    "Name": "Init",
+    "IsReversed": true
+  },
+  {
+    "Category": "FxManager_c",
+    "Name": "Exit",
+    "IsReversed": true
+  },
+  {
+    "Category": "FxManager_c",
+    "Name": "DestroyFxSystem",
+    "IsReversed": true
+  },
+  {
+    "Category": "FxManager_c",
+    "Name": "DestroyAllFxSystems",
+    "IsReversed": true
+  },
+  {
+    "Category": "FxManager_c",
+    "Name": "Update",
+    "IsReversed": true
+  },
+  {
+    "Category": "FxManager_c",
+    "Name": "LoadFxProject",
+    "IsReversed": true
+  },
+  {
+    "Category": "FxManager_c",
+    "Name": "UnloadFxProject",
+    "IsReversed": true
+  },
+  {
+    "Category": "FxManager_c",
+    "Name": "LoadFxSystemBP",
+    "IsReversed": true
+  },
+  {
+    "Category": "FxManager_c",
+    "Name": "FindFxSystemBP",
+    "IsReversed": true
+  },
+  {
+    "Category": "FxManager_c",
+    "Name": "GetFrustumInfo",
+    "IsReversed": true
+  },
+  {
+    "Category": "FxManager_c",
+    "Name": "CalcFrustumInfo",
+    "IsReversed": true
+  },
+  {
+    "Category": "FxManager_c",
+    "Name": "Render",
+    "IsReversed": true
+  },
+  {
+    "Category": "FxManager_c",
+    "Name": "ReturnParticle",
+    "IsReversed": true
+  },
+  {
+    "Category": "FxManager_c",
+    "Name": "GetParticle",
+    "IsReversed": true
+  },
+  {
+    "Category": "FxManager_c",
+    "Name": "FreeUpParticle",
+    "IsReversed": true
+  },
+  {
+    "Category": "FxManager_c",
+    "Name": "SetWindData",
+    "IsReversed": true
+  },
+  {
+    "Category": "FxManager_c",
+    "Name": "FxRwMatrixCreate",
+    "IsReversed": true
+  },
+  {
+    "Category": "FxManager_c",
+    "Name": "FxRwMatrixDestroy",
+    "IsReversed": true
+  },
+  {
+    "Category": "FxManager_c",
+    "Name": "ShouldCreate",
+    "IsReversed": true
+  },
+  {
+    "Category": "FxManager_c",
+    "Name": "CreateFxSystem-2",
+    "IsReversed": true
+  },
+  {
+    "Category": "FxManager_c",
+    "Name": "CreateFxSystem-1",
+    "IsReversed": true
+  },
+  {
+    "Category": "FxManager_c",
+    "Name": "CreateFxSystem-4",
+    "IsReversed": true
+  },
+  {
+    "Category": "FxManager_c",
+    "Name": "CreateFxSystem-3",
+    "IsReversed": true
+  },
+  {
+    "Category": "FxEmitterPrt_c",
+    "Name": "operator new[]",
+    "IsReversed": true
+  },
+  {
+    "Category": "FxEmitterBP_c",
+    "Name": "Constructor",
+    "IsReversed": true
+  },
+  {
+    "Category": "FxEmitterBP_c",
+    "Name": "RenderHeatHaze",
+    "IsReversed": false
+  },
+  {
+    "Category": "FxEmitterBP_c",
+    "Name": "UpdateParticle",
+    "IsReversed": false
+  },
+  {
+    "Category": "FxEmitterBP_c",
+    "Name": "CreateInstance",
+    "IsReversed": false
+  },
+  {
+    "Category": "FxEmitterBP_c",
+    "Name": "Update",
+    "IsReversed": false
+  },
+  {
+    "Category": "FxEmitterBP_c",
+    "Name": "Load",
+    "IsReversed": false
+  },
+  {
+    "Category": "FxEmitterBP_c",
+    "Name": "LoadTextures",
+    "IsReversed": true
+  },
+  {
+    "Category": "FxEmitterBP_c",
+    "Name": "Render",
+    "IsReversed": false
+  },
+  {
+    "Category": "FxEmitterBP_c",
+    "Name": "FreePrtFromPrim",
+    "IsReversed": false
+  },
+  {
+    "Category": "FxEmitter_c",
+    "Name": "CreateParticles",
+    "IsReversed": false
+  },
+  {
+    "Category": "Fx_c",
+    "Name": "TriggerWaterSplash",
+    "IsReversed": true
+  },
+  {
+    "Category": "Fx_c",
+    "Name": "TriggerBulletSplash",
+    "IsReversed": true
+  },
+  {
+    "Category": "Fx_c",
+    "Name": "TriggerFootSplash",
+    "IsReversed": true
+  },
+  {
+    "Category": "Fx_c",
+    "Name": "RenderAddTri_",
+    "IsReversed": true
+  },
+  {
+    "Category": "Fx_c",
+    "Name": "RenderEnd",
+    "IsReversed": true
+  },
+  {
+    "Category": "Fx_c",
+    "Name": "RenderBegin",
+    "IsReversed": true
+  },
+  {
+    "Category": "Fx_c",
+    "Name": "RotateVecIntoVec",
+    "IsReversed": true
+  },
+  {
+    "Category": "Fx_c",
+    "Name": "RotateVecAboutVec",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPedAttractor",
+    "Name": "Constructor",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPedAttractor",
+    "Name": "Destructor",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPedAttractor",
+    "Name": "SetTaskForPed",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPedAttractor",
+    "Name": "RegisterPed",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPedAttractor",
+    "Name": "DeRegisterPed",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPedAttractor",
+    "Name": "IsRegisteredWithPed",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPedAttractor",
+    "Name": "IsAtHeadOfQueue",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPedAttractor",
+    "Name": "GetTaskForPed",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPedAttractor",
+    "Name": "GetQueueSlot",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPedAttractor",
+    "Name": "GetHeadOfQueue",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPedAttractor",
+    "Name": "GetTailOfQueue",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPedAttractor",
+    "Name": "HasEmptySlot",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPedAttractor",
+    "Name": "ComputeDeltaPos",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPedAttractor",
+    "Name": "ComputeDeltaHeading",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPedAttractor",
+    "Name": "ComputeAttractTime",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPedAttractor",
+    "Name": "ComputeAttractPos-v",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPedAttractor",
+    "Name": "ComputeAttractHeading-v",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPedAttractor",
+    "Name": "BroadcastDeparture",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPedAttractor",
+    "Name": "BroadcastArrival",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPedAttractor",
+    "Name": "AbortPedTasks",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPedAttractorPedPlacer",
+    "Name": "PlacePedAtEffect",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPedShelterAttractor",
+    "Name": "GetDisplacement",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPedShelterAttractor",
+    "Name": "ComputeAttractPos",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPedShelterAttractor",
+    "Name": "ComputeAttractHeading",
+    "IsReversed": true
+  },
+  {
+    "Category": "CPedShelterAttractor",
+    "Name": "BroadcastDeparture",
+    "IsReversed": true
+  },
+  {
     "Category": "CGroupEventHandler",
     "Name": "IsKillTaskAppropriate",
     "IsReversed": true
@@ -20555,6 +20840,41 @@
     "IsReversed": true
   },
   {
+    "Category": "CEventRevived",
+    "Name": "Constructor-1",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventRevived",
+    "Name": "Desructor",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventRevived",
+    "Name": "GetEventType",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventRevived",
+    "Name": "GetEventPriority",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventRevived",
+    "Name": "GetLifeTime",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventRevived",
+    "Name": "Clone",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventRevived",
+    "Name": "AffectsPed",
+    "IsReversed": true
+  },
+  {
     "Category": "CEventHandlerHistory",
     "Name": "ClearAllEvents",
     "IsReversed": true
@@ -20606,7 +20926,7 @@
   },
   {
     "Category": "CEventEditableResponse",
-    "Name": "Constructor",
+    "Name": "Constructor-0",
     "IsReversed": true
   },
   {
@@ -20820,6 +21140,241 @@
     "IsReversed": true
   },
   {
+    "Category": "CEventGunAimedAt",
+    "Name": "Constructor-1",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventGunAimedAt",
+    "Name": "Desructor",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventGunAimedAt",
+    "Name": "GetEventType",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventGunAimedAt",
+    "Name": "GetEventPriority",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventGunAimedAt",
+    "Name": "GetLifeTime",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventGunAimedAt",
+    "Name": "AffectsPed",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventGunAimedAt",
+    "Name": "IsCriminalEvent",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventGunAimedAt",
+    "Name": "ReportCriminalEvent",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventGunAimedAt",
+    "Name": "GetSourceEntity",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventGunAimedAt",
+    "Name": "TakesPriorityOver",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventGunAimedAt",
+    "Name": "CloneEditable",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventDeath",
+    "Name": "Constructor-1",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventDeath",
+    "Name": "Constructor-2",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventDeath",
+    "Name": "Desructor",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventDeath",
+    "Name": "GetEventType",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventDeath",
+    "Name": "GetEventPriority",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventDeath",
+    "Name": "GetLifeTime",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventDeath",
+    "Name": "Clone",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventDeath",
+    "Name": "AffectsPed",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventDeadPed",
+    "Name": "Constructor-1",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventDeadPed",
+    "Name": "Desructor",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventDeadPed",
+    "Name": "GetEventType",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventDeadPed",
+    "Name": "GetEventPriority",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventDeadPed",
+    "Name": "GetLifeTime",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventDeadPed",
+    "Name": "AffectsPed",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventDeadPed",
+    "Name": "GetSourceEntity",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventDeadPed",
+    "Name": "GetLocalSoundLevel",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventDeadPed",
+    "Name": "CloneEditable",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventDraggedOutCar",
+    "Name": "Constructor-1",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventDraggedOutCar",
+    "Name": "Desructor",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventDraggedOutCar",
+    "Name": "GetEventType",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventDraggedOutCar",
+    "Name": "GetEventPriority",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventDraggedOutCar",
+    "Name": "GetLifeTime",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventDraggedOutCar",
+    "Name": "AffectsPed",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventDraggedOutCar",
+    "Name": "AffectsPedGroup",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventDraggedOutCar",
+    "Name": "GetSourceEntity",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventDraggedOutCar",
+    "Name": "GetLocalSoundLevel",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventDraggedOutCar",
+    "Name": "CloneEditable",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventGotKnockedOverByCar",
+    "Name": "Constructor-1",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventGotKnockedOverByCar",
+    "Name": "Desructor",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventGotKnockedOverByCar",
+    "Name": "GetEventType",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventGotKnockedOverByCar",
+    "Name": "GetEventPriority",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventGotKnockedOverByCar",
+    "Name": "GetLifeTime",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventGotKnockedOverByCar",
+    "Name": "AffectsPed",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventGotKnockedOverByCar",
+    "Name": "GetSourceEntity",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventGotKnockedOverByCar",
+    "Name": "GetLocalSoundLevel",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventGotKnockedOverByCar",
+    "Name": "CloneEditable",
+    "IsReversed": true
+  },
+  {
     "Category": "CEventKnockOffBike",
     "Name": "Constructor-first",
     "IsReversed": true
@@ -20912,6 +21467,76 @@
   {
     "Category": "CEventSoundQuiet",
     "Name": "CloneEditable",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventPedToChase",
+    "Name": "Constructor-1",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventPedToChase",
+    "Name": "Desructor",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventPedToChase",
+    "Name": "GetEventType",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventPedToChase",
+    "Name": "GetEventPriority",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventPedToChase",
+    "Name": "GetLifeTime",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventPedToChase",
+    "Name": "Clone",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventPedToChase",
+    "Name": "AffectsPed",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventPedToFlee",
+    "Name": "Constructor-1",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventPedToFlee",
+    "Name": "Desructor",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventPedToFlee",
+    "Name": "GetEventType",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventPedToFlee",
+    "Name": "GetEventPriority",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventPedToFlee",
+    "Name": "GetLifeTime",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventPedToFlee",
+    "Name": "Clone",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventPedToFlee",
+    "Name": "AffectsPed",
     "IsReversed": true
   },
   {
@@ -21140,6 +21765,81 @@
     "IsReversed": true
   },
   {
+    "Category": "CEventInWater",
+    "Name": "Constructor-1",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventInWater",
+    "Name": "Desructor",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventInWater",
+    "Name": "GetEventType",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventInWater",
+    "Name": "GetEventPriority",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventInWater",
+    "Name": "GetLifeTime",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventInWater",
+    "Name": "Clone",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventInWater",
+    "Name": "AffectsPed",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventInWater",
+    "Name": "TakesPriorityOver",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventCreatePartnerTask",
+    "Name": "Constructor-1",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventCreatePartnerTask",
+    "Name": "Desructor",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventCreatePartnerTask",
+    "Name": "GetEventType",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventCreatePartnerTask",
+    "Name": "GetEventPriority",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventCreatePartnerTask",
+    "Name": "GetLifeTime",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventCreatePartnerTask",
+    "Name": "Clone",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventCreatePartnerTask",
+    "Name": "AffectsPed",
+    "IsReversed": true
+  },
+  {
     "Category": "CEventInAir",
     "Name": "Constructor",
     "IsReversed": true
@@ -21240,6 +21940,126 @@
     "IsReversed": true
   },
   {
+    "Category": "CEventSpecial",
+    "Name": "Constructor-1",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventSpecial",
+    "Name": "GetEventType",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventSpecial",
+    "Name": "GetEventPriority",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventSpecial",
+    "Name": "GetLifeTime",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventSpecial",
+    "Name": "AffectsPed",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventSpecial",
+    "Name": "CloneEditable",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventFireNearby",
+    "Name": "Constructor-1",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventFireNearby",
+    "Name": "Desructor",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventFireNearby",
+    "Name": "GetEventType",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventFireNearby",
+    "Name": "GetEventPriority",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventFireNearby",
+    "Name": "GetLifeTime",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventFireNearby",
+    "Name": "AffectsPed",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventFireNearby",
+    "Name": "TakesPriorityOver",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventFireNearby",
+    "Name": "CloneEditable",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventGroupEvent",
+    "Name": "Constructor-1",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventGroupEvent",
+    "Name": "Desructor",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventGroupEvent",
+    "Name": "BaseEventTakesPriorityOverBaseEvent",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventGroupEvent",
+    "Name": "GetEventType",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventGroupEvent",
+    "Name": "GetEventPriority",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventGroupEvent",
+    "Name": "GetLifeTime",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventGroupEvent",
+    "Name": "Clone",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventGroupEvent",
+    "Name": "AffectsPed",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventGroupEvent",
+    "Name": "AffectsPedGroup",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventGroupEvent",
+    "Name": "GetLocalSoundLevel",
+    "IsReversed": true
+  },
+  {
     "Category": "CEventGroup",
     "Name": "Constructor",
     "IsReversed": true
@@ -21297,6 +22117,41 @@
   {
     "Category": "CEventGroup",
     "Name": "GetEventOfType",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventHealthReallyLow",
+    "Name": "Constructor-1",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventHealthReallyLow",
+    "Name": "Desructor",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventHealthReallyLow",
+    "Name": "GetEventType",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventHealthReallyLow",
+    "Name": "GetEventPriority",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventHealthReallyLow",
+    "Name": "GetLifeTime",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventHealthReallyLow",
+    "Name": "AffectsPed",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventHealthReallyLow",
+    "Name": "CloneEditable",
     "IsReversed": true
   },
   {
@@ -21372,6 +22227,76 @@
   {
     "Category": "CEventDanger",
     "Name": "GetSourceEntity",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventSexyVehicle",
+    "Name": "Constructor-1",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventSexyVehicle",
+    "Name": "Desructor",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventSexyVehicle",
+    "Name": "GetEventType",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventSexyVehicle",
+    "Name": "GetEventPriority",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventSexyVehicle",
+    "Name": "GetLifeTime",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventSexyVehicle",
+    "Name": "Clone",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventSexyVehicle",
+    "Name": "AffectsPed",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventChatPartner",
+    "Name": "Constructor-1",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventChatPartner",
+    "Name": "Desructor",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventChatPartner",
+    "Name": "GetEventType",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventChatPartner",
+    "Name": "GetEventPriority",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventChatPartner",
+    "Name": "GetLifeTime",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventChatPartner",
+    "Name": "Clone",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventChatPartner",
+    "Name": "AffectsPed",
     "IsReversed": true
   },
   {
@@ -21758,6 +22683,226 @@
     "Category": "CEventAcquaintancePedHateBadlyLit",
     "Name": "AffectsPed",
     "IsReversed": true
+  },
+  {
+    "Category": "CEventInteriorUseInfo",
+    "Name": "Constructor-1",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventInteriorUseInfo",
+    "Name": "Desructor",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventInteriorUseInfo",
+    "Name": "GetEventType",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventInteriorUseInfo",
+    "Name": "GetEventPriority",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventInteriorUseInfo",
+    "Name": "GetLifeTime",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventInteriorUseInfo",
+    "Name": "Clone",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventInteriorUseInfo",
+    "Name": "AffectsPed",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventInteriorUseInfo",
+    "Name": "IsValid",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventLowAngerAtPlayer",
+    "Name": "GetEventType",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventLowAngerAtPlayer",
+    "Name": "GetEventPriority",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventLowAngerAtPlayer",
+    "Name": "GetLifeTime",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventLowAngerAtPlayer",
+    "Name": "AffectsPed",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventLowAngerAtPlayer",
+    "Name": "CloneEditable",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventPedEnteredMyVehicle",
+    "Name": "Constructor-1",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventPedEnteredMyVehicle",
+    "Name": "Desructor",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventPedEnteredMyVehicle",
+    "Name": "GetEventType",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventPedEnteredMyVehicle",
+    "Name": "GetEventPriority",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventPedEnteredMyVehicle",
+    "Name": "GetLifeTime",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventPedEnteredMyVehicle",
+    "Name": "AffectsPed",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventPedEnteredMyVehicle",
+    "Name": "GetSourceEntity",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventPedEnteredMyVehicle",
+    "Name": "GetLocalSoundLevel",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventPedEnteredMyVehicle",
+    "Name": "CloneEditable",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventPotentialGetRunOver",
+    "Name": "Constructor-1",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventPotentialGetRunOver",
+    "Name": "Desructor",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventPotentialGetRunOver",
+    "Name": "GetEventType",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventPotentialGetRunOver",
+    "Name": "GetEventPriority",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventPotentialGetRunOver",
+    "Name": "GetLifeTime",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventPotentialGetRunOver",
+    "Name": "AffectsPed",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventPotentialGetRunOver",
+    "Name": "GetSourceEntity",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventPotentialGetRunOver",
+    "Name": "GetLocalSoundLevel",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventPotentialGetRunOver",
+    "Name": "CloneEditable",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventSexyPed",
+    "Name": "Constructor-1",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventSexyPed",
+    "Name": "Desructor",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventSexyPed",
+    "Name": "GetEventType",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventSexyPed",
+    "Name": "GetEventPriority",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventSexyPed",
+    "Name": "GetLifeTime",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventSexyPed",
+    "Name": "AffectsPed",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventSexyPed",
+    "Name": "GetSourceEntity",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventSexyPed",
+    "Name": "CloneEditable",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventSource",
+    "Name": "ComputeEventSourceType",
+    "IsReversed": false
+  },
+  {
+    "Category": "CEventScanner",
+    "Name": "Constructor-1",
+    "IsReversed": true
+  },
+  {
+    "Category": "CEventScanner",
+    "Name": "Clear",
+    "IsReversed": false
+  },
+  {
+    "Category": "CEventScanner",
+    "Name": "ScanForEventsNow",
+    "IsReversed": false
+  },
+  {
+    "Category": "CEventScanner",
+    "Name": "ScanForEvents",
+    "IsReversed": false
   },
   {
     "Category": "CRect",
@@ -22267,7 +23412,7 @@
   {
     "Category": "CBaseModelInfo",
     "Name": "SwaysInWind",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CBaseModelInfo",
@@ -23437,7 +24582,7 @@
   {
     "Category": "CPedGroupDefaultTaskAllocatorRandom",
     "Name": "AllocateDefaultTasks",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CPedGroupDefaultTaskAllocatorRandom",
@@ -23617,12 +24762,12 @@
   {
     "Category": "CTaskComplexUseClosestFreeScriptedAttractorSprint",
     "Name": "Clone",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexUseClosestFreeScriptedAttractorSprint",
     "Name": "GetTaskType",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexUseClosestFreeScriptedAttractor",
@@ -23666,18 +24811,23 @@
   },
   {
     "Category": "CTaskSimpleChoking",
-    "Name": "Constructor",
+    "Name": "Constructor-1",
     "IsReversed": true
   },
   {
     "Category": "CTaskSimpleChoking",
-    "Name": "Destructor",
+    "Name": "Desructor",
     "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleChoking",
+    "Name": "DeleteAnimChokeCB",
+    "IsReversed": false
   },
   {
     "Category": "CTaskSimpleChoking",
     "Name": "UpdateChoke",
-    "IsReversed": true
+    "IsReversed": false
   },
   {
     "Category": "CTaskSimpleChoking",
@@ -23692,57 +24842,12 @@
   {
     "Category": "CTaskSimpleChoking",
     "Name": "MakeAbortable",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskSimpleChoking",
     "Name": "ProcessPed",
     "IsReversed": false
-  },
-  {
-    "Category": "CTaskComplexEvasiveDiveAndGetUp",
-    "Name": "Constructor",
-    "IsReversed": true
-  },
-  {
-    "Category": "CTaskComplexEvasiveDiveAndGetUp",
-    "Name": "Destructor",
-    "IsReversed": true
-  },
-  {
-    "Category": "CTaskComplexEvasiveDiveAndGetUp",
-    "Name": "CreateSubTask",
-    "IsReversed": true
-  },
-  {
-    "Category": "CTaskComplexEvasiveDiveAndGetUp",
-    "Name": "Clone",
-    "IsReversed": true
-  },
-  {
-    "Category": "CTaskComplexEvasiveDiveAndGetUp",
-    "Name": "GetTaskType",
-    "IsReversed": true
-  },
-  {
-    "Category": "CTaskComplexEvasiveDiveAndGetUp",
-    "Name": "MakeAbortable",
-    "IsReversed": true
-  },
-  {
-    "Category": "CTaskComplexEvasiveDiveAndGetUp",
-    "Name": "CreateNextSubTask",
-    "IsReversed": true
-  },
-  {
-    "Category": "CTaskComplexEvasiveDiveAndGetUp",
-    "Name": "CreateFirstSubTask",
-    "IsReversed": true
-  },
-  {
-    "Category": "CTaskComplexEvasiveDiveAndGetUp",
-    "Name": "ControlSubTask",
-    "IsReversed": true
   },
   {
     "Category": "CTaskSimpleLeaveGroup",
@@ -23832,7 +24937,7 @@
   {
     "Category": "CTaskGangHassleVehicle",
     "Name": "CalcTargetOffset",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskGangHassleVehicle",
@@ -23982,12 +25087,12 @@
   {
     "Category": "CTaskComplexCarSlowBeDraggedOutAndStandUp",
     "Name": "CreateSubTask",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexCarSlowBeDraggedOutAndStandUp",
     "Name": "Clone",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexCarSlowBeDraggedOutAndStandUp",
@@ -23997,22 +25102,22 @@
   {
     "Category": "CTaskComplexCarSlowBeDraggedOutAndStandUp",
     "Name": "MakeAbortable",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexCarSlowBeDraggedOutAndStandUp",
     "Name": "CreateNextSubTask",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexCarSlowBeDraggedOutAndStandUp",
     "Name": "CreateFirstSubTask",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexCarSlowBeDraggedOutAndStandUp",
     "Name": "ControlSubTask",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexDestroyCar",
@@ -24057,7 +25162,7 @@
   {
     "Category": "CTaskComplexDestroyCar",
     "Name": "ControlSubTask",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexDestroyCarArmed",
@@ -24077,7 +25182,7 @@
   {
     "Category": "CTaskComplexDestroyCarArmed",
     "Name": "CreateSubTask",
-    "IsReversed": true
+    "IsReversed": false
   },
   {
     "Category": "CTaskComplexDestroyCarArmed",
@@ -24191,13 +25296,33 @@
   },
   {
     "Category": "CTaskComplexDragPedFromCar",
+    "Name": "Constructor-1",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexDragPedFromCar",
+    "Name": "Desructor",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexDragPedFromCar",
+    "Name": "Clone",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexDragPedFromCar",
+    "Name": "GetTaskType",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexDragPedFromCar",
     "Name": "ControlSubTask",
     "IsReversed": true
   },
   {
     "Category": "CTaskComplexDragPedFromCar",
     "Name": "CreateFirstSubTask",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexDrivePointRoute",
@@ -24235,92 +25360,127 @@
     "IsReversed": true
   },
   {
-    "Category": "CTaskComplexEnterCarAsDriverTimed",
-    "Name": "Constructor",
+    "Category": "CTaskComplexEvasiveCower",
+    "Name": "Constructor-1",
     "IsReversed": true
   },
   {
-    "Category": "CTaskComplexEnterCarAsDriverTimed",
-    "Name": "Destructor",
+    "Category": "CTaskComplexEvasiveCower",
+    "Name": "Desructor",
     "IsReversed": true
   },
   {
-    "Category": "CTaskComplexEnterCarAsDriverTimed",
+    "Category": "CTaskComplexEvasiveCower",
+    "Name": "CreateSubTask",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexEvasiveCower",
     "Name": "Clone",
     "IsReversed": true
   },
   {
-    "Category": "CTaskComplexEnterCarAsDriverTimed",
+    "Category": "CTaskComplexEvasiveCower",
     "Name": "GetTaskType",
     "IsReversed": true
   },
   {
-    "Category": "CTaskComplexEnterCarAsDriverTimed",
-    "Name": "StopTimer",
-    "IsReversed": true
-  },
-  {
-    "Category": "CTaskComplexEnterCarAsDriverTimed",
-    "Name": "MakeAbortable",
-    "IsReversed": true
-  },
-  {
-    "Category": "CTaskComplexEnterCarAsDriverTimed",
+    "Category": "CTaskComplexEvasiveCower",
     "Name": "CreateNextSubTask",
     "IsReversed": true
   },
   {
-    "Category": "CTaskComplexEnterCarAsDriverTimed",
+    "Category": "CTaskComplexEvasiveCower",
     "Name": "CreateFirstSubTask",
     "IsReversed": true
   },
   {
-    "Category": "CTaskComplexEnterCarAsDriverTimed",
+    "Category": "CTaskComplexEvasiveCower",
     "Name": "ControlSubTask",
     "IsReversed": true
   },
   {
-    "Category": "CTaskComplexEnterCarAsPassengerTimed",
+    "Category": "CTaskComplexEvasiveDiveAndGetUp",
     "Name": "Constructor",
     "IsReversed": true
   },
   {
-    "Category": "CTaskComplexEnterCarAsPassengerTimed",
+    "Category": "CTaskComplexEvasiveDiveAndGetUp",
     "Name": "Destructor",
     "IsReversed": true
   },
   {
-    "Category": "CTaskComplexEnterCarAsPassengerTimed",
+    "Category": "CTaskComplexEvasiveDiveAndGetUp",
+    "Name": "CreateSubTask",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexEvasiveDiveAndGetUp",
     "Name": "Clone",
     "IsReversed": true
   },
   {
-    "Category": "CTaskComplexEnterCarAsPassengerTimed",
+    "Category": "CTaskComplexEvasiveDiveAndGetUp",
     "Name": "GetTaskType",
     "IsReversed": true
   },
   {
-    "Category": "CTaskComplexEnterCarAsPassengerTimed",
-    "Name": "StopTimer",
-    "IsReversed": true
-  },
-  {
-    "Category": "CTaskComplexEnterCarAsPassengerTimed",
+    "Category": "CTaskComplexEvasiveDiveAndGetUp",
     "Name": "MakeAbortable",
     "IsReversed": true
   },
   {
-    "Category": "CTaskComplexEnterCarAsPassengerTimed",
+    "Category": "CTaskComplexEvasiveDiveAndGetUp",
     "Name": "CreateNextSubTask",
     "IsReversed": true
   },
   {
-    "Category": "CTaskComplexEnterCarAsPassengerTimed",
+    "Category": "CTaskComplexEvasiveDiveAndGetUp",
     "Name": "CreateFirstSubTask",
     "IsReversed": true
   },
   {
-    "Category": "CTaskComplexEnterCarAsPassengerTimed",
+    "Category": "CTaskComplexEvasiveDiveAndGetUp",
+    "Name": "ControlSubTask",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexEvasiveStep",
+    "Name": "Constructor-1",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexEvasiveStep",
+    "Name": "Desructor",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexEvasiveStep",
+    "Name": "CreateSubTask",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexEvasiveStep",
+    "Name": "Clone",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexEvasiveStep",
+    "Name": "GetTaskType",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexEvasiveStep",
+    "Name": "CreateNextSubTask",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexEvasiveStep",
+    "Name": "CreateFirstSubTask",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexEvasiveStep",
     "Name": "ControlSubTask",
     "IsReversed": true
   },
@@ -24610,6 +25770,51 @@
     "IsReversed": true
   },
   {
+    "Category": "CTaskComplexFollowPatrolRoute",
+    "Name": "Constructor-1",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexFollowPatrolRoute",
+    "Name": "Desructor",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexFollowPatrolRoute",
+    "Name": "CreateSubTask",
+    "IsReversed": false
+  },
+  {
+    "Category": "CTaskComplexFollowPatrolRoute",
+    "Name": "Clone",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexFollowPatrolRoute",
+    "Name": "GetTaskType",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexFollowPatrolRoute",
+    "Name": "MakeAbortable",
+    "IsReversed": false
+  },
+  {
+    "Category": "CTaskComplexFollowPatrolRoute",
+    "Name": "CreateNextSubTask",
+    "IsReversed": false
+  },
+  {
+    "Category": "CTaskComplexFollowPatrolRoute",
+    "Name": "CreateFirstSubTask",
+    "IsReversed": false
+  },
+  {
+    "Category": "CTaskComplexFollowPatrolRoute",
+    "Name": "ControlSubTask",
+    "IsReversed": true
+  },
+  {
     "Category": "CTaskComplexFollowPointRoute",
     "Name": "Constructor",
     "IsReversed": true
@@ -24727,7 +25932,7 @@
   {
     "Category": "CTaskComplexGangJoinRespond",
     "Name": "MakeAbortable",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexGangJoinRespond",
@@ -24992,12 +26197,12 @@
   {
     "Category": "CTaskComplexGoToPointAiming",
     "Name": "CreateFirstSubTask",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexGoToPointAiming",
     "Name": "ControlSubTask",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexGoToPointAndStandStillAndAchieveHeading",
@@ -25012,7 +26217,7 @@
   {
     "Category": "CTaskComplexGoToPointAndStandStillAndAchieveHeading",
     "Name": "Clone",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexGoToPointAndStandStillAndAchieveHeading",
@@ -25022,17 +26227,22 @@
   {
     "Category": "CTaskComplexGoToPointAndStandStillAndAchieveHeading",
     "Name": "CreateNextSubTask",
-    "IsReversed": false
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexGoToPointAndStandStillAndAchieveHeading",
+    "Name": "CreateSubTask",
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexGoToPointAndStandStillAndAchieveHeading",
     "Name": "CreateFirstSubTask",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexGoToPointAndStandStillAndAchieveHeading",
     "Name": "ControlSubTask",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexGoToPointAnyMeans",
@@ -25052,7 +26262,7 @@
   {
     "Category": "CTaskComplexGoToPointAnyMeans",
     "Name": "CreateSubTask",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexGoToPointAnyMeans",
@@ -25062,7 +26272,7 @@
   {
     "Category": "CTaskComplexGoToPointAnyMeans",
     "Name": "CreateFirstSubTask",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexGoToPointAnyMeans",
@@ -25722,7 +26932,7 @@
   {
     "Category": "CTaskComplexLeaveCarAndWander",
     "Name": "GetTaskType",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexLeaveCarAndWander",
@@ -25737,7 +26947,7 @@
   {
     "Category": "CTaskComplexLeaveCarAndWander",
     "Name": "ControlSubTask",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexMoveBackAndJump",
@@ -25822,6 +27032,46 @@
   {
     "Category": "CTaskComplexOnFire",
     "Name": "ControlSubTask",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexOpenDriverDoor",
+    "Name": "Constructor-1",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexOpenDriverDoor",
+    "Name": "Desructor",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexOpenDriverDoor",
+    "Name": "Clone",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexOpenDriverDoor",
+    "Name": "GetTaskType",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexOpenPassengerDoor",
+    "Name": "Constructor-1",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexOpenPassengerDoor",
+    "Name": "Desructor",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexOpenPassengerDoor",
+    "Name": "Clone",
+    "IsReversed": false
+  },
+  {
+    "Category": "CTaskComplexOpenPassengerDoor",
+    "Name": "GetTaskType",
     "IsReversed": true
   },
   {
@@ -25951,6 +27201,51 @@
   },
   {
     "Category": "CTaskComplexRoadRage",
+    "Name": "ControlSubTask",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexScreamInCarThenLeave",
+    "Name": "Constructor",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexScreamInCarThenLeave",
+    "Name": "Destructor",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexScreamInCarThenLeave",
+    "Name": "CreateSubTask",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexScreamInCarThenLeave",
+    "Name": "Clone",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexScreamInCarThenLeave",
+    "Name": "GetTaskType",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexScreamInCarThenLeave",
+    "Name": "MakeAbortable",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexScreamInCarThenLeave",
+    "Name": "CreateNextSubTask",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexScreamInCarThenLeave",
+    "Name": "CreateFirstSubTask",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexScreamInCarThenLeave",
     "Name": "ControlSubTask",
     "IsReversed": true
   },
@@ -26377,52 +27672,52 @@
   {
     "Category": "CTaskComplexSmartFleePoint",
     "Name": "SetDefaultTaskWanderDir",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexSmartFleePoint",
     "Name": "ComputeFleeDir",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexSmartFleePoint",
     "Name": "CreateSubTask",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexSmartFleePoint",
     "Name": "SetFleePosition",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexSmartFleePoint",
     "Name": "Clone",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexSmartFleePoint",
     "Name": "GetTaskType",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexSmartFleePoint",
     "Name": "MakeAbortable",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexSmartFleePoint",
     "Name": "CreateNextSubTask",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexSmartFleePoint",
     "Name": "CreateFirstSubTask",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexSmartFleePoint",
     "Name": "ControlSubTask",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexStareAtPed",
@@ -26755,6 +28050,61 @@
     "IsReversed": true
   },
   {
+    "Category": "CTaskComplexUsePairedAttractor",
+    "Name": "Constructor",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexUsePairedAttractor",
+    "Name": "Destructor",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexUsePairedAttractor",
+    "Name": "CreateSubTask",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexUsePairedAttractor",
+    "Name": "SetPartnership",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexUsePairedAttractor",
+    "Name": "ClearPartnership",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexUsePairedAttractor",
+    "Name": "SeekPartnership",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexUsePairedAttractor",
+    "Name": "Clone",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexUsePairedAttractor",
+    "Name": "GetTaskType",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexUsePairedAttractor",
+    "Name": "CreateNextSubTask",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexUsePairedAttractor",
+    "Name": "CreateFirstSubTask",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexUsePairedAttractor",
+    "Name": "ControlSubTask",
+    "IsReversed": true
+  },
+  {
     "Category": "CTaskComplexUseScriptedBrain",
     "Name": "Constructor",
     "IsReversed": true
@@ -26882,7 +28232,7 @@
   {
     "Category": "CTaskComplexWaitForBus",
     "Name": "GetTaskType",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexWaitForBus",
@@ -26897,7 +28247,7 @@
   {
     "Category": "CTaskComplexWaitForBus",
     "Name": "ControlSubTask",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexWaitForBackup",
@@ -27230,6 +28580,46 @@
     "IsReversed": true
   },
   {
+    "Category": "CTaskSimpleBeKickedOnGround",
+    "Name": "Constructor-1",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleBeKickedOnGround",
+    "Name": "Desructor",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleBeKickedOnGround",
+    "Name": "FinishAnimBeKickedOnGroundCB",
+    "IsReversed": false
+  },
+  {
+    "Category": "CTaskSimpleBeKickedOnGround",
+    "Name": "StartAnim",
+    "IsReversed": false
+  },
+  {
+    "Category": "CTaskSimpleBeKickedOnGround",
+    "Name": "Clone",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleBeKickedOnGround",
+    "Name": "GetTaskType",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleBeKickedOnGround",
+    "Name": "MakeAbortable",
+    "IsReversed": false
+  },
+  {
+    "Category": "CTaskSimpleBeKickedOnGround",
+    "Name": "ProcessPed",
+    "IsReversed": false
+  },
+  {
     "Category": "CTaskSimpleBikeJacked",
     "Name": "Constructor",
     "IsReversed": true
@@ -27463,6 +28853,36 @@
     "Category": "CTaskSimpleCarFallOut",
     "Name": "SetPedPosition",
     "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleCarForcePedOut",
+    "Name": "Constructor-1",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleCarForcePedOut",
+    "Name": "Desructor",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleCarForcePedOut",
+    "Name": "Clone",
+    "IsReversed": false
+  },
+  {
+    "Category": "CTaskSimpleCarForcePedOut",
+    "Name": "GetTaskType",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleCarForcePedOut",
+    "Name": "MakeAbortable",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleCarForcePedOut",
+    "Name": "ProcessPed",
+    "IsReversed": false
   },
   {
     "Category": "CTaskSimpleCarGetOut",
@@ -28000,6 +29420,91 @@
     "IsReversed": true
   },
   {
+    "Category": "CTaskSimpleDead",
+    "Name": "Constructor-1",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleDead",
+    "Name": "Desructor",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleDead",
+    "Name": "Clone",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleDead",
+    "Name": "GetTaskType",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleDead",
+    "Name": "MakeAbortable",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleDead",
+    "Name": "ProcessPed",
+    "IsReversed": false
+  },
+  {
+    "Category": "CTaskSimpleDieInCar",
+    "Name": "Constructor-1",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleDieInCar",
+    "Name": "Desructor",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleDieInCar",
+    "Name": "Clone",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleDieInCar",
+    "Name": "GetTaskType",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleDieInCar",
+    "Name": "ProcessPed",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleDoHandSignal",
+    "Name": "Constructor",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleDoHandSignal",
+    "Name": "Destructor",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleDoHandSignal",
+    "Name": "Clone",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleDoHandSignal",
+    "Name": "GetTaskType",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleDoHandSignal",
+    "Name": "MakeAbortable",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleDoHandSignal",
+    "Name": "ProcessPed",
+    "IsReversed": true
+  },
+  {
     "Category": "CTaskSimpleDrown",
     "Name": "ProcessPed",
     "IsReversed": true
@@ -28036,6 +29541,76 @@
   },
   {
     "Category": "CTaskSimpleDuckToggle",
+    "Name": "ProcessPed",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleEvasiveDive",
+    "Name": "Constructor-1",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleEvasiveDive",
+    "Name": "Desructor",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleEvasiveDive",
+    "Name": "FinishAnimEvasiveDiveCB",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleEvasiveDive",
+    "Name": "StartAnim",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleEvasiveDive",
+    "Name": "Clone",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleEvasiveDive",
+    "Name": "GetTaskType",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleEvasiveDive",
+    "Name": "MakeAbortable",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleEvasiveDive",
+    "Name": "ProcessPed",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleEvasiveStep",
+    "Name": "Constructor-1",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleEvasiveStep",
+    "Name": "Desructor",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleEvasiveStep",
+    "Name": "Clone",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleEvasiveStep",
+    "Name": "GetTaskType",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleEvasiveStep",
+    "Name": "MakeAbortable",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleEvasiveStep",
     "Name": "ProcessPed",
     "IsReversed": true
   },
@@ -28363,6 +29938,31 @@
     "Category": "CTaskSimpleLookAbout",
     "Name": "IsInterruptable",
     "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleOnEscalator",
+    "Name": "Constructor-1",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleOnEscalator",
+    "Name": "Desructor",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleOnEscalator",
+    "Name": "Clone",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleOnEscalator",
+    "Name": "GetTaskType",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleOnEscalator",
+    "Name": "ProcessPed",
+    "IsReversed": false
   },
   {
     "Category": "CTaskSimplePickUpBike",
@@ -29155,6 +30755,21 @@
     "IsReversed": true
   },
   {
+    "Category": "CTaskSimpleAbseil",
+    "Name": "Constructor-1",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleAbseil",
+    "Name": "Clone",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleAbseil",
+    "Name": "IsInterruptable",
+    "IsReversed": true
+  },
+  {
     "Category": "CTaskComplexWanderCop",
     "Name": "Constructor",
     "IsReversed": true
@@ -29198,6 +30813,56 @@
     "Category": "CTaskComplexWanderCop",
     "Name": "ShouldPursuePlayer",
     "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexUseMobilePhone",
+    "Name": "Constructor-1",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexUseMobilePhone",
+    "Name": "Desructor",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexUseMobilePhone",
+    "Name": "RemovePhoneModel",
+    "IsReversed": false
+  },
+  {
+    "Category": "CTaskComplexUseMobilePhone",
+    "Name": "Stop",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexUseMobilePhone",
+    "Name": "Clone",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexUseMobilePhone",
+    "Name": "GetTaskType",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexUseMobilePhone",
+    "Name": "MakeAbortable",
+    "IsReversed": false
+  },
+  {
+    "Category": "CTaskComplexUseMobilePhone",
+    "Name": "CreateNextSubTask",
+    "IsReversed": false
+  },
+  {
+    "Category": "CTaskComplexUseMobilePhone",
+    "Name": "CreateFirstSubTask",
+    "IsReversed": false
+  },
+  {
+    "Category": "CTaskComplexUseMobilePhone",
+    "Name": "ControlSubTask",
+    "IsReversed": false
   },
   {
     "Category": "CTaskSimpleStandStill",
@@ -29280,9 +30945,54 @@
     "IsReversed": false
   },
   {
-    "Category": "CTaskComplexPartnerChat",
-    "Name": "Constructor",
+    "Category": "CTaskSimpleScratchHead",
+    "Name": "Constructor-1",
     "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleScratchHead",
+    "Name": "Desructor",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleScratchHead",
+    "Name": "Clone",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleScratchHead",
+    "Name": "IsInterruptable",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexPartnerChat",
+    "Name": "Constructor-1",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexPartnerChat",
+    "Name": "Desructor",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexPartnerChat",
+    "Name": "Clone",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexPartnerChat",
+    "Name": "GetTaskType",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexPartnerChat",
+    "Name": "MakeAbortable",
+    "IsReversed": false
+  },
+  {
+    "Category": "CTaskComplexPartnerChat",
+    "Name": "GetPartnerSequence",
+    "IsReversed": false
   },
   {
     "Category": "CTaskSimpleUseGun",
@@ -29380,6 +31090,66 @@
     "IsReversed": true
   },
   {
+    "Category": "CTaskSimpleGangDriveBy",
+    "Name": "Constructor-1",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleGangDriveBy",
+    "Name": "Desructor",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleGangDriveBy",
+    "Name": "SetupStaticAnimForPlayer",
+    "IsReversed": false
+  },
+  {
+    "Category": "CTaskSimpleGangDriveBy",
+    "Name": "CheckIfThereNoObstaclesForFiring",
+    "IsReversed": false
+  },
+  {
+    "Category": "CTaskSimpleGangDriveBy",
+    "Name": "SetupStaticAnimForNPC",
+    "IsReversed": false
+  },
+  {
+    "Category": "CTaskSimpleGangDriveBy",
+    "Name": "BlendAnimation",
+    "IsReversed": false
+  },
+  {
+    "Category": "CTaskSimpleGangDriveBy",
+    "Name": "FireGun",
+    "IsReversed": false
+  },
+  {
+    "Category": "CTaskSimpleGangDriveBy",
+    "Name": "ProcessAiming",
+    "IsReversed": false
+  },
+  {
+    "Category": "CTaskSimpleGangDriveBy",
+    "Name": "Clone",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleGangDriveBy",
+    "Name": "GetTaskType",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleGangDriveBy",
+    "Name": "MakeAbortable",
+    "IsReversed": false
+  },
+  {
+    "Category": "CTaskSimpleGangDriveBy",
+    "Name": "ProcessPed",
+    "IsReversed": false
+  },
+  {
     "Category": "CTaskComplexObserveTrafficLightsAndAchieveHeading",
     "Name": "Clone",
     "IsReversed": true
@@ -29422,6 +31192,56 @@
   {
     "Category": "CTaskSimpleInAir",
     "Name": "MakeAbortable",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexHitPedWithCar",
+    "Name": "Constructor",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexHitPedWithCar",
+    "Name": "Destructor",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexHitPedWithCar",
+    "Name": "ComputeEvasiveStepMoveDir",
+    "IsReversed": false
+  },
+  {
+    "Category": "CTaskComplexHitPedWithCar",
+    "Name": "HitHurtsPed",
+    "IsReversed": false
+  },
+  {
+    "Category": "CTaskComplexHitPedWithCar",
+    "Name": "CreateSubTask",
+    "IsReversed": false
+  },
+  {
+    "Category": "CTaskComplexHitPedWithCar",
+    "Name": "Clone",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexHitPedWithCar",
+    "Name": "GetTaskType",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexHitPedWithCar",
+    "Name": "CreateNextSubTask",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexHitPedWithCar",
+    "Name": "CreateFirstSubTask",
+    "IsReversed": false
+  },
+  {
+    "Category": "CTaskComplexHitPedWithCar",
+    "Name": "ControlSubTask",
     "IsReversed": true
   },
   {
@@ -29486,8 +31306,48 @@
   },
   {
     "Category": "CTaskComplexFollowPedFootsteps",
-    "Name": "Constructor",
+    "Name": "Constructor-1",
     "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexFollowPedFootsteps",
+    "Name": "Desructor",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexFollowPedFootsteps",
+    "Name": "Clone",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexFollowPedFootsteps",
+    "Name": "GetTaskType",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexFollowPedFootsteps",
+    "Name": "MakeAbortable",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexFollowPedFootsteps",
+    "Name": "CreateNextSubTask",
+    "IsReversed": false
+  },
+  {
+    "Category": "CTaskComplexFollowPedFootsteps",
+    "Name": "CreateFirstSubTask",
+    "IsReversed": false
+  },
+  {
+    "Category": "CTaskComplexFollowPedFootsteps",
+    "Name": "ControlSubTask",
+    "IsReversed": false
+  },
+  {
+    "Category": "CTaskComplexFollowPedFootsteps",
+    "Name": "CreateSubTask",
+    "IsReversed": false
   },
   {
     "Category": "CTaskComplexGetUpAndStandStill",
@@ -29513,6 +31373,41 @@
     "Category": "CTaskComplexGetUpAndStandStill",
     "Name": "ControlSubTask",
     "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexGoPickUpEntity",
+    "Name": "Constructor-1",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexGoPickUpEntity",
+    "Name": "Desructor",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexGoPickUpEntity",
+    "Name": "Clone",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexGoPickUpEntity",
+    "Name": "GetTaskType",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexGoPickUpEntity",
+    "Name": "CreateNextSubTask",
+    "IsReversed": false
+  },
+  {
+    "Category": "CTaskComplexGoPickUpEntity",
+    "Name": "CreateFirstSubTask",
+    "IsReversed": false
+  },
+  {
+    "Category": "CTaskComplexGoPickUpEntity",
+    "Name": "ControlSubTask",
+    "IsReversed": false
   },
   {
     "Category": "CTaskSimpleDie",
@@ -29997,7 +31892,7 @@
   {
     "Category": "CTaskComplexFollowLeaderInFormation",
     "Name": "Constructor",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexFollowLeaderInFormation",
@@ -30006,28 +31901,63 @@
   },
   {
     "Category": "CTaskComplexFollowLeaderInFormation",
-    "Name": "Clone",
+    "Name": "CreateSubTask",
     "IsReversed": false
+  },
+  {
+    "Category": "CTaskComplexFollowLeaderInFormation",
+    "Name": "Clone",
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexFollowLeaderInFormation",
     "Name": "GetTaskType",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexFollowLeaderInFormation",
     "Name": "CreateNextSubTask",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexFollowLeaderInFormation",
     "Name": "CreateFirstSubTask",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexFollowLeaderInFormation",
     "Name": "ControlSubTask",
     "IsReversed": false
+  },
+  {
+    "Category": "CTaskSimpleTriggerLookAt",
+    "Name": "Constructor-1",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleTriggerLookAt",
+    "Name": "Desructor",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleTriggerLookAt",
+    "Name": "Clone",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleTriggerLookAt",
+    "Name": "GetTaskType",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleTriggerLookAt",
+    "Name": "MakeAbortable",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleTriggerLookAt",
+    "Name": "ProcessPed",
+    "IsReversed": true
   },
   {
     "Category": "CTaskSimpleHitHead",
@@ -30171,6 +32101,36 @@
   },
   {
     "Category": "CTaskSimpleJetPack",
+    "Name": "ProcessPed",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleSetStayInSamePlace",
+    "Name": "Constructor-1",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleSetStayInSamePlace",
+    "Name": "Desructor",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleSetStayInSamePlace",
+    "Name": "Clone",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleSetStayInSamePlace",
+    "Name": "GetTaskType",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleSetStayInSamePlace",
+    "Name": "MakeAbortable",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleSetStayInSamePlace",
     "Name": "ProcessPed",
     "IsReversed": true
   },
@@ -30352,7 +32312,7 @@
   {
     "Category": "CTaskComplexPlayHandSignalAnim",
     "Name": "CreateNextSubTask",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexPlayHandSignalAnim",
@@ -30361,6 +32321,46 @@
   },
   {
     "Category": "CTaskComplexPlayHandSignalAnim",
+    "Name": "ControlSubTask",
+    "IsReversed": false
+  },
+  {
+    "Category": "CTaskComplexWaitForPed",
+    "Name": "Constructor-1",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexWaitForPed",
+    "Name": "Desructor",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexWaitForPed",
+    "Name": "Clone",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexWaitForPed",
+    "Name": "GetTaskType",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexWaitForPed",
+    "Name": "MakeAbortable",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexWaitForPed",
+    "Name": "CreateNextSubTask",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexWaitForPed",
+    "Name": "CreateFirstSubTask",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexWaitForPed",
     "Name": "ControlSubTask",
     "IsReversed": false
   },
@@ -30395,6 +32395,56 @@
     "IsReversed": true
   },
   {
+    "Category": "CTaskComplexWanderStandard",
+    "Name": "Constructor-1",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexWanderStandard",
+    "Name": "Desructor",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexWanderStandard",
+    "Name": "WillChat",
+    "IsReversed": false
+  },
+  {
+    "Category": "CTaskComplexWanderStandard",
+    "Name": "SetNextMinScanTime",
+    "IsReversed": false
+  },
+  {
+    "Category": "CTaskComplexWanderStandard",
+    "Name": "LookForSexyCars",
+    "IsReversed": false
+  },
+  {
+    "Category": "CTaskComplexWanderStandard",
+    "Name": "LookForChatPartners",
+    "IsReversed": false
+  },
+  {
+    "Category": "CTaskComplexWanderStandard",
+    "Name": "LookForGangMembers",
+    "IsReversed": false
+  },
+  {
+    "Category": "CTaskComplexWanderStandard",
+    "Name": "Clone",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexWanderStandard",
+    "Name": "GetWanderType",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexWanderStandard",
+    "Name": "ScanForStuff",
+    "IsReversed": true
+  },
+  {
     "Category": "CTaskComplexSunbathe",
     "Name": "Constructor",
     "IsReversed": true
@@ -30412,12 +32462,12 @@
   {
     "Category": "CTaskComplexSunbathe",
     "Name": "GetTaskType",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexSunbathe",
     "Name": "MakeAbortable",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexSunbathe",
@@ -30505,6 +32555,36 @@
     "IsReversed": true
   },
   {
+    "Category": "CTaskSimpleTogglePedThreatScanner",
+    "Name": "Constructor-1",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleTogglePedThreatScanner",
+    "Name": "Desructor",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleTogglePedThreatScanner",
+    "Name": "Clone",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleTogglePedThreatScanner",
+    "Name": "GetTaskType",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleTogglePedThreatScanner",
+    "Name": "MakeAbortable",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleTogglePedThreatScanner",
+    "Name": "ProcessPed",
+    "IsReversed": true
+  },
+  {
     "Category": "CTaskComplexUseGoggles",
     "Name": "Clone",
     "IsReversed": true
@@ -30528,6 +32608,96 @@
     "Category": "CTaskComplexUseGoggles",
     "Name": "ControlSubTask",
     "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexCrossRoadLookAndAchieveHeading",
+    "Name": "Constructor-1",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexCrossRoadLookAndAchieveHeading",
+    "Name": "Desructor",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexCrossRoadLookAndAchieveHeading",
+    "Name": "CreateSubTask",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexCrossRoadLookAndAchieveHeading",
+    "Name": "Clone",
+    "IsReversed": false
+  },
+  {
+    "Category": "CTaskComplexCrossRoadLookAndAchieveHeading",
+    "Name": "GetTaskType",
+    "IsReversed": false
+  },
+  {
+    "Category": "CTaskComplexCrossRoadLookAndAchieveHeading",
+    "Name": "MakeAbortable",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexCrossRoadLookAndAchieveHeading",
+    "Name": "CreateNextSubTask",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexCrossRoadLookAndAchieveHeading",
+    "Name": "CreateFirstSubTask",
+    "IsReversed": false
+  },
+  {
+    "Category": "CTaskComplexCrossRoadLookAndAchieveHeading",
+    "Name": "ControlSubTask",
+    "IsReversed": false
+  },
+  {
+    "Category": "CTaskComplexBeInCouple",
+    "Name": "Constructor-1",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexBeInCouple",
+    "Name": "Desructor",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexBeInCouple",
+    "Name": "AbortArmIK",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexBeInCouple",
+    "Name": "Clone",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexBeInCouple",
+    "Name": "GetTaskType",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexBeInCouple",
+    "Name": "MakeAbortable",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexBeInCouple",
+    "Name": "CreateNextSubTask",
+    "IsReversed": false
+  },
+  {
+    "Category": "CTaskComplexBeInCouple",
+    "Name": "CreateFirstSubTask",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexBeInCouple",
+    "Name": "ControlSubTask",
+    "IsReversed": false
   },
   {
     "Category": "CTaskComplexGoToPointAndStandStill",
@@ -30620,6 +32790,36 @@
     "IsReversed": true
   },
   {
+    "Category": "CTaskSimpleCarSetPedInAsPassenger",
+    "Name": "Constructor-1",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleCarSetPedInAsPassenger",
+    "Name": "Desructor",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleCarSetPedInAsPassenger",
+    "Name": "Clone",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleCarSetPedInAsPassenger",
+    "Name": "GetTaskType",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleCarSetPedInAsPassenger",
+    "Name": "MakeAbortable",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleCarSetPedInAsPassenger",
+    "Name": "ProcessPed",
+    "IsReversed": false
+  },
+  {
     "Category": "CTaskComplexDriveFireTruck",
     "Name": "Constructor",
     "IsReversed": true
@@ -30706,12 +32906,42 @@
   },
   {
     "Category": "CTaskComplexWalkRoundObject",
-    "Name": "Constructor",
+    "Name": "Constructor-1",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexWalkRoundObject",
+    "Name": "Desructor",
     "IsReversed": true
   },
   {
     "Category": "CTaskComplexWalkRoundObject",
     "Name": "CreateRouteTask",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexWalkRoundObject",
+    "Name": "Clone",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexWalkRoundObject",
+    "Name": "GetTaskType",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexWalkRoundObject",
+    "Name": "CreateNextSubTask",
+    "IsReversed": false
+  },
+  {
+    "Category": "CTaskComplexWalkRoundObject",
+    "Name": "CreateFirstSubTask",
+    "IsReversed": false
+  },
+  {
+    "Category": "CTaskComplexWalkRoundObject",
+    "Name": "ControlSubTask",
     "IsReversed": false
   },
   {
@@ -30735,13 +32965,233 @@
     "IsReversed": true
   },
   {
-    "Category": "CTaskComplexKillPedOnFoot",
+    "Category": "CTaskComplexEnterCarAsDriver",
+    "Name": "Constructor-1",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexEnterCarAsDriver",
+    "Name": "Clone",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexEnterCarAsDriver",
+    "Name": "GetTaskType",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexEnterCarAsDriverTimed",
     "Name": "Constructor",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexEnterCarAsDriverTimed",
+    "Name": "Destructor",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexEnterCarAsDriverTimed",
+    "Name": "Clone",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexEnterCarAsDriverTimed",
+    "Name": "GetTaskType",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexEnterCarAsDriverTimed",
+    "Name": "StopTimer",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexEnterCarAsDriverTimed",
+    "Name": "MakeAbortable",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexEnterCarAsDriverTimed",
+    "Name": "CreateNextSubTask",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexEnterCarAsDriverTimed",
+    "Name": "CreateFirstSubTask",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexEnterCarAsDriverTimed",
+    "Name": "ControlSubTask",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexEnterCarAsPassenger",
+    "Name": "Constructor",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexEnterCarAsPassenger",
+    "Name": "Destructor",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexEnterCarAsPassenger",
+    "Name": "Clone",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexEnterCarAsPassenger",
+    "Name": "GetTaskType",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexEnterCarAsPassengerTimed",
+    "Name": "Constructor",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexEnterCarAsPassengerTimed",
+    "Name": "Destructor",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexEnterCarAsPassengerTimed",
+    "Name": "Clone",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexEnterCarAsPassengerTimed",
+    "Name": "GetTaskType",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexEnterCarAsPassengerTimed",
+    "Name": "StopTimer",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexEnterCarAsPassengerTimed",
+    "Name": "MakeAbortable",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexEnterCarAsPassengerTimed",
+    "Name": "CreateNextSubTask",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexEnterCarAsPassengerTimed",
+    "Name": "CreateFirstSubTask",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexEnterCarAsPassengerTimed",
+    "Name": "ControlSubTask",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexEnterCarAsPassengerWait",
+    "Name": "Constructor",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexEnterCarAsPassengerWait",
+    "Name": "Destructor",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexEnterCarAsPassengerWait",
+    "Name": "CreateSubTask",
+    "IsReversed": false
+  },
+  {
+    "Category": "CTaskComplexEnterCarAsPassengerWait",
+    "Name": "Clone",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexEnterCarAsPassengerWait",
+    "Name": "GetTaskType",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexEnterCarAsPassengerWait",
+    "Name": "CreateNextSubTask",
+    "IsReversed": false
+  },
+  {
+    "Category": "CTaskComplexEnterCarAsPassengerWait",
+    "Name": "CreateFirstSubTask",
+    "IsReversed": false
+  },
+  {
+    "Category": "CTaskComplexEnterCarAsPassengerWait",
+    "Name": "ControlSubTask",
+    "IsReversed": false
+  },
+  {
+    "Category": "CTaskSimpleNone",
+    "Name": "Destructor",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleNone",
+    "Name": "Clone",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleNone",
+    "Name": "GetTaskType",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleNone",
+    "Name": "MakeAbortable",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleNone",
+    "Name": "ProcessPed",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexKillPedOnFoot",
+    "Name": "Desructor",
     "IsReversed": true
   },
   {
     "Category": "CTaskComplexKillPedOnFoot",
     "Name": "CreateSubTask",
+    "IsReversed": false
+  },
+  {
+    "Category": "CTaskComplexKillPedOnFoot",
+    "Name": "Clone",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexKillPedOnFoot",
+    "Name": "GetTaskType",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexKillPedOnFoot",
+    "Name": "MakeAbortable",
+    "IsReversed": false
+  },
+  {
+    "Category": "CTaskComplexKillPedOnFoot",
+    "Name": "CreateNextSubTask",
+    "IsReversed": false
+  },
+  {
+    "Category": "CTaskComplexKillPedOnFoot",
+    "Name": "CreateFirstSubTask",
+    "IsReversed": false
+  },
+  {
+    "Category": "CTaskComplexKillPedOnFoot",
+    "Name": "ControlSubTask",
     "IsReversed": false
   },
   {
@@ -30820,6 +33270,86 @@
     "IsReversed": true
   },
   {
+    "Category": "CTaskComplexWanderMedic",
+    "Name": "Constructor-1",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexWanderMedic",
+    "Name": "Desructor",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexWanderMedic",
+    "Name": "Clone",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexWanderMedic",
+    "Name": "GetWanderType",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexWanderMedic",
+    "Name": "ScanForStuff",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleCarDriveTimed",
+    "Name": "Constructor-1",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleCarDriveTimed",
+    "Name": "Desructor",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleCarDriveTimed",
+    "Name": "Clone",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleCarDriveTimed",
+    "Name": "GetTaskType",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleCarDriveTimed",
+    "Name": "ProcessPed",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexCarDriveWander",
+    "Name": "Constructor-1",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexCarDriveWander",
+    "Name": "Desructor",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexCarDriveWander",
+    "Name": "Clone",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexCarDriveWander",
+    "Name": "GetTaskType",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexCarDriveWander",
+    "Name": "SetUpCar",
+    "IsReversed": false
+  },
+  {
+    "Category": "CTaskComplexCarDriveWander",
+    "Name": "CreateSubTaskCannotGetInCar",
+    "IsReversed": false
+  },
+  {
     "Category": "CTaskSimpleStealthKill",
     "Name": "Constructor",
     "IsReversed": true
@@ -30855,6 +33385,41 @@
     "IsReversed": true
   },
   {
+    "Category": "CTaskSimpleCarSetPedOut",
+    "Name": "Constructor-1",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleCarSetPedOut",
+    "Name": "Desructor",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleCarSetPedOut",
+    "Name": "PositionPedOutOfCollision",
+    "IsReversed": false
+  },
+  {
+    "Category": "CTaskSimpleCarSetPedOut",
+    "Name": "Clone",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleCarSetPedOut",
+    "Name": "GetTaskType",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleCarSetPedOut",
+    "Name": "MakeAbortable",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleCarSetPedOut",
+    "Name": "ProcessPed",
+    "IsReversed": false
+  },
+  {
     "Category": "CTaskSimpleAnim",
     "Name": "MakeAbortable",
     "IsReversed": true
@@ -30883,6 +33448,61 @@
     "Category": "CTaskSimpleRunAnim",
     "Name": "ProcessPed",
     "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexWanderCriminal",
+    "Name": "Constructor-1",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexWanderCriminal",
+    "Name": "Desructor",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexWanderCriminal",
+    "Name": "LookForCarsToSteal",
+    "IsReversed": false
+  },
+  {
+    "Category": "CTaskComplexWanderCriminal",
+    "Name": "Clone",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexWanderCriminal",
+    "Name": "GetWanderType",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexWanderCriminal",
+    "Name": "ScanForStuff",
+    "IsReversed": false
+  },
+  {
+    "Category": "CTaskComplexWanderProstitute",
+    "Name": "Constructor-1",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexWanderProstitute",
+    "Name": "Clone",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexWanderProstitute",
+    "Name": "CreateFirstSubTask",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexWanderProstitute",
+    "Name": "GetWanderType",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexWanderProstitute",
+    "Name": "ScanForStuff",
+    "IsReversed": false
   },
   {
     "Category": "CTaskComplexPartnerGreet",
@@ -31137,7 +33757,7 @@
   {
     "Category": "CTaskComplexKillPedFromBoat",
     "Name": "GetTaskType",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexKillPedFromBoat",
@@ -31151,6 +33771,61 @@
   },
   {
     "Category": "CTaskComplexKillPedFromBoat",
+    "Name": "ControlSubTask",
+    "IsReversed": false
+  },
+  {
+    "Category": "CTaskComplexLeaveCar",
+    "Name": "Constructor-1",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexLeaveCar",
+    "Name": "Constructor-2",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexLeaveCar",
+    "Name": "Desructor",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexLeaveCar",
+    "Name": "ComputeTargetDoor",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexLeaveCar",
+    "Name": "CreateSubTask",
+    "IsReversed": false
+  },
+  {
+    "Category": "CTaskComplexLeaveCar",
+    "Name": "Clone",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexLeaveCar",
+    "Name": "GetTaskType",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexLeaveCar",
+    "Name": "MakeAbortable",
+    "IsReversed": false
+  },
+  {
+    "Category": "CTaskComplexLeaveCar",
+    "Name": "CreateNextSubTask",
+    "IsReversed": false
+  },
+  {
+    "Category": "CTaskComplexLeaveCar",
+    "Name": "CreateFirstSubTask",
+    "IsReversed": false
+  },
+  {
+    "Category": "CTaskComplexLeaveCar",
     "Name": "ControlSubTask",
     "IsReversed": false
   },
@@ -31221,8 +33896,28 @@
   },
   {
     "Category": "CTaskComplexPartnerShove",
-    "Name": "Constructor",
+    "Name": "Constructor-1",
     "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexPartnerShove",
+    "Name": "Desructor",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexPartnerShove",
+    "Name": "Clone",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexPartnerShove",
+    "Name": "GetTaskType",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexPartnerShove",
+    "Name": "GetPartnerSequence",
+    "IsReversed": false
   },
   {
     "Category": "CTaskSimpleRunNamedAnim",
@@ -31247,7 +33942,7 @@
   {
     "Category": "CTaskSimpleRunNamedAnim",
     "Name": "GetTaskType",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskSimpleRunNamedAnim",
@@ -31258,6 +33953,61 @@
     "Category": "CTaskSimpleRunNamedAnim",
     "Name": "OffsetPedPosition",
     "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexProstituteSolicit",
+    "Name": "Constructor-1",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexProstituteSolicit",
+    "Name": "Desructor",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexProstituteSolicit",
+    "Name": "IsTaskValid",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexProstituteSolicit",
+    "Name": "GetRidOfPlayerProstitute",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexProstituteSolicit",
+    "Name": "CreateSubTask",
+    "IsReversed": false
+  },
+  {
+    "Category": "CTaskComplexProstituteSolicit",
+    "Name": "Clone",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexProstituteSolicit",
+    "Name": "GetTaskType",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexProstituteSolicit",
+    "Name": "MakeAbortable",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexProstituteSolicit",
+    "Name": "CreateNextSubTask",
+    "IsReversed": false
+  },
+  {
+    "Category": "CTaskComplexProstituteSolicit",
+    "Name": "CreateFirstSubTask",
+    "IsReversed": false
+  },
+  {
+    "Category": "CTaskComplexProstituteSolicit",
+    "Name": "ControlSubTask",
+    "IsReversed": false
   },
   {
     "Category": "CTaskComplexStuckInAir",
@@ -31381,8 +34131,83 @@
   },
   {
     "Category": "CTaskComplexPartner",
-    "Name": "Constructor",
+    "Name": "Constructor-1",
     "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexPartner",
+    "Name": "Desructor",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexPartner",
+    "Name": "CalcTargetPositions",
+    "IsReversed": false
+  },
+  {
+    "Category": "CTaskComplexPartner",
+    "Name": "GetPartnerState",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexPartner",
+    "Name": "GetTaskType",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexPartner",
+    "Name": "CreateNextSubTask",
+    "IsReversed": false
+  },
+  {
+    "Category": "CTaskComplexPartner",
+    "Name": "CreateFirstSubTask",
+    "IsReversed": false
+  },
+  {
+    "Category": "CTaskComplexPartner",
+    "Name": "ControlSubTask",
+    "IsReversed": false
+  },
+  {
+    "Category": "CTaskComplexPartner",
+    "Name": "StreamRequiredAnims",
+    "IsReversed": false
+  },
+  {
+    "Category": "CTaskComplexPartner",
+    "Name": "RemoveStreamedAnims",
+    "IsReversed": false
+  },
+  {
+    "Category": "CTaskSimpleCarSetPedInAsDriver",
+    "Name": "Constructor-1",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleCarSetPedInAsDriver",
+    "Name": "Desructor",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleCarSetPedInAsDriver",
+    "Name": "Clone",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleCarSetPedInAsDriver",
+    "Name": "GetTaskType",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleCarSetPedInAsDriver",
+    "Name": "MakeAbortable",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleCarSetPedInAsDriver",
+    "Name": "ProcessPed",
+    "IsReversed": false
   },
   {
     "Category": "CTaskComplexWander",
@@ -31392,7 +34217,7 @@
   {
     "Category": "CTaskComplexWander",
     "Name": "CreateNextSubTask",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexWander",
@@ -31452,6 +34277,16 @@
   {
     "Category": "CTaskComplexWander",
     "Name": "GetWanderTaskByPedType",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexWander",
+    "Name": "SetDirection",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexWander",
+    "Name": "SetPathNodesFrom",
     "IsReversed": true
   },
   {
@@ -31815,6 +34650,121 @@
     "IsReversed": true
   },
   {
+    "Category": "CTaskComplexDriveToPoint",
+    "Name": "Constructor-1",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexDriveToPoint",
+    "Name": "Desructor",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexDriveToPoint",
+    "Name": "IsTargetBlocked-Any",
+    "IsReversed": false
+  },
+  {
+    "Category": "CTaskComplexDriveToPoint",
+    "Name": "IsTargetBlocked-Array",
+    "IsReversed": false
+  },
+  {
+    "Category": "CTaskComplexDriveToPoint",
+    "Name": "Clone",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexDriveToPoint",
+    "Name": "GetTaskType",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexDriveToPoint",
+    "Name": "SetUpCar",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexDriveToPoint",
+    "Name": "CreateSubTaskCannotGetInCar",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexDriveToPoint",
+    "Name": "Drive",
+    "IsReversed": false
+  },
+  {
+    "Category": "CTaskSimpleSlideToCoord",
+    "Name": "Constructor-1",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleSlideToCoord",
+    "Name": "Constructor-2",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleSlideToCoord",
+    "Name": "Destructor",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleSlideToCoord",
+    "Name": "Clone",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleSlideToCoord",
+    "Name": "GetTaskType",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleSlideToCoord",
+    "Name": "MakeAbortable",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskSimpleSlideToCoord",
+    "Name": "ProcessPed",
+    "IsReversed": false
+  },
+  {
+    "Category": "CTaskComplexPartnerDeal",
+    "Name": "Constructor-1",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexPartnerDeal",
+    "Name": "Desructor",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexPartnerDeal",
+    "Name": "Clone",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexPartnerDeal",
+    "Name": "GetTaskType",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexPartnerDeal",
+    "Name": "CreateFirstSubTask",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexPartnerDeal",
+    "Name": "StreamRequiredAnims",
+    "IsReversed": false
+  },
+  {
+    "Category": "CTaskComplexPartnerDeal",
+    "Name": "GetPartnerSequence",
+    "IsReversed": false
+  },
+  {
     "Category": "CTaskSimplePickUpEntity",
     "Name": "Constructor-1",
     "IsReversed": true
@@ -31882,6 +34832,26 @@
   {
     "Category": "CTaskComplexBeInGroup",
     "Name": "ControlSubTask",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexBeCop",
+    "Name": "Constructor-1",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexBeCop",
+    "Name": "Desructor",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexBeCop",
+    "Name": "Clone",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexBeCop",
+    "Name": "GetTaskType",
     "IsReversed": true
   },
   {
@@ -32762,12 +35732,12 @@
   {
     "Category": "CDecision",
     "Name": "SetDefault",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CDecision",
     "Name": "Set",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CDecision",
@@ -35146,6 +38116,11 @@
   },
   {
     "Category": "CAECollisionAudioEntity",
+    "Name": "UpdateParameters",
+    "IsReversed": true
+  },
+  {
+    "Category": "CAECollisionAudioEntity",
     "Name": "ReportWaterSplash-at-position",
     "IsReversed": true
   },
@@ -35262,7 +38237,7 @@
   {
     "Category": "CAEFrontendAudioEntity",
     "Name": "UpdateParameters",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CAEGlobalWeaponAudioEntity",
@@ -35947,12 +38922,12 @@
   {
     "Category": "CAEScriptAudioEntity",
     "Name": "GetMissionAudioLoadingStatus",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CAEScriptAudioEntity",
     "Name": "IsMissionAudioSampleFinished",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CAEScriptAudioEntity",
@@ -35962,32 +38937,32 @@
   {
     "Category": "CAEScriptAudioEntity",
     "Name": "ClearMissionAudio",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CAEScriptAudioEntity",
     "Name": "SetMissionAudioPosition",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CAEScriptAudioEntity",
     "Name": "AttachMissionAudioToPhysical",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CAEScriptAudioEntity",
     "Name": "PreloadMissionAudio",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CAEScriptAudioEntity",
     "Name": "PlayLoadedMissionAudio",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CAEScriptAudioEntity",
     "Name": "GetMissionAudioPosition",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CAEScriptAudioEntity",
@@ -35997,7 +38972,7 @@
   {
     "Category": "CAEScriptAudioEntity",
     "Name": "PlayMissionBankSound",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CAEScriptAudioEntity",
@@ -36507,7 +39482,7 @@
   {
     "Category": "CAEVehicleAudioEntity",
     "Name": "ProcessGenericJet",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CAEVehicleAudioEntity",
@@ -36977,7 +39952,7 @@
   {
     "Category": "CAEAudioHardware",
     "Name": "PlaySound",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CAEStaticChannel",
@@ -37017,12 +39992,12 @@
   {
     "Category": "CAEStaticChannel",
     "Name": "SetAudioBuffer",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CAEStreamingChannel",
     "Name": "Constructor",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CAEStreamingChannel",
@@ -37037,7 +40012,7 @@
   {
     "Category": "CAEStreamingChannel",
     "Name": "PrepareStream",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CAEStreamingChannel",
@@ -37107,7 +40082,7 @@
   {
     "Category": "CAEStreamingChannel",
     "Name": "Service",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CAEStreamingChannel",
@@ -37702,7 +40677,7 @@
   {
     "Category": "CAERadioTrackManager",
     "Name": "Service",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CAERadioTrackManager",
@@ -37712,7 +40687,7 @@
   {
     "Category": "CAERadioTrackManager",
     "Name": "CheckForStationRetune",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CAERadioTrackManager",
@@ -37722,7 +40697,7 @@
   {
     "Category": "CAERadioTrackManager",
     "Name": "IsVehicleRadioActive",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CAERadioTrackManager",
@@ -37807,7 +40782,7 @@
   {
     "Category": "CAERadioTrackManager",
     "Name": "ChooseTalkRadioShow",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CAERadioTrackManager",
@@ -37822,7 +40797,7 @@
   {
     "Category": "CAERadioTrackManager",
     "Name": "UpdateRadioVolumes",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CAERadioTrackManager",
@@ -38326,6 +41301,11 @@
   },
   {
     "Category": "CAutomobile",
+    "Name": "DoHeliDustEffect",
+    "IsReversed": true
+  },
+  {
+    "Category": "CAutomobile",
     "Name": "Fix",
     "IsReversed": true
   },
@@ -38427,6 +41407,11 @@
   {
     "Category": "CAutomobile",
     "Name": "GetNumContactWheels",
+    "IsReversed": true
+  },
+  {
+    "Category": "CAutomobile",
+    "Name": "SetModelIndex",
     "IsReversed": true
   },
   {
@@ -39377,7 +42362,7 @@
   {
     "Category": "CTrain",
     "Name": "RemoveAllTrains",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTrain",
@@ -39428,6 +42413,11 @@
     "Category": "CTrain",
     "Name": "AddNearbyPedAsRandomPassenger",
     "IsReversed": false
+  },
+  {
+    "Category": "CTrain",
+    "Name": "SetModelIndex",
+    "IsReversed": true
   },
   {
     "Category": "CTrain",
@@ -40017,11 +43007,16 @@
   {
     "Category": "CVehicle",
     "Name": "ProcessBikeWheel",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CVehicle",
     "Name": "FindTyreNearestPoint",
+    "IsReversed": true
+  },
+  {
+    "Category": "CVehicle",
+    "Name": "InflictDamage",
     "IsReversed": true
   },
   {
@@ -40066,6 +43061,11 @@
   },
   {
     "Category": "CVehicle",
+    "Name": "DoSunGlare",
+    "IsReversed": true
+  },
+  {
+    "Category": "CVehicle",
     "Name": "AddWaterSplashParticles",
     "IsReversed": true
   },
@@ -40076,7 +43076,42 @@
   },
   {
     "Category": "CVehicle",
+    "Name": "AddSingleWheelParticles",
+    "IsReversed": true
+  },
+  {
+    "Category": "CVehicle",
     "Name": "GetSpecialColModel",
+    "IsReversed": true
+  },
+  {
+    "Category": "CVehicle",
+    "Name": "UpdateTrailerLink",
+    "IsReversed": true
+  },
+  {
+    "Category": "CVehicle",
+    "Name": "UpdateTractorLink",
+    "IsReversed": true
+  },
+  {
+    "Category": "CVehicle",
+    "Name": "ScanAndMarkTargetForHeatSeekingMissile",
+    "IsReversed": true
+  },
+  {
+    "Category": "CVehicle",
+    "Name": "FireHeatSeakingMissile",
+    "IsReversed": true
+  },
+  {
+    "Category": "CVehicle",
+    "Name": "PossiblyDropFreeFallBombForPlayer",
+    "IsReversed": true
+  },
+  {
+    "Category": "CVehicle",
+    "Name": "ProcessSirenAndHorn",
     "IsReversed": true
   },
   {
@@ -40122,6 +43157,16 @@
   {
     "Category": "CVehicle",
     "Name": "SetupUpgradesAfterLoad",
+    "IsReversed": true
+  },
+  {
+    "Category": "CVehicle",
+    "Name": "GetPlaneWeaponFiringStatus",
+    "IsReversed": true
+  },
+  {
+    "Category": "CVehicle",
+    "Name": "ProcessWeapons",
     "IsReversed": true
   },
   {
@@ -40387,7 +43432,7 @@
   {
     "Category": "Interior_c",
     "Name": "Shop_AddShelfInfo",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "Interior_c",
@@ -40542,7 +43587,7 @@
   {
     "Category": "InteriorGroup_c",
     "Name": "Init",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "InteriorGroup_c",

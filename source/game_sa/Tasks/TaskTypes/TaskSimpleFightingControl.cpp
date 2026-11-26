@@ -89,12 +89,12 @@ int16 CTaskSimpleFightingControl::CalcMoveCommand(CPed* ped) {
         break;
     }
     case ENTITY_TYPE_VEHICLE: {
-        CVector planes[4]{};
-        float planesDot[4]{};
-        CPedGeometryAnalyser::ComputeEntityBoundingBoxPlanesUncachedAll(targetPos.z, *m_target, &planes, planesDot);
+        std::array<CVector, 4> planeNormals{};
+        std::array<float, 4>   planeDs{};
+        CPedGeometryAnalyser::ComputeEntityBoundingBoxPlanes(targetPos.z, *m_target, planeNormals, planeDs);
 
         const auto hitSide = CPedGeometryAnalyser::ComputeEntityHitSide(pedPos, *m_target);
-        if ((DotProduct(planes[hitSide], pedPos) + planesDot[hitSide]) >= 0.7f) {
+        if ((DotProduct(planeNormals[+hitSide], pedPos) + planeDs[+hitSide]) >= 0.7f) {
             return 3;
         }
 
@@ -154,7 +154,7 @@ bool CTaskSimpleFightingControl::MakeAbortable(CPed* ped, eAbortPriority priorit
                 }();
 
                 // Check if vector are opposing each other with 45deg tolerance
-                if (-DotProduct(Normalized(m_target->GetPosition() - ped->GetPosition()), impactNormal) < SQRT_2 / 2) {
+                if (-DotProduct((m_target->GetPosition() - ped->GetPosition()).Normalized(), impactNormal) < SQRT_2 / 2) {
                     return false; // They aren't
                 }
             }

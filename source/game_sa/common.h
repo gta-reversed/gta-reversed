@@ -281,8 +281,8 @@ struct TempVertexBuffer {
     RwIm2DVertex m_2d[TOTAL_TEMP_BUFFER_2DVERTICES]; // For Im2D rendering
 };
 
-static inline auto& uiTempBufferIndicesStored = StaticRef<uint16>(0xC4B954);
-static inline auto& uiTempBufferVerticesStored = StaticRef<uint16>(0xC4B950);
+static inline auto& uiTempBufferIndicesStored = StaticRef<int32>(0xC4B954);
+static inline auto& uiTempBufferVerticesStored = StaticRef<int32>(0xC4B950);
 static inline auto& aTempBufferIndices = StaticRef<RxVertexIndex[TOTAL_TEMP_BUFFER_INDICES]>(0xC4B958);
 static inline auto& TempBufferVertices = StaticRef<TempVertexBuffer>(0xC4D958);
 static inline auto& aRadiosityVertexBuffer = StaticRef<RwD3D9Vertex[TOTAL_RADIOSITY_VERTEX_BUFFER]>(0xC5F958);

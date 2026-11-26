@@ -665,7 +665,7 @@ void CTheScripts::CleanUpThisPed(CPed* ped) {
 
 // 0x486670
 void CTheScripts::CleanUpThisVehicle(CVehicle* vehicle) {
-    if (!vehicle || vehicle->IsCreatedBy(eVehicleCreatedBy::MISSION_VEHICLE)) {
+    if (!vehicle || !vehicle->IsCreatedBy(eVehicleCreatedBy::MISSION_VEHICLE)) {
         return;
     }
 
@@ -712,11 +712,18 @@ void CTheScripts::ClearSpaceForMissionEntity(const CVector& pos, CEntity* ourEnt
         return;
     }
 
+    // 0x486B6C - Skip peds in vehicles: they're deleted with their vehicle below, so their entries would dangle
+    for (auto& entity : std::span{ colEntities.data(), (size_t)numColliding }) {
+        if (entity != ourEntity && entity->GetIsTypePed() && entity->AsPed()->bInVehicle) {
+            entity = nullptr;
+        }
+    }
+
     // Disable suspension lines of vehicles.
     const auto cdNumLines = std::exchange(ourColData->m_nNumLines, 0);
 
     for (auto& entity : std::span{ colEntities.data(), (size_t)numColliding }) {
-        if (!entity || entity == ourEntity || (entity->GetIsTypePed() && entity->AsPed()->IsInVehicle())) {
+        if (!entity || entity == ourEntity) {
             continue;
         }
 
@@ -744,7 +751,7 @@ void CTheScripts::ClearSpaceForMissionEntity(const CVector& pos, CEntity* ourEnt
 
             if (auto& driver = vehicle->m_pDriver) {
                 CPopulation::RemovePed(driver);
-                CEntity::SafeCleanUpRef(driver);
+                CEntity::ClearReference(driver);
             }
 
             // Need to use raw pointer here instead of a reference - the m_aPassengers array is modifed in RemovePassenger() and we would crash in RemovePed afterwards
@@ -758,9 +765,7 @@ void CTheScripts::ClearSpaceForMissionEntity(const CVector& pos, CEntity* ourEnt
             CCarCtrl::RemoveFromInterestingVehicleList(vehicle);
             CWorld::Remove(vehicle);
             delete vehicle;
-        }
-
-        if (entity->GetIsTypePed() && !entity->AsPed()->IsPlayer() && entity->AsPed()->CanBeDeleted()) {
+        } else if (entity->GetIsTypePed() && !entity->AsPed()->IsPlayer() && entity->AsPed()->CanBeDeleted()) {
             CPopulation::RemovePed(entity->AsPed());
         }
     }
@@ -1437,6 +1442,12 @@ void CTheScripts::Process() {
         it->m_LocalVars[SCRIPT_VAR_TIMERA].iParam += timeStepMS;
         it->m_LocalVars[SCRIPT_VAR_TIMERB].iParam += timeStepMS;
         it->Process();
+
+        // NOTE: Like the original (0x46A226): if `it` terminated `next`, `next` is in the idle list now and its `m_pNext` points to
+        //       idle scripts, so we stop here, and the remaining active scripts run in the next frame (See #1636)
+        if (next && !next->m_IsActive) {
+            break;
+        }
     }
 
     CLoadingScreen::NewChunkLoaded();

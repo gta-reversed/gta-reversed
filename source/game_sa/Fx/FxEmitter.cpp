@@ -255,14 +255,10 @@ FxEmitterPrt_c* FxEmitter_c::CreateParticle(const EmissionInfo_t& emissionInfo, 
             CMaths::GetSinFast(randomAngle) * CMaths::GetSinFast(randomAngleBetweenMinMax)
         };
 
-        CVector vectorsIn;
         CVector vectorsOut;
-        if (emissionInfo.m_Direction.x <= 10.0f) {
-            vectorsIn = emissionInfo.m_Direction;
-            vectorsIn.Normalise();
-        } else {
-            vectorsIn = particle->m_Pos;
-        }
+        const auto vectorsIn = emissionInfo.m_Direction.x <= 10.0f
+            ? emissionInfo.m_Direction.Normalized()
+            : particle->m_Pos;
         RwV3dTransformVectors(&vectorsOut, &vectorsIn, 1, &wldMat);
         CVector v38;
         RotateVecIntoVec(v38, randomizedAngleVec, vectorsOut);

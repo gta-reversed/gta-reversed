@@ -138,9 +138,7 @@ public:
                 std::destroy_at(&v);
             }
         }
-        for (auto i = 0u; i < m_Capacity; i++) {
-            m_SlotState[i].IsEmpty = true;
-        }
+        rng::fill_n(m_SlotState, m_Capacity, SlotState{});
         DoFill(DEADLAND_FILL);
     }
 

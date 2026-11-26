@@ -12,24 +12,25 @@ void CTaskComplexGoToPointAndStandStillAndAchieveHeading::InjectHooks() {
     RH_ScopedInstall(Constructor, 0x668CD0);
     RH_ScopedInstall(Destructor, 0x668D40);
 
-    RH_ScopedInstall(Clone, 0x66CFD0, { .Reversed = false });
+    RH_ScopedInstall(Clone, 0x66CFD0);
     RH_ScopedInstall(GetTaskType, 0x668D30);
-    RH_ScopedInstall(CreateNextSubTask, 0x66DFD0, { .Reversed = false });
-    RH_ScopedInstall(CreateFirstSubTask, 0x66E030, { .Reversed = false });
-    RH_ScopedInstall(ControlSubTask, 0x668E80, { .Reversed = false });
+    RH_ScopedInstall(CreateNextSubTask, 0x66DFD0);
+    RH_ScopedInstall(CreateSubTask, 0x668D50);
+    RH_ScopedInstall(CreateFirstSubTask, 0x66E030);
+    RH_ScopedInstall(ControlSubTask, 0x668E80);
 }
 
 // 0x668CD0
-CTaskComplexGoToPointAndStandStillAndAchieveHeading::CTaskComplexGoToPointAndStandStillAndAchieveHeading(eMoveState moveState, const CVector& targetPos, float angle, float radius, float changeRateMult, float maxHeading)
-    : CTaskComplex()
+CTaskComplexGoToPointAndStandStillAndAchieveHeading::CTaskComplexGoToPointAndStandStillAndAchieveHeading(eMoveState moveState, const CVector& targetPos, float angle, float radius, float changeRateMult, float maxHeading) :
+    CTaskComplex{},
+    m_MoveState{moveState},
+    m_TargetPos{targetPos},
+    m_Radius{radius},
+    m_Angle{angle},
+    m_ChangeRateMult{changeRateMult},
+    m_MaxHeading{maxHeading},
+    m_HasNewTarget{true}
 {
-    m_MoveState = moveState;
-    m_TargetPos = targetPos;
-    m_Radius = radius;
-    m_MaxHeading = maxHeading;
-    m_nFlags = m_nFlags | 1; // todo: flags
-    m_Angle = angle;
-    m_ChangeRateMult = changeRateMult;
 }
 
 // 0x66DFD0
@@ -62,10 +63,17 @@ CTask* CTaskComplexGoToPointAndStandStillAndAchieveHeading::CreateSubTask(eTaskT
 
 // 0x66E030
 CTask* CTaskComplexGoToPointAndStandStillAndAchieveHeading::CreateFirstSubTask(CPed* ped) {
-    return plugin::CallMethodAndReturn<CTask*, 0x66E030, CTaskComplexGoToPointAndStandStillAndAchieveHeading*, CPed*>(this, ped);
+    m_HasNewTarget = false;
+    return CreateSubTask(TASK_SIMPLE_GO_TO_POINT);
 }
 
 // 0x668E80
 CTask* CTaskComplexGoToPointAndStandStillAndAchieveHeading::ControlSubTask(CPed* ped) {
-    return plugin::CallMethodAndReturn<CTask*, 0x668E80, CTaskComplexGoToPointAndStandStillAndAchieveHeading*, CPed*>(this, ped);
+    if (m_HasNewTarget) {
+        return CreateFirstSubTask(ped);
+    }
+    if (auto* const tGoToPoint = notsa::dyn_cast<CTaskSimpleGoToPoint>(m_pSubTask)) {
+        tGoToPoint->m_moveState = m_MoveState;
+    }
+    return m_pSubTask;
 }

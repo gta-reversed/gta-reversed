@@ -123,15 +123,15 @@ CExplosion* CExplosion::GetFree() {
 // NOTSA
 void CExplosion::SetCreator(CEntity* newCreator) noexcept {
     CEntity::SafeCleanUpRef(m_pCreator);
-    CEntity::SafeRegisterRef(newCreator);
     m_pCreator = newCreator;
+    CEntity::SafeRegisterRef(m_pCreator);
 }
 
 // NOTSA
 void CExplosion::SetVictim(CEntity* newVictim) noexcept {
     CEntity::SafeCleanUpRef(m_pVictim);
-    CEntity::SafeRegisterRef(newVictim);
     m_pVictim = newVictim;
+    CEntity::SafeRegisterRef(m_pVictim);
 }
 
 bool DoesNeedToVehProcessBombTimer(eExplosionType type) {
@@ -470,10 +470,10 @@ void CExplosion::Update() {
             case eExplosionType::EXPLOSION_QUICK_CAR:
             case eExplosionType::EXPLOSION_BOAT: {
                 if (exp.m_pVictim && CGeneral::GetRandomNumber() % 32 == 0) {
-                    CVector rndOffset = {CGeneral::GetRandomNumberInRange(-0.5f, 0.5f), CGeneral::GetRandomNumberInRange(-0.5f, 0.5f), 0.0f};
-                    rndOffset.Normalise();
-                    rndOffset *= CGeneral::GetRandomNumberInRange(1.0f, 2.0f);
-                    CCreepingFire::TryToStartFireAtCoors(exp.m_vecPosition + rndOffset, 0, true, false, 10.0f);
+                    CCreepingFire::TryToStartFireAtCoors(exp.m_vecPosition + CVector::Random(
+                        {-0.5f, -0.5f, 0.0f}, 
+                        {0.5f, 0.5f, 0.0f}
+                    ).Normalized() * CGeneral::GetRandomNumberInRange(1.0f, 2.0f), 0, true, false, 10.0f);
                 }
                 if (CTimer::GetFrameCounter() % 2) {
                     CPointLights::AddLight(ePointLightType::PLTYPE_POINTLIGHT, exp.m_vecPosition, {}, 15.0f, 1.0f, 0.7f, 0.5f, 0, true, nullptr);

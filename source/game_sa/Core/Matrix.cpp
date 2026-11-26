@@ -289,11 +289,9 @@ void CMatrix::Rotate(CVector rotation)
 
 void CMatrix::Reorthogonalise()
 {
-    auto vecCross = CrossProduct(m_right, m_forward);
-    vecCross.Normalise();
+    const auto vecCross = CrossProduct(m_right, m_forward).Normalized();
 
-    auto vecCross2 = CrossProduct(m_forward, vecCross);
-    vecCross2.Normalise();
+    const auto vecCross2 = CrossProduct(m_forward, vecCross).Normalized();
 
     auto vecCross3 = CrossProduct(vecCross, vecCross2);
 
@@ -560,7 +558,12 @@ CMatrix operator+(const CMatrix& a, const CMatrix& b)
 
 CMatrix& Invert(CMatrix& in, CMatrix& out)
 {
-    out = in.Inverted();
+    // NOTE: Not `out = ...`: `out` may not be constructed yet, so like the original only set the matrix itself (See #1012)
+    const auto inv = in.Inverted();
+    out.GetRight()    = inv.GetRight();
+    out.GetForward()  = inv.GetForward();
+    out.GetUp()       = inv.GetUp();
+    out.GetPosition() = inv.GetPosition();
     return out;
 }
 

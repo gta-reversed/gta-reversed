@@ -22,7 +22,7 @@ void CTaskComplexWander::InjectHooks() {
     RH_ScopedCategory("Tasks/TaskTypes");
 
     RH_ScopedInstall(Constructor, 0x66F450);
-    RH_ScopedVMTInstall(CreateNextSubTask, 0x674140, { .Reversed = false });
+    RH_ScopedVMTInstall(CreateNextSubTask, 0x674140);
     RH_ScopedVMTInstall(CreateFirstSubTask, 0x6740E0);
     RH_ScopedVMTInstall(ControlSubTask, 0x674C30);
     RH_ScopedVMTInstall(UpdateDir, 0x669DA0);
@@ -35,6 +35,8 @@ void CTaskComplexWander::InjectHooks() {
     RH_ScopedOverloadedInstall(ScanForBlockedNode, "", 0x671EF0, bool(CTaskComplexWander::*)(CPed*, const CNodeAddress&));
     RH_ScopedOverloadedInstall(ScanForBlockedNode, "1", 0x66F4C0, bool(CTaskComplexWander::*)(const CVector&, CEntity*));
     RH_ScopedInstall(GetWanderTaskByPedType, 0x673D00);
+    RH_ScopedInstall(SetDirection, 0x669D30);
+    RH_ScopedInstall(SetPathNodesFrom, 0x669D50);
 }
 CTaskComplexWander* CTaskComplexWander::Constructor(eMoveState moveState, uint8 dir, bool bWanderSensibly, float fTargetRadius) { this->CTaskComplexWander::CTaskComplexWander(moveState, dir, bWanderSensibly, fTargetRadius); return this; }
 
@@ -44,13 +46,14 @@ CTaskComplexWander::CTaskComplexWander(eMoveState moveState, uint8 dir, bool bWa
     m_nDir = dir;
     m_fTargetRadius = fTargetRadius;
     m_bWanderSensibly = bWanderSensibly;
+    m_bNewDir = false;
+    m_bNewNodes = false;
+    m_bAllNodesBlocked = false;
     m_nLastUpdateDirFrameCount = 0;
 }
 
 // 0x674140
 CTask* CTaskComplexWander::CreateNextSubTask(CPed* ped) {
-    return plugin::CallMethodAndReturn<CTask*, 0x674140, CTaskComplexWander*, CPed*>(this, ped); // untested
-
     switch (m_pSubTask->GetTaskType()) {
     case TASK_SIMPLE_SCRATCH_HEAD: {
         m_nDir++;
@@ -64,7 +67,6 @@ CTask* CTaskComplexWander::CreateNextSubTask(CPed* ped) {
     }
     case TASK_COMPLEX_CROSS_ROAD_LOOK_AND_ACHIEVE_HEADING:
     case TASK_COMPLEX_OBSERVE_TRAFFIC_LIGHTS_AND_ACHIEVE_HEADING:
-    case TASK_COMPLEX_SIT_DOWN_THEN_IDLE_THEN_STAND_UP:
         return CreateSubTask(ped, TASK_SIMPLE_GO_TO_POINT);
 
     case TASK_SIMPLE_CAR_DRIVE_TIMED:
@@ -77,16 +79,17 @@ CTask* CTaskComplexWander::CreateNextSubTask(CPed* ped) {
         return CreateFirstSubTask(ped);
 
     case TASK_COMPLEX_SEQUENCE:
-    case TASK_SIMPLE_GO_TO_POINT:
+    case TASK_SIMPLE_GO_TO_POINT: {
         if (m_bAllNodesBlocked) {
             m_bAllNodesBlocked = false;
             return new CTaskSimpleScratchHead();
         }
 
         UpdateDir(ped);
+        const auto prevLastNode = m_LastNode;
         UpdatePathNodes(ped, m_nDir, m_LastNode, m_NextNode, m_nDir);
 
-        if (m_NextNode == m_LastNode) { // Inverted
+        if (m_NextNode == prevLastNode) { // Turning back the way we came
             CVector outTargetPos;
             ComputeTargetPos(ped, outTargetPos, m_NextNode); // 0x6743C8 (this is here out-of-order, but I guess it doesn't matter)
             return new CTaskComplexSequence{ // 0x6742DA
@@ -111,7 +114,7 @@ CTask* CTaskComplexWander::CreateNextSubTask(CPed* ped) {
         }
 
         return CreateSubTask(ped, TASK_SIMPLE_GO_TO_POINT);
-
+    }
     case TASK_COMPLEX_IN_AIR_AND_LAND:
     default:
         return nullptr;
@@ -345,4 +348,22 @@ float CTaskComplexWander::GetDistSqOfClosestPathNodeToPed(CPed* ped) {
             return 999'999.f;
         })
     );
+}
+
+// 0x669D30
+void CTaskComplexWander::SetDirection(uint8 dir) {
+    if (m_nDir != dir) {
+        m_nDir    = dir;
+        m_bNewDir = true;
+    }
+}
+
+// 0x669D50
+void CTaskComplexWander::SetPathNodesFrom(const CTaskComplexWander& other) {
+    if (m_LastNode != other.m_LastNode || m_NextNode != other.m_NextNode) {
+        m_LastNode  = other.m_LastNode;
+        m_NextNode  = other.m_NextNode;
+        m_nDir      = other.m_nDir;
+        m_bNewNodes = true;
+    }
 }
