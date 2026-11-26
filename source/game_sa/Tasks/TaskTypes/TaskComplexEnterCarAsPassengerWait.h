@@ -1,23 +1,23 @@
 #pragma once
 
 #include "Enums/eMoveState.h"
+#include "Vehicle.h"
+#include "Ped.h"
 
-class CPed;
 class CTaskComplexEnterCarAsPassengerTimed;
-class CTaskComplexEnterCarAsPassengerWait;
-class CVehicle;
+
 
 class NOTSA_EXPORT_VTABLE CTaskComplexEnterCarAsPassengerWait : public CTaskComplex {
+    static constexpr uint32 MAX_ENTER_CAR_FAILS = 16; //!< Give up after failing to get in this many times
 public:
     static constexpr auto Type = eTaskType::TASK_COMPLEX_ENTER_CAR_AS_PASSENGER_WAIT;
 
-    static void InjectHooks();
-
     CTaskComplexEnterCarAsPassengerWait(CVehicle* target, CPed* waitFor, bool forceFrontSeat, eMoveState ms);
     CTaskComplexEnterCarAsPassengerWait(const CTaskComplexEnterCarAsPassengerWait&);
-    ~CTaskComplexEnterCarAsPassengerWait();
+    ~CTaskComplexEnterCarAsPassengerWait() override = default; // 0x63B3C0
 
-    CTaskComplexEnterCarAsPassengerTimed* CreateSubTask(int32 taskType, CPed* ped);
+
+    CTask* CreateSubTask(eTaskType taskType, CPed* ped);
 
     CTask*    Clone() const override { return new CTaskComplexEnterCarAsPassengerWait{ *this }; }
     eTaskType GetTaskType() const override { return Type; }
@@ -27,20 +27,12 @@ public:
 
     auto GetCar() const { return m_Car; }
 
-private: // Wrappers for hooks
-    // 0x63B320
-    CTaskComplexEnterCarAsPassengerWait* Constructor(CVehicle* target, CPed* waitFor, bool forceFrontSeat, eMoveState ms) {
-        this->CTaskComplexEnterCarAsPassengerWait::CTaskComplexEnterCarAsPassengerWait(target, waitFor, forceFrontSeat, ms);
-        return this;
-    }
-    // 0x63B3C0
-    CTaskComplexEnterCarAsPassengerWait* Destructor() {
-        this->CTaskComplexEnterCarAsPassengerWait::~CTaskComplexEnterCarAsPassengerWait();
-        return this;
-    }
+public:
+    static void InjectHooks();
+
 private:
-    CVehicle*  m_Car{};
-    CPed*      m_WaitForPed{};
+    CVehicle::Ref  m_Car{};
+    CPed::Ref      m_WaitForPed{};
     uint32     m_EnterCarFails{};
     bool       m_bForceFrontSeat{};
     eMoveState m_MoveState{};
