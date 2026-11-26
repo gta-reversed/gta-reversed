@@ -133,11 +133,7 @@ void WaterCreatureManager_c::Update(float deltaTime) {
         if (currTime - m_lastUpdateTime > 1'000 && m_waterCreaturePool.GetNumItems() > 0) {
             m_lastUpdateTime = currTime;
 
-            CVector direction;
-            direction.x = CGeneral::GetRandomNumberInRange(-1.0F, 1.0F);
-            direction.y = CGeneral::GetRandomNumberInRange(-1.0F, 1.0F);
-            direction.z = 0.0F;
-            direction.Normalise();
+            const CVector direction{ CVector2D::Random(-1.0f, 1.0f).Normalized() };
 
             const auto dist = CGeneral::GetRandomNumberInRange(25.0F, 40.0F);
 

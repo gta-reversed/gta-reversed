@@ -71,8 +71,7 @@ void CBirds::CreateNumberOfBirds(CVector vecStartPos, CVector vecTargetPos, int3
         auto& bird = aBirds[iFreeBirdIndex];
         bird.m_vecPosn = vecStartPos;
 
-        auto vecBirdDirection = vecTargetPos - bird.m_vecPosn;
-        vecBirdDirection.Normalise();
+        const auto vecBirdDirection = (vecTargetPos - bird.m_vecPosn).Normalized();
         auto vecCheckPos = bird.m_vecPosn + (vecBirdDirection * fMaxDistance * 2.4F);
         if (bCheckObstacles && !CWorld::GetIsLineOfSightClear(bird.m_vecPosn, vecCheckPos, true, false, false, false, false, false, false))
             continue;
@@ -184,12 +183,8 @@ void CBirds::Update() {
                 if (CGeneral::GetRandomNumber() % 2)
                     fSpawnAngleCamRelative = (float)(uint8)(CGeneral::GetRandomNumber() % 256) * 0.024531251F; // [0 : 255] mapped to [0 : 2π]
                 else {
-                    auto vecForward = TheCamera.m_mCameraMatrix.GetForward();
-                    vecForward.z = 0.0F;
-                    if (vecForward.x == 0.0F)
-                        vecForward.x = 0.01F;
-
-                    vecForward.Normalise();
+                    const auto cameraForward = TheCamera.m_mCameraMatrix.GetForward();
+                    const auto vecForward = CVector{ cameraForward.x == 0.0F ? 0.01F : cameraForward.x, cameraForward.y, 0.0F }.Normalized();
                     uint8 cRand = (uint8)(CGeneral::GetRandomNumber() % 256) - 128;
                     fSpawnAngleCamRelative = ((float)cRand) / 256.0F + std::atan2(vecForward.x, vecForward.y); // [0 : 1] + atan2(...)
                 }
@@ -202,9 +197,8 @@ void CBirds::Update() {
 
                 float fWaterLevel;
                 if (!CWaterLevel::GetWaterLevelNoWaves(vecBirdSpawnPos, &fWaterLevel, nullptr, nullptr) || fWaterLevel + 4.0F < fBirdSpawnZ) {
-                    auto vecForward = TheCamera.m_mCameraMatrix.GetForward();
-                    vecForward.z = 0.0F;
-                    vecForward.Normalise();
+                    const auto cameraForward = TheCamera.m_mCameraMatrix.GetForward();
+                    const auto vecForward = CVector{ cameraForward.x, cameraForward.y, 0.0F }.Normalized();
 
                     auto vecFlightTargetPos = camPosn + (vecForward * 8.0F);
                     vecFlightTargetPos.z = fBirdSpawnZ;

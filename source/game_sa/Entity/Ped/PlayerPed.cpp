@@ -253,7 +253,7 @@ bool CPlayerPed::CanPlayerStartMission() {
 
 // 0x609620
 bool CPlayerPed::IsHidden() {
-    return bInVehicle && GetLightingTotal() <= 0.05f;
+    return !bInVehicle && GetLightingTotal() <= 0.05f;
 }
 
 // 0x609650

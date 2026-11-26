@@ -46,8 +46,7 @@ bool CEventBuildingCollision::AffectsPed(CPed* ped)
         && (m_impactNormal.z <= 0.707f || m_building->m_bIsTempBuilding)
         && !ped->m_pAttachedTo)
     {
-        CVector direction(m_impactNormal.x, m_impactNormal.y, 0.0f);
-        direction.Normalise();
+        const CVector direction{CVector2D{ m_impactNormal }.Normalized()};
         float dotProduct = DotProduct(direction, ped->GetForward());
         if (dotProduct <= -0.422f) {
             if (ped->GetEventHandler().GetCurrentEventType() == EVENT_BUILDING_COLLISION) {
@@ -67,9 +66,7 @@ bool CEventBuildingCollision::AffectsPed(CPed* ped)
 // 0x4AD1E0
 bool CEventBuildingCollision::IsHeadOnCollision(CPed* ped)
 {
-    CVector velocity = m_impactNormal;
-    velocity.z = 0.0f;
-    velocity.Normalise();
+    const auto velocity = CVector{ m_impactNormal.x, m_impactNormal.y, 0.0f }.Normalized();
     return -DotProduct(velocity, ped->GetForward()) > 0.866f;
 }
 

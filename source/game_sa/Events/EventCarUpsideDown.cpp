@@ -23,7 +23,7 @@ CEventCarUpsideDown::~CEventCarUpsideDown() {
 #if FIX_BUGS
     CEntity::SafeCleanUpRef(m_vehicle);
 #else
-    CEntity::SafeRegisterRef(m_vehicle);
+    CEntity::SafeRegisterRef(m_KnockedOverBy);
 #endif
 }
 

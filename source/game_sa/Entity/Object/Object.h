@@ -8,6 +8,7 @@
 
 #include "Physical.h"
 #include "ObjectData.h"
+#include <extensions/EntityRef.hpp>
 
 enum eObjectType {
     OBJECT_UNKNOWN         = 0,
@@ -23,6 +24,9 @@ class CDummyObject;
 class CFire;
 
 class NOTSA_EXPORT_VTABLE CObject : public CPhysical {
+public:
+    using Ref = notsa::EntityRef<CObject>;
+
 public:
     CPtrNodeDoubleLink<CObject*>* m_pControlCodeList;
     uint8                         m_nObjectType; // see enum eObjectType

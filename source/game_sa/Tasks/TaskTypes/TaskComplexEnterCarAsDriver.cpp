@@ -4,19 +4,26 @@
 
 // 0x6402F0
 CTaskComplexEnterCarAsDriver::CTaskComplexEnterCarAsDriver(CVehicle* targetVehicle) :
-    CTaskComplexEnterCar(targetVehicle, true, false, false, false)
-{
+    CTaskComplexEnterCar(targetVehicle, true, false, false, false) {
 }
 
 CTaskComplexEnterCarAsDriver::CTaskComplexEnterCarAsDriver(CVehicle* targetVehicle, eMoveState moveState) : // NOTSA
-    CTaskComplexEnterCarAsDriver{ targetVehicle }
-{
+    CTaskComplexEnterCarAsDriver{ targetVehicle } {
     m_MoveState = moveState;
 }
 
 // For 0x643780
 CTaskComplexEnterCarAsDriver::CTaskComplexEnterCarAsDriver(const CTaskComplexEnterCarAsDriver& o) :
-    CTaskComplexEnterCarAsDriver{ o.m_Car }
-{
+    CTaskComplexEnterCarAsDriver{ o.m_Car } {
     m_MoveState = o.m_MoveState;
+}
+
+void CTaskComplexEnterCarAsDriver::InjectHooks() {
+    RH_ScopedVirtualClass(CTaskComplexEnterCarAsDriver, 0x86eaac, 12);
+    RH_ScopedCategory("Tasks/TaskTypes");
+
+    RH_ScopedConstructorInstall(0x6402F0, "1", {}, CVehicle*);
+
+    RH_ScopedVMTInstall(Clone, 0x643780);
+    RH_ScopedVMTInstall(GetTaskType, 0x640320);
 }
