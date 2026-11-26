@@ -449,8 +449,8 @@ void CPedGroupIntelligence::ComputeScriptCommandTasks() {
             continue;
         }
         const auto* const memberTp = GetPedsTaskPair(member, m_ScriptCommandPedTaskPairs); // 0x5F7860
-        tp.Ped  = member;
-        tp.Task = memberTp ? memberTp->Task : nullptr;
+        tp.Ped                     = member;
+        tp.Task                    = memberTp ? memberTp->Task : nullptr;
     }
 
     for (auto& tp : m_ScriptCommandPedTaskPairs) { // 0x5F78AD
