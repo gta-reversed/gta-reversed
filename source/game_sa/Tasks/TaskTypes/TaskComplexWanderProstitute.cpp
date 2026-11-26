@@ -23,9 +23,7 @@ void CTaskComplexWanderProstitute::ScanForStuff(CPed* ped) {
     m_NextScanTimeMs    = CTimer::GetTimeInMS() + SCAN_INTERVAL_MS;
 
     const auto& scanner = ped->GetIntelligence()->GetPedScanner();
-    if (rng::any_of(scanner.GetEntities<CPed>(), [](const CPed& other) {
-            return other.IsCop();
-        })) {
+    if (rng::any_of(scanner.GetEntities<CPed>(), &CPed::IsCop)) {
         return;
     }
 
