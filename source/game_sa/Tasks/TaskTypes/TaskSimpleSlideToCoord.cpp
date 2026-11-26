@@ -66,8 +66,8 @@ bool CTaskSimpleSlideToCoord::ProcessPed(CPed* ped) {
     if (distSq2D < sq(0.05f)) { // 0x66C66E
         ped->m_vecAnimMovingShiftLocal = CVector2D{};
     } else {
-        const CVector toSlidePos = (m_SlideToPos - ped->GetPosition()) * m_Speed;
-        const auto&   pedMat     = ped->GetMatrix();
+        const CVector toSlidePos       = (m_SlideToPos - ped->GetPosition()) * m_Speed;
+        const auto&   pedMat           = ped->GetMatrix();
         ped->m_vecAnimMovingShiftLocal = CVector2D{
             toSlidePos.Dot(pedMat.GetRight()),
             toSlidePos.Dot(pedMat.GetForward())
