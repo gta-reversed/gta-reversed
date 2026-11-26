@@ -44,6 +44,7 @@ public:
 
     void SetDefault();
     void From(const CDecision& rhs);
+    bool HasResponse() const;
     void Set(
         notsa::mdarray<int32, MAX_NUM_CHOICES>&    tasks,
         notsa::mdarray<float, MAX_NUM_CHOICES, 4>& probs,

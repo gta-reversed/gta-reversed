@@ -155,4 +155,14 @@ inline const ReversibleBugFix CVehicle_ScanAndMarkTargetForHeatSeekingMissile_No
     .Description = "Idea is to stash LOS target visibility var to not call CWorld::GetIsLineOfSightClear every frame, for some reason they use == 0 and > 1 ops respectively for last time LOS check and then flag set, so check performed every frame and not each ~1 sec",
     .Credit      = "aeaeo"
 };
+inline const ReversibleBugFix CTaskComplexDriveToPoint_IsTargetBlocked_DistScale{
+    .Name        = "CTaskComplexDriveToPoint::IsTargetBlocked - distance scale",
+    .Description = "The original multiplies the squared distance by 1.5 (so the vehicle only has to be within `sqrt(1.5)` times the radii); the fix scales the distance itself by 1.5",
+    .Credit      = "TheReal-Kaze"
+};
+inline const ReversibleBugFix CTaskComplexSignalAtPed_Constructor_InitialPause{
+    .Name        = "CTaskComplexSignalAtPed::Constructor - Initial pause",
+    .Description = "The original constructor ignores the initial pause argument, so the ped always pauses for a random time between 0 and 2 seconds before signaling. The fix uses the provided initial pause value.",
+    .Credit      = "Pirulax"
+};
 };

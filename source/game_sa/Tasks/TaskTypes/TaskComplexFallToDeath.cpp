@@ -18,14 +18,14 @@ void CTaskComplexFallToDeath::InjectHooks() {
     RH_ScopedInstall(CalcFall, 0x6796C0);
 }
 
-CTaskComplexFallToDeath* CTaskComplexFallToDeath::Constructor(int32 direction, const CVector& posn, bool a4, bool a5) { this->CTaskComplexFallToDeath::CTaskComplexFallToDeath(direction, posn, a4, a5); return this; }
+CTaskComplexFallToDeath* CTaskComplexFallToDeath::Constructor(eDirection direction, const CVector& posn, bool a4, bool a5) { this->CTaskComplexFallToDeath::CTaskComplexFallToDeath(direction, posn, a4, a5); return this; }
 
 // 0x679040
-CTaskComplexFallToDeath::CTaskComplexFallToDeath(int32 direction, const CVector& posn, bool bFallToDeathOverRailing, bool a5) : CTaskComplex() {
+CTaskComplexFallToDeath::CTaskComplexFallToDeath(eDirection direction, const CVector& posn, bool bFallToDeathOverRailing, bool a5) : CTaskComplex() {
     m_Posn                  = posn;
     m_nAnimId               = ANIM_ID_UNDEFINED;
     m_nAnimId1              = ANIM_ID_UNDEFINED;
-    m_nFallToDeathDir       = static_cast<eDirection>(direction);
+    m_nFallToDeathDir       = direction;
     m_nFlags = m_nFlags & 0xE0 | (8 * ((uint8)bFallToDeathOverRailing | (2 * (uint8)a5))); // todo: flags
 }
 
@@ -98,9 +98,7 @@ CTask* CTaskComplexFallToDeath::CreateFirstSubTask(CPed* ped) {
         case eDirection::LEFT:     return ANIM_ID_KO_SPIN_L;
         case eDirection::BACKWARD: return ANIM_ID_KO_SKID_FRONT;
         case eDirection::RIGHT:    return ANIM_ID_KO_SPIN_R;
-        default:
-            NOTSA_UNREACHABLE("");
-            return ANIM_ID_UNDEFINED;
+        default:                   NOTSA_UNREACHABLE_CASE(m_nFallToDeathDir);
         }
     }();
 

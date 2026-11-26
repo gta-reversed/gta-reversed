@@ -1,16 +1,11 @@
 #pragma once
 
 #include "TaskComplex.h"
+#include "Vehicle.h"
 
-class CPed;
-class CVehicle;
 
 class NOTSA_EXPORT_VTABLE CTaskComplexWaitForBus : public CTaskComplex {
 public:
-    CVehicle* m_bus = {}; // 0xC
-
-public:
-    static void InjectHooks();
 
     static constexpr auto Type = eTaskType::TASK_COMPLEX_WAIT_FOR_BUS;
 
@@ -24,16 +19,9 @@ public:
     CTask*    CreateFirstSubTask(CPed* ped) override;
     CTask*    ControlSubTask(CPed* ped) override { return m_pSubTask; }
 
-private: // Wrappers for hooks
-    // 0x632900
-    CTaskComplexWaitForBus* Constructor() {
-        this->CTaskComplexWaitForBus::CTaskComplexWaitForBus();
-        return this;
-    }
+public:
+    static void InjectHooks();
 
-    // 0x632930
-    CTaskComplexWaitForBus* Destructor() {
-        this->CTaskComplexWaitForBus::~CTaskComplexWaitForBus();
-        return this;
-    }
+private:
+    CVehicle::Ref m_BusToWaitFor{}; //!< BUGFIX: Original code didn't register references
 };

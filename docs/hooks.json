@@ -20677,7 +20677,7 @@
   {
     "Category": "CGroupEventHandler",
     "Name": "ComputeResponsLeaderQuitEnteringCar",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CGroupEventHandler",
@@ -24961,38 +24961,48 @@
   },
   {
     "Category": "CTaskGoToVehicleAndLean",
-    "Name": "Constructor",
+    "Name": "Constructor-0",
     "IsReversed": true
   },
   {
     "Category": "CTaskGoToVehicleAndLean",
-    "Name": "Destructor",
+    "Name": "Desructor",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskGoToVehicleAndLean",
+    "Name": "DoTidyUp",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskGoToVehicleAndLean",
+    "Name": "CalcTargetPos",
     "IsReversed": true
   },
   {
     "Category": "CTaskGoToVehicleAndLean",
     "Name": "Clone",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskGoToVehicleAndLean",
     "Name": "MakeAbortable",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskGoToVehicleAndLean",
     "Name": "CreateNextSubTask",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskGoToVehicleAndLean",
     "Name": "CreateFirstSubTask",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskGoToVehicleAndLean",
     "Name": "ControlSubTask",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskLeanOnVehicle",
@@ -26296,38 +26306,48 @@
   },
   {
     "Category": "CTaskComplexGotoDoorAndOpen",
-    "Name": "Constructor-0",
-    "IsReversed": true
-  },
-  {
-    "Category": "CTaskComplexGotoDoorAndOpen",
     "Name": "Constructor-1",
     "IsReversed": true
   },
   {
     "Category": "CTaskComplexGotoDoorAndOpen",
-    "Name": "Destructor",
+    "Name": "Constructor-2",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexGotoDoorAndOpen",
+    "Name": "Desructor",
     "IsReversed": true
   },
   {
     "Category": "CTaskComplexGotoDoorAndOpen",
     "Name": "Clone",
-    "IsReversed": false
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexGotoDoorAndOpen",
+    "Name": "GetTaskType",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexGotoDoorAndOpen",
+    "Name": "MakeAbortable",
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexGotoDoorAndOpen",
     "Name": "CreateNextSubTask",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexGotoDoorAndOpen",
     "Name": "CreateFirstSubTask",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexGotoDoorAndOpen",
     "Name": "ControlSubTask",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexHitByGunResponse",
@@ -27546,12 +27566,12 @@
   },
   {
     "Category": "CTaskComplexSignalAtPed",
-    "Name": "Constructor",
+    "Name": "Constructor-0",
     "IsReversed": true
   },
   {
     "Category": "CTaskComplexSignalAtPed",
-    "Name": "Destructor",
+    "Name": "Desructor",
     "IsReversed": true
   },
   {
@@ -27567,17 +27587,17 @@
   {
     "Category": "CTaskComplexSignalAtPed",
     "Name": "CreateNextSubTask",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexSignalAtPed",
     "Name": "CreateFirstSubTask",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexSignalAtPed",
     "Name": "ControlSubTask",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexSitDownThenIdleThenStandUp",
@@ -28216,18 +28236,18 @@
   },
   {
     "Category": "CTaskComplexWaitForBus",
-    "Name": "Constructor",
+    "Name": "Constructor-0",
     "IsReversed": true
   },
   {
     "Category": "CTaskComplexWaitForBus",
-    "Name": "Destructor",
+    "Name": "Desructor",
     "IsReversed": true
   },
   {
     "Category": "CTaskComplexWaitForBus",
     "Name": "Clone",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexWaitForBus",
@@ -28237,12 +28257,12 @@
   {
     "Category": "CTaskComplexWaitForBus",
     "Name": "CreateNextSubTask",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexWaitForBus",
     "Name": "CreateFirstSubTask",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexWaitForBus",
@@ -32281,28 +32301,28 @@
   },
   {
     "Category": "CTaskComplexPlayHandSignalAnim",
-    "Name": "Constructor",
+    "Name": "Constructor-0",
     "IsReversed": true
   },
   {
     "Category": "CTaskComplexPlayHandSignalAnim",
-    "Name": "Destructor",
+    "Name": "Desructor",
     "IsReversed": true
   },
   {
     "Category": "CTaskComplexPlayHandSignalAnim",
     "Name": "GetAnimIdForPed",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexPlayHandSignalAnim",
     "Name": "CreateSubTask",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexPlayHandSignalAnim",
     "Name": "Clone",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexPlayHandSignalAnim",
@@ -32317,12 +32337,12 @@
   {
     "Category": "CTaskComplexPlayHandSignalAnim",
     "Name": "CreateFirstSubTask",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexPlayHandSignalAnim",
     "Name": "ControlSubTask",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexWaitForPed",
@@ -34662,12 +34682,12 @@
   {
     "Category": "CTaskComplexDriveToPoint",
     "Name": "IsTargetBlocked-Any",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexDriveToPoint",
     "Name": "IsTargetBlocked-Array",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexDriveToPoint",
@@ -34692,7 +34712,7 @@
   {
     "Category": "CTaskComplexDriveToPoint",
     "Name": "Drive",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskSimpleSlideToCoord",
@@ -35742,6 +35762,11 @@
   {
     "Category": "CDecision",
     "Name": "From",
+    "IsReversed": true
+  },
+  {
+    "Category": "CDecision",
+    "Name": "HasResponse",
     "IsReversed": true
   },
   {

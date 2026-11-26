@@ -1,17 +1,17 @@
 # Reimplementation progress (*): 92%
 This file is updated automatically every time the `hooks.json` file is updated (which happens every time there are changes to hooks made by a commit), and shows the current progress of reversed categories in the project.
 
-Last update was at Nov 23, 2026 at 21:08:46 UTC
-(Triggered by commit [a5d4a2da](https://github.com/gta-reversed/gta-reversed/commit/a5d4a2daaf390c224287f88ba708328c6b076043))
+Last update was at Nov 26, 2026 at 23:10:47 UTC
+(Triggered by commit [b2faec5b](https://github.com/gta-reversed/gta-reversed/commit/b2faec5bce0226a0f156cf3f60b95e20f3ef8ffd))
 
 ## (*) Disclaimers
 **The progress** is based on the number of functions we have documented and reimplemented, so it might not completely reflect the actual progress, it's meant to be a rough estimate.
 
 **The percentages and the number of categories** shown here may not be completely accurate, because not all categories and functions are documented yet.
 
-## Stats (8149 out of 8898 functions done in 797 categories)
+## Stats (8178 out of 8903 functions done in 797 categories)
 
-#### Completely reversed categories (649/797) [81%]
+#### Completely reversed categories (655/797) [82%]
 
 <details>
 <summary>See list of categories</summary>
@@ -347,6 +347,7 @@ Last update was at Nov 23, 2026 at 21:08:46 UTC
 - CTaskComplexUseClosestFreeScriptedAttractorSprint (4)<br />
 - CTaskSimpleLeaveGroup (2)<br />
 - CTaskComplexDiveFromAttachedEntityAndGetUp (7)<br />
+- CTaskGoToVehicleAndLean (9)<br />
 - CTaskComplexCarSlowBeDraggedOut (11)<br />
 - CTaskComplexCarSlowBeDraggedOutAndStandUp (9)<br />
 - CTaskComplexDestroyCar (9)<br />
@@ -372,6 +373,7 @@ Last update was at Nov 23, 2026 at 21:08:46 UTC
 - CTaskComplexGoToPointAiming (8)<br />
 - CTaskComplexGoToPointAndStandStillAndAchieveHeading (8)<br />
 - CTaskComplexGoToPointShooting (3)<br />
+- CTaskComplexGotoDoorAndOpen (9)<br />
 - CTaskComplexHitByGunResponse (8)<br />
 - CTaskComplexHitResponse (7)<br />
 - CTaskComplexInWater (7)<br />
@@ -398,6 +400,7 @@ Last update was at Nov 23, 2026 at 21:08:46 UTC
 - CTaskComplexSeekEntityAiming (7)<br />
 - CTaskComplexSeekEntityAnyMeansXYOffset (5)<br />
 - CTaskComplexShuffleSeats (10)<br />
+- CTaskComplexSignalAtPed (7)<br />
 - CTaskComplexSitDownThenIdleThenStandUp (9)<br />
 - CTaskComplexSmartFleeEntity (7)<br />
 - CTaskComplexSmartFleePoint (12)<br />
@@ -415,6 +418,7 @@ Last update was at Nov 23, 2026 at 21:08:46 UTC
 - CTaskComplexUseScriptedBrain (8)<br />
 - CTaskComplexUseScriptedAttractor (7)<br />
 - CTaskComplexWaitAtAttractor (7)<br />
+- CTaskComplexWaitForBus (7)<br />
 - CTaskComplexWaitForBackup (8)<br />
 - CTaskComplexWaitForDryWeather (7)<br />
 - CTaskComplexWalkAlongsidePed (9)<br />
@@ -516,6 +520,7 @@ Last update was at Nov 23, 2026 at 21:08:46 UTC
 - CTaskSimpleJump (8)<br />
 - CTaskSimpleFall (6)<br />
 - CTaskSimpleClimb (15)<br />
+- CTaskComplexPlayHandSignalAnim (9)<br />
 - CTaskComplexJump (6)<br />
 - CTaskComplexEnterCar (14)<br />
 - CTaskSimpleTogglePedThreatScanner (6)<br />
@@ -559,6 +564,7 @@ Last update was at Nov 23, 2026 at 21:08:46 UTC
 - CTaskComplexDie (5)<br />
 - CTaskComplexEnterBoatAsDriver (8)<br />
 - CTaskComplexUseWaterCannon (5)<br />
+- CTaskComplexDriveToPoint (9)<br />
 - CTaskSimplePickUpEntity (4)<br />
 - CTaskComplexBeInGroup (10)<br />
 - CTaskComplexBeCop (4)<br />
@@ -581,7 +587,7 @@ Last update was at Nov 23, 2026 at 21:08:46 UTC
 - BreakablePlugin (6)<br />
 - RtAnim (1)<br />
 - CDecisionMakerTypesFileLoader (7)<br />
-- CDecision (3)<br />
+- CDecision (4)<br />
 - CText (9)<br />
 - CMissionTextOffsets (1)<br />
 - CData (2)<br />
@@ -667,7 +673,7 @@ Last update was at Nov 23, 2026 at 21:08:46 UTC
 
 </details>
 
-#### Partially reversed categories (136/797) [17%]
+#### Partially reversed categories (130/797) [16%]
 
 <details>
 <summary>See list of categories</summary>
@@ -717,7 +723,7 @@ Last update was at Nov 23, 2026 at 21:08:46 UTC
 - FxSystem_c (31/35) [89%]<br />
 - FxPrimBP_c (1/2) [50%]<br />
 - FxEmitterBP_c (2/9) [22%]<br />
-- CGroupEventHandler (30/32) [94%]<br />
+- CGroupEventHandler (31/32) [97%]<br />
 - CEventHandler (69/72) [96%]<br />
 - CEventScanner (1/4) [25%]<br />
 - CPedGroupDefaultTaskAllocatorSitInLeaderCar (1/2) [50%]<br />
@@ -726,20 +732,16 @@ Last update was at Nov 23, 2026 at 21:08:46 UTC
 - CTaskSimpleChoking (5/8) [62%]<br />
 - CTaskGangHasslePed (2/5) [40%]<br />
 - CTaskGangHassleVehicle (3/8) [38%]<br />
-- CTaskGoToVehicleAndLean (2/7) [29%]<br />
 - CTaskLeanOnVehicle (4/5) [80%]<br />
 - CTaskComplexDestroyCarArmed (9/10) [90%]<br />
 - CTaskComplexFollowPatrolRoute (5/9) [56%]<br />
 - CTaskComplexGangJoinRespond (3/7) [43%]<br />
 - CTaskComplexGoToAttractor (2/5) [40%]<br />
 - CTaskComplexGoToPointAnyMeans (5/7) [71%]<br />
-- CTaskComplexGotoDoorAndOpen (3/7) [43%]<br />
 - CTaskComplexKillCriminal (9/11) [82%]<br />
 - CTaskComplexKillPedOnFootArmed (9/11) [82%]<br />
 - CTaskComplexLeaveCarAndWander (4/8) [50%]<br />
 - CTaskComplexOpenPassengerDoor (3/4) [75%]<br />
-- CTaskComplexSignalAtPed (4/7) [57%]<br />
-- CTaskComplexWaitForBus (4/7) [57%]<br />
 - CTaskSimpleBeKickedOnGround (4/8) [50%]<br />
 - CTaskSimpleCarForcePedOut (4/6) [67%]<br />
 - CTaskSimpleDead (5/6) [83%]<br />
@@ -757,7 +759,6 @@ Last update was at Nov 23, 2026 at 21:08:46 UTC
 - CTaskComplexFollowLeaderInFormation (6/8) [75%]<br />
 - CTaskUtilityLineUpPedWithCar (2/5) [40%]<br />
 - CTaskSimpleJetPack (13/14) [93%]<br />
-- CTaskComplexPlayHandSignalAnim (4/9) [44%]<br />
 - CTaskComplexWaitForPed (7/8) [88%]<br />
 - CTaskComplexWanderStandard (5/10) [50%]<br />
 - CTaskComplexSunbathe (4/8) [50%]<br />
@@ -779,7 +780,6 @@ Last update was at Nov 23, 2026 at 21:08:46 UTC
 - CTaskComplexProstituteSolicit (7/11) [64%]<br />
 - CTaskComplexPartner (4/10) [40%]<br />
 - CTaskSimpleCarSetPedInAsDriver (5/6) [83%]<br />
-- CTaskComplexDriveToPoint (6/9) [67%]<br />
 - CTaskSimpleSlideToCoord (6/7) [86%]<br />
 - CTaskComplexPartnerDeal (5/7) [71%]<br />
 - CTaskComplexArrestPed (4/7) [57%]<br />
