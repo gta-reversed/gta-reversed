@@ -8,6 +8,7 @@
 
 #include "eCarWheel.h"
 #include "eCarNodes.h"
+#include "extensions/WEnum.hpp"
 
 class CAutomobile;
 
@@ -24,7 +25,7 @@ enum eDamageState : int8 {
 // TODO: Seems like these are the damage states for doors only.
 //       Panel's seems to be different, more like: DAMSTATE_OK, DAMSTATE_DAMAGED, DAMSTATE_MISSING
 // TODO(yukani): change prefix to something else?
-enum ePanelDamageState : uint8 {
+enum ePanelDamageState : uint32 { // 32-bit: the original getters return the whole `EAX`, the setters read the whole argument
     DAMSTATE_OK             = 0, // Closed, DT_DOOR_INTACT 
     DAMSTATE_OPENED         = 1, // Open, DT_DOOR_SWINGING_FREE
     DAMSTATE_DAMAGED        = 2, // Closed, DT_DOOR_BASHED
@@ -72,7 +73,7 @@ enum tComponentGroup : uint8 {
     MAX_COMGROUPS
 };
 
-enum eCarWheelStatus : uint8  {
+enum eCarWheelStatus : uint32 {
     WHEEL_STATUS_OK = 0,
     WHEEL_STATUS_BURST,
     WHEEL_STATUS_MISSING,
@@ -113,7 +114,7 @@ enum eLights : uint8 {
     MAX_LIGHTS
 };
 
-enum eLightsState : uint8 {
+enum eLightsState : uint32 {
     VEHICLE_LIGHT_OK      = 0x0,
     VEHICLE_LIGHT_SMASHED = 0x1,
 };
@@ -122,8 +123,8 @@ class CDamageManager {
 public:
     float           m_fWheelDamageEffect;
     uint8           m_nEngineStatus; // 0 - 250
-    std::array<eCarWheelStatus, eCarWheel::MAX_CARWHEELS> m_anWheelsStatus;
-    std::array<eDoorStatus, eDoors::MAX_DOORS>            m_aDoorsStatus;
+    std::array<notsa::WEnumU8<eCarWheelStatus>, eCarWheel::MAX_CARWHEELS> m_anWheelsStatus;
+    std::array<notsa::WEnumU8<eDoorStatus>, eDoors::MAX_DOORS>            m_aDoorsStatus;
     union {
         /* Great job R*, really could've just used an array here... Ends up to be the same size... */
 
@@ -169,7 +170,7 @@ public:
     void ProgressEngineDamage();
     bool ProgressDoorDamage(eDoors door, CAutomobile* pAuto);
 
-    uint8 GetAeroplaneCompStatus(uint8 frame);
+    ePanelDamageState GetAeroplaneCompStatus(uint8 frame);
     void SetAeroplaneCompStatus(uint8 frame, ePanelDamageState status);
 
     uint32 GetEngineStatus();
@@ -212,16 +213,6 @@ public:
     [[nodiscard]] bool IsDoorPresent(eDoors door) const;
     [[nodiscard]] bool IsDoorDamaged(eDoors door) const;
 
-private: 
-    // Wrapper functions
-
-    // Return type has to be uint32 (the original returns the whole `EAX`), but we want to return the enums in our code.
-    uint32 GetWheelStatus_Hooked(eCarWheel wheel) { return (uint32)GetWheelStatus(wheel); }
-    uint32 GetDoorStatus_Hooked(eDoors door) const { return (uint32)GetDoorStatus(door); }
-    uint32 GetDoorStatus_Component_Hooked(tComponent door) const { return (uint32)GetDoorStatus_Component(door); }
-    uint32 GetPanelStatus_Hooked(ePanels panel) const { return (uint32)GetPanelStatus(panel); }
-    uint32 GetLightStatus_Hooked(eLights light) const { return (uint32)GetLightStatus(light); }
-    uint32 GetAeroplaneCompStatus_Hooked(uint8 frame) { return (uint32)GetAeroplaneCompStatus(frame); }
 };
 
 VALIDATE_SIZE(CDamageManager, 0x18);

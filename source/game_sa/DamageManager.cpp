@@ -15,24 +15,24 @@ void CDamageManager::InjectHooks() {
     RH_ScopedInstall(ProgressPanelDamage, 0x6C23C0); 
     RH_ScopedInstall(ProgressEngineDamage, 0x6C23B0); 
     RH_ScopedInstall(ProgressDoorDamage, 0x6C2320); 
-    RH_ScopedNamedInstall(GetAeroplaneCompStatus_Hooked, "GetAeroplaneCompStatus", 0x6C2300);
+    RH_ScopedInstall(GetAeroplaneCompStatus, 0x6C2300); 
     RH_ScopedInstall(SetAeroplaneCompStatus, 0x6C22D0); 
     RH_ScopedInstall(GetEngineStatus, 0x6C22C0); 
     RH_ScopedInstall(SetEngineStatus, 0x6C22A0); 
     RH_ScopedInstall(GetCarNodeIndexFromPanel, 0x6C26A0); 
-    RH_ScopedNamedInstall(GetDoorStatus_Component_Hooked, "GetDoorStatus_Component", 0x6C2250);
-    RH_ScopedNamedInstall(GetDoorStatus_Hooked, "GetDoorStatus", 0x6C2230);
+    RH_ScopedInstall(GetDoorStatus_Component, 0x6C2250); 
+    RH_ScopedInstall(GetDoorStatus, 0x6C2230); 
     RH_ScopedInstall(SetDoorStatus_Component, 0x6C21E0); 
     RH_ScopedOverloadedInstall(SetDoorStatus, "", 0x6C21C0, void(CDamageManager::*)(eDoors, eDoorStatus));
     RH_ScopedInstall(SetWheelStatus, 0x6C21A0); 
-    RH_ScopedNamedInstall(GetPanelStatus_Hooked, "GetPanelStatus", 0x6C2180);
+    RH_ScopedInstall(GetPanelStatus, 0x6C2180); 
     RH_ScopedInstall(SetPanelStatus, 0x6C2150); 
-    RH_ScopedNamedInstall(GetLightStatus_Hooked, "GetLightStatus", 0x6C2130);
+    RH_ScopedInstall(GetLightStatus, 0x6C2130); 
     RH_ScopedInstall(SetLightStatus, 0x6C2100); 
     RH_ScopedInstall(ResetDamageStatus, 0x6C20E0); 
     RH_ScopedInstall(GetComponentGroup, 0x6C2040); 
     RH_ScopedInstall(GetCarNodeIndexFromDoor, 0x6C26F0);
-    RH_ScopedNamedInstall(GetWheelStatus_Hooked, "GetWheelStatus", 0x6C21B0);
+    RH_ScopedInstall(GetWheelStatus, 0x6C21B0);
 }
 
 CDamageManager::CDamageManager(float wheelDamageEffect) :
@@ -209,8 +209,8 @@ bool CDamageManager::ProgressDoorDamage(eDoors door, CAutomobile* pAuto) {
 }
 
 // 0x6C2300
-uint8 CDamageManager::GetAeroplaneCompStatus(uint8 frame) {
-    return m_nPanelsStatus >> (2 * (frame - 12)) & 3;
+ePanelDamageState CDamageManager::GetAeroplaneCompStatus(uint8 frame) {
+    return (ePanelDamageState)(m_nPanelsStatus >> (2 * (frame - 12)) & 3);
 }
 
 // 0x6C22D0
