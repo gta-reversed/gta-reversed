@@ -23,7 +23,7 @@ void CTaskComplexCarDriveWander::SetUpCar() {
         m_Veh->m_autoPilot.m_speed            = m_Veh->m_autoPilot.m_nCruiseSpeed;
         m_Veh->m_autoPilot.m_nCarDrivingStyle = static_cast<eCarDrivingStyle>(m_CarDrivingStyle);
     }
-    m_Veh->vehicleFlags.bEngineOn = !m_Veh->vehicleFlags.bEngineBroken;
+    m_Veh->vehicleFlags.bEngineOn            = !m_Veh->vehicleFlags.bEngineBroken;
     m_Veh->m_autoPilot.m_nTimeToStartMission = CTimer::GetTimeInMS();
 }
 
