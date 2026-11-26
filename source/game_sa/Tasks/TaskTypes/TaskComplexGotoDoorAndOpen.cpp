@@ -81,14 +81,14 @@ CTask* CTaskComplexGotoDoorAndOpen::CreateFirstSubTask(CPed* ped) {
     }
 
     // 0x66BDDA - Calculate the positions in front of and behind the door (on the side the ped is at)
-    const auto& pos       = m_DoorToOpen->GetPosition();
-    const auto& fwd       = m_DoorToOpen->GetForward();
-    const auto  center    = pos + m_DoorToOpen->GetRight() * 0.75f;
-    const auto  isInFront = (pos - ped->GetPosition()).Dot(fwd) <= 0.f;
-    const auto  dir       = isInFront ? -fwd : fwd; // Direction we go through the door
-
-    m_Start               = center - dir * 0.5f;
-    m_End                 = center + dir * 2.f;
+    const auto& pos    = m_DoorToOpen->GetPosition();
+    const auto& fwd    = m_DoorToOpen->GetForward();
+    const auto  center = pos + m_DoorToOpen->GetRight() * 0.75f;
+    const auto  dir    = (pos - ped->GetPosition()).Dot(fwd) <= 0.f
+        ? -fwd
+        : fwd;
+    m_Start            = center - dir * 0.5f;
+    m_End              = center + dir * 2.f;
 
     // 0x66BEC4 - Make sure the door doesn't block us
     if (m_DoorToOpen->physicalFlags.bCollidable) {
