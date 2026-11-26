@@ -28,6 +28,9 @@ public:
 
     int32 NumPairs{};
     CScriptedEffectPair Pairs[MAX_NUM_EFFECT_PAIRS]{};
+
+public:
+    void Flush();
 };
 VALIDATE_SIZE(CScriptedEffectPairs, 148);
 
