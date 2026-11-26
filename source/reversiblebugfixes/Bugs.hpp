@@ -160,4 +160,9 @@ inline const ReversibleBugFix CTaskComplexDriveToPoint_IsTargetBlocked_DistScale
     .Description = "The original multiplies the squared distance by 1.5 (so the vehicle only has to be within `sqrt(1.5)` times the radii); the fix scales the distance itself by 1.5",
     .Credit      = "TheReal-Kaze"
 };
+inline const ReversibleBugFix CTaskComplexSignalAtPed_Constructor_InitialPause{
+    .Name        = "CTaskComplexSignalAtPed::Constructor - Initial pause",
+    .Description = "The original constructor ignores the initial pause argument, so the ped always pauses for a random time between 0 and 2 seconds before signaling. The fix uses the provided initial pause value.",
+    .Credit      = "Pirulax"
+};
 };
