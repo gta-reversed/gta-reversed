@@ -1955,7 +1955,7 @@ void CVehicle::ApplyBoatWaterResistance(tBoatHandlingData* boatHandling, float f
 
 // 0x6D2950
 RpMaterial* SetCompAlphaCB(RpMaterial* material, void* data) {
-    material->color.alpha = *static_cast<uint8*>(data);
+    material->color.alpha = static_cast<uint8>(reinterpret_cast<uintptr>(data));
     return material;
 }
 
@@ -2286,12 +2286,13 @@ bool CVehicle::ClearVehicleUpgradeFlags(int32 arg0, int32 modId) {
 // 0x6D3300
 RpAtomic* RemoveUpgradeCB(RpAtomic* atomic, void* data) {
     if (CVisibilityPlugins::GetAtomicId(atomic) & eAtomicComponentFlag::ATOMIC_UPGRADE) {
-        const auto upgradeId = *reinterpret_cast<uint8*>(data);
+        const auto upgradeId = static_cast<uint8>(reinterpret_cast<uintptr>(data));
         const auto mi = CVisibilityPlugins::GetModelInfo(atomic);
         if (upgradeId == mi->CarMod && !mi->bUsesVehDummy) {
+            const auto frame = RpAtomicGetFrame(atomic);
             RpClumpRemoveAtomic(RpAtomicGetClump(atomic), atomic);
             RpAtomicDestroy(atomic);
-            RwFrameDestroy(RwFrameGetParent(atomic));
+            RwFrameDestroy(frame);
             if (mi) {
                 mi->RemoveRef();
             }
@@ -2320,7 +2321,7 @@ RwObject* RemoveObjectsCB(RwObject* object, void* data) {
         *reinterpret_cast<int32*>(data) = atomicFlags;
         if (!(atomicFlags & eAtomicComponentFlag::ATOMIC_UPGRADE)) {
             const auto mi = CVisibilityPlugins::GetModelInfo(atomic);
-            RwFrame* const parentFrame = RwFrameGetParent(object);
+            const auto parentFrame = RwFrameGetParent(object);
             RpClumpRemoveAtomic(atomic->clump, atomic);
             RpAtomicDestroy(atomic);
             if (!CVisibilityPlugins::GetFrameHierarchyId(parentFrame)) {
@@ -2504,9 +2505,10 @@ void CVehicle::AddReplacementUpgrade(int32 modelIndex, int32 nodeId) {
     const auto atomic    = reinterpret_cast<RpAtomic*>(miUpgrade->CreateInstance());
     miUpgrade->AddRef();
 
+    const auto frame = RpAtomicGetFrame(atomic);
     RpClumpAddAtomic(GetRpClump(), atomic);
     RpAtomicSetFrame(atomic, frameOfUpgrade);
-    RwFrameDestroy(RpAtomicGetFrame(atomic));
+    RwFrameDestroy(frame);
 
     CVisibilityPlugins::SetAtomicId(atomic, flags & ~eAtomicComponentFlag::ATOMIC_MASK);
     CVisibilityPlugins::SetAtomicFlag(atomic, eAtomicComponentFlag::ATOMIC_OK);
@@ -6200,10 +6202,10 @@ void CVehicle::DoDriveByShootings() {
     // pick anims
     AssocGroupId animGroup = ANIM_GROUP_DEFAULT;
     AnimationId  animLeft, animRight, animFront;
-    bool         isBike = false;
+    bool         hasRideAnimData = false; // bike and quad
 
     if (const auto rideAnim = GetRideAnimData()) {
-        isBike    = true;
+        hasRideAnimData = true;
         animGroup = rideAnim->AnimGroup;
         animLeft  = ANIM_ID_BIKE_DRIVEBYLHS;
         animRight = ANIM_ID_BIKE_DRIVEBYRHS;
@@ -6234,12 +6236,10 @@ void CVehicle::DoDriveByShootings() {
         lookRight = activeCam.m_bLookingRight;
     }
 
-    // Bikes shoot forward whenever the fire button is held.
-    // Cars only shoot while the player is looking to a side.
-    const bool wantsToShoot = isBike ? isFiring : (lookLeft || lookRight);
-
+    // bikes/quads have three sides, cars two
+    const bool wantsToShoot = hasRideAnimData ? isFiring : (lookLeft || lookRight);
     if (!wantsToShoot || weapon.m_TotalAmmo <= 0) {
-        // Stop shooting: refill the clip and blend the drive-by anims out
+        // refill the clip and blend driveby anims out
         if (weapon.m_TotalAmmo) {
             const auto clipSize = CWeaponInfo::GetWeaponInfo(weapon.m_Type)->m_nAmmoClip;
             weapon.m_AmmoInClip = std::min(weapon.m_TotalAmmo, (uint32)clipSize);
@@ -6252,20 +6252,20 @@ void CVehicle::DoDriveByShootings() {
         };
         BlendOut(animLeft);
         BlendOut(animRight);
-        if (isBike) {
+        if (hasRideAnimData) {
             BlendOut(animFront);
         }
         return;
     }
 
-    // Choose which anim to play (left has priority over right, bikes fall back to front)
+    // which anim to play
     AnimationId animToPlay;
     if (lookLeft) {
         animToPlay = animLeft;
     } else if (lookRight) {
         animToPlay = animRight;
     } else {
-        assert(isBike); // can't be reached otherwise, wantsToShoot would have been false
+        assert(hasRideAnimData); // can't be reached otherwise, wantsToShoot would have been false
         animToPlay = animFront;
     }
 
@@ -6274,7 +6274,7 @@ void CVehicle::DoDriveByShootings() {
         assoc = CAnimManager::BlendAnimation(m_pDriver->GetRpClump(), animGroup, animToPlay, 16.0f);
     }
 
-    // Wait until the anim is fully blended in before firing
+    // wait until the anim is fully blended in before firing
     if (assoc && (assoc->IsPlaying() || assoc->m_BlendAmount <= 0.99f)) {
         return;
     }
