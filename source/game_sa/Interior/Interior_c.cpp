@@ -28,23 +28,23 @@ void Interior_c::InjectHooks() {
     RH_ScopedInstall(Shop_PlaceEdgeUnits, 0x599DC0, { .Reversed = false });
     RH_ScopedInstall(Shop_PlaceCounter, 0x599EF0, { .Reversed = false });
     RH_ScopedInstall(Shop_PlaceFixedUnits, 0x59A030, { .Reversed = false });
-    RH_ScopedInstall(Shop_FurnishCeiling, 0x59A130, { .Reversed = false });
+    RH_ScopedInstall(Shop_FurnishCeiling, 0x59A130);
     RH_ScopedInstall(Shop_AddShelfInfo, 0x59A140);
     RH_ScopedInstall(Shop_FurnishEdges, 0x59A1B0, { .Reversed = false });
     RH_ScopedInstall(GetBoundingBox, 0x593DB0, { .Reversed = false });
     RH_ScopedInstall(Init, 0x593BF0, { .Reversed = false });
     RH_ScopedInstall(ResetTiles, 0x593910, { .Reversed = false });
     RH_ScopedInstall(PlaceObject, 0x5934E0, { .Reversed = false });
-    RH_ScopedInstall(GetFurnitureEntity, 0x5913B0, { .Reversed = false });
+    RH_ScopedInstall(GetFurnitureEntity, 0x5913B0);
     RH_ScopedInstall(IsPtInside, 0x5913E0, { .Reversed = false });
     RH_ScopedInstall(CalcMatrix, 0x5914D0, { .Reversed = false });
     RH_ScopedInstall(Furnish, 0x591590, { .Reversed = false });
     RH_ScopedInstall(Unfurnish, 0x5915D0, { .Reversed = false });
-    RH_ScopedInstall(CheckTilesEmpty, 0x591680, { .Reversed = false });
-    RH_ScopedInstall(SetTilesStatus, 0x591700, { .Reversed = false });
+    RH_ScopedInstall(CheckTilesEmpty, 0x591680);
+    RH_ScopedInstall(SetTilesStatus, 0x591700);
     RH_ScopedInstall(SetCornerTiles, 0x5917C0, { .Reversed = false });
-    RH_ScopedInstall(GetTileStatus, 0x5918E0, { .Reversed = false });
-    RH_ScopedInstall(GetNumEmptyTiles, 0x591920, { .Reversed = false });
+    RH_ScopedInstall(GetTileStatus, 0x5918E0);
+    RH_ScopedInstall(GetNumEmptyTiles, 0x591920);
     RH_ScopedInstall(GetRandomTile, 0x591B20, { .Reversed = false });
     RH_ScopedInstall(Shop_FurnishAisles, 0x59A590, { .Reversed = false });
     RH_ScopedInstall(GetTileCentre, 0x591BD0, { .Reversed = false });
@@ -174,7 +174,7 @@ void Interior_c::Shop_PlaceFixedUnits() {
 
 // 0x59A130
 void Interior_c::Shop_FurnishCeiling() {
-    plugin::CallMethod<0x59A130, Interior_c*>(this);
+    // Empty in the original game.
 }
 
 // 0x59A140
@@ -211,7 +211,12 @@ CObject* Interior_c::PlaceObject(uint8 isStealable, Furniture_c* furniture, floa
 
 // 0x5913B0
 FurnitureEntity_c* Interior_c::GetFurnitureEntity(const CEntity& entity) {
-    return plugin::CallMethodAndReturn<FurnitureEntity_c*, 0x5913B0>(this, &entity);
+    for (auto& furniture : m_furnitureEntities) {
+        if (furniture.m_entity == &entity) {
+            return &furniture;
+        }
+    }
+    return nullptr;
 }
 
 // 0x5913E0
@@ -235,13 +240,42 @@ void Interior_c::Unfurnish() {
 }
 
 // 0x591680
-int8 Interior_c::CheckTilesEmpty(int32 a1, int32 a2, int32 a3, int32 a4, uint8 a5) {
-    return plugin::CallMethodAndReturn<int8, 0x591680, Interior_c*, int32, int32, int32, int32, uint8>(this, a1, a2, a3, a4, a5);
+int8 Interior_c::CheckTilesEmpty(int32 x, int32 y, int32 width, int32 depth, uint8 allowStatus9) {
+    if (x < 0 || y < 0 || x + width > m_box->m_width || y + depth > m_box->m_depth) {
+        return false;
+    }
+    for (int32 dx = 0; dx < width; ++dx) {
+        for (int32 dy = 0; dy < depth; ++dy) {
+            const auto status = m_tileStatus[x + dx][y + dy];
+            if (status != 0 && !(allowStatus9 && status == 9)) {
+                return false;
+            }
+        }
+    }
+    return true;
 }
 
 // 0x591700
-void Interior_c::SetTilesStatus(int32 a, int32 b, int32 a3, int32 a4, int32 a5, int8 a6) {
-    plugin::CallMethod<0x591700, Interior_c*, int32, int32, int32, int32, int32, int8>(this, a, b, a3, a4, a5, a6);
+void Interior_c::SetTilesStatus(int32 x, int32 y, int32 width, int32 depth, int32 status, int8 overwrite) {
+    if (x < 0 || y < 0 || x + width > m_box->m_width || y + depth > m_box->m_depth) {
+        return;
+    }
+    for (int32 dx = 0; dx < width; ++dx) {
+        for (int32 dy = 0; dy < depth; ++dy) {
+            auto& tile = m_tileStatus[x + dx][y + dy];
+            if (tile == 9 && status == 5) {
+                tile = 10;
+            } else if (overwrite) {
+                if (tile != 5 && tile != 7 && tile != 8) {
+                    tile = static_cast<uint8>(status);
+                }
+            } else if (tile == 3 && status == 3) {
+                return;
+            } else if (tile == 0 || (tile == 3 && status == 4)) {
+                tile = static_cast<uint8>(status);
+            }
+        }
+    }
 }
 
 // 0x5917C0
@@ -251,12 +285,28 @@ void Interior_c::SetCornerTiles(int32 a4, int32 a3, int32 a5, uint8 a6) {
 
 // 0x5918E0
 int32 Interior_c::GetTileStatus(int32 x, int32 y) {
-    return plugin::CallMethodAndReturn<int32, 0x5918E0, Interior_c*, int32, int32>(this, x, y);
+    if (x < 0 || y < 0 || x >= m_box->m_width || y >= m_box->m_depth) {
+        return 1;
+    }
+    return m_tileStatus[x][y];
 }
 
 // 0x591920
-int32 Interior_c::GetNumEmptyTiles(int32 a2, int32 a3, int32 a4, int32 a5) {
-    return plugin::CallMethodAndReturn<int32, 0x591920, Interior_c*, int32, int32, int32, int32>(this, a2, a3, a4, a5);
+int32 Interior_c::GetNumEmptyTiles(int32 x, int32 y, int32 direction, int32 stripWidth) {
+    const bool  advanceX = direction == 1 || direction == 3;
+    const int32 step     = direction == 0 || direction == 3 ? -1 : 1;
+    for (int32 count = 0;; ++count) {
+        for (int32 offset = 0; offset < stripWidth; ++offset) {
+            if (GetTileStatus(advanceX ? x : x + offset, advanceX ? y + offset : y)) {
+                return count;
+            }
+        }
+        if (advanceX) {
+            x += step;
+        } else {
+            y += step;
+        }
+    }
 }
 
 // 0x591B20
