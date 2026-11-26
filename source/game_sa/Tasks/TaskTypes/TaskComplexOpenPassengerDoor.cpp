@@ -9,6 +9,6 @@ void CTaskComplexOpenPassengerDoor::InjectHooks() {
     RH_ScopedConstructorInstall(0x6403E0, "1", {}, CVehicle*, int32);
     RH_ScopedDestructorInstall(0x640420);
 
-    RH_ScopedVMTInstall(Clone, 0x6438E0, { .Reversed = false });
+    RH_ScopedVMTInstall(Clone, 0x6438E0);
     RH_ScopedVMTInstall(GetTaskType, 0x640410);
 }
