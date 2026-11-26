@@ -23,12 +23,7 @@ void CTaskComplexCarDriveWander::SetUpCar() {
         m_Veh->m_autoPilot.m_speed            = m_Veh->m_autoPilot.m_nCruiseSpeed;
         m_Veh->m_autoPilot.m_nCarDrivingStyle = static_cast<eCarDrivingStyle>(m_CarDrivingStyle);
     }
-    if (m_Veh->vehicleFlags.bEngineBroken) {
-        m_Veh->vehicleFlags.bEngineOn      = false;
-        m_Veh->vehicleFlags.bIsLawEnforcer = false;
-    } else {
-        m_Veh->vehicleFlags.bEngineOn = true;
-    }
+    m_Veh->vehicleFlags.bEngineOn = !m_Veh->vehicleFlags.bEngineBroken;
     m_Veh->m_autoPilot.m_nTimeToStartMission = CTimer::GetTimeInMS();
 }
 
@@ -46,6 +41,6 @@ void CTaskComplexCarDriveWander::InjectHooks() {
 
     RH_ScopedVMTInstall(Clone, 0x63DD00);
     RH_ScopedVMTInstall(GetTaskType, 0x63CB40);
-    RH_ScopedVMTInstall(SetUpCar, 0x63CB60, { .Reversed = false });
-    RH_ScopedVMTInstall(CreateSubTaskCannotGetInCar, 0x643240, { .Reversed = false });
+    RH_ScopedVMTInstall(SetUpCar, 0x63CB60);
+    RH_ScopedVMTInstall(CreateSubTaskCannotGetInCar, 0x643240);
 }
