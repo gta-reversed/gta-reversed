@@ -1830,13 +1830,17 @@ void CTheScripts::ScriptDebugCircle2D(float x, float y, float width, float heigh
         return CVector2D{ std::sin(angle) * width + x, std::cos(angle) * height + y };
     };
     for (auto i = 0; i < NUM_SEGMENTS; i++) {
-        const auto vertexColor = i == highlighted
+        const auto      vertexColor = i == highlighted
             ? CRGBA{ (uint8)(3 * color.r / 4), (uint8)(3 * color.g / 4), (uint8)(3 * color.b / 4), (uint8)(3 * color.a / 4) }.ToIntARGB()
             : color.ToIntARGB();
         const CVector2D p1 = GetPoint(i), p2 = GetPoint(i + 1);
-        RwIm2DVertex vertices[2]{};
-        vertices[0].x = p1.x; vertices[0].y = p1.y; vertices[0].emissiveColor = vertexColor;
-        vertices[1].x = p2.x; vertices[1].y = p2.y; vertices[1].emissiveColor = vertexColor;
+        RwIm2DVertex    vertices[2]{};
+        vertices[0].x             = p1.x;
+        vertices[0].y             = p1.y;
+        vertices[0].emissiveColor = vertexColor;
+        vertices[1].x             = p2.x;
+        vertices[1].y             = p2.y;
+        vertices[1].emissiveColor = vertexColor;
         RwIm2DRenderLine(vertices, std::size(vertices), 0, 1);
     }
 
