@@ -72,7 +72,7 @@ CTask* CTaskComplexSignalAtPed::ControlSubTask(CPed* ped) {
     CAnimManager::StreamAnimBlock("gangs", CTaskComplexGangLeader::ShouldLoadGangAnims(), m_AreAnimsReferenced);
 
     if (m_PedToSignalAt) {
-        ped->m_fAimingRotation = (m_PedToSignalAt->GetPosition() - ped->GetPosition()).Heading();
+        ped->m_fAimingRotation = (m_PedToSignalAt->GetPosition2D() - ped->GetPosition2D()).Heading();
     }
 
     return m_pSubTask;
