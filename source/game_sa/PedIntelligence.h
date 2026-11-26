@@ -16,7 +16,7 @@
 #include "PedStuckChecker.h"
 #include "VehicleScanner.h"
 #include "PedScanner.h"
-#include "MentalHealth.h"
+#include "MentalState.h"
 #include "PedScanner.h"
 #include "Collision/CollisionEventScanner.h"
 #include "Enums/eMoveState.h"
@@ -156,6 +156,9 @@ public:
 
     //! Get the vehicle the ped is entering now (If any)
     CVehicle* GetEnteringVehicle();
+
+    //! Get the vehicle the ped is getting into as a passenger (If any)
+    CVehicle* GetCarBeingEnteredAsPassenger();
 
     CTaskManager&    GetTaskManager()                  { return m_TaskMgr; }
     CEventHandler&   GetEventHandler()                 { return m_eventHandler; }

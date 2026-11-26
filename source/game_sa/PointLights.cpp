@@ -53,9 +53,9 @@ float CPointLights::GenerateLightsAffectingObject(const CVector* point, float* t
         }
 
         if (totalLighting) {
-            *totalLighting += (1.0f - ratio) * light.m_fColorRed   * (1.0f / 3.0f);
+            *totalLighting += (1.0f - ratio) * light.m_fColorRed * (1.0f / 3.0f);
             *totalLighting += (1.0f - ratio) * light.m_fColorGreen * (1.0f / 3.0f);
-            *totalLighting += (1.0f - ratio) * light.m_fColorBlue  * (1.0f / 3.0f);
+            *totalLighting += (1.0f - ratio) * light.m_fColorBlue * (1.0f / 3.0f);
         }
 
         float intensity = ratio >= 0.5f ? 1.0f - ((ratio - 0.5f) + (ratio - 0.5f)) : 1.0f;
@@ -68,10 +68,7 @@ float CPointLights::GenerateLightsAffectingObject(const CVector* point, float* t
             intensity *= std::max(dot + dot, 0.0f);
         }
         if (intensity > 0.0f) {
-            AddAnExtraDirectionalLight(Scene.m_pRpWorld, dir.x, dir.y, dir.z,
-                intensity * light.m_fColorRed,
-                intensity * light.m_fColorGreen,
-                intensity * light.m_fColorBlue);
+            AddAnExtraDirectionalLight(Scene.m_pRpWorld, dir.x, dir.y, dir.z, intensity * light.m_fColorRed, intensity * light.m_fColorGreen, intensity * light.m_fColorBlue);
         }
     }
     return antilightMult;
@@ -80,7 +77,7 @@ float CPointLights::GenerateLightsAffectingObject(const CVector* point, float* t
 // 0x6FFE70
 float CPointLights::GetLightMultiplier(const CVector* point) {
     float antilightMult = 1.0f;
-    float lightSum     = 0.0f;
+    float lightSum      = 0.0f;
     for (const auto& light : GetActiveLights()) {
         if (light.m_nType == PLTYPE_ONLYFOGEFFECT_ALWAYS || light.m_nType == PLTYPE_ONLYFOGEFFECT) {
             continue;
@@ -99,8 +96,8 @@ float CPointLights::GetLightMultiplier(const CVector* point) {
             antilightMult *= ratio;
         } else {
             lightSum += (1.0f - ratio)
-                      * (light.m_fColorRed + light.m_fColorGreen + light.m_fColorBlue)
-                      / 3.0f;
+                * (light.m_fColorRed + light.m_fColorGreen + light.m_fColorBlue)
+                / 3.0f;
         }
     }
     return antilightMult + lightSum;
@@ -128,9 +125,9 @@ bool CPointLights::ProcessVerticalLineUsingCache(CVector point, float* outZ) {
 
     aCachedMapReadResults[NextCachedValue] = colPoint.m_vecPoint.z;
     aCachedMapReads[NextCachedValue]       = point;
-    NextCachedValue                       = (NextCachedValue + 1) % MAX_POINT_LIGHTS;
+    NextCachedValue                        = (NextCachedValue + 1) % MAX_POINT_LIGHTS;
 
-    *outZ = colPoint.m_vecPoint.z;
+    *outZ                                  = colPoint.m_vecPoint.z;
     return true;
 }
 
@@ -193,15 +190,7 @@ void CPointLights::RenderFogEffect() {
             return;
         }
         CSprite::RenderBufferedOneXLUSprite_Rotate_Aspect(
-            screen.x, screen.y, screen.z,
-            w * sizeMult, h * sizeMult * aspect,
-            (uint8)(intensity * light.m_fColorRed),
-            (uint8)(intensity * light.m_fColorGreen),
-            (uint8)(intensity * light.m_fColorBlue),
-            (int16)intensity,
-            1.0f / screen.z,
-            angle,
-            255
+            screen.x, screen.y, screen.z, w * sizeMult, h * sizeMult * aspect, (uint8)(intensity * light.m_fColorRed), (uint8)(intensity * light.m_fColorGreen), (uint8)(intensity * light.m_fColorBlue), (int16)intensity, 1.0f / screen.z, angle, 255
         );
     };
 
@@ -231,9 +220,9 @@ void CPointLights::RenderFogEffect() {
             constexpr float FOG_LENGTH = 12.0f;
             constexpr float FOG_RADIUS = 5.0f;
 
-            const CVector2D end = CVector2D{ pos } + CVector2D{ dir } * FOG_LENGTH;
-            const auto [minX, maxX] = std::minmax(pos.x, end.x);
-            const auto [minY, maxY] = std::minmax(pos.y, end.y);
+            const CVector2D end        = CVector2D{ pos } + CVector2D{ dir } * FOG_LENGTH;
+            const auto [minX, maxX]    = std::minmax(pos.x, end.x);
+            const auto [minY, maxY]    = std::minmax(pos.y, end.y);
 
             // Truncate before snapping to the grid, including at negative coordinates.
             const int32 startX = static_cast<int32>(minX - FOG_RADIUS) / 4 * 4;
@@ -272,12 +261,12 @@ void CPointLights::RenderFogEffect() {
                     }
 
                     const float intensity = along / std::sqrt(distSq) * fogAmount * 50.0f
-                                          * (1.0f - sq(along / FOG_LENGTH))
-                                          * (1.0f - sq(std::sqrt(perpSq) / FOG_RADIUS));
+                        * (1.0f - sq(along / FOG_LENGTH))
+                        * (1.0f - sq(std::sqrt(perpSq) / FOG_RADIUS));
                     const auto puffIndex = pattern >> 1;
                     // 6.28, and not TWO_PI because the binary uses exactly 6.28
                     RenderFogSprite(light, puffPos, intensity, FogSizes[puffIndex], 1.0f,
-                        6.28f * (float)(CTimer::GetTimeInMS() % 8192) / 8192.0f); // angle (0, 2pi)
+                                    6.28f * (float)(CTimer::GetTimeInMS() % 8'192) / 8192.0f); // angle (0, 2pi)
                 }
             }
         } else if (light.m_nType == PLTYPE_POINTLIGHT || light.m_nType == PLTYPE_ONLYFOGEFFECT_ALWAYS || light.m_nType == PLTYPE_ONLYFOGEFFECT) {
@@ -313,12 +302,12 @@ void CPointLights::RenderFogEffect() {
                     if (camDist >= 15.0f) {
                         continue;
                     }
-                    const float camFade = camDist < 7.5f ? 1.0f : 1.0f - (camDist - 7.5f) / 7.5f;
+                    const float camFade          = camDist < 7.5f ? 1.0f : 1.0f - (camDist - 7.5f) / 7.5f;
 
-                    const float intensity = (1.0f - distSq / sq(fogSize)) * camFade * fogAmount * 37.0f;
-                    const auto puffIndex = hash >> 1;
+                    const float intensity        = (1.0f - distSq / sq(fogSize)) * camFade * fogAmount * 37.0f;
+                    const auto  puffIndex        = hash >> 1;
 
-                    constexpr auto PhaseOffsetMs = 2300; // Intentionally non-power of two to appear asymmetric
+                    constexpr auto PhaseOffsetMs = 2'300; // Intentionally non-power of two to appear asymmetric
                     // 6.28, and not TWO_PI because the binary uses exactly 6.28
                     RenderFogSprite(
                         light,
@@ -326,7 +315,7 @@ void CPointLights::RenderFogEffect() {
                         intensity,
                         FogSizes[puffIndex],
                         0.7f,
-                        6.28f * (float)((CTimer::GetTimeInMS() + puffIndex * PhaseOffsetMs) % 32768) / 32768.0f // angle (0,2pi)
+                        6.28f * (float)((CTimer::GetTimeInMS() + puffIndex * PhaseOffsetMs) % 32'768) / 32768.0f // angle (0,2pi)
                     );
                 }
             }

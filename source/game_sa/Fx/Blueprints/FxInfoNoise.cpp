@@ -21,16 +21,10 @@ void FxInfoNoise_c::GetValue(float currentTime, float mult, float totalTime, flo
     float value;
     m_InterpInfo.GetVal(&value, mult);
 
-    CVector in((float)(CGeneral::GetRandomNumber() % 10'000) / 5000.0f - 1.0f);
-    in.Normalise();
-    in *= value * totalTime;
-
-    auto length = movement.m_Vel.Magnitude();
-    movement.m_Vel += in;
-
-    if (movement.m_Vel.Magnitude() > 0.0f) {
-        movement.m_Vel.Normalise();
+    const auto speed = movement.m_Vel.Magnitude();
+    movement.m_Vel += CVector{ (float)(CGeneral::GetRandomNumber() % 10'000) / 5000.0f - 1.0f }.Normalized() * value * totalTime;
+    if (const auto mag = movement.m_Vel.Magnitude(); mag > 0.0f) {
+        movement.m_Vel /= mag;
     }
-
-    movement.m_Vel *= length;
+    movement.m_Vel *= speed;
 }

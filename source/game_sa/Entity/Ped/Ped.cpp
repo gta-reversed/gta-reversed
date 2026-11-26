@@ -1444,11 +1444,11 @@ CTaskSimpleHoldEntity* CPed::GetHoldingTask() {
 CEntity* CPed::GetEntityThatThisPedIsHolding()
 {
     if (const auto task = GetHoldingTask()) {
-        return task->m_pEntityToHold;
+        return task->GetHeldEntity();
     }
 
     if (const auto task = GetTaskManager().Find<CTaskComplexGoPickUpEntity>()) {
-        return task->m_pEntity;
+        return task->GetEntityToPickUp();
     }
 
     return nullptr;
