@@ -32,6 +32,7 @@ enum ePanelDamageState : uint32 { // 32-bit: the original getters return the who
     DAMSTATE_OPENED_DAMAGED = 3, // Open, DT_DOOR_BASHED_AND_SWINGING_FREE
     DAMSTATE_NOTPRESENT     = 4  // Missing, DT_DOOR_MISSING
 };
+NOTSA_WENUM_DEFS_FOR(ePanelDamageState);
 
 // original name
 enum tComponent : uint8 {
@@ -80,6 +81,7 @@ enum eCarWheelStatus : uint32 {
     WHEEL_STATUS_3,
     WHEEL_STATUS_4
 };
+NOTSA_WENUM_DEFS_FOR(eCarWheelStatus);
 
 enum ePanels : uint8 {
     FRONT_LEFT_PANEL = 0,
@@ -104,6 +106,7 @@ enum eDoors : uint8  {
     MAX_DOORS
 };
 using eDoorStatus = ePanelDamageState;
+NOTSA_WENUM_DEFS_FOR(eDoorStatus);
 
 enum eLights : uint8 {
     LIGHT_FRONT_LEFT  = 0,
@@ -118,13 +121,14 @@ enum eLightsState : uint32 {
     VEHICLE_LIGHT_OK      = 0x0,
     VEHICLE_LIGHT_SMASHED = 0x1,
 };
+NOTSA_WENUM_DEFS_FOR(eLightsState);
 
 class CDamageManager {
 public:
     float           m_fWheelDamageEffect;
     uint8           m_nEngineStatus; // 0 - 250
-    std::array<notsa::WEnumU8<eCarWheelStatus>, eCarWheel::MAX_CARWHEELS> m_anWheelsStatus;
-    std::array<notsa::WEnumU8<eDoorStatus>, eDoors::MAX_DOORS>            m_aDoorsStatus;
+    std::array<eCarWheelStatusU8, eCarWheel::MAX_CARWHEELS> m_anWheelsStatus;
+    std::array<eDoorStatusU8, eDoors::MAX_DOORS>            m_aDoorsStatus;
     union {
         /* Great job R*, really could've just used an array here... Ends up to be the same size... */
 
