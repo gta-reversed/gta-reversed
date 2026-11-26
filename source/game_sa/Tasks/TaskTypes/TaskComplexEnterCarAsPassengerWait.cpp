@@ -8,20 +8,6 @@
 #include "TaskSimpleWaitUntilPedIsInCar.h"
 #include "PedGeometryAnalyser.h"
 
-void CTaskComplexEnterCarAsPassengerWait::InjectHooks() {
-    RH_ScopedVirtualClass(CTaskComplexEnterCarAsPassengerWait, 0x86E778, 11);
-    RH_ScopedCategory("Tasks/TaskTypes");
-
-    RH_ScopedInstall(Constructor, 0x63B320);
-    RH_ScopedInstall(Destructor, 0x63B3C0);
-
-    RH_ScopedInstall(CreateSubTask, 0x6408D0);
-    RH_ScopedVMTInstall(Clone, 0x63D850);
-    RH_ScopedVMTInstall(GetTaskType, 0x63B3B0);
-    RH_ScopedVMTInstall(CreateNextSubTask, 0x643E10);
-    RH_ScopedVMTInstall(CreateFirstSubTask, 0x643F00);
-    RH_ScopedVMTInstall(ControlSubTask, 0x640730);
-}
 
 // 0x63B320
 CTaskComplexEnterCarAsPassengerWait::CTaskComplexEnterCarAsPassengerWait(CVehicle* target, CPed* waitFor, bool forceFrontSeat, eMoveState ms) :
@@ -30,11 +16,9 @@ CTaskComplexEnterCarAsPassengerWait::CTaskComplexEnterCarAsPassengerWait(CVehicl
     m_bForceFrontSeat{forceFrontSeat},
     m_MoveState{ms}
 {
-    CEntity::SafeRegisterRef(m_Car);
-    CEntity::SafeRegisterRef(m_WaitForPed);
 }
     
-// NOTSA (for 0x63D850)
+// For 0x63D850
 CTaskComplexEnterCarAsPassengerWait::CTaskComplexEnterCarAsPassengerWait(const CTaskComplexEnterCarAsPassengerWait& o) :
     CTaskComplexEnterCarAsPassengerWait{
         o.m_Car,
@@ -43,12 +27,6 @@ CTaskComplexEnterCarAsPassengerWait::CTaskComplexEnterCarAsPassengerWait(const C
         o.m_MoveState
     }
 {
-}
-
-// 0x63B3C0
-CTaskComplexEnterCarAsPassengerWait::~CTaskComplexEnterCarAsPassengerWait() {
-    CEntity::SafeCleanUpRef(m_Car);
-    CEntity::SafeCleanUpRef(m_WaitForPed);
 }
 
 // 0x6408D0
@@ -65,9 +43,7 @@ CTask* CTaskComplexEnterCarAsPassengerWait::CreateSubTask(eTaskType taskType, CP
         const auto seat = m_bForceFrontSeat
             ? CCarEnterExit::ComputeTargetDoorToEnterAsPassenger(m_Car, 0)
             : 0;
-        const auto task = new CTaskComplexEnterCarAsPassengerTimed{ m_Car, (uint32)seat, (uint32)-1, true };
-        task->SetMoveState(m_MoveState);
-        return task;
+        return new CTaskComplexEnterCarAsPassengerTimed{ m_Car, (uint32)seat, (uint32)-1, true, m_MoveState};
     }
     case TASK_SIMPLE_CAR_DRIVE_TIMED: // Already in the car
         return new CTaskSimpleCarDriveTimed{ m_Car, 0 };
@@ -78,8 +54,9 @@ CTask* CTaskComplexEnterCarAsPassengerWait::CreateSubTask(eTaskType taskType, CP
         return new CTaskComplexGoToPointAndStandStill{ m_MoveState, m_Car->GetPosition(), m_Car->GetColModel()->GetBoundingSphere().m_fRadius + 1.5f, 2.f, false, false };
     }
     case TASK_FINISHED:
-    default:
         return nullptr;
+    default:
+        NOTSA_UNREACHABLE_CASE(taskType);
     }
 }
 
@@ -89,7 +66,7 @@ CTask* CTaskComplexEnterCarAsPassengerWait::CreateNextSubTask(CPed* ped) {
         return CreateSubTask(TASK_FINISHED, ped);
     }
 
-    switch (m_pSubTask->GetTaskType()) {
+    switch (const auto subtt = m_pSubTask->GetTaskType()) {
     case TASK_COMPLEX_SEQUENCE:
     case TASK_SIMPLE_WAIT_UNTIL_PED_IN_CAR: // Waited enough, try getting in
         return CreateSubTask(m_Car ? TASK_COMPLEX_ENTER_CAR_AS_PASSENGER_TIMED : TASK_FINISHED, ped);
@@ -104,7 +81,7 @@ CTask* CTaskComplexEnterCarAsPassengerWait::CreateNextSubTask(CPed* ped) {
     case TASK_SIMPLE_CAR_DRIVE_TIMED:
         return CreateSubTask(TASK_FINISHED, ped);
     default:
-        return nullptr;
+        NOTSA_UNREACHABLE_CASE(subtt);
     }
 }
 
@@ -131,37 +108,53 @@ CTask* CTaskComplexEnterCarAsPassengerWait::ControlSubTask(CPed* ped) {
             const auto* const leader = group ? group->GetMembership().GetLeader() : nullptr;
             return leader && leader->IsPlayer();
         };
-        const auto ctx = [&] {
-            if (m_WaitForPed) {
-                return m_WaitForPed->IsPlayer() && IsGettingIn()
-                    ? CTX_GLOBAL_CAR_GET_IN
-                    : CTX_GLOBAL_NO_SPEECH;
-            }
-            return IsLeaderThePlayer() && IsGettingIn()
-                ? CTX_GLOBAL_CAR_WAIT_FOR_ME
-                : CTX_GLOBAL_NO_SPEECH;
-        }();
-        if (ctx != CTX_GLOBAL_NO_SPEECH) {
+        const auto DoSay = [this, ped](eGlobalSpeechContext ctx) {
             m_bPlayedSample = true;
             ped->Say(ctx);
+        };
+        if (m_WaitForPed) {
+            DoSay(m_WaitForPed->IsPlayer() && IsGettingIn()
+                ? CTX_GLOBAL_CAR_GET_IN
+                : CTX_GLOBAL_NO_SPEECH);
+        } else {
+            DoSay(IsLeaderThePlayer() && IsGettingIn()
+                ? CTX_GLOBAL_CAR_WAIT_FOR_ME
+                : CTX_GLOBAL_NO_SPEECH);
         }
     }
 
     // 0x6407E1 - Keep the go-to point up-to-date with the car's position
-    if (m_Car && m_pSubTask->GetTaskType() == TASK_COMPLEX_GO_TO_POINT_AND_STAND_STILL) {
-        const auto task = notsa::cast<CTaskComplexGoToPointAndStandStill>(m_pSubTask);
-
-        // NOTE: If no surface point was found `pt` is compared uninitialized originally
-        CVector    pt{};
-        const auto found = CPedGeometryAnalyser::ComputeClosestSurfacePoint(*ped, *m_Car, pt);
-        if ((pt - task->m_vecTargetPoint).SquaredMagnitude() > 0.025f) {
-            if (found) {
-                task->GoToPoint(pt, 1.5f, 2.f, false);
-            } else {
-                task->GoToPoint(m_Car->GetPosition(), m_Car->GetColModel()->GetBoundingSphere().m_fRadius + 1.5f, 2.f, false);
+    if (m_Car) {
+        if (const auto sub = notsa::dyn_cast<CTaskComplexGoToPointAndStandStill>(m_pSubTask)) {
+            // NOTE: If no surface point was found `pt` is compared uninitialized originally
+            CVector    pt{};
+            const auto found = CPedGeometryAnalyser::ComputeClosestSurfacePoint(*ped, *m_Car, pt);
+            if (found || !notsa::bugfixes::GenericUB) {
+                if ((pt - sub->m_vecTargetPoint).SquaredMagnitude() > 0.025f) {
+                    if (found) {
+                        sub->GoToPoint(pt, 1.5f, 2.f, false);
+                    } else {
+                        sub->GoToPoint(m_Car->GetPosition(), m_Car->GetColModel()->GetBoundingSphere().m_fRadius + 1.5f, 2.f, false);
+                    }
+                }
             }
         }
     }
 
     return m_pSubTask;
+}
+
+void CTaskComplexEnterCarAsPassengerWait::InjectHooks() {
+    RH_ScopedVirtualClass(CTaskComplexEnterCarAsPassengerWait, 0x86E778, 11);
+    RH_ScopedCategory("Tasks/TaskTypes");
+
+    RH_ScopedConstructorInstall(0x63B320, "0", {}, CVehicle*, CPed*, bool, eMoveState);
+    RH_ScopedDestructorInstall(0x63B3C0);
+
+    RH_ScopedInstall(CreateSubTask, 0x6408D0);
+    RH_ScopedVMTInstall(Clone, 0x63D850);
+    RH_ScopedVMTInstall(GetTaskType, 0x63B3B0);
+    RH_ScopedVMTInstall(CreateNextSubTask, 0x643E10);
+    RH_ScopedVMTInstall(CreateFirstSubTask, 0x643F00);
+    RH_ScopedVMTInstall(ControlSubTask, 0x640730);
 }

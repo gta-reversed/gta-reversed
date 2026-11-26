@@ -13,7 +13,14 @@ public:
 
     static void InjectHooks();
 
-    CTaskComplexEnterCarAsPassengerTimed(CVehicle* vehicle, uint32 targetSeat, uint32 time, bool bCarryOnAfterFallingOff);
+    CTaskComplexEnterCarAsPassengerTimed(
+        CVehicle*  vehicle,
+        uint32     targetSeat,
+        uint32     time,
+        bool       bCarryOnAfterFallingOff,
+        /* VVV notsa VVV */
+        eMoveState moveState = PEDMOVE_RUN
+    );
     CTaskComplexEnterCarAsPassengerTimed(const CTaskComplexEnterCarAsPassengerTimed&);
     ~CTaskComplexEnterCarAsPassengerTimed() override = default;
 
@@ -30,7 +37,7 @@ public:
 private: // Wrappers for hooks
     // 0x63B030
     CTaskComplexEnterCarAsPassengerTimed* Constructor(CVehicle* vehicle, uint32 targetSeat, uint32 time, bool bCarryOnAfterFallingOff) {
-        this->CTaskComplexEnterCarAsPassengerTimed::CTaskComplexEnterCarAsPassengerTimed(vehicle, targetSeat, time, bCarryOnAfterFallingOff);
+        this->CTaskComplexEnterCarAsPassengerTimed::CTaskComplexEnterCarAsPassengerTimed(vehicle, targetSeat, time, bCarryOnAfterFallingOff, PEDMOVE_RUN);
         return this;
     }
 

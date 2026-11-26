@@ -21,11 +21,12 @@ void CTaskComplexEnterCarAsPassengerTimed::InjectHooks() {
 }
 
 // 0x63B030
-CTaskComplexEnterCarAsPassengerTimed::CTaskComplexEnterCarAsPassengerTimed(CVehicle* vehicle, uint32 targetSeat, uint32 timeMs, bool bCarryOnAfterFallingOff) :
+CTaskComplexEnterCarAsPassengerTimed::CTaskComplexEnterCarAsPassengerTimed(CVehicle* vehicle, uint32 targetSeat, uint32 timeMs, bool bCarryOnAfterFallingOff, eMoveState moveState) :
     m_TargetCar{ vehicle },
     m_TargetSeat{ targetSeat },
     m_Time{ timeMs },
-    m_ShouldCarryOnAfterFallingOff{ bCarryOnAfterFallingOff }
+    m_ShouldCarryOnAfterFallingOff{ bCarryOnAfterFallingOff },
+    m_MoveState{ moveState }
 {   
 }
 
