@@ -697,22 +697,13 @@ void CWaterLevel::CalculateWavesOnlyForCoordinate(
 
         // Wave normal calculation - seems broken but maybe R* just knows something that we don't :D
         // Normal generation is completely skipped on later releases of the game (android / definitive)
+        const auto SetNormal = [&](float n, bool x, bool y) {
+            vecNormal += CVector{ CVector2D{ x ? n : 0.0f, y ? n : 0.0f }.Normalized() };
+        };
         switch (offset) {
-        case 5000: {
-            const auto normalDerivative = -cosPhase * waveMult * amplitude * waveVector.x;
-            vecNormal += { normalDerivative, normalDerivative, 0.0f };
-            break;
-        }
-        case 3500: {
-            const auto normalDerivative = cosPhase * waveMult * amplitude * waveVector.x;
-            vecNormal += { normalDerivative, normalDerivative, 0.0f };
-            break;
-        }
-        case 3000: {
-            const auto normalDerivative = cosPhase * waveMult * amplitude * (PI / 10.0f);
-            vecNormal += { normalDerivative, 0.0f, 0.0f };
-            break;
-        }
+        case 5'000: SetNormal(-cosPhase * waveMult * amplitude * waveVector.x, true, true); break;
+        case 3'500: SetNormal(cosPhase * waveMult * amplitude * waveVector.x, true, true); break;
+        case 3'000: SetNormal(cosPhase * waveMult * amplitude * (PI / 10.0f), true, false); break;
         }
     };
 
@@ -720,7 +711,7 @@ void CWaterLevel::CalculateWavesOnlyForCoordinate(
     CalculateWave(3500, 1.f / 26.0f, 1.f / 52.0f, 1.0f * smallWavesAmplitude);
     CalculateWave(3000, 0.0f,        1.f / 20.0f, 0.5f * smallWavesAmplitude);
 
-    vecNormal.Normalise();
+    vecNormal = vecNormal.Normalized();
     const auto glareLevel = (vecNormal.x + vecNormal.y + vecNormal.z) * E_CONST;
 
     colorMult = std::max(glareLevel, 0.0f) * 0.65f + 0.27f;

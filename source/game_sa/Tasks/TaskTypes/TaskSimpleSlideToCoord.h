@@ -12,7 +12,7 @@ public:
     float   m_Speed;
     bool    m_bFirstTime : 1;
     bool    m_bRunningAnim : 1;
-    int32   m_Timer;
+    int32   m_EndTime; // Game time [ms] when `ProcessPed` gives up, -1 until the timeout starts
 
 public:
     static constexpr auto Type = TASK_SIMPLE_SLIDE_TO_COORD;

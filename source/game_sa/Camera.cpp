@@ -1332,7 +1332,7 @@ void CCamera::ProcessFade() {
 
     if (m_nFadeInOutFlag == eFadeFlag::FADE_OUT) {
         m_fFadeDuration == 0.0f
-            ? (m_fFadeAlpha += 0.0f)
+            ? (m_fFadeAlpha = 0.0f)
             : (m_fFadeAlpha -= CTimer::GetTimeStepInSeconds() / m_fFadeDuration * 255.0f);
 
         if (m_fFadeAlpha > 0.0f) {
@@ -1584,13 +1584,9 @@ void CCamera::Find3rdPersonCamTargetVector(float range, CVector gunMuzzle, CVect
         // Horizontal offset
         const auto right = pActiveCam->m_vecFront.Cross(pActiveCam->m_vecUp);
         dir += right * (tanHalfFOV * ((m_f3rdPersonCHairMultX - 0.5f) * 2.0f));
-        
-        // Handle zero magnitude case
-        if (dir.Magnitude() <= 0.0f) {
-            dir = CVector(1.0f, 0.0f, 0.0f);
-        } else {
-            dir.Normalise();
-        }
+       
+        // Make it a unit vector
+        dir = dir.Normalized();
     }
     
     // Calculate intersection point with muzzle

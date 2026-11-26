@@ -4,7 +4,7 @@ class CPed;
 
 struct PlayerRelationship {
     const CPed* Ped;
-    int32       Relationship;
+    uint8       Relationship; // The original only ever reads/writes a byte (the 3 bytes after it are padding)
 
     PlayerRelationship() { Flush(); }
 
@@ -14,10 +14,15 @@ struct PlayerRelationship {
     }
 };
 
+VALIDATE_SIZE(PlayerRelationship, 0x8);
+
 // useless class (unfinished)
 class CPlayerRelationshipRecorder {
 public:
     std::array<PlayerRelationship, 16> m_Relationships;
+
+public:
+    static void InjectHooks();
 
 public:
     CPlayerRelationshipRecorder();
