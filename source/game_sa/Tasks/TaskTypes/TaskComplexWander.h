@@ -70,6 +70,9 @@ public:
     float GetDistSqOfClosestPathNodeToPed(CPed* ped);
 
     static CTaskComplexWander* GetWanderTaskByPedType(CPed* ped);
+    void                       SetDirection(uint8 dir);
+    void                       SetPathNodesFrom(const CTaskComplexWander& other);
+
 private:
     friend void InjectHooksMain();
     static void InjectHooks();

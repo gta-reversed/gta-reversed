@@ -8,25 +8,47 @@
 #include "TaskComplexCarDrive.h"
 // #include "TaskComplexTurnToFaceEntityOrCoord.h"
 
+void CTaskComplexProstituteSolicit::InjectHooks() {
+    RH_ScopedVirtualClass(CTaskComplexProstituteSolicit, 0x86fb88, 11);
+    RH_ScopedCategory("Tasks/TaskTypes");
+
+    RH_ScopedConstructorInstall(0x661A60, "1", {}, CPed*);
+    RH_ScopedDestructorInstall(0x661AF0);
+
+    RH_ScopedGlobalInstall(IsTaskValid, 0x661BB0);
+    RH_ScopedGlobalInstall(GetRidOfPlayerProstitute, 0x661D30);
+
+    RH_ScopedInstall(CreateSubTask, 0x666360, { .Reversed = false });
+
+    RH_ScopedVMTInstall(Clone, 0x6622F0);
+    RH_ScopedVMTInstall(GetTaskType, 0x661AE0);
+    RH_ScopedVMTInstall(MakeAbortable, 0x661B80);
+    RH_ScopedVMTInstall(CreateNextSubTask, 0x666780, { .Reversed = false });
+    RH_ScopedVMTInstall(CreateFirstSubTask, 0x6666A0, { .Reversed = false });
+    RH_ScopedVMTInstall(ControlSubTask, 0x6669D0, { .Reversed = false });
+}
+
 // 0x661A60
-CTaskComplexProstituteSolicit::CTaskComplexProstituteSolicit(CPed* client) : CTaskComplex() {
-    m_nLastSavedTime = 0;
+CTaskComplexProstituteSolicit::CTaskComplexProstituteSolicit(CPed* client) :
+    CTaskComplex() {
+    m_nLastSavedTime                   = 0;
     m_nNextTimeToCheckForSecludedPlace = 0;
-    m_nLastPaymentTime = 0;
-    m_nCurrentTimer = 0;
-    m_pClient = client;
-    m_nVehicleMovementTimer = 850;
-    b07 = true;
-    b08 = true;
-    b10 = true;
+    m_nLastPaymentTime                 = 0;
+    m_nCurrentTimer                    = 0;
+    m_pClient                          = client;
+    m_nVehicleMovementTimer            = 850;
+    b07                                = true;
+    b08                                = true;
+    b10                                = true;
     m_pClient->RegisterReference(m_pClient);
 }
 
 // 0x661AF0
 CTaskComplexProstituteSolicit::~CTaskComplexProstituteSolicit() {
     auto player = FindPlayerPed();
-    if (!player)
+    if (!player) {
         return;
+    }
 
     CEntity::ClearReference(player->GetPlayerData()->m_pCurrentProstitutePed);
     if (bMoveCameraDown) {
@@ -46,17 +68,19 @@ bool CTaskComplexProstituteSolicit::MakeAbortable(CPed* ped, eAbortPriority prio
 // 0x661D30
 void CTaskComplexProstituteSolicit::GetRidOfPlayerProstitute() {
     auto* prostitute = FindPlayerPed()->GetPlayerData()->m_pCurrentProstitutePed;
-    if (!prostitute)
+    if (!prostitute) {
         return;
+    }
 
     const auto intel = prostitute->GetIntelligence();
-    auto* task = intel->FindTaskByType(TASK_COMPLEX_PROSTITUTE_SOLICIT);
-    if (!task)
+    auto*      task  = intel->FindTaskByType(TASK_COMPLEX_PROSTITUTE_SOLICIT);
+    if (!task) {
         return;
+    }
 
-    auto* t = static_cast<CTaskComplexProstituteSolicit*>(task);
+    auto* t               = static_cast<CTaskComplexProstituteSolicit*>(task);
     t->bTaskCanBeFinished = true;
-    t->m_nCurrentTimer = 0;
+    t->m_nCurrentTimer    = 0;
 }
 
 // 0x666360
@@ -69,14 +93,14 @@ CTask* CTaskComplexProstituteSolicit::CreateSubTask(eTaskType taskType, CPed* pr
         return new CTaskComplexCarDrive(m_pClient->m_pVehicle);
 
     case TASK_SIMPLE_STAND_STILL: // 4
-        return new CTaskSimpleStandStill(5000, false, false, 8.0f);
+        return new CTaskSimpleStandStill(5'000, false, false, 8.0f);
 
     case TASK_COMPLEX_ENTER_CAR_AS_PASSENGER: // 5
         return new CTaskComplexEnterCarAsPassenger(m_pClient->m_pVehicle, 8, false);
 
     case TASK_COMPLEX_LEAVE_CAR: // 0
         return new CTaskComplexLeaveCar(m_pClient->m_pVehicle, 0, 0, true, false);
-/*
+        /*
     case TASK_COMPLEX_SEEK_ENTITY: { // 1, 2
         CMatrix out;
         Invert(m_pClient->m_pVehicle->m_matrix, &out);
@@ -118,46 +142,58 @@ CTask* CTaskComplexProstituteSolicit::CreateSubTask(eTaskType taskType, CPed* pr
 
 // 0x661BB0
 bool CTaskComplexProstituteSolicit::IsTaskValid(CPed* prostitute, CPed* ped) {
-    if (FindPlayerPed() != ped)
+    if (FindPlayerPed() != ped) {
         return false;
+    }
 
-    if (!ped)
+    if (!ped) {
         return false;
+    }
 
-    if (!ped->IsInVehicle())
+    if (!ped->IsInVehicle()) {
         return false;
+    }
 
-    if (ped->bIsBeingArrested)
+    if (ped->bIsBeingArrested) {
         return false;
+    }
 
-    if (ped->GetPlayerData()->m_pCurrentProstitutePed && ped->GetPlayerData()->m_pCurrentProstitutePed != prostitute)
+    if (ped->GetPlayerData()->m_pCurrentProstitutePed && ped->GetPlayerData()->m_pCurrentProstitutePed != prostitute) {
         return false;
+    }
 
-    if (ped->m_pVehicle->GetVehicleAppearance() != VEHICLE_APPEARANCE_AUTOMOBILE)
+    if (ped->m_pVehicle->GetVehicleAppearance() != VEHICLE_APPEARANCE_AUTOMOBILE) {
         return false;
+    }
 
-    if (ped->m_pVehicle->IsUpsideDown())
+    if (ped->m_pVehicle->IsUpsideDown()) {
         return false;
+    }
 
-    if (ped->m_pVehicle->IsOnItsSide())
+    if (ped->m_pVehicle->IsOnItsSide()) {
         return false;
+    }
 
     auto task = ped->GetTaskManager().GetSimplestActiveTask();
-    if (task->GetTaskType() != TASK_SIMPLE_CAR_DRIVE)
+    if (task->GetTaskType() != TASK_SIMPLE_CAR_DRIVE) {
         return false;
+    }
 
-    if (ped->m_pVehicle->m_pDriver != ped)
+    if (ped->m_pVehicle->m_pDriver != ped) {
         return false;
+    }
 
     if (prostitute->m_pVehicle) {
-        if (prostitute->m_pVehicle != ped->m_pVehicle || prostitute->m_pVehicle->m_nNumPassengers != 1)
+        if (prostitute->m_pVehicle != ped->m_pVehicle || prostitute->m_pVehicle->m_nNumPassengers != 1) {
             return false;
+        }
     } else if (ped->m_pVehicle->m_nNumPassengers) {
         return false;
     }
 
-    if (!ped->m_pVehicle->m_nMaxPassengers || ped->m_pVehicle->m_pHandlingData->m_bTandemSeats)
+    if (!ped->m_pVehicle->m_nMaxPassengers || ped->m_pVehicle->m_pHandlingData->m_bTandemSeats) {
         return false;
+    }
 
     CVector out = ped->GetPosition() - prostitute->GetPosition();
     if (out.SquaredMagnitude() > 100.0f || CTheScripts::IsPlayerOnAMission() || CGameLogic::IsCoopGameGoingOn()) {
@@ -175,9 +211,9 @@ CTask* CTaskComplexProstituteSolicit::CreateFirstSubTask(CPed* ped) {
         return nullptr;
     }
 
-    m_vecVehiclePosn = m_pClient->m_pVehicle->GetPosition();
+    m_vecVehiclePosn                                    = m_pClient->m_pVehicle->GetPosition();
 
-    auto player = FindPlayerPed();
+    auto player                                         = FindPlayerPed();
     m_pClient->GetPlayerData()->m_pCurrentProstitutePed = ped;
     player->GetPlayerData()->m_pCurrentProstitutePed->RegisterReference(player->GetPlayerData()->m_pCurrentProstitutePed);
 
@@ -205,25 +241,26 @@ CTask* CTaskComplexProstituteSolicit::CreateNextSubTask(CPed* ped) {
     switch (m_pSubTask->GetTaskType()) {
     case TASK_COMPLEX_TURN_TO_FACE_ENTITY:
         ped->Say(CTX_GLOBAL_SOLICIT);
-        CMessages::AddMessageQ(TheText.Get("PROS_04"), 5000, 1, true); // You want a good time, honey?
+        CMessages::AddMessageQ(TheText.Get("PROS_04"), 5'000, 1, true); // You want a good time, honey?
         return CreateSubTask(TASK_SIMPLE_STAND_STILL, ped);
 
     case TASK_COMPLEX_SEEK_ENTITY:
-        g_ikChainMan.LookAt("TaskProzzy", ped, m_pClient, 5000, BONE_UNKNOWN, nullptr, false, 0.25f, 500, 3, false);
+        g_ikChainMan.LookAt("TaskProzzy", ped, m_pClient, 5'000, BONE_UNKNOWN, nullptr, false, 0.25f, 500, 3, false);
         return CreateSubTask(TASK_COMPLEX_TURN_TO_FACE_ENTITY, ped);
 
     case TASK_COMPLEX_CAR_DRIVE:
         return CreateSubTask(TASK_COMPLEX_LEAVE_CAR, ped);
-    //default:
-    //    return nullptr;
+        //default:
+        //    return nullptr;
     }
 
     auto taskId = m_pSubTask->GetTaskType();
 
-    auto v6 = taskId - 203;
+    auto v6     = taskId - 203;
     if (!v6) {
-        if (!bPlayerHasAcceptedSexProposition)
+        if (!bPlayerHasAcceptedSexProposition) {
             return CreateSubTask(TASK_FINISHED, ped);
+        }
 
         if (CCheat::IsActive(CHEAT_PROSTITUTES_PAY_YOU)) {
             return CreateSubTask(TASK_COMPLEX_ENTER_CAR_AS_PASSENGER, ped);
@@ -234,15 +271,15 @@ CTask* CTaskComplexProstituteSolicit::CreateNextSubTask(CPed* ped) {
             return CreateSubTask(TASK_COMPLEX_ENTER_CAR_AS_PASSENGER, ped);
         }
         CMessages::ClearMessages(false);
-        CMessages::AddMessageQ(TheText.Get("PROS_06"), 2000, 1, true); // You've got money right?
-        CMessages::AddMessageQ(TheText.Get("PROS_09"), 3000, 1, true); // Stop wasting my time!
+        CMessages::AddMessageQ(TheText.Get("PROS_06"), 2'000, 1, true); // You've got money right?
+        CMessages::AddMessageQ(TheText.Get("PROS_09"), 3'000, 1, true); // Stop wasting my time!
         return CreateSubTask(TASK_FINISHED, ped);
     }
 
     auto v7 = v6 - 497;
     if (v7) {
         if (v7 == 4) {
-            g_ikChainMan.LookAt("TaskProzzy", ped, m_pClient, 2500, BONE_UNKNOWN, nullptr, false, 0.25f, 500, 3, false);
+            g_ikChainMan.LookAt("TaskProzzy", ped, m_pClient, 2'500, BONE_UNKNOWN, nullptr, false, 0.25f, 500, 3, false);
             return CreateSubTask(TASK_FINISHED, ped);
         }
         return nullptr;

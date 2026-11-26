@@ -213,7 +213,7 @@ public:
     bool              GetPedTalking() const;
     ePainSpeechVoices GetPainVoice() const;
 
-    void                       UpdateParameters(CAESound* sound, int16 playTime) override { return I_UpdateParameters<false>(sound, playTime); }
+    void                       UpdateParameters(CAESound* sound, int16 playTime) override { return I_UpdateParameters<false>(sound, playTime, nullptr); }
     virtual void               AddScriptSayEvent(eAudioEvents audioEvent, eAudioEvents scriptID, bool overrideSilence, bool isForceAudible, bool isFrontEnd);
     virtual void               Terminate();
     virtual void               PlayLoadedSound();
@@ -381,7 +381,7 @@ protected:
 
     // 0x4E3520 / 0x4E4D10
     template<bool IsPedless>
-    void I_UpdateParameters(CAESound* sound, int16 playTime);
+    void I_UpdateParameters(CAESound* sound, int16 playTime, CEntity* attachedTo);
 
     // 0x4E5CD0 / 0x4E6380
     template<bool IsPedless>

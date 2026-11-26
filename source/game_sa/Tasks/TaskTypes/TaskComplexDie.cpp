@@ -136,7 +136,7 @@ CTask* CTaskComplexDie::CreateFirstSubTask(CPed* ped) {
                 return {};
             }
         }();
-        return new CTaskComplexFallToDeath(static_cast<int32>(m_nFallToDeathDir), fallDirection, m_bFallToDeathOverRailing, false);
+        return new CTaskComplexFallToDeath(m_nFallToDeathDir, fallDirection, m_bFallToDeathOverRailing, false);
     }
 
     return new CTaskSimpleDie(m_nAnimGroup, m_nAnimID, m_fBlendDelta, m_fAnimSpeed);

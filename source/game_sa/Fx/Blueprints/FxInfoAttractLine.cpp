@@ -40,14 +40,9 @@ void FxInfoAttractLine_c::GetValue(float currentTime, float mult, float totalTim
 
     auto& movement = *static_cast<MovementInfo_t*>(info);
     FindClosestPtOnLine(out, lineA, lineB, movement.m_Pos);
-    CVector in = out - movement.m_Pos;
-    auto dist = in.Magnitude();
-
-    if (dist > 0.0f) {
-        in.Normalise();
-    }
+    const auto [dir, dist] = (out - movement.m_Pos).NormalizedAndMag();
 
     if (dist > 0.1f) {
-        movement.m_Vel += in * values[6] * totalTime;
+        movement.m_Vel += dir * values[6] * totalTime;
     }
 }

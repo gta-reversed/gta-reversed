@@ -3,9 +3,6 @@
 #include "Trailer.h"
 #include "VehicleRecording.h"
 
-// define?
-constexpr float BAGGAGE_TRAILER_TOWED_RATIO = -1000.0f;
-
 const float TRAILER_TOWED_MINRATIO = 0.9f; // 0x8D346C
 const float TRAILER_SUPPORT_RETRACTION_RATE = 0.002f; // 0x871C14
 const float TRAILER_SUPPORT_EXTENSION_RATE = 0.002f; // 0x871C18
