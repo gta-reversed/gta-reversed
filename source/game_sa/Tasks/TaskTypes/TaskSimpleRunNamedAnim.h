@@ -16,8 +16,7 @@ public:
     static constexpr auto Type = TASK_SIMPLE_NAMED_ANIM;
 
     CTaskSimpleRunNamedAnim();
-    CTaskSimpleRunNamedAnim(const char* animName, const char* animGroupName, uint32 animFlags, float blendDelta,
-        uint32 endTime, bool dontInterrupt, bool runInSequence, bool offsetPed, bool holdLastFrame);
+    CTaskSimpleRunNamedAnim(const char* animName, const char* animGroupName, uint32 animFlags, float blendDelta, uint32 endTime, bool dontInterrupt, bool runInSequence, bool offsetPed, bool holdLastFrame);
     CTaskSimpleRunNamedAnim(const CTaskSimpleRunNamedAnim&);
 
     CTask*    Clone() const override;
