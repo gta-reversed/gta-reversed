@@ -51,9 +51,9 @@ void CTaskComplexPartner::CalcTargetPositions(CPed * ped, CVector * point, CVect
     const auto& pedPos     = ped->GetPosition();
     const auto& partnerPos = m_partner->GetPosition();
 
-    auto dir              = partnerPos - pedPos;
-    auto mid              = pedPos + dir * m_distanceMultiplier;
-    dir.Normalise();
+    const CVector toPartner = partnerPos - pedPos;
+    const CVector dir       = toPartner.Normalized();
+    CVector       mid       = pedPos + toPartner * m_distanceMultiplier;
 
     if (GetTaskType() != TASK_COMPLEX_PARTNER_CHAT) {
         // Move the meeting point until it's far enough from both peds
@@ -180,16 +180,14 @@ CTask * CTaskComplexPartner::CreateNextSubTask(CPed * ped) {
             // Shuffle (max 0.02 per step) until we're 1m away from the partner
             const auto pedPos     = CVector2D{ ped->GetPosition() };
             const auto partnerPos = CVector2D{ m_partner->GetPosition() };
-            auto       dir        = pedPos - partnerPos;
-            if (const auto dist = dir.Magnitude(); dist > 0.99f && dist < 1.01f) {
+            const auto partnerToPed = pedPos - partnerPos;
+            if (const auto dist = partnerToPed.Magnitude(); dist > 0.99f && dist < 1.01f) {
                 m_partnerState = (ePartnerState)6;
             } else {
-                dir.Normalise();
-                auto shift = partnerPos + dir - pedPos;
-                if (shift.Magnitude() > 0.02f) {
-                    shift.Normalise();
-                    shift *= 0.02f;
-                }
+                const CVector2D toSpot = partnerPos + partnerToPed.Normalized() - pedPos;
+                const CVector2D shift  = toSpot.Magnitude() > 0.02f
+                    ? toSpot.Normalized() * 0.02f
+                    : toSpot;
                 const auto& mat                = ped->GetMatrix();
                 ped->m_vecAnimMovingShiftLocal = CVector2D{
                     mat.GetRight().x * shift.x + mat.GetRight().y * shift.y,
