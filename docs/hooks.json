@@ -20677,7 +20677,7 @@
   {
     "Category": "CGroupEventHandler",
     "Name": "ComputeResponsLeaderQuitEnteringCar",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CGroupEventHandler",
@@ -26296,38 +26296,48 @@
   },
   {
     "Category": "CTaskComplexGotoDoorAndOpen",
-    "Name": "Constructor-0",
-    "IsReversed": true
-  },
-  {
-    "Category": "CTaskComplexGotoDoorAndOpen",
     "Name": "Constructor-1",
     "IsReversed": true
   },
   {
     "Category": "CTaskComplexGotoDoorAndOpen",
-    "Name": "Destructor",
+    "Name": "Constructor-2",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexGotoDoorAndOpen",
+    "Name": "Desructor",
     "IsReversed": true
   },
   {
     "Category": "CTaskComplexGotoDoorAndOpen",
     "Name": "Clone",
-    "IsReversed": false
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexGotoDoorAndOpen",
+    "Name": "GetTaskType",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexGotoDoorAndOpen",
+    "Name": "MakeAbortable",
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexGotoDoorAndOpen",
     "Name": "CreateNextSubTask",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexGotoDoorAndOpen",
     "Name": "CreateFirstSubTask",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexGotoDoorAndOpen",
     "Name": "ControlSubTask",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexHitByGunResponse",
@@ -34662,12 +34672,12 @@
   {
     "Category": "CTaskComplexDriveToPoint",
     "Name": "IsTargetBlocked-Any",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexDriveToPoint",
     "Name": "IsTargetBlocked-Array",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexDriveToPoint",
@@ -34692,7 +34702,7 @@
   {
     "Category": "CTaskComplexDriveToPoint",
     "Name": "Drive",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskSimpleSlideToCoord",
@@ -35742,6 +35752,11 @@
   {
     "Category": "CDecision",
     "Name": "From",
+    "IsReversed": true
+  },
+  {
+    "Category": "CDecision",
+    "Name": "HasResponse",
     "IsReversed": true
   },
   {
