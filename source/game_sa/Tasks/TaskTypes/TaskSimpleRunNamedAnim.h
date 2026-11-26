@@ -17,7 +17,7 @@ public:
 
     CTaskSimpleRunNamedAnim();
     CTaskSimpleRunNamedAnim(const char* animName, const char* animGroupName, uint32 animFlags, float blendDelta,
-        uint32 endTime, bool bDontInterrupt, bool bRunInSequence, bool bOffsetPed, bool bHoldLastFrame);
+        uint32 endTime, bool dontInterrupt, bool runInSequence, bool offsetPed, bool holdLastFrame);
     CTaskSimpleRunNamedAnim(const CTaskSimpleRunNamedAnim&);
 
     CTask*    Clone() const override;

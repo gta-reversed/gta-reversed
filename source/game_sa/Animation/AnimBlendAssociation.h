@@ -186,6 +186,9 @@ public:
     void SetFinishCallback(void(*callback)(CAnimBlendAssociation*, void*), void* data = nullptr);
     void SetDefaultFinishCallback() { SetFinishCallback(CDefaultAnimCallback::DefaultAnimCB, nullptr); }
 
+    auto  GetCallbackType() const { return m_nCallbackType; } // NOTSA
+    void* GetCallbackData() const { return m_pCallbackData; } // NOTSA
+
     void Start(float currentTime = 0.f);
 
     /*!

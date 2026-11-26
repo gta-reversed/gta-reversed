@@ -16,21 +16,21 @@ CTaskSimpleRunNamedAnim::CTaskSimpleRunNamedAnim(
     uint32      animFlags,
     float       blendDelta,
     uint32      endTime,
-    bool        bDontInterrupt,
-    bool        bRunInSequence,
-    bool        bOffsetPed,
-    bool        bHoldLastFrame
+    bool        dontInterrupt,
+    bool        runInSequence,
+    bool        offsetPed,
+    bool        holdLastFrame
 ) :
-    CTaskSimpleAnim(bHoldLastFrame),
+    CTaskSimpleAnim(holdLastFrame),
     m_Time{ endTime },
     m_AnimFlags{ animFlags } {
-    m_bDontInterrupt = bDontInterrupt;
-    m_bRunInSequence = bRunInSequence;
-    m_bOffsetAtEnd = bOffsetPed;
+    m_bDontInterrupt = dontInterrupt;
+    m_bRunInSequence = runInSequence;
+    m_bOffsetAtEnd   = offsetPed;
     m_BlendDelta     = blendDelta;
     strcpy_s(m_AnimName, animName);
     strcpy_s(m_AnimGroupName, animGroupName);
-    if (const auto block = CAnimManager::GetAnimationBlock(m_AnimGroupName)) {
+    if (auto* const block = CAnimManager::GetAnimationBlock(m_AnimGroupName)) {
         m_AnimHierarchy = CAnimManager::GetAnimation(m_AnimName, block);
     }
 }
@@ -63,12 +63,12 @@ bool CTaskSimpleRunNamedAnim::ProcessPed(CPed* ped) {
 
     if (m_bIsFinished) {
         if (!m_bOffsetAtEnd) {
-            const auto anim    = RpAnimBlendClumpGetAssociation(ped->GetRpClump(), true, m_AnimHierarchy);
-            const auto bonePos = ped->GetBonePosition(BONE_SPINE1, false);
+            auto* const   anim    = RpAnimBlendClumpGetAssociation(ped->GetRpClump(), true, m_AnimHierarchy);
+            const CVector bonePos = ped->GetBonePosition(BONE_SPINE1, false);
             if (m_BlendDelta > 100.f && anim) {
                 if (CVector::DistSqr(ped->GetPosition(), bonePos) > sq(1.f)) {
-                    anim->m_Flags |= ANIMATION_IS_BLEND_AUTO_REMOVE;
-                    anim->m_BlendDelta = m_BlendDelta * -1.f;
+                    anim->SetFlag(ANIMATION_IS_BLEND_AUTO_REMOVE);
+                    anim->SetBlendDelta(-m_BlendDelta);
                 }
             }
         }
@@ -100,7 +100,7 @@ bool CTaskSimpleRunNamedAnim::ProcessPed(CPed* ped) {
     }
 
     if (!m_pAnim) {
-        if (const auto anim = RpAnimBlendClumpGetAssociation(ped->GetRpClump(), true, m_AnimHierarchy); anim && anim->m_pCallbackData) {
+        if (auto* const anim = RpAnimBlendClumpGetAssociation(ped->GetRpClump(), true, m_AnimHierarchy); anim && anim->GetCallbackData()) {
             return true;
         }
         StartAnim(ped);
@@ -130,13 +130,13 @@ void CTaskSimpleRunNamedAnim::StartAnim(CPed* ped) {
 
 // 0x61AAA0
 void CTaskSimpleRunNamedAnim::FinishRunAnimMovePedCB(CAnimBlendAssociation* anim, void* data) {
-    const auto self = notsa::cast<CTaskSimpleRunNamedAnim>(static_cast<CTask*>(data));
+    auto* const self = notsa::cast<CTaskSimpleRunNamedAnim>(static_cast<CTask*>(data));
 
     anim->GetNode(0)->GetCurrentTranslation(self->m_OffsetAtEnd, 0.f);
     self->m_bOffsetAvailable = true;
-    anim->m_Flags |= ANIMATION_IGNORE_ROOT_TRANSLATION;
+    anim->SetFlag(ANIMATION_IGNORE_ROOT_TRANSLATION);
 
-    if (!(anim->m_Flags & ANIMATION_IS_FINISH_AUTO_REMOVE) && anim->m_nCallbackType != ANIM_BLEND_CALLBACK_DELETE) {
+    if (!anim->HasFlag(ANIMATION_IS_FINISH_AUTO_REMOVE) && anim->GetCallbackType() != ANIM_BLEND_CALLBACK_DELETE) {
         anim->SetDeleteCallback(FinishRunAnimCB, self);
     } else {
         self->m_bIsFinished = true;
