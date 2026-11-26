@@ -18,7 +18,7 @@ CTaskLeanOnVehicle::~CTaskLeanOnVehicle() {
 
 // 0x661160
 void CTaskLeanOnVehicle::FinishAnimCB(CAnimBlendAssociation* assoc, void* data) {
-    auto* const self = notsa::cast<CTaskLeanOnVehicle>(static_cast<CTask*>(data));
+    auto* const self   = notsa::cast<CTaskLeanOnVehicle>(static_cast<CTask*>(data));
 
     self->m_LastAnimId = assoc->GetAnimId();
 
@@ -59,7 +59,7 @@ bool CTaskLeanOnVehicle::ProcessPed(CPed* ped) {
     }
     ped->m_pEntityIgnoredCollision = m_Vehicle;
 
-    const auto StopLeaning = [ped] {
+    const auto StopLeaning         = [ped] {
         ped->m_pEntityIgnoredCollision = nullptr;
         return true;
     };

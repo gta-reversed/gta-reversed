@@ -23,7 +23,7 @@ private:
 private:
     notsa::EntityRef<CVehicle> m_Vehicle;
     int32                      m_LeanAnimDurationInMs;
-    bool                       m_SkipLeanIn;         //!< Start with the idle anim instead of `ANIM_ID_LEANIN`
+    bool                       m_SkipLeanIn; //!< Start with the idle anim instead of `ANIM_ID_LEANIN`
     CAnimBlendAssociation*     m_LeanAnim{};
     int32                      m_LastAnimId{ ANIM_ID_UNDEFINED }; //!< Anim id of the last finished anim
     CTaskTimer                 m_LeanTimer{};
