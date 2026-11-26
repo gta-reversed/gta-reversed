@@ -11,11 +11,11 @@ void CTaskGoToVehicleAndLean::InjectHooks() {
     RH_ScopedVirtualClass(CTaskGoToVehicleAndLean, 0x86FAC8, 11);
     RH_ScopedCategory("Tasks/TaskTypes");
 
-    RH_ScopedInstall(Constructor, 0x660E60);
-    RH_ScopedInstall(Destructor, 0x660EE0);
+    RH_ScopedConstructorInstall(0x660E60, "0", {}, CVehicle*, int32);
+    RH_ScopedDestructorInstall(0x660EE0);
+
     RH_ScopedInstall(DoTidyUp, 0x660F60);
     RH_ScopedInstall(CalcTargetPos, 0x664770);
-
     RH_ScopedVMTInstall(Clone, 0x6621B0);
     RH_ScopedVMTInstall(MakeAbortable, 0x664500);
     RH_ScopedVMTInstall(CreateNextSubTask, 0x664590);
@@ -27,23 +27,23 @@ void CTaskGoToVehicleAndLean::InjectHooks() {
 CTaskGoToVehicleAndLean::CTaskGoToVehicleAndLean(CVehicle* vehicle, int32 leanAnimDurationInMs) :
     m_Vehicle{ vehicle },
     m_LeanAnimDurationInMs{ leanAnimDurationInMs } {
-    CEntity::SafeRegisterRef(m_Vehicle);
+}
+
+CTaskGoToVehicleAndLean::CTaskGoToVehicleAndLean(const CTaskGoToVehicleAndLean& o) :
+    CTaskGoToVehicleAndLean{ o.m_Vehicle, o.m_LeanAnimDurationInMs } {
 }
 
 // 0x660EE0
 CTaskGoToVehicleAndLean::~CTaskGoToVehicleAndLean() {
-    if (m_AnimsReferenced) {
+    if (std::exchange(m_AnimsReferenced, false)) {
         CAnimManager::RemoveAnimBlockRef(CAnimManager::GetAnimationBlockIndex("gangs"));
-        m_AnimsReferenced = false;
     }
-    CEntity::SafeCleanUpRef(m_Vehicle);
 }
 
 // 0x664500
 bool CTaskGoToVehicleAndLean::MakeAbortable(CPed* ped, eAbortPriority priority, const CEvent* event) {
-    if (priority == ABORT_PRIORITY_IMMEDIATE) {
-        m_pSubTask->MakeAbortable(ped, ABORT_PRIORITY_IMMEDIATE, event);
-    } else if (!m_pSubTask->MakeAbortable(ped, priority, event)) {
+    const auto abortable = m_pSubTask->MakeAbortable(ped, priority, event);
+    if (priority != ABORT_PRIORITY_IMMEDIATE && !abortable) {
         return false;
     }
     DoTidyUp(ped);
@@ -60,14 +60,10 @@ CTask* CTaskGoToVehicleAndLean::CreateNextSubTask(CPed* ped) {
     switch (m_pSubTask->GetTaskType()) {
     case TASK_COMPLEX_GO_TO_POINT_AND_STAND_STILL: { // 0x6645EB - Got to the vehicle, now face away from it
         const auto& right = m_Vehicle->GetMatrix().GetRight();
-        const auto  dir   = m_LeanOnRightSide ? right : -right;
-
-        // BUG: The result of `LimitRadianAngle` is discarded, so the heading isn't limited
-        const auto heading = CGeneral::GetRadianAngleBetweenPoints(dir.x, dir.y, 0.f, 0.f);
-        return new CTaskSimpleAchieveHeading{ heading };
+        return new CTaskSimpleAchieveHeading{ (m_LeanOnRightSide ? right : -right).Heading(true)};
     }
     case TASK_SIMPLE_ACHIEVE_HEADING:
-    case TASK_SIMPLE_STAND_STILL: {
+    case TASK_SIMPLE_STAND_STILL:     {
         // 0x66469B - Lean on it if the anims are loaded, otherwise wait for them a little
         if (!m_AnimsReferenced) {
             return new CTaskSimpleStandStill{ 500, false, false, 8.f };
@@ -131,16 +127,17 @@ CTask* CTaskGoToVehicleAndLean::ControlSubTask(CPed* ped) {
 
 // 0x660F60
 void CTaskGoToVehicleAndLean::DoTidyUp(CPed* ped) {
-    if (m_Vehicle)
+    if (m_Vehicle) {
         m_Vehicle->vehicleFlags.bHasGangLeaningOn = false;
-
-    if (m_pSubTask)
+    }
+    if (m_pSubTask) {
         m_pSubTask->MakeAbortable(ped, ABORT_PRIORITY_IMMEDIATE, nullptr);
+    }
 }
 
 // 0x664770
 CVector CTaskGoToVehicleAndLean::CalcTargetPos(const CPed* ped) {
-    m_LeanOnRightSide = m_Vehicle->GetRightVector().Dot(ped->GetPosition() - m_Vehicle->GetPosition()) > 0.f;
+    m_LeanOnRightSide   = m_Vehicle->GetRightVector().Dot(ped->GetPosition() - m_Vehicle->GetPosition()) > 0.f;
 
     const auto& bb      = m_Vehicle->GetModelInfo()->GetColModel()->GetBoundingBox();
     const auto  offsetX = m_LeanOnRightSide
