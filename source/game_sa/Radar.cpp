@@ -361,8 +361,7 @@ float CRadar::LimitRadarPoint(CVector2D& point) {
         return mag;
 
     if (mag > 1.0f) {
-        // not in unit circle
-        point.Normalise();
+        point = point.Normalized(); // not in unit circle
     }
 
     return mag;
@@ -1509,9 +1508,11 @@ void CRadar::DrawRadarGangOverlay(bool inMenu) {
         return;
 
     for (auto& zone : CTheZones::GetNavigationZones()) {
-        const auto info = CTheZones::GetZoneInfo(&zone);
+        if (zone.m_ZoneInfoIndex == CTheZones::ZONE_INDEX_SAN_AND)
+            continue;
 
-        if (!info || !info->RadarMode || !CGangWars::CanPlayerStartAGangWarHere(info))
+        const auto info = CTheZones::GetZoneInfo(&zone);
+        if (!info->RadarMode || !CGangWars::CanPlayerStartAGangWarHere(info))
             continue;
 
         g_RadarGangOverlay = zone.GetRect();

@@ -5,16 +5,16 @@
 
 class NOTSA_EXPORT_VTABLE CTaskComplexFallToDeath : public CTaskComplex {
 public:
-    CVector     m_Posn;
-    AnimationId m_nAnimId;
-    AnimationId m_nAnimId1;
-    eDirection    m_nFallToDeathDir;
+    CVector      m_Posn;
+    AnimationId  m_nAnimId;
+    AnimationId  m_nAnimId1;
+    eDirectionU8 m_nFallToDeathDir;
     union {
         struct {
-            uint8 b0x1  : 1;
-            uint8 b0x2  : 1;
+            uint8 b0x1 : 1;
+            uint8 b0x2 : 1;
             uint8 b0x4 : 1; // bFallToDeathOverRailing
-            uint8 b0x8  : 1;
+            uint8 b0x8 : 1;
             uint8 b0x10 : 1;
         };
         uint8 m_nFlags;
@@ -27,11 +27,11 @@ public:
 public:
     static constexpr auto Type = TASK_COMPLEX_FALL_TO_DEATH;
 
-    CTaskComplexFallToDeath(int32 direction, const CVector& posn, bool bFallToDeathOverRailing, bool a5);
+    CTaskComplexFallToDeath(eDirection direction, const CVector& posn, bool bFallToDeathOverRailing, bool a5);
     ~CTaskComplexFallToDeath() override = default; // 0x6790B0
 
     eTaskType GetTaskType() const override { return Type; }; // 0x6790A0
-    CTask* Clone() const override { return new CTaskComplexFallToDeath(static_cast<int32>(m_nFallToDeathDir), m_Posn, b0x8, b0x10); } // 0x67C480
+    CTask* Clone() const override { return new CTaskComplexFallToDeath(m_nFallToDeathDir, m_Posn, b0x8, b0x10); } // 0x67C480
     bool MakeAbortable(CPed* ped, eAbortPriority priority = ABORT_PRIORITY_URGENT, const CEvent* event = nullptr) override;
     CTask* ControlSubTask(CPed* ped) override;
     CTask* CreateFirstSubTask(CPed* ped) override;
@@ -45,6 +45,6 @@ private:
     friend void InjectHooksMain();
     static void InjectHooks();
 
-    CTaskComplexFallToDeath* Constructor(int32 direction, const CVector& posn, bool a4, bool a5);
+    CTaskComplexFallToDeath* Constructor(eDirection direction, const CVector& posn, bool a4, bool a5);
 };
 VALIDATE_SIZE(CTaskComplexFallToDeath, 0x24);

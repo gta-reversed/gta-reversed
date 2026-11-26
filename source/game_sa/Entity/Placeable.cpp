@@ -43,19 +43,19 @@ CPlaceable::~CPlaceable() {
     m_matrix = reinterpret_cast<CMatrixLink*>(&gDummyMatrix);
 }
 
-CVector CPlaceable::GetRightVector() {
+CVector CPlaceable::GetRightVector() const noexcept {
     if (m_matrix)
         return m_matrix->GetRight();
     return { std::cos(m_placement.m_fHeading), std::sin(m_placement.m_fHeading), 0.0f };
 }
 
-CVector CPlaceable::GetForwardVector() {
+CVector CPlaceable::GetForwardVector() const noexcept {
     if (m_matrix)
         return m_matrix->GetForward();
     return { -std::sin(m_placement.m_fHeading), std::cos(m_placement.m_fHeading), 0.0f };
 }
 
-CVector CPlaceable::GetUpVector() {
+CVector CPlaceable::GetUpVector() const noexcept {
     if (m_matrix)
         return m_matrix->GetUp();
     return {0.0f, 0.0f, 1.0f};

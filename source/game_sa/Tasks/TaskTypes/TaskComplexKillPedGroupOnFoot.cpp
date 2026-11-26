@@ -47,14 +47,7 @@ CTask* CTaskComplexKillPedGroupOnFoot::CreateSubTask(eTaskType taskType, CPed* p
     case TASK_FINISHED:
         return nullptr;
     case TASK_COMPLEX_KILL_PED_ON_FOOT: {
-        return new CTaskComplexKillPedOnFoot{
-            m_currPedToKill,
-            -1,
-            0,
-            0,
-            0,
-            true
-        };
+        return new CTaskComplexKillPedOnFoot{ m_currPedToKill };
     }
     case TASK_NONE:
         return new CTaskSimpleNone{};

@@ -13,7 +13,7 @@ void CTaskSimpleRunNamedAnim::InjectHooks() {
     //RH_ScopedInstall(FinishRunAnimMovePedCB, 0x61AAA0, { .Reversed = false });
     //RH_ScopedInstall(StartAnim, 0x61BB10, { .Reversed = false });
     RH_ScopedVMTInstall(Clone, 0x61B770, { .Reversed = false });
-    RH_ScopedVMTInstall(GetTaskType, 0x61AA90, { .Reversed = false });
+    RH_ScopedVMTInstall(GetTaskType, 0x61AA90);
     RH_ScopedVMTInstall(ProcessPed, 0x61BF20, { .Reversed = false });
     RH_ScopedInstall(OffsetPedPosition, 0x61AB00);
 }
