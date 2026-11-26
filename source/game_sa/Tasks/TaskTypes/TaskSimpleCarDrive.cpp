@@ -155,7 +155,7 @@ void CTaskSimpleCarDrive::ProcessHeadBopping(CPed* ped, bool canBop, float camDi
     if (camDistSq >= sq(8.f) || m_HeadBoppingOrientation <= 0.f) {
         return;
     }
-    const auto angle = m_HeadBoppingMultiplier * m_HeadBoppingOrientation;
+    const auto  angle = m_HeadBoppingMultiplier * m_HeadBoppingOrientation;
     auto* const headQ = &ped->m_apBones[PED_NODE_HEAD]->KeyFrame->q;
     if (m_HeadBoppingDirection >= 1) {
         RtQuatRotate(headQ, &CPedIK::XaxisIK, m_BoppingCompletedTimes ? -angle : angle, rwCOMBINEPRECONCAT);
@@ -186,7 +186,7 @@ void CTaskSimpleCarDrive::ProcessArmBopping(CPed* ped, bool canBop, float camDis
         veh->SetWindowOpenFlag(CAR_DOOR_RR);
     }
 
-    const auto tapAnimId = veh->m_apPassengers[0] == ped || veh->m_apPassengers[2] == ped
+    const auto  tapAnimId = veh->m_apPassengers[0] == ped || veh->m_apPassengers[2] == ped
         ? ANIM_ID_TAP_HANDP
         : ANIM_ID_TAP_HAND;
     auto* const tapAnim   = RpAnimBlendClumpGetAssociation(ped->GetRpClump(), tapAnimId);
@@ -205,7 +205,7 @@ void CTaskSimpleCarDrive::ProcessArmBopping(CPed* ped, bool canBop, float camDis
             return;
         }
         if (camDistSq < sq(8.f)) {
-            const auto angle = m_BoppingProgress >= 0.75f
+            const auto  angle = m_BoppingProgress >= 0.75f
                 ? (m_BoppingProgress - 0.75f) * 45.f
                 : 0.f;
             auto* const hand  = ped->m_apBones[tapAnimId == ANIM_ID_TAP_HAND ? PED_NODE_LEFT_HAND : PED_NODE_RIGHT_HAND];
