@@ -18,6 +18,8 @@ public:
     CTask*    CreateFirstSubTask(CPed* ped) override;
     CTask*    ControlSubTask(CPed* ped) override { return m_pSubTask; } // 0x66B710
 
+    auto GetAttractPos() const { return m_AttractPos; }
+
 public:
     static void InjectHooks();
 
