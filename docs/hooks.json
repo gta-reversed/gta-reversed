@@ -24961,38 +24961,48 @@
   },
   {
     "Category": "CTaskGoToVehicleAndLean",
-    "Name": "Constructor",
+    "Name": "Constructor-0",
     "IsReversed": true
   },
   {
     "Category": "CTaskGoToVehicleAndLean",
-    "Name": "Destructor",
+    "Name": "Desructor",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskGoToVehicleAndLean",
+    "Name": "DoTidyUp",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskGoToVehicleAndLean",
+    "Name": "CalcTargetPos",
     "IsReversed": true
   },
   {
     "Category": "CTaskGoToVehicleAndLean",
     "Name": "Clone",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskGoToVehicleAndLean",
     "Name": "MakeAbortable",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskGoToVehicleAndLean",
     "Name": "CreateNextSubTask",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskGoToVehicleAndLean",
     "Name": "CreateFirstSubTask",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskGoToVehicleAndLean",
     "Name": "ControlSubTask",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskLeanOnVehicle",
@@ -32291,28 +32301,28 @@
   },
   {
     "Category": "CTaskComplexPlayHandSignalAnim",
-    "Name": "Constructor",
+    "Name": "Constructor-0",
     "IsReversed": true
   },
   {
     "Category": "CTaskComplexPlayHandSignalAnim",
-    "Name": "Destructor",
+    "Name": "Desructor",
     "IsReversed": true
   },
   {
     "Category": "CTaskComplexPlayHandSignalAnim",
     "Name": "GetAnimIdForPed",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexPlayHandSignalAnim",
     "Name": "CreateSubTask",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexPlayHandSignalAnim",
     "Name": "Clone",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexPlayHandSignalAnim",
@@ -32327,12 +32337,12 @@
   {
     "Category": "CTaskComplexPlayHandSignalAnim",
     "Name": "CreateFirstSubTask",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexPlayHandSignalAnim",
     "Name": "ControlSubTask",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexWaitForPed",

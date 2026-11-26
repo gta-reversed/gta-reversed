@@ -1,17 +1,17 @@
 # Reimplementation progress (*): 92%
 This file is updated automatically every time the `hooks.json` file is updated (which happens every time there are changes to hooks made by a commit), and shows the current progress of reversed categories in the project.
 
-Last update was at Nov 26, 2026 at 13:21:14 UTC
-(Triggered by commit [a7feeb6c](https://github.com/gta-reversed/gta-reversed/commit/a7feeb6cd497dec7a437bd1d0cff684a1275a85e))
+Last update was at Nov 26, 2026 at 23:10:47 UTC
+(Triggered by commit [b2faec5b](https://github.com/gta-reversed/gta-reversed/commit/b2faec5bce0226a0f156cf3f60b95e20f3ef8ffd))
 
 ## (*) Disclaimers
 **The progress** is based on the number of functions we have documented and reimplemented, so it might not completely reflect the actual progress, it's meant to be a rough estimate.
 
 **The percentages and the number of categories** shown here may not be completely accurate, because not all categories and functions are documented yet.
 
-## Stats (8166 out of 8901 functions done in 797 categories)
+## Stats (8178 out of 8903 functions done in 797 categories)
 
-#### Completely reversed categories (653/797) [82%]
+#### Completely reversed categories (655/797) [82%]
 
 <details>
 <summary>See list of categories</summary>
@@ -347,6 +347,7 @@ Last update was at Nov 26, 2026 at 13:21:14 UTC
 - CTaskComplexUseClosestFreeScriptedAttractorSprint (4)<br />
 - CTaskSimpleLeaveGroup (2)<br />
 - CTaskComplexDiveFromAttachedEntityAndGetUp (7)<br />
+- CTaskGoToVehicleAndLean (9)<br />
 - CTaskComplexCarSlowBeDraggedOut (11)<br />
 - CTaskComplexCarSlowBeDraggedOutAndStandUp (9)<br />
 - CTaskComplexDestroyCar (9)<br />
@@ -519,6 +520,7 @@ Last update was at Nov 26, 2026 at 13:21:14 UTC
 - CTaskSimpleJump (8)<br />
 - CTaskSimpleFall (6)<br />
 - CTaskSimpleClimb (15)<br />
+- CTaskComplexPlayHandSignalAnim (9)<br />
 - CTaskComplexJump (6)<br />
 - CTaskComplexEnterCar (14)<br />
 - CTaskSimpleTogglePedThreatScanner (6)<br />
@@ -671,7 +673,7 @@ Last update was at Nov 26, 2026 at 13:21:14 UTC
 
 </details>
 
-#### Partially reversed categories (132/797) [17%]
+#### Partially reversed categories (130/797) [16%]
 
 <details>
 <summary>See list of categories</summary>
@@ -730,7 +732,6 @@ Last update was at Nov 26, 2026 at 13:21:14 UTC
 - CTaskSimpleChoking (5/8) [62%]<br />
 - CTaskGangHasslePed (2/5) [40%]<br />
 - CTaskGangHassleVehicle (3/8) [38%]<br />
-- CTaskGoToVehicleAndLean (2/7) [29%]<br />
 - CTaskLeanOnVehicle (4/5) [80%]<br />
 - CTaskComplexDestroyCarArmed (9/10) [90%]<br />
 - CTaskComplexFollowPatrolRoute (5/9) [56%]<br />
@@ -758,7 +759,6 @@ Last update was at Nov 26, 2026 at 13:21:14 UTC
 - CTaskComplexFollowLeaderInFormation (6/8) [75%]<br />
 - CTaskUtilityLineUpPedWithCar (2/5) [40%]<br />
 - CTaskSimpleJetPack (13/14) [93%]<br />
-- CTaskComplexPlayHandSignalAnim (4/9) [44%]<br />
 - CTaskComplexWaitForPed (7/8) [88%]<br />
 - CTaskComplexWanderStandard (5/10) [50%]<br />
 - CTaskComplexSunbathe (4/8) [50%]<br />
