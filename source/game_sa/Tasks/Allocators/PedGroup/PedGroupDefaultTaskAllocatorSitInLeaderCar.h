@@ -19,35 +19,37 @@ public:
 
     // 0x5F6FC0
     void AllocateDefaultTasks(CPedGroup* pedGroup, CPed* ped) const override {
-        const auto leader = pedGroup->GetMembership().GetLeader();
+        CPed* const leader = pedGroup->GetMembership().GetLeader();
         if (!leader) {
             return;
         }
-        const auto veh = leader->m_pVehicle;
+        CVehicle* const veh = leader->m_pVehicle; // NOTE: Not `GetVehicleIfInOne()`, the original doesn't check `bInVehicle`
         if (!veh) {
             return;
         }
-        const auto SetPedDefaultTask = [&](CPed* p, int32 i, CTask* task) {
-            auto* const tp = &pedGroup->GetIntelligence().GetDefaultPedTaskPairs()[i];
-            if (tp->Ped && (!ped || tp->Ped == ped)) {
-                VERIFY(std::exchange(tp->Task, task) == nullptr);
+        auto&      taskPairs      = pedGroup->GetIntelligence().GetDefaultPedTaskPairs();
+        const auto SetDefaultTask = [&](int32 memId, CTask* task) {
+            auto& tp = taskPairs[memId];
+            if (tp.Ped && (!ped || tp.Ped == ped)) {
+                tp.Task = task;
             } else {
                 delete task;
             }
         };
-        SetPedDefaultTask(leader, CPedGroupMembership::LEADER_MEM_ID, new CTaskComplexSequence{
-            new CTaskComplexEnterCarAsDriver{veh}, // 0x5F703E
-            new CTaskSimpleCarDrive{veh} // 0x5F7074
+        SetDefaultTask(CPedGroupMembership::LEADER_MEM_ID, new CTaskComplexSequence{
+            new CTaskComplexEnterCarAsDriver{ veh },
+            new CTaskSimpleCarDrive{ veh }
         });
-        size_t seat{};
-        for (auto&& [i, mem] : rngv::enumerate(pedGroup->GetMembership().GetFollowers())) {
-            if (seat >= veh->m_nMaxPassengers) {
-                break;
+        int32 seat{};
+        for (int32 memId = 0; memId < CPedGroupMembership::LEADER_MEM_ID; memId++) { // 0x5F70E0
+            if (!pedGroup->GetMembership().GetMember(memId) || seat >= veh->m_nMaxPassengers) {
+                continue;
             }
-            SetPedDefaultTask(leader, CPedGroupMembership::LEADER_MEM_ID, new CTaskComplexSequence{
-                new CTaskComplexEnterCarAsPassenger{veh, CCarEnterExit::ComputeTargetDoorToEnterAsPassenger(veh, seat++)}, // 0x5F714B
-                new CTaskSimpleCarDrive{veh} // 0x5F7184
+            SetDefaultTask(memId, new CTaskComplexSequence{
+                new CTaskComplexEnterCarAsPassenger{ veh, CCarEnterExit::ComputeTargetDoorToEnterAsPassenger(veh, seat) },
+                new CTaskSimpleCarDrive{ veh }
             });
+            seat++;
         }
     };
 
@@ -56,7 +58,7 @@ public:
         RH_ScopedVirtualClass(CPedGroupDefaultTaskAllocatorSitInLeaderCar, 0x86C784, 2);
         RH_ScopedCategory("Tasks/Allocators/PedGroup");
 
-        RH_ScopedVMTInstall(AllocateDefaultTasks, 0x5F6FC0, { .Reversed = false });
+        RH_ScopedVMTInstall(AllocateDefaultTasks, 0x5F6FC0);
         RH_ScopedVMTInstall(GetType, 0x5F6560);
     }
 };
