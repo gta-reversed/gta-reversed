@@ -814,7 +814,7 @@ private:
 };
 VALIDATE_SIZE(CVehicle, 0x5A0);
 
-bool IsValidModForVehicle(uint32 modelId, CVehicle* vehicle);
+bool IsValidModForVehicle(uint32 upgradeModelId, CVehicle* vehicle);
 bool IsVehiclePointerValid(CVehicle* vehicle);
 RpAtomic* RemoveUpgradeCB(RpAtomic* atomic, void* data);
 RpAtomic* FindUpgradeCB(RpAtomic* atomic, void* data);
