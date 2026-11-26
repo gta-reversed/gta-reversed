@@ -2,32 +2,33 @@
 
 #include "TaskComplex.h"
 
-class NOTSA_EXPORT_VTABLE CTaskComplexGoToAttractor : public CTaskComplex {
-public:
-    CPedAttractor* m_Attractor;
-    CVector        m_vecAttrPosn;
-    float          m_fAttrHeading;
-    float          m_fAttrTime;
-    int32          m_nQueueNumber;
-    eMoveState     m_MoveState;
 
+class NOTSA_EXPORT_VTABLE CTaskComplexGoToAttractor : public CTaskComplex {
 public:
     static constexpr auto Type = TASK_COMPLEX_GO_TO_ATTRACTOR;
 
-    CTaskComplexGoToAttractor(CPedAttractor* attractor, CVector const& pos, float heading, float attrTime, int32 queueNumber, eMoveState ms);
+    CTaskComplexGoToAttractor(CPedAttractor* attractor, const CVector& pos, float heading, float attrTime, int32 queueNumber, eMoveState ms);
+    CTaskComplexGoToAttractor(const CTaskComplexGoToAttractor&);
     ~CTaskComplexGoToAttractor() override = default; // 0x66B6A0
 
-    eTaskType GetTaskType() const override { return Type;  }
-    CTask* Clone() const override { return new CTaskComplexGoToAttractor(m_Attractor, m_vecAttrPosn, m_fAttrHeading, m_fAttrTime, m_nQueueNumber, m_MoveState); } // 0x66D130
-    bool MakeAbortable(CPed* ped, eAbortPriority priority = ABORT_PRIORITY_URGENT, const CEvent* event = nullptr) override;
-    CTask* CreateNextSubTask(CPed* ped) override;
-    CTask* CreateFirstSubTask(CPed* ped) override;
-    CTask* ControlSubTask(CPed* ped) override;
+    eTaskType GetTaskType() const override { return Type; }
+    CTask*    Clone() const override { return new CTaskComplexGoToAttractor{ *this }; } // 0x66D130
+    bool      MakeAbortable(CPed* ped, eAbortPriority priority = ABORT_PRIORITY_URGENT, const CEvent* event = nullptr) override { return m_pSubTask->MakeAbortable(ped, priority, event); } // 0x66B6B0
+    CTask*    CreateNextSubTask(CPed* ped) override;
+    CTask*    CreateFirstSubTask(CPed* ped) override;
+    CTask*    ControlSubTask(CPed* ped) override { return m_pSubTask; } // 0x66B710
+
+    auto GetAttractPos() const { return m_AttractPos; }
+
+public:
+    static void InjectHooks();
 
 private:
-    friend void InjectHooksMain();
-    static void InjectHooks();
-    CTaskComplexGoToAttractor* Constructor(CPedAttractor* attractor, CVector const& attrPosn, float attrHeading, float attrTime, int32 queueNumber, eMoveState ms) { this->CTaskComplexGoToAttractor::CTaskComplexGoToAttractor(attractor, attrPosn, attrHeading, attrTime, queueNumber, ms); return this; }
-    CTaskComplexGoToAttractor* Destructor() { this->CTaskComplexGoToAttractor::~CTaskComplexGoToAttractor(); return this; }
+    CPedAttractor* m_Attractor{};
+    CVector        m_AttractPos{};
+    float          m_AttractHeading{};
+    float          m_AttractTime{};
+    int32          m_Slot{};
+    eMoveState     m_MoveState{};
 };
 VALIDATE_SIZE(CTaskComplexGoToAttractor, 0x2C);
