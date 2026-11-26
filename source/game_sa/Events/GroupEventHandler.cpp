@@ -575,7 +575,9 @@ CTaskAllocator* CGroupEventHandler::ComputeHassleThreatResponse(CPedGroup* pg, C
         } else {
             SetTask(CTaskGangHasslePed{
                 threat,
-                bBeAggressive ? 2 : 1, // TODO: Enum
+                bBeAggressive
+                    ? CTaskGangHasslePed::eHassleType::ABUSE_AND_ATTACK
+                    : CTaskGangHasslePed::eHassleType::ABUSE,
                 12'000,
                 20'000
             });
@@ -595,7 +597,7 @@ CTaskAllocator* CGroupEventHandler::ComputeHassleSexyPedResponse(CPedGroup* pg, 
         }
         pg->GetIntelligence().SetEventResponseTask(
             m,
-            CTaskGangHasslePed{sexyPed, 0, 8'000, 12'000}
+            CTaskGangHasslePed{sexyPed, CTaskGangHasslePed::eHassleType::EYE, 8'000, 12'000}
         );
     }
     return nullptr;
