@@ -154,7 +154,8 @@ bool CTaskComplexLeaveCar::MakeAbortable(CPed* ped, eAbortPriority priority, con
             }
             return aborted;
         };
-        const auto hasKilledPed = event && event->GetEventType() == EVENT_DAMAGE && static_cast<const CEventDamage*>(event)->HasKilledPed();
+        const auto* const eDamage      = notsa::dyn_cast_if_present<CEventDamage>(event);
+        const auto        hasKilledPed = eDamage && eDamage->HasKilledPed();
 
         switch (m_pSubTask->GetTaskType()) {
         case TASK_SIMPLE_DIE: // 0x641251
@@ -179,7 +180,8 @@ bool CTaskComplexLeaveCar::MakeAbortable(CPed* ped, eAbortPriority priority, con
 
             float blendDelta;
             if (ped->GetActiveWeapon().m_Type == WEAPON_PARACHUTE && eventType == EVENT_IN_AIR && m_pTargetVehicle->GetNumContactWheels() == 0) { // 0x6413fe
-                if (!m_pTargetVehicle->IsSubPlane() || m_pTargetVehicle->GetMoveSpeed().Magnitude() <= 0.2f) {
+                // NOTE: Using MagSq here
+                if (!m_pTargetVehicle->IsSubPlane() || m_pTargetVehicle->GetMoveSpeed().SquaredMagnitude() <= sq(0.2f)) {
                     if (!ped->IsPlayer()) {
                         return false;
                     }
@@ -263,6 +265,7 @@ CTask* CTaskComplexLeaveCar::CreateNextSubTask(CPed* ped) {
             const auto CanUseAnyDoor = [veh] {
                 return veh->IsBike() || veh->m_pHandlingData->m_bTandemSeats;
             };
+            // NOTE: Not using `GetPassengers()`: The original checks these seats even if the vehicle has fewer
             int32 otherDoor = 0;
             switch (m_nTargetDoor) {
             case TARGET_DOOR_FRONT_RIGHT: // 0x641c55
