@@ -9,12 +9,12 @@
 
 // 0x6616F0
 CTaskComplexGangJoinRespond::CTaskComplexGangJoinRespond(bool response) :
-    m_response{ response } {
+    m_JoinResponse{ response } {
 }
 
 // 0x661720
 CTaskComplexGangJoinRespond::~CTaskComplexGangJoinRespond() {
-    if (std::exchange(m_animsReferenced, false)) {
+    if (std::exchange(m_AreAnimsReferenced, false)) {
         CAnimManager::RemoveAnimBlockRef(CAnimManager::GetAnimationBlockIndex("gangs"));
     }
 }
@@ -26,15 +26,15 @@ CTask* CTaskComplexGangJoinRespond::CreateNextSubTask(CPed* ped) {
     }
 
     // Wait for the anims to stream in (but don't wait forever)
-    if (!m_animsReferenced) {
-        return ++m_attempts <= MAX_ATTEMPTS
+    if (!m_AreAnimsReferenced) {
+        return ++m_NumOfAttempts <= MAX_ATTEMPTS
             ? new CTaskSimpleStandStill{ 250 }
             : nullptr;
     }
 
     return new CTaskSimpleRunAnim{
         ANIM_GROUP_GANGS,
-        m_response
+        m_JoinResponse
             ? ANIM_ID_INVITE_YES
             : ANIM_ID_INVITE_NO,
         4.f,
@@ -44,14 +44,14 @@ CTask* CTaskComplexGangJoinRespond::CreateNextSubTask(CPed* ped) {
 
 // 0x6618D0
 CTask* CTaskComplexGangJoinRespond::CreateFirstSubTask(CPed* ped) {
-    m_attempts = 0;
+    m_NumOfAttempts = 0;
     return new CTaskComplexTurnToFaceEntityOrCoord{ FindPlayerPed(0) };
 }
 
 // 0x661950
 CTask* CTaskComplexGangJoinRespond::ControlSubTask(CPed* ped) {
     ped->m_fAimingRotation = (FindPlayerPed()->GetPosition2D() - ped->GetPosition2D()).Heading(); // NOTE: Removed `CGeneral::LimitRadianAngle`
-    CAnimManager::StreamAnimBlock("gangs", CTaskComplexGangLeader::ShouldLoadGangAnims(), m_animsReferenced);
+    CAnimManager::StreamAnimBlock("gangs", CTaskComplexGangLeader::ShouldLoadGangAnims(), m_AreAnimsReferenced);
     return m_pSubTask;
 }
 

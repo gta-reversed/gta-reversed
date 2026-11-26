@@ -2,6 +2,7 @@
 
 #include "TaskComplex.h"
 
+
 class CPed;
 
 class NOTSA_EXPORT_VTABLE CTaskComplexGangJoinRespond : public CTaskComplex {
@@ -13,7 +14,7 @@ public:
     ~CTaskComplexGangJoinRespond() override;
 
     eTaskType GetTaskType() const override { return Type; }
-    CTask*    Clone() const override { return new CTaskComplexGangJoinRespond(m_response); } // 0x662290;
+    CTask*    Clone() const override { return new CTaskComplexGangJoinRespond(m_JoinResponse); } // 0x662290;
     bool      MakeAbortable(CPed* ped, eAbortPriority priority = ABORT_PRIORITY_URGENT, const CEvent* event = nullptr) override { return true; } // 0x661790;
     CTask*    CreateNextSubTask(CPed* ped) override;
     CTask*    CreateFirstSubTask(CPed* ped) override;
@@ -23,8 +24,8 @@ public:
     static void InjectHooks();
 
 private:
-    bool  m_response{};        // 0xC  - Whenever to accept (`true`) or decline (`false`) the invitation
-    bool  m_animsReferenced{}; // 0xD
-    int32 m_attempts{};        // 0x10 - Number of times we've waited for the anims to stream in
+    bool  m_JoinResponse{};       // 0xC  - Whenever to accept (`true`) or decline (`false`) the invitation
+    bool  m_AreAnimsReferenced{}; // 0xD
+    int32 m_NumOfAttempts{};      // 0x10 - Number of times we've waited for the anims to stream in
 };
 VALIDATE_SIZE(CTaskComplexGangJoinRespond, 0x14);
