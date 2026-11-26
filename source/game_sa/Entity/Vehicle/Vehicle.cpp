@@ -2495,13 +2495,13 @@ RpAtomic* CVehicle::CreateReplacementAtomic(CBaseModelInfo* mi, RwFrame* parentF
 }
 
 // 0x6D3830
-void CVehicle::AddReplacementUpgrade(int32 modelIndex, int32 nodeId) {
+void CVehicle::AddReplacementUpgrade(int32 upgradeModelIndex, int32 nodeId) {
     const auto frameOfUpgrade = CClumpModelInfo::GetFrameFromId(GetRpClump(), nodeId);
     auto       flags          = eAtomicComponentFlag::ATOMIC_NONE;
     RwFrameForAllObjects(frameOfUpgrade, RemoveObjectsCB, &flags);
     RwFrameForAllChildren(frameOfUpgrade, RemoveObjectsCB, &flags);
 
-    const auto miUpgrade = CModelInfo::GetModelInfo(modelIndex);
+    const auto miUpgrade = CModelInfo::GetModelInfo(upgradeModelIndex);
     const auto atomic    = reinterpret_cast<RpAtomic*>(miUpgrade->CreateInstance());
     miUpgrade->AddRef();
 
@@ -5169,33 +5169,33 @@ void CVehicle::RemoveVehicleUpgrade(int32 upgradeModelIndex) {
 void CVehicle::AddUpgrade(int32 modelIndex, int32 upgradeIndex) {
     const auto  miThis      = GetModelInfo()->AsVehicleModelInfoPtr();
     const auto& vehStruct   = miThis->m_pVehicleStruct;
-    auto&       upgradePosn = vehStruct->m_aUpgrades[upgradeIndex];
+    auto*       upgradePosn = &vehStruct->m_aUpgrades[upgradeIndex];
 
     const auto  miUpgrade   = CModelInfo::GetModelInfo(modelIndex);
-    RwFrame*   parentFrame  = CClumpModelInfo::GetFrameFromId(GetRpClump(), upgradePosn.m_nParentComponentId);
-    RpClumpForAllAtomics(GetRpClump(), RemoveUpgradeCB, &upgradeIndex);
-    CreateUpgradeAtomic(miUpgrade, &upgradePosn, parentFrame, false);
-    if (upgradePosn.m_nParentComponentId != 1) {
+    RwFrame*   parentFrame  = CClumpModelInfo::GetFrameFromId(GetRpClump(), upgradePosn->m_nParentComponentId);
+    RpClumpForAllAtomics(GetRpClump(), RemoveUpgradeCB, reinterpret_cast<void*>(upgradeIndex));
+    CreateUpgradeAtomic(miUpgrade, upgradePosn, parentFrame, false);
+    if (upgradePosn->m_nParentComponentId != 1) {
         if (upgradeIndex != UPGRADE_BONNET) {
             switch (upgradeIndex) {
             case UPGRADE_BONNET_LEFT:
                 if (vehStruct->m_aUpgrades[UPGRADE_BONNET_LEFT_DAM].m_nParentComponentId != -1) {
-                    upgradePosn = vehStruct->m_aUpgrades[UPGRADE_BONNET_LEFT_DAM];
+                    upgradePosn = &vehStruct->m_aUpgrades[UPGRADE_BONNET_LEFT_DAM];
                 }
                 break;
             case UPGRADE_BONNET_RIGHT:
                 if (vehStruct->m_aUpgrades[UPGRADE_BONNET_RIGHT_DAM].m_nParentComponentId != -1) {
-                    upgradePosn = vehStruct->m_aUpgrades[UPGRADE_BONNET_RIGHT_DAM];
+                    upgradePosn = &vehStruct->m_aUpgrades[UPGRADE_BONNET_RIGHT_DAM];
                 }
                 break;
             case UPGRADE_SPOILER:
                 if (vehStruct->m_aUpgrades[UPGRADE_SPOILER_DAM].m_nParentComponentId != -1) {
-                    upgradePosn = vehStruct->m_aUpgrades[UPGRADE_SPOILER_DAM];
+                    upgradePosn = &vehStruct->m_aUpgrades[UPGRADE_SPOILER_DAM];
                 }
                 break;
             case UPGRADE_LIGHTS:
                 if (vehStruct->m_aUpgrades[UPGRADE_LIGHTS_DAM].m_nParentComponentId != -1) {
-                    upgradePosn = vehStruct->m_aUpgrades[UPGRADE_LIGHTS_DAM];
+                    upgradePosn = &vehStruct->m_aUpgrades[UPGRADE_LIGHTS_DAM];
                 }
                 break;
             default:
@@ -5203,10 +5203,10 @@ void CVehicle::AddUpgrade(int32 modelIndex, int32 upgradeIndex) {
             }
         } else {
             if (vehStruct->m_aUpgrades[UPGRADE_BONNET_DAM].m_nParentComponentId != -1) {
-                upgradePosn = vehStruct->m_aUpgrades[UPGRADE_BONNET_DAM];
+                upgradePosn = &vehStruct->m_aUpgrades[UPGRADE_BONNET_DAM];
             }
         }
-        CreateUpgradeAtomic(miUpgrade, &upgradePosn, parentFrame, true);
+        CreateUpgradeAtomic(miUpgrade, upgradePosn, parentFrame, true);
         if (parentFrame) {
             RwFrameForAllObjects(parentFrame, SetVehicleAtomicVisibilityCB, reinterpret_cast<void*>(eAtomicComponentFlag::ATOMIC_OK));
             RwFrameForAllChildren(parentFrame, SetVehicleAtomicVisibilityCB, reinterpret_cast<void*>(eAtomicComponentFlag::ATOMIC_OK));
@@ -6041,9 +6041,8 @@ bool IsValidModForVehicle(uint32 upgradeModelId, CVehicle* vehicle) {
     const auto miVehicle = vehicle->GetModelInfo()->AsVehicleModelInfoPtr();
     const auto miUpgrade = CModelInfo::GetModelInfo(upgradeModelId);
 
-    if (miUpgrade->bUsesVehDummy && miUpgrade->CarMod == (uint8)eVehicleMod::UPGRADE_SPOILER) { // todo: wrong enum value
-        const auto numWheelUpgrades = CVehicleModelInfo::GetNumWheelUpgrades(miVehicle->m_nWheelUpgradeClass);
-        for (int wheelNum = 0; wheelNum < numWheelUpgrades; ++wheelNum) {
+    if (miUpgrade->bUsesVehDummy && miUpgrade->CarMod == (uint8)eVehicleMod::UPGRADE_SPOILER) { // todo: wrong enum value name
+        for (auto wheelNum = CVehicleModelInfo::GetNumWheelUpgrades(miVehicle->m_nWheelUpgradeClass); wheelNum-- > 0;) { // reversed order in comp to og
             if (CVehicleModelInfo::GetWheelUpgrade(miVehicle->m_nWheelUpgradeClass, wheelNum) == upgradeModelId) {
                 return true;
             }
@@ -6051,7 +6050,7 @@ bool IsValidModForVehicle(uint32 upgradeModelId, CVehicle* vehicle) {
         return false;
     }
 
-    if (!miUpgrade->bUsesVehDummy && miUpgrade->CarMod == (uint8)17) { // this is stereo and wrong enum match again
+    if (!miUpgrade->bUsesVehDummy && miUpgrade->CarMod == (uint8)17) { // todo: this is stereo and wrong enum match again
         if (vehicle->m_vehicleAudio.m_AuSettings.RadioType != AE_RT_CIVILIAN) {
             return false;
         }
@@ -6139,7 +6138,7 @@ void CVehicle::DoFixedMachineGuns() {
     const auto* const driverPad = CPad::GetPad(m_pDriver && m_pDriver->m_nPedType == PED_TYPE_PLAYER2 ? 1 : 0);
     if (driverPad->GetCarGunFired() && !vehicleFlags.bGunSwitchedOff) {
         FireFixedMachineGuns();
-    } else if (CTimer::GetTimeInMS() > m_nGunFiringTime + 1400) {
+    } else if (CTimer::GetTimeInMS() > m_nGunFiringTime + 1400u) {
         m_nAmmoInClip = 20;
     }
 }
@@ -6147,8 +6146,9 @@ void CVehicle::DoFixedMachineGuns() {
 // 0x73DF00
 void CVehicle::FireFixedMachineGuns() {
     if (CTimer::GetTimeInMS() > m_nGunFiringTime + 150u) {
-        const auto  len    = std::max(0.1f, CVector2D{ GetForward() }.Magnitude());
-        const auto  dir    = CVector2D{ GetForward() } / len;
+        const auto& fwd2D  = CVector2D{ GetForward() };
+        const auto  len    = std::max(0.1f, fwd2D.Magnitude());
+        const auto  dir    = fwd2D / len;
 
         m_nGunFiringTime   = CTimer::GetTimeInMS();
 
@@ -6194,7 +6194,8 @@ void CVehicle::DoDriveByShootings() {
     }
 
     CWeapon& weapon = m_pDriver->m_aWeapons[m_pDriver->m_nActiveWeaponSlot];
-    if (CWeaponInfo::GetWeaponInfo(weapon.GetType())->m_nSlot != 4) { // smg
+    const auto* weaponInfo = CWeaponInfo::GetWeaponInfo(weapon.GetType());
+    if (weaponInfo->m_nSlot != 4) { // smg
         return;
     }
 
@@ -6238,13 +6239,10 @@ void CVehicle::DoDriveByShootings() {
 
     // bikes/quads have three sides, cars two
     const bool wantsToShoot = hasRideAnimData ? isFiring : (lookLeft || lookRight);
-    if (!wantsToShoot || weapon.m_TotalAmmo <= 0) {
-        // refill the clip and blend driveby anims out
+    if (!wantsToShoot || weapon.m_TotalAmmo <= 0u) {
         if (weapon.m_TotalAmmo) {
-            const auto clipSize = CWeaponInfo::GetWeaponInfo(weapon.m_Type)->m_nAmmoClip;
-            weapon.m_AmmoInClip = std::min(weapon.m_TotalAmmo, (uint32)clipSize);
+            weapon.m_AmmoInClip = std::min(weapon.m_TotalAmmo, (uint32)weaponInfo->m_nAmmoClip); // refill the clip and blend driveby anims out
         }
-
         const auto BlendOut = [&](AnimationId id) {
             if (const auto assoc = RpAnimBlendClumpGetAssociation(m_pDriver->GetRpClump(), id)) {
                 assoc->m_BlendDelta = -8.0f;
