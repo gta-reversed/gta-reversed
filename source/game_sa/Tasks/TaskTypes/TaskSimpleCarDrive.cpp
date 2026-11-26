@@ -36,10 +36,7 @@ CTaskSimpleCarDrive::CTaskSimpleCarDrive(const CTaskSimpleCarDrive& o) :
 CTaskSimpleCarDrive::~CTaskSimpleCarDrive() {
     CEntity::SafeCleanUpRef(m_Vehicle);
 
-    if (m_TaskUtilityLineUpPedWithCar) {
-        delete m_TaskUtilityLineUpPedWithCar;
-        m_TaskUtilityLineUpPedWithCar = nullptr;
-    }
+    delete std::exchange(m_TaskUtilityLineUpPedWithCar, nullptr);
 
     if (m_IsRollingDoor && m_AnimCloseDoorRolling) {
         // TODO: FIX ME: Keeps triggering, annoying as fuck
@@ -123,46 +120,35 @@ void CTaskSimpleCarDrive::StartBopping(CPed* ped) {
 // 0x6428C0
 void CTaskSimpleCarDrive::ProcessHeadBopping(CPed* ped, bool canBop, float camDistSq) {
     float bopOrientation = 0.f;
-    if (canBop) {
-        if (!m_IsHeadBopping) {
-            if (m_HeadBoppingFactor != 0.f || CGeneral::GetRandomNumberInRange(0, 1'000) <= 995) {
-                canBop = false;
+    if (!canBop) {
+        m_IsHeadBopping = false;
+    } else if (!m_IsHeadBopping) {
+        if (m_HeadBoppingFactor == 0.f && CGeneral::GetRandomNumberInRange(0, 1'000) > 995) { // Start bopping
+            if (m_BoppingStartTime == -1) {
+                StartBopping(ped);
+                m_HeadBoppingStartTime = m_BoppingStartTime;
             } else {
-                if (m_BoppingStartTime == -1) {
-                    StartBopping(ped);
-                    m_HeadBoppingStartTime = m_BoppingStartTime;
-                } else {
-                    m_HeadBoppingStartTime = (int32)CTimer::GetTimeInMS();
-                }
-                m_HeadBoppingDirection   = CGeneral::GetRandomNumberInRange(1, 3);
-                m_HeadBoppingMultiplier  = CGeneral::GetRandomNumberInRange(3.f, 8.f);
-                m_HeadBoppingFactor      = 0.f;
-                m_HeadBoppingOrientation = 0.f;
+                m_HeadBoppingStartTime = (int32)CTimer::GetTimeInMS();
             }
-        } else {
-            bopOrientation = std::sin(m_BoppingProgress * PI);
-            if (CTimer::GetTimeInMS() - (uint32)m_HeadBoppingStartTime > 5'000 && CGeneral::GetRandomNumberInRange(0, 1'000) > 995) {
-                canBop = false;
-            }
+            m_HeadBoppingDirection   = CGeneral::GetRandomNumberInRange(1, 3);
+            m_HeadBoppingMultiplier  = CGeneral::GetRandomNumberInRange(3.f, 8.f);
+            m_HeadBoppingFactor      = 0.f;
+            m_HeadBoppingOrientation = 0.f;
+            m_IsHeadBopping          = true;
+        }
+    } else {
+        bopOrientation = std::sin(m_BoppingProgress * PI);
+        if (CTimer::GetTimeInMS() - (uint32)m_HeadBoppingStartTime > 5'000 && CGeneral::GetRandomNumberInRange(0, 1'000) > 995) {
+            m_IsHeadBopping = false;
         }
     }
-    m_IsHeadBopping = canBop;
 
+    // NOTE: Framerate dependent (the factor isn't scaled by the time step)
     if (m_IsHeadBopping) { // Blend in
-        if (m_HeadBoppingFactor < 1.f) {
-            m_HeadBoppingFactor += 0.05f;
-        }
-        if (m_HeadBoppingFactor > 1.f) {
-            m_HeadBoppingFactor = 1.f;
-        }
+        m_HeadBoppingFactor = notsa::step_up_to(m_HeadBoppingFactor, 1.f, 0.05f);
         m_HeadBoppingOrientation += (bopOrientation - m_HeadBoppingOrientation) * m_HeadBoppingFactor;
     } else { // Blend out
-        if (m_HeadBoppingFactor > 0.f) {
-            m_HeadBoppingFactor -= 0.05f;
-        }
-        if (m_HeadBoppingFactor < 0.f) {
-            m_HeadBoppingFactor = 0.f;
-        }
+        m_HeadBoppingFactor = notsa::step_down_to(m_HeadBoppingFactor, 0.f, 0.05f);
         m_HeadBoppingOrientation += (bopOrientation - m_HeadBoppingOrientation) * (1.f - m_HeadBoppingFactor);
     }
 
@@ -190,7 +176,7 @@ void CTaskSimpleCarDrive::ProcessArmBopping(CPed* ped, bool canBop, float camDis
             veh->ClearWindowOpenFlag(door);
         }
         canBop = false;
-    } else if (veh->m_pDriver == ped) {
+    } else if (veh->m_pDriver == ped) { // NOTE: Raw `m_apPassengers`: the original reads seats 0-2 even if the vehicle has fewer (`GetPassengers()` stops at `m_nMaxPassengers`)
         veh->SetWindowOpenFlag(CAR_DOOR_LF);
     } else if (veh->m_apPassengers[0] == ped) {
         veh->SetWindowOpenFlag(CAR_DOOR_RF);
@@ -207,7 +193,7 @@ void CTaskSimpleCarDrive::ProcessArmBopping(CPed* ped, bool canBop, float camDis
 
     if (!canBop) {
         if (tapAnim) {
-            tapAnim->m_BlendDelta = -4.f;
+            tapAnim->SetBlendDelta(-4.f);
         }
         m_IsArmBopping = false;
         return;
@@ -227,8 +213,8 @@ void CTaskSimpleCarDrive::ProcessArmBopping(CPed* ped, bool canBop, float camDis
             ped->bUpdateMatricesRequired = true;
         }
         if (CTimer::GetTimeInMS() - (uint32)m_ArmBoppingStartTime > 5'000 && CGeneral::GetRandomNumberInRange(0, 1'000) > 995) {
-            tapAnim->m_BlendDelta = -4.f;
-            m_IsArmBopping        = false;
+            tapAnim->SetBlendDelta(-4.f);
+            m_IsArmBopping = false;
         }
         return;
     }
@@ -237,7 +223,7 @@ void CTaskSimpleCarDrive::ProcessArmBopping(CPed* ped, bool canBop, float camDis
         return;
     }
 
-    if (m_Vehicle->m_nVehicleSubType == VEHICLE_TYPE_AUTOMOBILE) { // The hand must be able to rest on the window
+    if (m_Vehicle->IsSubAutomobile()) { // The hand must be able to rest on the window
         const auto door          = CCarEnterExit::ComputeTargetDoorToExit(m_Vehicle, ped);
         const auto canLeanOnDoor = m_Vehicle->AsAutomobile()->GetDamageManager().GetDoorStatus_Component((tComponent)door) == DAMSTATE_OK
             && !CCarEnterExit::CarHasDoorToClose(m_Vehicle, door)
