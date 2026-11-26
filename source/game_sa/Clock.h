@@ -33,6 +33,7 @@ public:
     static void Update();
 
     static uint16 GetGameClockMinutesUntil(uint8 hours, uint8 minutes);
+    static int32 GetNumberOfDaysPassed(int32 monthDay);
     static bool GetIsTimeInRange(uint8 from, uint8 to);
     static void NormaliseGameClock();
     static void OffsetClockByADay(uint32 timeDirection);
@@ -41,7 +42,7 @@ public:
     static void RestoreClock();
 
     // inlined and may have not original names
-    static uint16 GetGameClockSeconds()   { return ms_nGameClockSeconds; } // 0x55F460
+    static uint8  GetGameClockSeconds()   { return (uint8)ms_nGameClockSeconds; } // 0x55F460
     static uint8  GetGameClockMinutes()   { return ms_nGameClockMinutes; } // 0x4410C0
     static uint8  GetGameClockHours()     { return ms_nGameClockHours; }   // 0x43A690
     static uint8  GetGameClockDays()      { return ms_nGameClockDays; }    // 0x4E7EF0

@@ -1,5 +1,7 @@
 #include "StdInc.h"
 
+#include <reversiblebugfixes/Bugs.hpp>
+
 #include "ObjectData.h"
 
 void CObjectData::InjectHooks()
@@ -164,6 +166,11 @@ void CObjectData::SetObjectData(int32 dwModelIndex, CObject& obj)
         obj.physicalFlags.bDisableCollisionForce = true;
 
         obj.m_pObjectInfo = &CObjectData::GetDefault();
+        
+        if (notsa::bugfixes::CObjectData_SetObjectData_UninitializedPhysics) {
+            obj.m_fElasticity       = CObjectData::GetDefault().m_fElasticity;
+            obj.m_fBuoyancyConstant = CObjectData::GetDefault().m_fBuoyancyConstant;
+        }
         return;
     }
 

@@ -1,6 +1,10 @@
 #include "StdInc.h"
 #include "SearchLight.h"
 
+//
+// Seems like this class doesn't even exist, the stuff here is actually in `CTheScripts` under different names
+//
+
 void CSearchLight::InjectHooks() {}
 
 void CSearchLight::SetTravelToPoint() {
@@ -15,6 +19,7 @@ void CSearchLight::SetPathBetween() {
     assert(0);
 }
 
+// Actually CTheScripts::IsPointWithinSearchLight
 void CSearchLight::IsLookingAtPos() {
     assert(0);
 }

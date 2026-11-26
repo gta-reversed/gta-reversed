@@ -549,7 +549,7 @@ void CMenuManager::SetDefaultPreferences(eMenuScreen screen) {
         m_ShowMissionBlips               = true;
         m_ShowOtherBlips                 = true;
         m_ShowGangAreaBlips              = true;
-        m_bShowSubtitles                 = true;
+        m_bShowSubtitles                 = false;
         break;
     case SCREEN_CONTROLLER_SETUP:
         m_ControlMethod                  = eController::MOUSE_PLUS_KEYS;
@@ -649,13 +649,15 @@ void CMenuManager::LoadSettings() {
         return;
     }
 
-    const auto SetToDefaultSettings = [&]() {
+    bInvertMouseY = true;
+
+    const auto SetToDefaultSettings = [&, previousLang = m_nPrefsLanguage]() {
         SetDefaultPreferences(SCREEN_AUDIO_SETTINGS);
         SetDefaultPreferences(SCREEN_DISPLAY_SETTINGS);
         SetDefaultPreferences(SCREEN_DISPLAY_ADVANCED);
         SetDefaultPreferences(SCREEN_CONTROLLER_SETUP);
-        m_nPrefsVideoMode = 0;
-        m_nPrefsLanguage = eLanguage::AMERICAN;
+        m_nCurrentRwSubsystem = 0;
+        m_nPrefsLanguage = previousLang;
         m_nRadioStation = RADIO_CLASSIC_HIP_HOP;
 
         CFileMgr::CloseFile(file);

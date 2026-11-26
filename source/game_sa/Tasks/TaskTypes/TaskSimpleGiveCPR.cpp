@@ -9,7 +9,7 @@ void CTaskSimpleGiveCPR::InjectHooks() {
     RH_ScopedCategory("Tasks/TaskTypes");
     RH_ScopedInstall(Constructor, 0x658860);
     RH_ScopedInstall(ReviveDeadPed, 0x658900);
-    RH_ScopedInstall(FinishGiveCPRAnimCB, 0x658910);
+    RH_ScopedInstall(FinishGiveCPRAnimCB, 0x658990);
     RH_ScopedVMTInstall(Clone, 0x659A10);
     RH_ScopedVMTInstall(ProcessPed, 0x65A7C0);
     RH_ScopedVMTInstall(MakeAbortable, 0x6589B0);
@@ -97,7 +97,7 @@ void CTaskSimpleGiveCPR::ReviveDeadPed(CPed* ped) {
     }
 }
 
-// 0x658910
+// 0x658990
 void CTaskSimpleGiveCPR::FinishGiveCPRAnimCB(CAnimBlendAssociation* anim, void* ptask) {
     auto* task = reinterpret_cast<CTaskSimpleGiveCPR*>(ptask);
     task->m_pAnim = nullptr;

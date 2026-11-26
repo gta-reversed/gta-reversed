@@ -958,6 +958,6 @@ notsa::script::CommandHandlerFunction& CRunningScript::CustomCommandHandlerOf(eS
 void CRunningScript::ResetIP() {
     assert(m_StackDepth > 0); // Original bug...
     do {
-        m_IP = std::exchange(m_IPStack[m_StackDepth--], nullptr); // NOTSA: Also clear the stack, we don't need it anymore
+        m_IP = std::exchange(m_IPStack[--m_StackDepth], nullptr); // NOTSA: Also clear the stack, we don't need it anymore
     } while (m_StackDepth);
 }

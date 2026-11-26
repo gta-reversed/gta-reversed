@@ -37,8 +37,7 @@ CTaskComplexWalkRoundBuildingAttempt::CTaskComplexWalkRoundBuildingAttempt(eMove
     m_bIsHeadOnCollision{flag_0x1},
     m_moveState{(int8)moveState}
 {
-    m_normal.z = 0.f;
-    m_normal.Normalise();
+    m_normal = CVector{ CVector2D{ m_normal }.Normalized() };
 }
 
 // 0x654840
@@ -51,8 +50,7 @@ CTaskComplexWalkRoundBuildingAttempt::CTaskComplexWalkRoundBuildingAttempt(eMove
     m_bIsHeadOnCollision{bIsHeadOnCollision},
     m_isWalkingAroundEntity{true}
 {
-    m_normal.z = 0.f;
-    m_normal.Normalise();
+    m_normal = CVector{ CVector2D{ m_normal }.Normalized() };
 
     CEntity::RegisterReference(m_targetEntity);
 }
@@ -182,7 +180,7 @@ void CTaskComplexWalkRoundBuildingAttempt::ComputeRoute(CPed const& ped) {
 
         const auto  pedPos = ped.GetPosition() - CVector{ 0.f, 0.f, 0.5f }; // Ped's position is it's center, so adjust it to be on the ground
         const auto& target = moveDir + pedPos;
-        const auto  origin = target - Normalized(moveDir) * 0.7f;
+        const auto  origin = target - moveDir.Normalized() * 0.7f;
 
         if (!CWorld::GetIsLineOfSightClear(pedPos, target, true, false, false, false, false, false, true)) {
             continue;

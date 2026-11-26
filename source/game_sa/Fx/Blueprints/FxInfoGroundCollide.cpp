@@ -34,15 +34,10 @@ void FxInfoGroundCollide_c::GetValue(float currentTime, float mult, float totalT
     float values[16];
     m_InterpInfo.GetVal(values, mult);
 
-    CVector in((float)(CGeneral::GetRandomNumber() % 10'000) / 5000.0f - 1.0f);
-    in.Normalise();
-    in *= values[2] * totalTime * 5.0f;
+    const auto dir = CVector{ (float)(CGeneral::GetRandomNumber() % 10'000) / 5000.0f - 1.0f }.Normalized() * values[2] * totalTime * 5.0f;
 
     auto v13 = colPoint.m_vecNormal.SquaredMagnitude() * values[0];
-    CVector out;
-    out = movement.m_Vel - colPoint.m_vecNormal * (v13 + v13);
-    out += in;
-    out.Normalise();
+    const auto out = (movement.m_Vel - colPoint.m_vecNormal * (v13 + v13) + dir).Normalized();
 
     movement.m_Pos.z = colPoint.m_vecPoint.z;
     movement.m_Vel = values[1] * out.Magnitude() * out;
