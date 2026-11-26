@@ -15,5 +15,5 @@ public:
     static void InjectHooks();
 
 public:
-    uint32 m_nStartTimeInMs{};
+    uint32 m_NextScanTimeMs{}; //!< When `ScanForStuff` looks for clients next
 };
