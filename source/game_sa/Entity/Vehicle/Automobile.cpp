@@ -6241,29 +6241,35 @@ bool CAutomobile::RcbanditCheck1CarWheels(CPtrListDoubleLink<CVehicle*>& ptrList
     CColModel* colModel = GetVehicleModelInfo()->GetColModel();
 
     for (auto* const vehicle : ptrList) {
-        if (vehicle == this || !vehicle->IsAutomobile())
+        if (vehicle == this || !vehicle->IsAutomobile() || ModelIndices::IsRCBandit(vehicle->m_nModelIndex) || vehicle->IsScanCodeCurrent()) {
             continue;
+        }
+        vehicle->SetCurrentScanCode();
 
-        if (!ModelIndices::IsRCBandit(vehicle->m_nModelIndex) && !vehicle->IsScanCodeCurrent())
+        const CVector distance = GetPosition() - vehicle->GetPosition();
+        if (std::abs(distance.x) >= 10.0f || std::abs(distance.y) >= 10.0f) {
             continue;
+        }
 
-        CVector distance = GetPosition() - vehicle->GetPosition();
-        if (distance.x < 10.0f && distance.y < 10.0f) {
-            auto modelInfo = vehicle->GetVehicleModelInfo();
-            for (int32 i = 0; i < 4; i++) {
-                if (m_fWheelsSuspensionCompressionPrev[i] >= 1.0f && GetStatus() != STATUS_SIMPLE)
-                    continue;
+        auto* const other     = vehicle->AsAutomobile();
+        auto* const modelInfo = vehicle->GetVehicleModelInfo();
+        for (int32 i = 0; i < MAX_CARWHEELS; i++) {
+            // Only wheels of the other car that touch the ground (or if it's in simple physics mode)
+            if (other->m_fWheelsSuspensionCompressionPrev[i] >= 1.0f && other->GetStatus() != STATUS_SIMPLE) {
+                continue;
+            }
 
-                static CMatrix wheelMatrix;
-                CVector wheelPos;
-                modelInfo->GetWheelPosn(i, wheelPos, false);
-                wheelMatrix = Invert(*m_matrix, wheelMatrix);
+            CVector wheelPos;
+            modelInfo->GetWheelPosn(i, wheelPos, false);
 
-                CColSphere sphere;
-                sphere.m_vecCenter = wheelMatrix.TransformPoint(vehicle->m_matrix->TransformPoint(wheelPos));
-                sphere.m_fRadius = modelInfo->m_fWheelSizeFront * 0.25f;
-                if (CCollision::TestSphereBox(sphere, colModel->m_boundBox))
-                    return true;
+            // NOTE: The original keeps this matrix in a static (`matW2B`), a local does the same
+            const CMatrix wheelMatrix = Invert(*m_matrix);
+
+            CColSphere sphere;
+            sphere.m_vecCenter = wheelMatrix.TransformPoint(vehicle->m_matrix->TransformPoint(wheelPos));
+            sphere.m_fRadius   = modelInfo->m_fWheelSizeFront * 0.25f;
+            if (CCollision::TestSphereBox(sphere, colModel->m_boundBox)) {
+                return true;
             }
         }
     }
@@ -6285,12 +6291,12 @@ bool CAutomobile::RcbanditCheckHitWheels() {
     CWorld::AdvanceCurrentScanCode();
     for (int32 sectorY = startSectorY; sectorY <= endSectorY; ++sectorY) {
         for (int32 sectorX = startSectorX; sectorX <= endSectorX; ++sectorX) {
-            auto& repeatSector = CWorld::GetRepeatSector(sectorX, sectorY);
-            if (RcbanditCheck1CarWheels(repeatSector.Vehicles))
-                break;
+            if (RcbanditCheck1CarWheels(CWorld::GetRepeatSector(sectorX, sectorY).Vehicles)) {
+                return true;
+            }
         }
     }
-    return true;
+    return false;
 }
 
 // 0x729B60
