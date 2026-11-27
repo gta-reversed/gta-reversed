@@ -764,13 +764,13 @@ void CTaskSimplePlayerOnFoot::PlayerControlFighter(CPlayerPed* player) {
         return;
     }
 
-    const auto isMelee = player->GetActiveWeapon().IsTypeMelee();
-    auto* const pad = player->GetPadFromPlayer();
+    const auto  isMelee      = player->GetActiveWeapon().IsTypeMelee();
+    auto* const pad          = player->GetPadFromPlayer();
     const float padLeftRight = pad->GetPedWalkLeftRight();
-    const float padUpDown = pad->GetPedWalkUpDown();
-    CVector2D stick{ padLeftRight / 128.0f, padUpDown / 128.0f };
-    const auto maxStep = CTimer::GetTimeStep() * 0.07f;
-    const auto isTargeting = player->m_pTargetedObject || CCamera::m_bUseMouse3rdPerson && pad->GetTarget();
+    const float padUpDown    = pad->GetPedWalkUpDown();
+    CVector2D   stick{ padLeftRight / 128.0f, padUpDown / 128.0f };
+    const auto  maxStep     = CTimer::GetTimeStep() * 0.07f;
+    const auto  isTargeting = player->m_pTargetedObject || CCamera::m_bUseMouse3rdPerson && pad->GetTarget();
 
     // NOTE: The original's last command is compared signed (0x6878F2), -1 = none. 11 is the first attack command.
     const auto IsAttacking = [&] {
@@ -790,7 +790,7 @@ void CTaskSimplePlayerOnFoot::PlayerControlFighter(CPlayerPed* player) {
     if (CGameLogic::IsPlayerUse2PlayerControls(player)) {
         if (const auto moveBlendRatio = stick.Magnitude(); moveBlendRatio > 0.0f) { // 0x6875EC
             const auto dir = GetStickDir();
-            stick = CGameLogic::IsPlayerAllowedToGoInThisDirection(player, dir, 0.0f)
+            stick          = CGameLogic::IsPlayerAllowedToGoInThisDirection(player, dir, 0.0f)
                 ? ToPedSpace(dir, moveBlendRatio)
                 : CVector2D{};
         }
@@ -800,7 +800,7 @@ void CTaskSimplePlayerOnFoot::PlayerControlFighter(CPlayerPed* player) {
         }
     }
 
-    auto& fightMove = player->GetPlayerData()->m_vecFightMovement;
+    auto&      fightMove        = player->GetPlayerData()->m_vecFightMovement;
     const auto ControlFightMove = [&] { // 0x687B6C
         if (std::abs(fightMove.y) > 0.0f && std::abs(fightMove.x) < std::abs(fightMove.y)) {
             tFight->ControlFight(nullptr, fightMove.y >= 0.0f ? 5 : 3);
@@ -810,11 +810,11 @@ void CTaskSimplePlayerOnFoot::PlayerControlFighter(CPlayerPed* player) {
     };
 
     if (isTargeting) { // 0x6879D1
-        fightMove.y = notsa::step_to(fightMove.y, stick.y, maxStep);
-        fightMove.x = notsa::step_to(fightMove.x, stick.x, maxStep);
+        fightMove.y                       = notsa::step_to(fightMove.y, stick.y, maxStep);
+        fightMove.x                       = notsa::step_to(fightMove.x, stick.x, maxStep);
 
-        const auto* const target = player->m_pTargetedObject;
-        const auto isFarFromTarget = target && CVector::DistSqr(player->GetPosition(), target->GetPosition()) > sq(4.0f) && !IsAttacking();
+        const auto* const target          = player->m_pTargetedObject;
+        const auto        isFarFromTarget = target && CVector::DistSqr(player->GetPosition(), target->GetPosition()) > sq(4.0f) && !IsAttacking();
         if (!isFarFromTarget && !pad->GetSprint() && isMelee) {
             return ControlFightMove();
         }
@@ -830,8 +830,8 @@ void CTaskSimplePlayerOnFoot::PlayerControlFighter(CPlayerPed* player) {
     if (moveBlendRatio == 0.0f) { // 0x687885
         fightMove = {};
     } else if (stick.y <= 0.0f) { // 0x687821
-        fightMove.y = notsa::step_to(fightMove.y, -moveBlendRatio, maxStep);
-        fightMove.x = 0.0f;
+        fightMove.y               = notsa::step_to(fightMove.y, -moveBlendRatio, maxStep);
+        fightMove.x               = 0.0f;
         player->m_fAimingRotation = CGeneral::LimitRadianAngle(CGeneral::GetRadianAngleBetweenPoints(0.0f, 0.0f, -padLeftRight, padUpDown) - TheCamera.m_fOrientation);
     }
 
@@ -840,7 +840,7 @@ void CTaskSimplePlayerOnFoot::PlayerControlFighter(CPlayerPed* player) {
         ? m_FightIdleTimeMs + (int32)CTimer::GetTimeStepInMS()
         : 0;
 
-    if (!pad->GetSprint() && !pad->GetDuck() && isMelee && stick.y <= 0.0f && m_FightIdleTimeMs < 2000) {
+    if (!pad->GetSprint() && !pad->GetDuck() && isMelee && stick.y <= 0.0f && m_FightIdleTimeMs < 2'000) {
         return ControlFightMove();
     }
 
