@@ -4,14 +4,14 @@
 #include "GameLogic.h"
 
 // The original's own constants (`PI` / `TWO_PI` / `FRAC_PI_4` of common.h are a few ulp off)
-constexpr float DRIVEBY_PI = 3.1415927f; // 0x858CB8
-constexpr float DRIVEBY_TWO_PI = 6.2831855f; // 0x858CBC
-constexpr float DRIVEBY_QUARTER_PI = 0.7853982f; // 0x859AB0
-constexpr float DRIVEBY_TWO_OVER_PI = 0.63661975f; // 0x858FB8
+constexpr float DRIVEBY_PI              = 3.1415927f;  // 0x858CB8
+constexpr float DRIVEBY_TWO_PI          = 6.2831855f;  // 0x858CBC
+constexpr float DRIVEBY_QUARTER_PI      = 0.7853982f;  // 0x859AB0
+constexpr float DRIVEBY_TWO_OVER_PI     = 0.63661975f; // 0x858FB8
 
 constexpr float DRIVEBY_ANIM_LOOP_START = 0.2667f; // 0x8D2E7C - Aiming loops back to this time
-constexpr float DRIVEBY_ANIM_LOOP_END = 0.4333f; // 0x8D2E80
-constexpr float DRIVEBY_ANIM_FIRE_TIME = 0.3f; // 0x8D2E84
+constexpr float DRIVEBY_ANIM_LOOP_END   = 0.4333f; // 0x8D2E80
+constexpr float DRIVEBY_ANIM_FIRE_TIME  = 0.3f;    // 0x8D2E84
 
 //! Direction the ped leans out to (NOTSA)
 enum eDriveByDirection : int8 {
@@ -101,7 +101,7 @@ void CTaskSimpleGangDriveBy::SetupStaticAnimForPlayer(CPlayerPed* player) {
         m_bInRangeToShoot = true;
         m_bInWeaponRange  = true;
 
-        CVector aim = cam.m_vecFront;
+        CVector aim       = cam.m_vecFront;
         if (cam.m_nMode == MODE_TWOPLAYER_IN_CAR_AND_SHOOTING) {
             cam.Get_TwoPlayer_AimVector(aim);
         }
@@ -139,14 +139,14 @@ bool CTaskSimpleGangDriveBy::CheckIfThereNoObstaclesForFiring(CPed* ped, CVector
             CWorld::pIgnoreEntity = nullptr;
         }
         // NOTE: Not `CGeneral::GetRandomNumberInRange`, the original truncates `rand / 32768 * -500`
-        m_nLOSCheckTime = CTimer::GetTimeInMS() - (int32)((float)CGeneral::GetRandomNumber() / 32768.f * -500.f) + 1750;
+        m_nLOSCheckTime = CTimer::GetTimeInMS() - (int32)((float)CGeneral::GetRandomNumber() / 32768.f * -500.f) + 1'750;
     }
     return !m_nLOSBlocked;
 }
 
 // 0x627600
 void CTaskSimpleGangDriveBy::SetupStaticAnimForNPC(CPed* ped) {
-    const float range = m_pWeaponInfo->m_fWeaponRange;
+    const float range      = m_pWeaponInfo->m_fWeaponRange;
 
     const CVector toTarget = m_pTargetEntity
         ? m_pTargetEntity->GetMatrix().TransformPoint(m_vecCoords) - ped->GetPosition()
@@ -209,7 +209,7 @@ void CTaskSimpleGangDriveBy::SetupStaticAnimForNPC(CPed* ped) {
     }
 
     // 0x627922 - The direction to use for the style
-    const bool noAnim = m_nRequiredAnimID == ANIM_ID_NO_ANIMATION_SET;
+    const bool noAnim           = m_nRequiredAnimID == ANIM_ID_NO_ANIMATION_SET;
     const auto GetClosestIfSide = [&]() -> int8 {
         return closestDir == DRIVEBY_DIR_LEFT || closestDir == DRIVEBY_DIR_RIGHT ? closestDir : -1;
     };
@@ -222,26 +222,26 @@ void CTaskSimpleGangDriveBy::SetupStaticAnimForNPC(CPed* ped) {
         case eDrivebyStyle::FIXED_RHS:      return DRIVEBY_DIR_RIGHT;
         case eDrivebyStyle::START_FROM_LHS: return noAnim ? DRIVEBY_DIR_LEFT : GetClosestIfSide();
         case eDrivebyStyle::START_FROM_RHS: return noAnim ? DRIVEBY_DIR_RIGHT : GetClosestIfSide();
-        case eDrivebyStyle::AI_SIDE: { // 0x627952
+        case eDrivebyStyle::AI_SIDE:        { // 0x627952
             if (!noAnim) {
                 return GetClosestIfSide();
             }
             return sideDir == -1 ? DRIVEBY_DIR_LEFT
-                 : sideDir == 1  ? DRIVEBY_DIR_RIGHT
+                : sideDir == 1   ? DRIVEBY_DIR_RIGHT
                                  : -1;
         }
-        case eDrivebyStyle::FIXED_FWD:      return DRIVEBY_DIR_FWD;
-        case eDrivebyStyle::FIXED_BAK:      return DRIVEBY_DIR_BACK;
+        case eDrivebyStyle::FIXED_FWD:  return DRIVEBY_DIR_FWD;
+        case eDrivebyStyle::FIXED_BAK:  return DRIVEBY_DIR_BACK;
         case eDrivebyStyle::AI_FWD_BAK: { // 0x62797f
             if (!noAnim) {
                 return GetClosestIfFwdBack();
             }
             return fwdBackDir == -1 ? DRIVEBY_DIR_FWD
-                 : fwdBackDir == 1  ? DRIVEBY_DIR_BACK
+                : fwdBackDir == 1   ? DRIVEBY_DIR_BACK
                                     : -1;
         }
-        case eDrivebyStyle::AI_ALL_DIRN:    return closestDir;
-        default:                            return -1;
+        case eDrivebyStyle::AI_ALL_DIRN: return closestDir;
+        default:                         return -1;
         }
     }();
 
@@ -388,7 +388,7 @@ bool CTaskSimpleGangDriveBy::ProcessPed(CPed* ped) {
         return true;
     }
     if (!m_nLOSCheckTime) {
-        m_nLOSCheckTime = CTimer::GetTimeInMS() + CGeneral::GetRandomNumberInRange(0, 1000);
+        m_nLOSCheckTime = CTimer::GetTimeInMS() + CGeneral::GetRandomNumberInRange(0, 1'000);
     }
     if (!m_pWeaponInfo) {
         m_pWeaponInfo = CWeaponInfo::GetWeaponInfo(ped);
@@ -410,7 +410,7 @@ bool CTaskSimpleGangDriveBy::ProcessPed(CPed* ped) {
             m_nRequiredAnimGroup = veh->AsBike()->m_RideAnimData.AnimGroup == ANIM_GROUP_BIKES && veh->IsDriver(ped)
                 ? ANIM_GROUP_COP_DBZ
                 : ANIM_GROUP_BIKE_DBZ;
-            m_bSeatRHS = false;
+            m_bSeatRHS           = false;
         } else {
             if (veh->IsSubAutomobile()) { // 0x62d504 - Open the window of a passenger's door
                 const auto& passengers = veh->m_apPassengers;
@@ -450,7 +450,7 @@ bool CTaskSimpleGangDriveBy::ProcessPed(CPed* ped) {
     }
 
     if (BlendAnimation(ped)) {
-        auto* const anim = m_pAnimAssoc;
+        auto* const anim          = m_pAnimAssoc;
         const auto  HasJustPassed = [anim](float t) { // NOTE: `m_TimeStep` has no accessor on master
             return anim->GetCurrentTime() > t && anim->GetCurrentTime() - anim->m_TimeStep <= t;
         };
@@ -463,8 +463,10 @@ bool CTaskSimpleGangDriveBy::ProcessPed(CPed* ped) {
         }
 
         // 0x62d612 - Start / stop the anim
-        const bool isPlaying = anim->IsPlaying();
-        const auto IsFireCommand = [](char cmd) { return cmd == COMMAND_FIRE || cmd == COMMAND_FIRE_BURST; };
+        const bool isPlaying     = anim->IsPlaying();
+        const auto IsFireCommand = [](char cmd) {
+            return cmd == COMMAND_FIRE || cmd == COMMAND_FIRE_BURST;
+        };
         if (!isPlaying && m_nAttackTimer <= 0 && IsFireCommand(m_nNextCommand) && (anim->GetHier()->GetTotalTime() > anim->GetCurrentTime() || anim->GetBlendDelta() >= 0.f)) { // 0x62d656
             anim->SetFlag(ANIMATION_IS_PLAYING);
             // NOTE: `m_nAmmoClip` is read as a signed 16 bit value
@@ -486,7 +488,7 @@ bool CTaskSimpleGangDriveBy::ProcessPed(CPed* ped) {
         if (m_pAnimAssoc->GetAnimId() == m_nRequiredAnimID && HasJustPassed(DRIVEBY_ANIM_LOOP_END)) {
             if (ped->GetActiveWeapon().GetState() == WEAPONSTATE_RELOADING && m_nNextCommand <= COMMAND_FIRE) { // 0x62d758
                 m_nNextCommand = COMMAND_FIRE;
-                m_nAttackTimer = 2000;
+                m_nAttackTimer = 2'000;
             } else if ((IsFireCommand(m_nNextCommand) || (m_nLastCommand == COMMAND_FIRE_BURST && m_nBurstShots > 0)) && m_bInRangeToShoot) { // 0x62d782
                 anim->SetCurrentTime(DRIVEBY_ANIM_LOOP_START);
                 m_pAnimAssoc->SetFlag(ANIMATION_IS_PLAYING);
@@ -516,7 +518,9 @@ bool CTaskSimpleGangDriveBy::ProcessPed(CPed* ped) {
 
     // 0x62d818
     // NOTE: Not `CTimer::GetTimeStepInMS()` (it divides by 50 instead of multiplying by 0.02)
-    const auto GetTimeStepInMS = [] { return (int32)(CTimer::GetTimeStep() * 0.02f * 1000.f); };
+    const auto GetTimeStepInMS = [] {
+        return (int32)(CTimer::GetTimeStep() * 0.02f * 1000.f);
+    };
     m_nAttackTimer = m_nAttackTimer < 0
         ? (int16)CGeneral::GetRandomNumberInRange(200, (100 - m_nFrequencyPercentage) * 100)
         : (int16)(m_nAttackTimer - GetTimeStepInMS());
