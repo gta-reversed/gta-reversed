@@ -17,11 +17,7 @@ void CScripted2dEffects::InjectHooks() {
 // 0x6F9EB0
 void CScriptedEffectPairs::Flush() {
     for (auto& pair : Pairs) {
-        const auto secondPartnerTask = pair.Effects[1].PartnerTask;
-        pair.Effects.fill({});
-        if (!notsa::bugfixes::CScriptedEffectPairs_Flush_SecondPartnerTaskNotReset) {
-            pair.Effects[1].PartnerTask = secondPartnerTask;
-        }
+        pair.Effects.fill({}); // NOTSA/BUGFIX: The original doesn't reset `Effects[1].PartnerTask`
         pair.UsePartnerImmediately = false;
     }
     NumPairs = 0;
