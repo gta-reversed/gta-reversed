@@ -53,10 +53,6 @@ static inline auto& s_CrossHairTrailX      = StaticRef<notsa::mdarray<float, MAX
 void CPlayerCrossHair::Render(int32 playerId) {
     constexpr auto NUM_RINGS   = 3;
     constexpr auto NUM_SPRITES = 4; //!< In a ring
-    // NOTE: Not `TWO_PI` / `HALF_PI` / `FRAC_PI_4`, those are less precise than the values the original uses (0x865034, 0x858FE4, 0x859AB0)
-    constexpr auto TIME_TO_ANGLE = 6.2831855f / 1024.f;
-    constexpr auto QUARTER_TURN  = 1.5707964f;
-    constexpr auto EIGHTH_TURN   = 0.7853982f;
 
     if (!m_IsActivated) {
         return;
@@ -88,14 +84,14 @@ void CPlayerCrossHair::Render(int32 playerId) {
     ys[0]             = m_Target.y;
     times[0]          = CTimer::GetTimeInMS();
 
-    const float pulse = std::sin((float)(times[0] & 0x3FF) * TIME_TO_ANGLE) * 0.2f + 1.f;
+    const float pulse = std::sin((float)(times[0] & 0x3FF) * TWO_PI / 1024.f) * 0.2f + 1.f;
 
     CRGBA color       = playerId == 0 ? CRGBA{ 0, 255, 50 } : CRGBA{ 50, 0, 255 };
     for (auto i = 0; i < CROSSHAIR_TRAIL_LENGTH; i++) { // 0x56F0A0 - The older the position, the darker it's drawn
         for (auto ring = 0; ring < NUM_RINGS; ring++) {
             const float radius = (float)ring * 10.f + 20.f;
             for (auto sprite = 0; sprite < NUM_SPRITES; sprite++) {
-                const float angle = (float)sprite * QUARTER_TURN + EIGHTH_TURN;
+                const float angle = (float)sprite * HALF_PI + FRAC_PI_4;
                 CSprite::RenderOneXLUSprite_Rotate_Aspect(
                     CVector{
                         (xs[i] + 1.f) * SCREEN_WIDTH * 0.5f + std::sin(angle) * radius * pulse,

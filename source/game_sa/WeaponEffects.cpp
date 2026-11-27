@@ -120,8 +120,7 @@ void CWeaponEffects::Render() {
     constexpr auto NUM_TRIANGLES               = 3;
     constexpr auto TRIANGLE_HALF_ANGLE         = 15.f;
     constexpr auto WEAPON_RADIUS_TO_SIZE       = 30.f;
-    constexpr auto FULL_TURN                   = 6.2831855f;         // NOTE: Not `TWO_PI`, that one is 6.28318f - the original uses this value (0x858CBC)
-    constexpr auto TIME_TO_ANGLE               = FULL_TURN / 1024.f; //!< One turn in 1024 ms
+    constexpr auto TIME_TO_ANGLE               = TWO_PI / 1024.f; //!< One turn in 1024 ms
 
     if (TheCamera.m_bWideScreenOn) {
         return;
@@ -292,7 +291,7 @@ void CWeaponEffects::Render() {
             } else {
                 crossHair.m_Rotation += 0.05f;
             }
-            if (crossHair.m_Rotation > FULL_TURN) {
+            if (crossHair.m_Rotation > TWO_PI) {
                 crossHair.m_Rotation = 0.f;
             }
             if (time == 0) { // 0x74355F
