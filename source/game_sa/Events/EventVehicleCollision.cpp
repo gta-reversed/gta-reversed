@@ -87,7 +87,7 @@ bool CEventVehicleCollision::AffectsPed(CPed* ped)
     if (pActiveTask) {
         if (pActiveTask->GetTaskType() == TASK_COMPLEX_WALK_ROUND_CAR) {
             auto pTaskWalkRoundCar = reinterpret_cast<CTaskComplexWalkRoundCar*>(pActiveTask);
-            CVehicle* walkRoundVehicle = pTaskWalkRoundCar->m_Veh;
+            CVehicle* walkRoundVehicle  = pTaskWalkRoundCar->GetVehicle();
             if (walkRoundVehicle == m_vehicle)
                 return false;
             if ((m_vehicle->m_pVehicleBeingTowed && m_vehicle->m_pVehicleBeingTowed == walkRoundVehicle) ||
