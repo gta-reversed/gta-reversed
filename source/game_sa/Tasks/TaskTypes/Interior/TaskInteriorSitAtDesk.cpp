@@ -20,7 +20,7 @@ CTaskInteriorSitAtDesk::CTaskInteriorSitAtDesk(const CTaskInteriorSitAtDesk& o) 
 // 0x676080
 CTaskInteriorSitAtDesk::~CTaskInteriorSitAtDesk() {
     if (m_Anim) {
-        m_Anim->SetDefaultFinishCallback();
+        m_Anim->SetDefaultDeleteCallback();
     }
 }
 
@@ -78,7 +78,7 @@ bool CTaskInteriorSitAtDesk::MakeAbortable(CPed* ped, eAbortPriority priority, C
     if (priority == ABORT_PRIORITY_IMMEDIATE) {
         if (m_Anim) {
             m_Anim->SetBlendDelta(-1000.f);
-            m_Anim->SetDefaultFinishCallback();
+            m_Anim->SetDefaultDeleteCallback();
             m_Anim = nullptr;
         }
         return true;
@@ -194,7 +194,10 @@ bool CTaskInteriorSitAtDesk::ProcessPed(CPed* ped) {
     if (m_Anim->GetAnimId() == ANIM_ID_OFF_SIT_IN) { // 0x677C90
         const CVector pedToInfo        = m_InteriorInfo->Pos - ped->GetPosition();
         const float   dist             = pedToInfo.Magnitude();
-        const CVector shift            = pedToInfo * (1.f / dist) * std::min(dist, 0.02f);
+        // The original divides by `dist` unchecked: NaN shift when the ped stands exactly on the desk point (0x677D17)
+        const CVector shift            = notsa::bugfixes::GenericUB && dist == 0.f
+            ? CVector{}
+            : pedToInfo * (1.f / dist) * std::min(dist, 0.02f);
         ped->m_vecAnimMovingShiftLocal = {
             shift.Dot(ped->GetRight()),
             shift.Dot(ped->GetForward()),
@@ -209,7 +212,7 @@ bool CTaskInteriorSitAtDesk::ProcessPed(CPed* ped) {
 // NOTSA
 void CTaskInteriorSitAtDesk::StartAnim(CPed* ped, AnimationId animId, float blendDelta) {
     if (m_Anim) {
-        m_Anim->SetDefaultFinishCallback();
+        m_Anim->SetDefaultDeleteCallback();
     }
     m_Anim = CAnimManager::BlendAnimation(ped->GetRpClump(), ANIM_GROUP_INT_OFFICE, animId, blendDelta);
     m_Anim->SetFinishCallback(FinishAnimCB, this);
