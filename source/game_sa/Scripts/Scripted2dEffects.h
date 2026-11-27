@@ -44,7 +44,7 @@ VALIDATE_SIZE(tUserList_Child, 0x8);
 struct tUserList {
     std::array<int32, 4> m_UserTypes{ -1, -1, -1, -1 };
     std::array<int32, 4> m_UserTypesByPedType{ -1, -1, -1, -1 };
-    bool  m_bUseList{};
+    bool                 m_UseList{};
 };
 VALIDATE_SIZE(tUserList, 0x24);
 

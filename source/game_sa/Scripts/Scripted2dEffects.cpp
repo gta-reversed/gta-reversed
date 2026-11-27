@@ -33,7 +33,7 @@ void CScripted2dEffects::Init() {
         ms_activated[i]             = false;
         ScriptReferenceIndex[i]     = 1;
         ms_effectSequenceTaskIDs[i] = -1;
-        ms_userLists[i].m_bUseList  = false;
+        ms_userLists[i].m_UseList  = false;
         ms_useAgainFlags[i]         = false;
         ms_radii[i]                 = -1.0f;
         rng::fill(ms_userLists[i].m_UserTypes, -1);
@@ -64,7 +64,7 @@ int32 CScripted2dEffects::AddScripted2DEffect(float radius) {
 
     ms_activated[slot]             = true;
     ms_effectSequenceTaskIDs[slot] = -1;
-    ms_userLists[slot].m_bUseList  = false;
+    ms_userLists[slot].m_UseList  = false;
     ms_useAgainFlags[slot]         = false;
     ms_radii[slot]                 = radius;
     rng::fill(ms_userLists[slot].m_UserTypes, -1);
