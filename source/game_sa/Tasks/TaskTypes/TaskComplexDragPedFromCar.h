@@ -16,6 +16,8 @@ public:
     CTask* ControlSubTask(CPed* ped) override;
     CTask* CreateFirstSubTask(CPed* ped) override;
 
+    bool GetQuitAfterDraggingPedOut() const { return m_bQuitAfterDraggingPedOut; } // NOTSA
+
 public:
     static void InjectHooks();
 
