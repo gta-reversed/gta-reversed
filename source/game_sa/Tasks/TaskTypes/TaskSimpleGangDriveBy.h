@@ -35,11 +35,23 @@ class NOTSA_EXPORT_VTABLE CTaskSimpleGangDriveBy : public CTaskSimple {
 public:
     static constexpr auto Type = TASK_SIMPLE_GANG_DRIVEBY;
 
+    //! Values of `m_nNextCommand` / `m_nLastCommand` (NOTSA names)
+    enum eCommand : int8 {
+        COMMAND_NONE            = 0,
+        COMMAND_AIM             = 1,
+        COMMAND_FIRE            = 2,
+        COMMAND_FIRE_BURST      = 3,
+        COMMAND_UNK_4           = 4, // TODO: Never set by this task
+        COMMAND_UNK_5           = 5, // TODO: Never set by this task
+        COMMAND_ABORT_REQUESTED = 6, //!< `MakeAbortable` with a priority it does not abort on
+        COMMAND_END             = 7,
+    };
+
     CTaskSimpleGangDriveBy(CEntity* target, const CVector* targetPos, float abortRange, int8 frequencyPercentage, eDrivebyStyle drivebyStyle, bool seatRHS);
     CTaskSimpleGangDriveBy(const CTaskSimpleGangDriveBy&);
     ~CTaskSimpleGangDriveBy() override;
 
-    int8 SetupStaticAnimForPlayer(CPlayerPed* ped);
+    void SetupStaticAnimForPlayer(CPlayerPed* player);
     bool CheckIfThereNoObstaclesForFiring(CPed* ped, CVector* posn);
     void SetupStaticAnimForNPC(CPed* ped);
     bool BlendAnimation(CPed* ped);
@@ -50,6 +62,9 @@ public:
     CTask*    Clone() const override { return new CTaskSimpleGangDriveBy{ *this }; }
     bool      MakeAbortable(CPed* ped, eAbortPriority priority = ABORT_PRIORITY_URGENT, const CEvent* event = nullptr) override;
     bool      ProcessPed(CPed* ped) override;
+
+private:
+    static void DeleteAnimCB(CAnimBlendAssociation* anim, void* data);
 
 public:
     static void InjectHooks();
@@ -62,7 +77,7 @@ public:
     bool                   m_bInWeaponRange{};
     bool                   m_bReachedAbortRange{};
     bool                   m_bFromScriptCommand{};
-    char                   m_nNextCommand{-1};
+    char                   m_nNextCommand{ COMMAND_AIM };
     char                   m_nLastCommand{};
     char                   m_nBurstShots{-1};
     eDrivebyStyle          m_nDrivebyStyle{};
