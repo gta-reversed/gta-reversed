@@ -27,10 +27,9 @@ public:
     static void GenerateRoadBlocks();
     static void RegisterScriptRoadBlock(CVector cornerA, CVector cornerB, bool isGangRoadBlock);
 
-private:
-    friend void InjectHooksMain();
     static void InjectHooks();
 
+private:
     static bool GetRoadBlockNodeInfo(CNodeAddress nodeAddress, float& outWidth, CVector& outDir);
     static bool ClearSpaceForRoadBlockObject(CVector cornerA, CVector cornerB);
 

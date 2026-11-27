@@ -40,6 +40,8 @@ public:
     bool MakesNoise() const { return m_MakesNoise; }
     void SetMakesNoise(bool b) { m_MakesNoise = b; }
 
+    void SetRemovalDist(uint8 dist) { m_RemovalDist = dist; } // NOTSA
+
     auto GetStrength() const { return m_Strength; }
 
     // NOTSA funcs:

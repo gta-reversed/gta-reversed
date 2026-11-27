@@ -2,6 +2,7 @@
 
 #include "RoadBlocks.h"
 #include "PedPlacement.h"
+#include "ModelIndices.h"
 #include "TaskComplexWanderCop.h"
 #include "TaskSimpleStandStill.h"
 #include <extensions/File.hpp>
@@ -13,7 +14,7 @@ void CRoadBlocks::InjectHooks() {
     RH_ScopedInstall(Init, 0x461100);
     RH_ScopedInstall(ClearScriptRoadBlocks, 0x460EC0);
     RH_ScopedInstall(ClearSpaceForRoadBlockObject, 0x461020);
-    RH_ScopedInstall(CreateRoadBlockBetween2Points, 0x4619C0, { .Reversed = false });
+    RH_ScopedInstall(CreateRoadBlockBetween2Points, 0x4619C0);
     RH_ScopedInstall(GenerateRoadBlockPedsForCar, 0x461170);
     RH_ScopedInstall(GenerateRoadBlocks, 0x4629E0);
     RH_ScopedInstall(GetRoadBlockNodeInfo, 0x460EE0);
@@ -102,7 +103,237 @@ bool CRoadBlocks::ClearSpaceForRoadBlockObject(CVector cornerA, CVector cornerB)
 
 // 0x4619C0
 void CRoadBlocks::CreateRoadBlockBetween2Points(CVector a, CVector b, bool isGangRoadBlock) {
-    plugin::Call<0x4619C0, CVector, CVector, bool>(a, b, isGangRoadBlock);
+    constexpr auto MAX_VEHICLES          = 5;
+    constexpr auto MAX_BARRIERS          = 8;
+    constexpr auto TEMP_OBJECT_LIFE_MS   = 600'000u;
+    constexpr auto FIRE_SIZE             = 2.8f;
+    constexpr auto FIRE_BURN_TIME_MS     = 60'000u;
+    constexpr auto FIRE_NUM_GENERATIONS  = 2;
+    constexpr auto FIRE_REMOVAL_DISTANCE = 92;
+    constexpr auto HALF_TURN             = 3.1415927f; // NOTE: Not `PI`, that one is 3.14159f - the original passes this value (0x461EFB)
+
+    const float   length                 = (b - a).Magnitude();
+    const CVector center                 = (a + b) * 0.5f;
+    const CVector dir                    = (b - a).Normalized();
+
+    // Perpendicular to the road block, pointing towards the player's side of it
+    const CVector perp         = CVector{ dir.y, -dir.x, 0.f }.Normalized();
+    const CVector toPlayerSide = (FindPlayerCoors() - center).Dot(perp) < 0.f ? -perp : perp;
+
+    // NOTE: The original masks the bits of `rand()` in this function (`& 0xFF`, `& 0xF`, `& 1`), `GetRandomNumberInRange` scales differently
+    const auto GetRandomHeading = [](float scale) {
+        return ((float)(CGeneral::GetRandomNumber() & 0xFF) - 128.f) * scale;
+    };
+    const auto GetCornersOfBB = [](const CMatrix& mat, const CBoundingBox& bb) {
+        // NOTE: The original uses the inverse (0x59C810) of the rotation here
+        return std::make_pair(mat.InverseTransformVector(bb.m_vecMin) + mat.GetPosition(), mat.InverseTransformVector(bb.m_vecMax) + mat.GetPosition());
+    };
+    const auto SetAsTempObject = [](CObject* obj) {
+        CObject::nNoTempObjects++;
+        obj->m_nObjectType  = OBJECT_TEMPORARY;
+        obj->m_nRemovalTime = CTimer::GetTimeInMS() + TEMP_OBJECT_LIFE_MS;
+        CWorld::Add(obj);
+    };
+
+    const auto vehModel = [&]() -> eModelID {
+        if (isGangRoadBlock) {
+            return CPopulation::PickRiotRoadBlockCar();
+        }
+        const eModelID model = FindPlayerWanted()->AreArmyRequired() // 0x461B9C
+            ? MODEL_BARRACKS
+            : FindPlayerWanted()->AreFbiRequired()
+                ? MODEL_FBIRANCH
+                : FindPlayerWanted()->AreSwatRequired()
+                ? MODEL_ENFORCER
+                : CStreaming::GetDefaultCopCarModel(false);
+        return CStreaming::IsModelLoaded(model) ? model : CStreaming::GetDefaultCopCarModel(false);
+    }();
+    if (vehModel == (isGangRoadBlock ? MODEL_INVALID : MODEL_COPBIKE)) {
+        return;
+    }
+
+    // 0x461C2D - How many vehicles fit, and which of them are parked across the road block (Facing the player's side)
+    const auto& vehBB       = CModelInfo::GetModelInfo(vehModel)->GetColModel()->GetBoundingBox();
+    const float spaceAcross = vehBB.GetWidth() + 2.f;
+    const float spaceAlong  = vehBB.GetLength() + 0.2f + (isGangRoadBlock ? 0.5f : 0.f);
+
+    std::array<bool, MAX_VEHICLES> isParkedAcross{};
+    float                          spaceLeft = length;
+    int32                          numVehs   = 0;
+    for (; numVehs < MAX_VEHICLES; numVehs++) {
+        isParkedAcross[numVehs] = vehModel != MODEL_BARRACKS && !isGangRoadBlock && (CGeneral::GetRandomNumber() & 1) != 0;
+        const float space       = isParkedAcross[numVehs] ? spaceAcross : spaceAlong;
+        if (spaceLeft < space) {
+            break;
+        }
+        spaceLeft -= space;
+    }
+
+    CMatrix     mat{};
+    const float gapBetweenVehs = spaceLeft / (float)(numVehs + 1);
+    float       distAlong      = gapBetweenVehs;
+    for (int32 i = 0; i < numVehs; i++) { // 0x461D72
+        bool isOnItsSide = false;
+        if (isParkedAcross[i]) {
+            distAlong += spaceAcross * 0.5f;
+            mat.GetRight()   = CVector{ toPlayerSide.y, -toPlayerSide.x, 0.f };
+            mat.GetForward() = toPlayerSide;
+            mat.GetUp()      = CVector{ 0.f, 0.f, 1.f };
+            mat.RotateZ(GetRandomHeading(isGangRoadBlock ? 0.004f : 0.002f));
+        } else { // 0x461E33
+            distAlong += spaceAlong * 0.5f;
+            if (isGangRoadBlock) {
+                isOnItsSide = (CGeneral::GetRandomNumber() & 0xFF) < 64;
+            }
+            mat.GetRight()   = isOnItsSide ? CVector{ 0.f, 0.f, 1.f } : CVector{ dir.y, -dir.x, 0.f };
+            mat.GetForward() = dir;
+            mat.GetUp()      = isOnItsSide ? CVector{ -dir.y, dir.x, 0.f } : CVector{ 0.f, 0.f, 1.f };
+            if (CGeneral::GetRandomNumber() & 1) {
+                if (isOnItsSide) {
+                    mat.RotateY(HALF_TURN);
+                } else {
+                    mat.RotateZ(HALF_TURN);
+                }
+            }
+            mat.RotateZ(GetRandomHeading(isGangRoadBlock ? 0.006f : 0.003f));
+        }
+
+        // 0x461F58
+        mat.SetTranslateOnly(a + dir * distAlong);
+        mat.GetPosition().z = mat.GetPosition().z - (isOnItsSide ? vehBB.m_vecMin.x : vehBB.m_vecMin.z) + 0.3f;
+
+        // NOTE: The original always steps by the half of `spaceAlong` here, also after a vehicle parked across
+        distAlong += spaceAlong * 0.5f + gapBetweenVehs;
+
+        const auto [cornerA, cornerB] = GetCornersOfBB(mat, vehBB);
+        if (!ClearSpaceForRoadBlockObject(cornerA, cornerB)) {
+            continue;
+        }
+
+        if (isGangRoadBlock && (isOnItsSide || (CGeneral::GetRandomNumber() & 0xFF) < 64)) { // 0x462110 - A burning wreck
+            auto* const wreck  = new CObject(ModelIndices::MI_ROADBLOCKFUCKEDCAR1, true);
+            wreck->GetMatrix() = mat;
+            wreck->SetPosn(mat.GetPosition());
+            wreck->SetIsStatic(false);
+            SetAsTempObject(wreck);
+            gFireManager.StartFire(wreck, nullptr, FIRE_SIZE, 1, FIRE_BURN_TIME_MS, FIRE_NUM_GENERATIONS);
+            if (wreck->m_pFire) {
+                wreck->m_pFire->SetRemovalDist(FIRE_REMOVAL_DISTANCE);
+            }
+            continue;
+        }
+
+        // 0x4621EF
+        auto* const veh = new CAutomobile(vehModel, RANDOM_VEHICLE, true);
+        veh->SetStatus(STATUS_ABANDONED);
+        mat.GetPosition().z += veh->GetHeightAboveRoad() - 0.6f;
+        veh->GetMatrix() = mat;
+        veh->PlaceOnRoadProperly();
+        veh->SetIsStatic(false);
+        veh->UpdateRwMatrix();
+        veh->m_nDoorLock = CARLOCK_UNLOCKED;
+        CCarCtrl::JoinCarWithRoadSystem(veh);
+        veh->m_autoPilot.ClearCarMission();
+        veh->m_autoPilot.ClearTempAct();
+        veh->m_autoPilot.m_nCurrentLane = 0;
+        veh->m_autoPilot.m_nNextLane    = 0;
+        veh->m_autoPilot.m_speed        = 0.f;
+        veh->m_autoPilot.SetCruiseSpeed(0);
+        veh->vehicleFlags.bNeverUseSmallerRemovalRange = true;
+        veh->vehicleFlags.bIsLocked                    = false;
+        veh->vehicleFlags.bEngineOn                    = false;
+
+        bool isOnFire                                  = false;
+        if (isGangRoadBlock) { // 0x4622F4
+            // NOTE: 1 in 4. `CGeneral::GetRandomNumberInRange(0, 4)` isn't the same (It scales by `max - 1`)
+            if (CGeneral::GetRandomNumber() < (RAND_MAX + 1) / 4) {
+                veh->SetTotalDamage(true);
+            } else {
+                veh->BlowUpCarCutSceneNoExtras(true, true, true, true);
+                veh->m_nTimeWhenBlowedUp += 1'000'000;
+                isOnFire = true;
+            }
+        } else if (veh->UsesSiren() && (CGeneral::GetRandomNumber() & 1)) { // 0x462342
+            veh->vehicleFlags.bSirenOrAlarm = true;
+        }
+
+        if (veh->GetMatrix().GetUp().z <= 0.94f) { // 0x4624BE - On a too steep slope
+            delete veh;
+            continue;
+        }
+
+        // 0x462374
+        CVisibilityPlugins::SetClumpAlpha(veh->GetRpClump(), 0);
+        CWorld::Add(veh);
+        veh->vehicleFlags.bCreateRoadBlockPeds = true;
+        veh->m_nTimeTillWeNeedThisCar          = CTimer::GetTimeInMS() + 7'000;
+        veh->m_nNumPedsForRoadBlock            = numVehs > 3 ? 1 : 2;
+        if (isParkedAcross[i]) { // 0x4623C6 - Peds take cover behind the open front doors
+            veh->m_nPedsPositionForRoadBlock = 2;
+            const auto OpenDoorIfPresent     = [veh](eDoors door) {
+                const auto node = CDamageManager::GetCarNodeIndexFromDoor(door);
+                if (veh->m_aCarNodes[node]) {
+                    veh->OpenDoor(nullptr, node, door, 1.f, true);
+                }
+            };
+            OpenDoorIfPresent(DOOR_LEFT_FRONT);
+            if (veh->m_nNumPedsForRoadBlock > 1) {
+                OpenDoorIfPresent(DOOR_RIGHT_FRONT);
+            }
+        } else { // 0x46242A - Peds stand on the side that is further from the player
+            veh->m_nPedsPositionForRoadBlock = (veh->GetPosition() - FindPlayerCoors()).Dot(veh->GetRight()) < 0.f ? 0 : 1;
+        }
+
+        if (isOnFire) { // 0x462494
+            gFireManager.StartFire(veh, nullptr, FIRE_SIZE, 1, FIRE_BURN_TIME_MS, FIRE_NUM_GENERATIONS);
+            if (veh->m_pFire) {
+                veh->m_pFire->SetRemovalDist(FIRE_REMOVAL_DISTANCE);
+            }
+        }
+    }
+
+    if (isGangRoadBlock) {
+        return;
+    }
+
+    // 0x4624EE - A row of barriers in front of the vehicles (Only the cops have these)
+    const auto  barrierModel       = ModelIndices::MI_ROADWORKBARRIER1;
+    const auto& barrierBB          = CModelInfo::GetModelInfo(barrierModel)->GetColModel()->GetBoundingBox();
+    const float barrierSpace       = barrierBB.GetWidth() + 0.5f;
+    const int32 numBarriers        = std::min((int32)(length / barrierSpace), MAX_BARRIERS);
+    const float gapBetweenBarriers = (length - (float)numBarriers * barrierSpace) / (float)(numBarriers + 1);
+
+    CObject::DeleteAllTempObjectsInArea(center, length * 0.5f);
+
+    for (int32 i = 0; i < numBarriers; i++) { // 0x4625E0
+        const float barrierDistAlong = ((float)i + 0.5f) * barrierSpace + (float)(i + 1) * gapBetweenBarriers;
+
+        mat.GetRight()               = dir;
+        mat.GetForward()             = CVector{ dir.y, -dir.x, 0.f };
+        mat.GetUp()                  = CVector{ 0.f, 0.f, 1.f };
+        mat.GetPosition()            = CVector{};
+        mat.RotateZ(GetRandomHeading(0.003f));
+        mat.SetTranslateOnly(a + dir * barrierDistAlong + toPlayerSide * 5.f);
+        mat.GetPosition().x += (float)(CGeneral::GetRandomNumber() & 0xF) * 0.05f;
+        mat.GetPosition().y += (float)(CGeneral::GetRandomNumber() & 0xF) * 0.05f;
+
+        bool isGroundFound{};
+        mat.GetPosition().z = CWorld::FindGroundZFor3DCoord(mat.GetPosition() + CVector{ 0.f, 0.f, 2.f }, &isGroundFound);
+        if (!isGroundFound) {
+            continue;
+        }
+        mat.GetPosition().z -= barrierBB.m_vecMin.z;
+
+        const auto [cornerA, cornerB] = GetCornersOfBB(mat, barrierBB);
+        if (!ClearSpaceForRoadBlockObject(cornerA, cornerB)) {
+            continue;
+        }
+
+        auto* const barrier  = new CObject(barrierModel, true);
+        barrier->GetMatrix() = mat;
+        barrier->SetPosn(mat.GetPosition());
+        SetAsTempObject(barrier);
+    }
 }
 
 // 0x461170
