@@ -15,9 +15,9 @@ void CTaskComplexGoToPointAnyMeans::InjectHooks() {
     RH_ScopedVirtualClass(CTaskComplexGoToPointAnyMeans, 0x86FF68, 11);
     RH_ScopedCategory("Tasks/TaskTypes");
 
-    RH_ScopedOverloadedInstall(Constructor, "1", 0x66B720, CTaskComplexGoToPointAnyMeans*(CTaskComplexGoToPointAnyMeans::*)(int32, CVector const&, float, int32));
-    RH_ScopedOverloadedInstall(Constructor, "2", 0x66B790, CTaskComplexGoToPointAnyMeans*(CTaskComplexGoToPointAnyMeans::*)(int32, CVector const&, CVehicle*, float, int32));
-    RH_ScopedInstall(Destructor, 0x66B830);
+    RH_ScopedConstructorInstall(0x66B720, "1", {}, int32, const CVector&, float, int32);
+    RH_ScopedConstructorInstall(0x66B790, "2", {}, int32, const CVector&, CVehicle*, float, int32);
+    RH_ScopedDestructorInstall(0x66B830);
     RH_ScopedInstall(CreateSubTask, 0x6705D0);
     RH_ScopedVMTInstall(CreateNextSubTask, 0x6728A0);
     RH_ScopedVMTInstall(CreateFirstSubTask, 0x6729C0);
@@ -25,21 +25,23 @@ void CTaskComplexGoToPointAnyMeans::InjectHooks() {
 }
 
 // 0x66B720
-CTaskComplexGoToPointAnyMeans::CTaskComplexGoToPointAnyMeans(int32 moveState, const CVector& posn, float radius, int32 modelId) : CTaskComplex() {
-    m_Pos = posn;
-    m_Radius    = radius;
-    m_MoveState = static_cast<eMoveState>(moveState);
-    m_ModelId   = modelId;
-    m_Vehicle = nullptr;
+CTaskComplexGoToPointAnyMeans::CTaskComplexGoToPointAnyMeans(int32 moveState, const CVector& posn, float radius, int32 modelId) :
+    m_Pos{ posn },
+    m_MoveState{ static_cast<eMoveState>(moveState) },
+    m_Radius{ radius },
+    m_ModelId{ modelId } {
 }
 
-// optimized (DRY)
 // 0x66B790
-CTaskComplexGoToPointAnyMeans::CTaskComplexGoToPointAnyMeans(int32 moveState, const CVector& posn, CVehicle* vehicle, float radius, int32 modelId)
-    : CTaskComplexGoToPointAnyMeans(moveState, posn, radius, modelId)
-{
+CTaskComplexGoToPointAnyMeans::CTaskComplexGoToPointAnyMeans(int32 moveState, const CVector& posn, CVehicle* vehicle, float radius, int32 modelId) :
+    CTaskComplexGoToPointAnyMeans{ moveState, posn, radius, modelId } {
     m_Vehicle = vehicle;
     CEntity::SafeRegisterRef(m_Vehicle);
+}
+
+// NOTSA
+CTaskComplexGoToPointAnyMeans::CTaskComplexGoToPointAnyMeans(const CTaskComplexGoToPointAnyMeans& o) :
+    CTaskComplexGoToPointAnyMeans{ (int32)o.m_MoveState, o.m_Pos, o.m_Vehicle, o.m_Radius, o.m_ModelId } {
 }
 
 // 0x66B830
