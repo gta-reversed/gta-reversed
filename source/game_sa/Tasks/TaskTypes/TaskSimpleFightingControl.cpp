@@ -8,8 +8,8 @@
 #include "EventBuildingCollision.h"
 
 constexpr auto FIGHT_CTRL_MAX_ATTACK_ANGLE_RAD = DegreesToRadians(15);
-constexpr auto FIGHT_CTRL_FIGHT_IDLE_TIME = 60000.f;  // 0x8D2E50
-constexpr auto FIGHT_CTRL_ATTACK_DELAY_MS = 2000u;   // 0x8D2E4C
+constexpr auto FIGHT_CTRL_FIGHT_IDLE_TIME      = 60000.f; // 0x8D2E50
+constexpr auto FIGHT_CTRL_ATTACK_DELAY_MS      = 2'000u;  // 0x8D2E4C
 
 void CTaskSimpleFightingControl::InjectHooks() {
     RH_ScopedVirtualClass(CTaskSimpleFightingControl, 0x86d700, 9);
@@ -196,7 +196,7 @@ bool CTaskSimpleFightingControl::ProcessPed(CPed* ped) {
         return false;
     } else if (m_nextAttackTime > CTimer::GetTimeInMS()) { // 0x62A21D
         if (m_target->GetIsTypePed() && !m_someTime && CGeneral::GetRandomNumberInRange(0.f, 100.f) < 2.f * shootingRate * 0.025f) {
-            m_someTime = CGeneral::GetRandomNumberInRange(500, 2000, true);
+            m_someTime = CGeneral::GetRandomNumberInRange(500, 2'000, true);
             command    = 2;
         } else if (m_someTime) { // 0x62A270
             const auto stepMs = (uint32)CTimer::GetTimeStepInMS();
