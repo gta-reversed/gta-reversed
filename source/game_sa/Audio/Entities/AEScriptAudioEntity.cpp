@@ -6,8 +6,21 @@
 #include "AEAudioHardware.h"
 #include "AEAmbienceTrackManager.h"
 
-// Used for removed/frontend audio sources
-constexpr CVector AUDIOPOS_SENTINEL{ -1000.0f, -1000.0f, -1000.0f };
+// NOTSA: Handled by the game (0x4EE627), but has no name (`AE_SCRIPT_LAST` has this value)
+constexpr auto AE_SCRIPT_UNNAMED_1190 = static_cast<eAudioEvents>(1'190);
+
+// Tracks of the mini games and the school awards [NOTSA names]
+enum eMissionAmbienceTrack : int32 {
+    TRACK_BEE           = 141,
+    TRACK_BIKE_AWARD    = 142,
+    TRACK_AWARD         = 145,
+    TRACK_DRIVING_AWARD = 149,
+    TRACK_DUAL          = 150,
+    TRACK_GOGO          = 153,
+    TRACK_OTB           = 160,
+    TRACK_PILOT_AWARD   = 161,
+    TRACK_TEMPEST       = 172,
+};
 
 // 0x5B9B60
 void CAEScriptAudioEntity::Initialise() {
@@ -19,10 +32,10 @@ void CAEScriptAudioEntity::Reset() {
     for (auto i = 0; i < MISSION_AUDIO_COUNT; i++) {
         ClearMissionAudio(i);
     }
-    m_Crane                     = nullptr;
     m_MiniGameOneShotTriggered  = false;
+    m_Crane                     = nullptr;
     m_InACrane                  = false;
-    m_MissionSoundEnvelopePhase = 2.0f;
+    m_MissionSoundEnvelopePhase = ENVELOPE_FADE_OUT;
 }
 
 // 0x0
@@ -32,8 +45,8 @@ void CAEScriptAudioEntity::AddAudioEvent(int32) {
 
 // 0x4EC100
 void CAEScriptAudioEntity::AttachMissionAudioToPhysical(uint8 sampleId, CPhysical* physical) {
-    m_WavLinks[sampleId].m_pEntity = physical;
-    m_WavLinks[sampleId].m_vPosition = AUDIOPOS_SENTINEL;
+    m_WavLinks[sampleId].Entity   = physical;
+    m_WavLinks[sampleId].Position = CAudioLink::UNSET_POSITION;
 }
 
 // NOTSA
@@ -48,14 +61,11 @@ void CAEScriptAudioEntity::ClearMissionAudio(uint8 sampleId) {
     }
 
     AESoundManager.CancelSoundsInBankSlot(GetMissionBankSlot(sampleId), true);
-    auto& wav         = m_WavLinks[sampleId];
 
-    // TODO: bankSlotId < 0 is the validity check so it should've been -1 or something
-    // it is this way originally, maybe needs a FIX_BUGS?
-    wav.m_nBankSlotId = 0;
-
-    wav.m_Sound       = nullptr;
-    wav.m_vPosition   = AUDIOPOS_SENTINEL;
+    auto& link    = m_WavLinks[sampleId];
+    link.Entity   = nullptr;
+    link.Sound    = nullptr;
+    link.Position = CAudioLink::UNSET_POSITION;
 }
 
 // 0x4EBFE0
@@ -64,8 +74,8 @@ bool CAEScriptAudioEntity::IsMissionAudioSampleFinished(uint8 sampleId) {
         return true;
     }
 
-    if (sampleId < WAVLINK_UNK_2) {
-        return !m_WavLinks[sampleId].m_Sound;
+    if (sampleId < BANK_LINK_A) {
+        return !m_WavLinks[sampleId].Sound;
     }
     return !AESoundManager.AreSoundsPlayingInBankSlot(GetMissionBankSlot(sampleId));
 }
@@ -76,20 +86,20 @@ bool CAEScriptAudioEntity::GetMissionAudioLoadingStatus(uint8 sampleId) {
         return true;
     }
 
-    auto& wav = m_WavLinks[sampleId];
-    if (wav.m_nBankId < 0) {
+    const auto& link = m_WavLinks[sampleId];
+    if (link.BankID < 0) {
         return true;
     }
 
-    if (wav.m_nBankSlotId < 0) {
+    if (link.SoundID < 0) {
         return AEAudioHardware.GetSoundBankLoadingStatus(
-            wav.m_nBankId,
+            link.BankID,
             GetMissionBankSlot(sampleId)
         );
     } else {
         return AEAudioHardware.GetSoundLoadingStatus(
-            wav.m_nBankId,
-            wav.m_nBankSlotId,
+            link.BankID,
+            static_cast<eSoundID>(link.SoundID),
             GetMissionBankSlot(sampleId)
         );
     }
@@ -97,34 +107,33 @@ bool CAEScriptAudioEntity::GetMissionAudioLoadingStatus(uint8 sampleId) {
 
 // 0x4EC020
 int32 CAEScriptAudioEntity::GetMissionAudioEvent(uint8 sampleId) {
-    return m_WavLinks[sampleId].m_nAudioEvent;
+    return m_WavLinks[sampleId].AudioEvent;
 }
 
 // 0x4EC0C0
 void CAEScriptAudioEntity::SetMissionAudioPosition(uint8 sampleId, const CVector& posn) {
-    m_WavLinks[sampleId].m_vPosition = posn;
-    m_WavLinks[sampleId].m_pEntity = nullptr;
+    m_WavLinks[sampleId].Position = posn;
+    m_WavLinks[sampleId].Entity   = nullptr;
 }
 
 // 0x4EC4D0
 CVector* CAEScriptAudioEntity::GetMissionAudioPosition(uint8 sampleId) {
-    auto& wav = m_WavLinks[sampleId];
-    if (wav.m_pEntity) {
-        return &wav.m_pEntity->GetPosition();
+    auto& link = m_WavLinks[sampleId];
+    if (link.Entity) {
+        return &link.Entity->GetPosition();
     }
-    if (wav.m_vPosition.IsZero() || wav.m_vPosition == AUDIOPOS_SENTINEL) {
-        return nullptr;
-    }
-    return &wav.m_vPosition;
+    return link.HasPosition()
+        ? &link.Position
+        : nullptr;
 }
 
 // 0x4EC6D0
-void CAEScriptAudioEntity::PlayMissionBankSound(eAudioEvents eventId, const CVector& posn, CPhysical* physical, int16 sfxId, uint8 linkId, uint8 a7, float volume, float maxDistance, float speed) {
-    if (linkId < WAVLINK_UNK_2 || linkId >= std::size(m_WavLinks) || a7 && AESoundManager.AreSoundsOfThisEventPlayingForThisEntity(eventId, this)) {
+void CAEScriptAudioEntity::PlayMissionBankSound(eAudioEvents eventId, const CVector& posn, CPhysical* physical, int16 sfxId, uint8 linkId, bool onlyIfNotPlaying, float volume, float maxDistance, float speed) {
+    if (linkId < BANK_LINK_A || linkId >= std::size(m_WavLinks) || onlyIfNotPlaying && AESoundManager.AreSoundsOfThisEventPlayingForThisEntity(eventId, this)) {
         return;
     }
 
-    if (!AEAudioHardware.IsSoundBankLoaded(m_WavLinks[linkId].m_nBankId, GetMissionBankSlot(linkId))) {
+    if (!AEAudioHardware.IsSoundBankLoaded(m_WavLinks[linkId].BankID, GetMissionBankSlot(linkId))) {
         return;
     }
 
@@ -146,7 +155,7 @@ void CAEScriptAudioEntity::PlayMissionBankSound(eAudioEvents eventId, const CVec
 
     if (physical) {
         Play(physical->GetPosition(), false);
-    } else if (posn.IsZero() || posn == AUDIOPOS_SENTINEL) {
+    } else if (posn.IsZero() || posn == CAudioLink::UNSET_POSITION) {
         Play({ 0.0f, 1.0f, 0.0f }, true);
     } else if (posn == CVector{ -1.0f, 0.0f, 0.0f } || posn == CVector{ 1.0f, 0.0f, 0.0f }) {
         Play(posn, true);
@@ -164,7 +173,7 @@ void CAEScriptAudioEntity::PlayResidentSoundEvent(eSoundBankSlot slot, eSoundBan
     const auto [pos, isFrontend] = [&] -> std::pair<CVector, bool> {
         if (physical) {
             return { physical->GetPosition(), false };
-        } else if (posn == AUDIOPOS_SENTINEL || posn.IsZero()) {
+        } else if (posn == CAudioLink::UNSET_POSITION || posn.IsZero()) {
             return { CVector{0.0f, 1.0f, 0.0f}, true };
         } else {
             return { posn, false };
@@ -191,703 +200,641 @@ void CAEScriptAudioEntity::PlayResidentSoundEvent(eSoundBankSlot slot, eSoundBan
 
 // 0x4EC270
 void CAEScriptAudioEntity::PlayLoadedMissionAudio(uint8 sampleId) {
-    if (sampleId >= 4) {
+    if (sampleId >= std::size(m_WavLinks)) {
         return;
     }
-    auto& wav = m_WavLinks[sampleId];
+    auto& link = m_WavLinks[sampleId];
 
-    if (wav.m_nBankId < 0 || wav.m_nBankSlotId < 0 || !GetMissionAudioLoadingStatus(sampleId)) {
+    if (link.BankID < 0 || link.SoundID < 0 || !GetMissionAudioLoadingStatus(sampleId)) {
         return;
     }
 
-    const auto [volume, duck] = [&wav, sampleId] -> std::pair<float, bool> {
-        if (wav.m_nAudioEvent == eAudioEvents::AE_UNDEFINED) { // TODO: This is originally 65535, investigate.
+    const auto [volume, duck] = [&link, sampleId] -> std::pair<float, bool> {
+        if (link.AudioEvent == AE_SCRIPT_SLOT_USE_CUSTOM) { // 0x4EC2F1
             return { VOLUME_SILENCE, false };
         }
 
-        const auto def = CAEAudioEntity::GetDefaultVolume((eAudioEvents)wav.m_nAudioEvent);
+        const auto def = CAEAudioEntity::GetDefaultVolume((eAudioEvents)link.AudioEvent);
         return {
-            (sampleId < 2 && def == -128.0f) ? 6.0f : def,
-            sampleId < 2
+            (sampleId < BANK_LINK_A && def == -128.0f) ? 6.0f : def,
+            sampleId < BANK_LINK_A
         };
     }();
 
-    const auto Play = [&](CVector pos, bool isFrontend) {
-        AESoundManager.PlaySound({
-            .BankSlotID  = GetMissionBankSlot(sampleId),
-            .SoundID     = static_cast<eSoundID>(wav.m_nBankSlotId), // TODO
-            .AudioEntity = this,
-            .Pos         = pos,
-            .Volume      = volume,
-            .Flags       = SOUND_PLAY_PHYSICALLY | SOUND_REQUEST_UPDATES | SOUND_IS_CANCELLABLE| (isFrontend ? SOUND_FRONT_END : 0u)
-                | (duck ? SOUND_IS_DUCKABLE | SOUND_IS_COMPRESSABLE | SOUND_SMOOTH_DUCKING : 0u) });
-    };
+    const auto* const pos = GetMissionAudioPosition(sampleId);
 
-    const auto* pos = GetMissionAudioPosition(sampleId);
-    Play(pos ? *pos : CVector{0.0f, 1.0f, 0.0f}, !pos);
+    // 0x4EC3EC
+    link.Sound = AESoundManager.PlaySound({
+        .BankSlotID    = GetMissionBankSlot(sampleId),
+        .SoundID       = static_cast<eSoundID>(link.SoundID),
+        .AudioEntity   = this,
+        .Pos           = pos ? *pos : CVector{ 0.0f, 1.0f, 0.0f },
+        .Volume        = volume,
+        .RollOffFactor = 2.0f,
+        .Flags         = SOUND_PLAY_PHYSICALLY | SOUND_REQUEST_UPDATES | SOUND_IS_CANCELLABLE | (pos ? 0u : SOUND_FRONT_END) | (duck ? SOUND_IS_DUCKABLE | SOUND_IS_COMPRESSABLE | SOUND_SMOOTH_DUCKING : 0u),
+    });
 }
 
 // 0x4EC190
-void CAEScriptAudioEntity::PreloadMissionAudio(uint8 slotId, eAudioEvents scriptId) {
-    if (slotId >= std::size(m_WavLinks) || !IsMissionAudioSampleFinished(slotId)) {
+void CAEScriptAudioEntity::PreloadMissionAudio(uint8 sampleId, eAudioEvents scriptId) {
+    if (sampleId >= std::size(m_WavLinks) || !IsMissionAudioSampleFinished(sampleId)) {
         return;
     }
 
-    auto&         wav = m_WavLinks[slotId];
-    // TODO: GetBankAndSoundFromScriptSlotAudioEvent writes to a i32 var bank, but m_nBankId is i16
-    // make sure every occurrence of GetBankAndSoundFromScriptSlotAudioEvent is reversed and convert it into
-    // i16, to get rid of wenums here.
-    eSoundBankS32 bank{};
-    if (!CAEAudioUtility::GetBankAndSoundFromScriptSlotAudioEvent(
-        scriptId,
-        bank,
-        wav.m_nBankSlotId,
-        slotId
-    )) {
+    auto& link = m_WavLinks[sampleId];
+    if (!CAEAudioUtility::GetBankAndSoundFromScriptSlotAudioEvent(scriptId, link.BankID, link.SoundID, sampleId)) {
         return;
     }
-    wav.m_nBankId = bank;
 
-    if (wav.m_nBankSlotId < 0) {
-        AEAudioHardware.LoadSoundBank(bank, GetMissionBankSlot(slotId));
+    if (link.SoundID < 0) {
+        AEAudioHardware.LoadSoundBank(link.BankID, GetMissionBankSlot(sampleId));
     } else {
-        AEAudioHardware.LoadSound(bank, wav.m_nBankSlotId, GetMissionBankSlot(slotId));
+        AEAudioHardware.LoadSound(link.BankID, static_cast<eSoundID>(link.SoundID), GetMissionBankSlot(sampleId));
     }
-    wav.m_nAudioEvent = scriptId;
-    wav.m_pEntity     = nullptr;
-    wav.m_vPosition   = AUDIOPOS_SENTINEL;
+    link.AudioEvent = scriptId;
+    link.Entity     = nullptr;
+    link.Position   = CAudioLink::UNSET_POSITION;
 }
 
 // 0x4ECCF0
 void CAEScriptAudioEntity::ProcessMissionAudioEvent(eAudioEvents eventId, const CVector& posn, CPhysical* physical, float volume, float speed) {
-    return plugin::CallMethod<0x4ECCF0, CAEScriptAudioEntity*, eAudioEvents, const CVector&, CPhysical*, float, float>(this, eventId, posn, physical, volume, speed);
+    const auto CancelSoundsOfEvent = [&](eAudioEvents startEvent) {
+        if (physical) {
+            AESoundManager.CancelSoundsOfThisEventPlayingForThisEntityAndPhysical(startEvent, this, physical);
+        } else {
+            AESoundManager.CancelSoundsOfThisEventPlayingForThisEntity(startEvent, this);
+        }
+    };
+    const auto AddDoorAudioEvent = [&](eAudioEvents doorEvent, float doorSpeed) {
+        CVector pos = physical ? physical->GetPosition() : posn;
+        m_DoorAudioEntity.AddAudioEvent(doorEvent, pos, 0.0f, doorSpeed);
+    };
+    const auto PlayAmbienceTrack = [](eMissionAmbienceTrack track) {
+        AEAmbienceTrackManager.PlaySpecialMissionAmbienceTrack(static_cast<eAudioEvents>(track)); // NOTE: It takes a track, not an event
+    };
 
-    /*
-    * Untested
-    * Need to fix case's
-    switch (eventId) {
-    case AE_CAS4_NE:
-    case AE_CAS4_NG:
-        AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_PURCHASE_WEAPON);
-        break;
-    case AE_CAS4_NF:
-    case AE_CAS4_NH:
-        AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_CAR_NO_CASH);
-        break;
-    case AE_CAS4_NJ:
-        AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_RACE_321);
-        break;
-    case AE_CAS4_OA:
-        AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_RACE_GO);
-        break;
-    case AE_CAS4_OB:
-        AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_PART_MISSION_COMPLETE);
-        break;
-    case AE_CAS4_OC:
-        PlayMissionBankSound(eventId, posn, physical, 5, 3u);
-        break;
-    case AE_CAS4_OD:
-        PlayMissionBankSound(eventId, posn, physical, 2, 3);
-        break;
-    case AE_CAS4_OE:
-    case AE_CAS4_TB:
-        PlayMissionBankSound(eventId, posn, physical, 3, 3u);
-        break;
-    case AE_CAS4_OF:
-        AEAmbienceTrackManager.PlaySpecialMissionAmbienceTrack(AE_WEAPON_CHAINSAW_IDLE);
-        break;
-    case AE_CAS4_OG:
-    case AE_CAS4_PA:
-    case AE_CAS4_PK:
-        AEAmbienceTrackManager.StopSpecialMissionAmbienceTrack();
-        break;
-    case AE_CAS4_OH:
-        PlayMissionBankSound(eventId, posn, physical, 6, 3u);
-        break;
-    case AE_CAS4_OJ:
-        PlayMissionBankSound(eventId, posn, physical, 0, 3);
-        break;
-    case AE_CAS4_OK:
-    case AE_CAS4_PG:
-        PlayMissionBankSound(eventId, posn, physical, 1, 3u);
-        break;
-    case AE_CAS4_OL:
-        PlayMissionBankSound(eventId, posn, physical, 4, 3u, 1u);
-        break;
-    case AE_CAS4_OM:
-        AEAmbienceTrackManager.PlaySpecialMissionAmbienceTrack(AE_WEAPON_FIRE_MINIGUN_AMMO);
-        break;
-    case AE_CAS4_PB:
-        PlayMissionBankSound(eventId, posn, physical, 6, 3);
-        break;
-    case AE_CAS4_PD:
-        PlayMissionBankSound(eventId, posn, physical, 4, 3u);
-        break;
-    case AE_CAS4_PE:
-        PlayMissionBankSound(eventId, posn, physical, 2, 3u);
-        break;
-    case AE_CAS4_PF:
-        PlayMissionBankSound(eventId, posn, physical, 5, 3);
-        break;
-    case AE_CAS4_PH:
-        PlayMissionBankSound(eventId, posn, physical, 1, 3u, 0, 0.0f, 2.0f, 0.79f);
-        break;
-    case AE_CAS4_PJ:
-        AEAmbienceTrackManager.PlaySpecialMissionAmbienceTrack(AE_THUNDER);
-        break;
-    case AE_CAS4_QA:
-        PlayMissionBankSound(eventId, posn, physical, 3, 3, 1);
-        break;
-    case AE_CAS4_QB:
-        PlayMissionBankSound(eventId, posn, physical, 2, 2u, 1u, 0.0f, 3.0f);
-        break;
-    case AE_CAS4_RA:
-        PlayMissionBankSound(eventId, posn, physical, 1, 2u, 1u, 0.0f, 3.0f);
-        break;
-    case AE_CAS4_RB:
-        PlayMissionBankSound(eventId, posn, physical, 3, 2u, 1u, 0.0f, 3.0f);
-        PlayMissionBankSound(eventId, posn, physical, 0, 2u, 0, 0.0f, 3.0f, 1.0f);
-        break;
-    case AE_CAS4_RD:
-        AESoundManager.CancelSoundsOfThisEventPlayingForThisEntity(AE_CAS4_RB, this);
-        PlayMissionBankSound(eventId, posn, physical, 4, 2u, 1u, 0.0f, 3.0f);
-        break;
-    case AE_CAS4_RE:
-        AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_SELECT);
-        break;
-    case AE_CAS4_SA:
-        AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_BACK);
-        break;
-    case AE_CAS4_SB:
-        AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_ERROR);
-        break;
-    case AE_CAS4_TA:
-        PlayMissionBankSound(eventId, posn, physical, 0, 3u);
-        m_nLastTimeHornPlayed = CTimer::GetTimeInMS();
-        field_7C = 0;
-        break;
-    case AE_CAS4_TC:
-        if (physical)
-            AESoundManager.CancelSoundsOfThisEventPlayingForThisEntityAndPhysical(AE_CAS5_AA, this, physical);
-        else
-            AESoundManager.CancelSoundsOfThisEventPlayingForThisEntity(AE_CAS5_AA, this);
-        PlayMissionBankSound(eventId, posn, physical, 2, 3u);
-        break;
-    case AE_CAS4_ND:
-        PlayMissionBankSound(eventId, posn, physical, 10, 3u, 1u);
-        break;
-    case AE_CAS4_HC:
-        PlayResidentSoundEvent(2, 39, 19, eventId, posn, physical, 0.0f, 1.0f, 70, 1.0f);
-        break;
-    case AE_CAS4_HD:
-        if (AEAudioHardware.IsSoundBankLoaded(242u, 28)) {
-            PlayMissionBankSound(eventId, posn, physical, 0, 2);
-            break;
-        }
-        if (AEAudioHardware.IsSoundBankLoaded(345u, 28)) {
-            PlayMissionBankSound(eventId, posn, physical, 3, 2u);
-            break;
-        }
-        break;
-    case AE_CAS4_JA:
-        PlayMissionBankSound(eventId, posn, physical, 2, 2u);
-        break;
-    case AE_CAS4_JB:
-        PlayMissionBankSound(eventId, posn, physical, 1, 2u);
-        break;
-    case AE_CAS4_JC: {
-        auto sfxId = (int16)CAEAudioUtility::GetRandomNumberInRange(2, 6);
-        PlayMissionBankSound(eventId, posn, physical, sfxId, 3u);
-        break;
-    }
-    case AE_CAS4_JD:
-        PlayMissionBankSound(eventId, posn, physical, 1, 3u);
-        break;
-    case AE_CAS4_KA:
-        PlayMissionBankSound(eventId, posn, physical, 0, 3u);
-        break;
-    case AE_CAS4_KB:
-        if (physical)
-            AESoundManager.CancelSoundsOfThisEventPlayingForThisEntityAndPhysical(AE_CAS4_KA, this, physical);
-        else
-            AESoundManager.CancelSoundsOfThisEventPlayingForThisEntity(AE_CAS4_KA, this);
-        break;
-    case AE_CAS4_KC:
-        if (physical) {
-            m_GarageAudio.AddAudioEvent(AE_GARAGE_DOOR_OPENING, physical->GetPosition(), 0.0f, 1.0f);
-        } else {
-            m_GarageAudio.AddAudioEvent(AE_GARAGE_DOOR_OPENING, posn, 0.0f, 1.0f);
-        }
-        break;
-    case AE_CAS4_KD:
-        if (physical) {
-            m_GarageAudio.AddAudioEvent(AE_GARAGE_DOOR_OPENED, physical->GetPosition(), 0.0f, 1.0f);
-        } else {
-            m_GarageAudio.AddAudioEvent(AE_GARAGE_DOOR_OPENED, posn, 0.0f, 1.0f);
-        }
-        break;
-    case AE_CAS4_KG:
-        PlayResidentSoundEvent(5, 143, 65, eventId, posn, physical, 0.0f);
-        break;
-    case AE_CAS4_KJ:
-        PlayMissionBankSound(eventId, posn, physical, 8, 3);
-        break;
-    case AE_CAS4_LA:
-        PlayMissionBankSound(eventId, posn, physical, 0, 3u, 1u);
-        m_nLastTimeHornPlayed = CTimer::GetTimeInMS();
-        break;
-    case AE_CAS4_LB:
-        PlayMissionBankSound(eventId, posn, physical, 2, 3u, 1u);
-        break;
-    case AE_CAS4_LC:
-        PlayMissionBankSound(eventId, posn, physical, 1, 3u, 1u);
-        break;
-    case AE_CAS4_LD:
-        PlayMissionBankSound(eventId, posn, physical, 5, 3);
-        break;
-    case AE_CAS4_LE:
-        PlayMissionBankSound(eventId, posn, physical, 4, 3u);
-        break;
-    case AE_CAS4_MA:
-        PlayMissionBankSound(eventId, posn, physical, 3, 3u, 1u);
-        break;
-    case AE_CAS4_NA:
-        PlayMissionBankSound(eventId, posn, physical, 7, 3, 1);
-        break;
-    case AE_CAS4_NB:
-        PlayMissionBankSound(eventId, posn, physical, 6, 3u, 1u);
-        break;
-    case AE_CAS4_NC:
-        PlayMissionBankSound(eventId, posn, physical, 9, 3u, 1u);
-        break;
-    case AE_CAS4_HB:
-        PlayMissionBankSound(eventId, posn, physical, 0, 3u);
-        break;
-    case AE_CAS4_FA:
-        if (AESoundManager.AreSoundsOfThisEventPlayingForThisEntity(eventId, this))
-            break;
-
-        PlayMissionBankSound(eventId, posn, physical, 4, 3);
-        break;
-    case AE_CAS4_FC:
-        PlayMissionBankSound(eventId, posn, physical, 10, 3u);
-        break;
-    case AE_CAS4_FE:
-        PlayMissionBankSound(eventId, posn, physical, 8, 3);
-        break;
-    case AE_CAS4_FF: {
-        auto sfxId = (int16)CAEAudioUtility::GetRandomNumberInRange(3, 5);
-        PlayMissionBankSound(eventId, posn, physical, sfxId, 3u);
-        break;
-    }
-    case AE_CAS4_FG:
-        PlayMissionBankSound(eventId, posn, physical, 7, 3u);
-        break;
-    case AE_CAS4_FH:
-        if (!AEAudioHardware.IsSoundBankLoaded(44u, 40)) {
-            if (AESoundManager.AreSoundsPlayingInBankSlot(40))
-                AESoundManager.CancelSoundsInBankSlot(40, 0);
-            AEAudioHardware.LoadSoundBank(44, 40);
-        }
-        m_Entity = physical;
-        field_7D = 1;
-        break;
-    case AE_CAS4_FJ:
-        if (field_7D) {
-            if (!AESoundManager.AreSoundsOfThisEventPlayingForThisEntityAndPhysical(eventId, this, physical))
-                PlayResidentSoundEvent(40, 44, 1, eventId, posn, physical, 0.0f, 1.0f, 0, 2.5f);
-        }
-        break;
-    case AE_CAS4_FK:
-        if (field_7D) {
-            if (physical)
-                AESoundManager.CancelSoundsOfThisEventPlayingForThisEntityAndPhysical(AE_CAS4_FJ, this, physical);
-            else
-                AESoundManager.CancelSoundsOfThisEventPlayingForThisEntity(AE_CAS4_FJ, this);
-            PlayResidentSoundEvent(40, 44, 2, eventId, posn, physical, 0.0f, 1.0f, 0, 2.5f);
-        }
-        break;
-    case AE_CAS4_FL:
-        if (field_7D) {
-            AESoundManager.CancelSoundsInBankSlot(40, 1);
-            PlayResidentSoundEvent(40, 44, 3, eventId, posn, physical, 0.0f, 1.0f, 0, 2.5f);
-            m_Entity = nullptr;
-            field_7D = 0;
-        }
-        break;
-    case AE_CAS4_HA:
-        PlayMissionBankSound(eventId, posn, physical, 1, 3u);
-        break;
-    case AE_CAS4_EH:
-        PlayMissionBankSound(eventId, posn, physical, 3, 3u);
-        break;
-    case AE_CAS4_EC:
-        AESoundManager.CancelSoundsOfThisEventPlayingForThisEntity(AE_CAS4_EB, this);
-        break;
-    case AE_CAS4_DC:
-        CAEVehicleAudioEntity::EnableHelicoptors();
-        break;
-    case AE_CAS4_DB:
-        CAEVehicleAudioEntity::DisableHelicoptors();
-        break;
-    case AE_CAS4_DD:
-        PlayResidentSoundEvent(2, 39, 64, eventId, posn, physical, 0.0f, 0.79f, 35, 1.0f);
-        break;
-    case AE_CAS4_ED:
-        PlayMissionBankSound(eventId, posn, physical, 0, 2);
-        break;
-    case AE_CAS4_EE:
-        AESoundManager.CancelSoundsOfThisEventPlayingForThisEntity(AE_CAS4_ED, this);
-        break;
-    case AE_CAS4_EF: {
-        auto sfxId = (int16)CAEAudioUtility::GetRandomNumberInRange(20, 28);
-        PlayResidentSoundEvent(2, 39, sfxId, eventId, posn, physical, 0.0f);
-        break;
-    }
-    case AE_CAS4_EG: {
-        auto sfxId = (int16)CAEAudioUtility::GetRandomNumberInRange(0, 2);
-        PlayMissionBankSound(eventId, posn, physical, sfxId, 3u);
-        break;
-    }
-    case AE_CAS5_AA:
-        PlayMissionBankSound(eventId, posn, physical, 0, 3u);
-        break;
-    case AE_CAS5_AB:
-        PlayMissionBankSound(eventId, posn, physical, 1, 3u);
-        break;
-    case AE_CAS5_BE:
-        PlayResidentSoundEvent(2, 39, 65, eventId, posn, physical, 0.0f, 1.0f, 16, 1.0f);
-        break;
-    case AE_CAS5_CB:
-        AEAmbienceTrackManager.PlaySpecialMissionAmbienceTrack(AE_WEAPON_FIRE);
-        break;
-    case AE_CAS5_CF:
-        if (field_7E)
-            PlayResidentSoundEvent(2, 39, 69, eventId, posn, physical, 0.0f, 0.94f, 33, 1.0f);
-        else
-            PlayResidentSoundEvent(2, 39, 70, eventId, posn, physical, 0.0f, 1.0f, 25, 1.0f);
-        field_7E = (field_7E + 1) % 2;
-        break;
-    case AE_CAS5_DB:
-        PlayMissionBankSound(eventId, posn, physical, 1, 2u);
-        break;
-    case AE_CAS5_CG:
-        PlayMissionBankSound(eventId, posn, physical, 0, 2u);
-        break;
-    case AE_CAS6_CB:
-        PlayMissionBankSound(eventId, posn, physical, 0, 2u);
-        break;
-    case AE_CAS5_DA:
-        PlayMissionBankSound(eventId, posn, physical, 1, 2u);
-        break;
-    case AE_CAS5_EA:
-        PlayMissionBankSound(eventId, posn, physical, 2, 2);
-        break;
-    case AE_CAS5_CE:
-        if (field_7E)
-            PlayResidentSoundEvent(2, 39, 69, eventId, posn, physical, 0.0f, 1.0f, 63, 1.0f);
-        else
-            PlayResidentSoundEvent(2, 39, 70, eventId, posn, physical, 0.0f, 1.0f, 62, 1.0f);
-        field_7E = (field_7E + 1) % 2;
-        break;
-    case AE_CAS5_CC:
-        AEAmbienceTrackManager.StopSpecialMissionAmbienceTrack();
-        break;
-    case AE_CAS6_AE:
-    case AE_CAS6_FK:
-    case AE_CAS6_GB:
-    case AE_CAS6_HB:
-        PlayMissionBankSound(eventId, posn, physical, 1, 2u);
-        break;
-    case AE_CAS6_AA:
-        if (AEAudioHardware.IsSoundBankLoaded(167u, 28)) {
-            PlayMissionBankSound(eventId, posn, physical, 3, 2u);
-        } else if (AEAudioHardware.IsSoundBankLoaded(345u, 28)) {
-            PlayMissionBankSound(eventId, posn, physical, 4, 2u);
-        }
-        break;
-    case AE_CAS6_AB:
-        PlayMissionBankSound(eventId, posn, physical, 1, 2u);
-        PlayMissionBankSound(eventId, posn, physical, 0, 2u);
-        break;
-    case AE_CAS6_AC:
-        AESoundManager.CancelSoundsOfThisEventPlayingForThisEntity(AE_CAS6_AB, this);
-        PlayMissionBankSound(eventId, posn, physical, 2, 2u);
-        break;
-    case AE_CAS6_AD:
-    case AE_CAS6_FM:
-    case AE_CAS6_FP:
-        PlayMissionBankSound(eventId, posn, physical, 0, 2u);
-        break;
-    case AE_CAS6_BA:
-        PlayMissionBankSound(eventId, posn, physical, 0, 3u, 1u, -18.0f, 2.0f, 1.0f);
-        field_8C = 1.0f;
-        break;
-    case AE_CAS6_BB:
-    case AE_CAS6_BH:
-        field_8C = 2.0f;
-        break;
-    case AE_CAS6_BC:
-    case AE_CAS6_JK:
-        PlayMissionBankSound(eventId, posn, physical, 2, 3u);
-        break;
-    case AE_CAS6_BD:
-        PlayMissionBankSound(eventId, posn, physical, 3, 3u);
-        break;
-    case AE_CAS6_BE:
-        PlayMissionBankSound(eventId, posn, physical, 7, 3);
-        break;
-    case AE_CAS6_BF:
-        PlayMissionBankSound(eventId, posn, physical, 1, 3u, 1u, -18.0, 2.0f, 1.0f);
-        field_8C = 1.0;
-        break;
-    case AE_CAS6_BK:
-        PlayMissionBankSound(eventId, posn, physical, 0, 3u);
-        break;
-    case AE_CAS6_BL:
-    case AE_CAS6_JJ:
-        PlayMissionBankSound(eventId, posn, physical, 1, 3);
-        break;
-    case AE_CAS6_BM:
-        PlayMissionBankSound(eventId, posn, physical, 2, 3u, 1u);
-        break;
-    case AE_CAS6_BN:
-    case AE_CAS6_KC:
-        PlayMissionBankSound(eventId, posn, physical, 4, 3u);
-        break;
-    case AE_CAS6_CA:
-        PlayMissionBankSound(eventId, posn, physical, 5, 3, 1);
-        break;
-    case AE_CAS6_DA:
-        PlayMissionBankSound(eventId, posn, physical, 1, 2u);
-        PlayMissionBankSound(eventId, posn, physical, 0, 2u);
-        break;
-    case AE_CAS6_DB:
-        AESoundManager.CancelSoundsOfThisEventPlayingForThisEntity(1126, this);
-        PlayMissionBankSound(eventId, posn, physical, 2, 2u);
-        break;
-    case AE_CAS6_EA:
-        PlayMissionBankSound(eventId, posn, physical, 2, 2u);
-        PlayMissionBankSound(eventId, posn, physical, 0, 2u);
-        break;
-    case AE_CAS6_EB:
-        if (physical)
-            AESoundManager.CancelSoundsOfThisEventPlayingForThisEntityAndPhysical(AE_CAS6_EA, this, physical);
-        else
-            AESoundManager.CancelSoundsOfThisEventPlayingForThisEntity(AE_CAS6_EA, this);
-        PlayMissionBankSound(eventId, posn, physical, 3, 2u);
-        break;
-    case AE_CAS6_EC:
-        PlayResidentSoundEvent(5, 143, 58, eventId, posn, physical, 0.0f);
-        PlayResidentSoundEvent(5, 143, 40, eventId, posn, physical, 0.0f);
-        break;
-    case AE_CAS6_ED:
-        PlayResidentSoundEvent(2, 39, 33, eventId, posn, physical, 0.0f);
-        PlayResidentSoundEvent(2, 39, 50, eventId, posn, physical, 0.0f, 0.79f, 22, 1.0f);
-        break;
-    case AE_CAS6_EE:
-        if (physical)
-            AudioEngine.ReportWeaponEvent(AE_WEAPON_FIRE, WEAPON_CAMERA, physical);
-        else
-            PlayResidentSoundEvent(5, 143, 45, eventId, posn, 0, 0.0f);
-        break;
-    case AE_CAS6_EF:
-        AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_BUY_CAR_MOD);
-        break;
-    case AE_CAS6_EG:
-        AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_CAR_RESPRAY);
-        break;
-    case AE_CAS6_EH:
-        PlayResidentSoundEvent(5, 143, 34, eventId, posn, physical, 5.0f);
-        PlayResidentSoundEvent(5, 143, 40, eventId, posn, physical, 0.0f);
-        break;
-    case AE_CAS6_EJ:
-        PlayResidentSoundEvent(5, 143, 82, eventId, posn, physical, -3.0f);
-        break;
-    case AE_CAS6_EK:
-        AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_PART_MISSION_COMPLETE, 0.0f, 1.12f);
-        break;
-    case AE_CAS6_EL:
-    case AE_CAS6_FC:
-        AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_PART_MISSION_COMPLETE);
-        break;
-    case AE_CAS6_EM:
-        AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_PART_MISSION_COMPLETE, 0.0f, 1.26f);
-        break;
-    case AE_CAS6_EN:
-    case AE_CAS6_FA: {
-        auto random = (int16)CAEAudioUtility::GetRandomNumberInRange(20, 28);
-        PlayResidentSoundEvent(2, 39, random, eventId, posn, physical, 0.0f);
-        break;
-    }
-    case AE_CAS6_EO: {
-        auto random = (int16)CAEAudioUtility::GetRandomNumberInRange(20, 28);
-        PlayResidentSoundEvent(2, 39, random, eventId, posn, physical, 0.0f);
-        PlayResidentSoundEvent(2, 39, 65, eventId, posn, physical, 0.0f);
-        break;
-    }
-    case AE_CAS6_EP:
-        AEAmbienceTrackManager.PlaySpecialMissionAmbienceTrack(AE_GARAGE_DOOR_OPENED);
-        break;
-    case AE_CAS6_EQ:
-    case AE_CAS6_LA:
-    case AE_CAS6_LC:
-        AEAmbienceTrackManager.StopSpecialMissionAmbienceTrack();
-        break;
-    case AE_CAS6_ER:
-        if (physical)
-            AudioEngine.ReportWaterSplash(physical, -6.0f, 0);
-        else
-            AudioEngine.ReportWaterSplash(posn, -6.0f);
-        break;
-    case AE_CAS6_ES:
-        PlayResidentSoundEvent(2, 39, 19, eventId, posn, physical, 0.0f, 1.0f, 65, 1.0f);
-        break;
-    case AE_CAS6_EU:
-        if (!AESoundManager.AreSoundsOfThisEventPlayingForThisEntity(eventId, this)) {
-            PlayResidentSoundEvent(17, 74, 7, eventId, posn, physical, 0.0f);
-            m_nLastTimeHornPlayed = CTimer::GetTimeInMS();
-        }
-        break;
-    case AE_CAS6_FF:
-        AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_PICKUP_MONEY);
-        break;
-    case AE_CAS6_FN:
-        if (physical) {
-            m_GarageAudio.AddAudioEvent(AE_GARAGE_DOOR_OPENING, physical->GetPosition(), 0.0f, 1.0f);
-        } else {
-            m_GarageAudio.AddAudioEvent(AE_GARAGE_DOOR_OPENING, posn, 0.0f, 1.0f);
-        }
-        break;
-    case AE_CAS6_FO:
-        if (physical) {
-            m_GarageAudio.AddAudioEvent(AE_GARAGE_DOOR_OPENED, physical->GetPosition(), 0.0f, 1.0f);
-        } else {
-            m_GarageAudio.AddAudioEvent(AE_GARAGE_DOOR_OPENED, posn, 0.0f, 1.0f);
-        }
-        break;
-    case AE_CAS6_GH:
-        if (physical)
-            AudioEngine.ReportWeaponEvent(AE_WEAPON_FIRE, WEAPON_M4, physical);
-        break;
-    case AE_CAS6_GJ:
-        PlayMissionBankSound(eventId, posn, physical, 3, 3u);
-        break;
-    case AE_CAS6_GK:
-        if (physical) {
-            m_ExplosionAudio.AddAudioEvent(AE_EXPLOSION, physical->GetPosition(), 0.0f);
-        } else {
-            m_ExplosionAudio.AddAudioEvent(AE_EXPLOSION, posn, 0.0f);
-        }
-        break;
-    case AE_CAS6_HC:
-        if (physical)
-            AESoundManager.CancelSoundsOfThisEventPlayingForThisEntityAndPhysical(AE_CAS6_HB, this, physical);
-        else
-            AESoundManager.CancelSoundsOfThisEventPlayingForThisEntity(AE_CAS6_HB, this);
-        break;
-    case AE_CAS6_HD:
-        PlayResidentSoundEvent(AE_FRONTEND_FIRE_FAIL_SNIPERRIFFLE, 0, 0, eventId, posn, physical, 0.0f);
-        break;
-    case AE_CAS6_JA: {
-        CVector vec0 = {-1.0f, 0.0f, 0.0f};
-        PlayMissionBankSound(eventId, vec0, nullptr, 0, 3u);
-        CVector vec1 = {+1.0f, 0.0f, 0.0f};
-        PlayMissionBankSound(eventId, vec1, nullptr, 1, 3u);
-        break;
-    }
-    case AE_CAS6_JB:
-        if (physical) {
-            m_GarageAudio.AddAudioEvent(AE_GARAGE_DOOR_OPENING, physical->GetPosition(), 0.0f, 0.79f);
-        } else {
-            m_GarageAudio.AddAudioEvent(AE_GARAGE_DOOR_OPENING, posn, 0.0f, 0.79f);
-        }
-        break;
-    case AE_CAS6_JC:
-        if (physical) {
-            m_GarageAudio.AddAudioEvent(AE_GARAGE_DOOR_OPENED, physical->GetPosition(), 0.0f, 1.0f);
-        } else {
-            m_GarageAudio.AddAudioEvent(AE_GARAGE_DOOR_OPENED, posn, 0.0f, 1.0f);
-        }
-        break;
-    case AE_CAS6_JD:
-    case AE_CAS6_KA:
-        PlayMissionBankSound(eventId, posn, physical, 0, 3u, 1u);
-        m_nLastTimeHornPlayed = CTimer::GetTimeInMS();
-        break;
-    case AE_CAS6_JE:
-        PlayMissionBankSound(eventId, posn, physical, 0, 3u);
-        break;
-    case AE_CAS6_JF:
-        PlayMissionBankSound(eventId, posn, physical, 1, 3u);
-        break;
-    case AE_CAS6_JG:
-        PlayMissionBankSound(eventId, posn, physical, 6, 3u);
-        break;
-    case AE_CAS6_JL:
-        PlayMissionBankSound(eventId, posn, physical, 5, 3u, 0, 0.0f, 2.0f, 0.67f);
-        break;
-    case AE_CAS6_JM:
-        PlayMissionBankSound(eventId, posn, physical, 5, 3, 0, 0.0f, 2.0f, 0.79f);
-        break;
-    case AE_CAS6_JN:
-        PlayMissionBankSound(eventId, posn, physical, 5, 3u);
-        break;
-    case AE_CAS6_JO:
-        PlayMissionBankSound(eventId, posn, physical, 8, 3u, 1u, 0.0f, 2.0f, 0.38f);
-        break;
-    case AE_CAS6_KB:
-        PlayMissionBankSound(eventId, posn, physical, 3, 3, 1);
-        break;
-    case AE_CAS6_KD:
-        PlayMissionBankSound(eventId, posn, physical, 7, 3u);
-        break;
-    case AE_CAS6_KE:
-        AEAmbienceTrackManager.PlaySpecialMissionAmbienceTrack(AE_BLAST_DOOR_SLIDE_START);
-        break;
-    case AE_CAS6_LB:
-        AEAmbienceTrackManager.PlaySpecialMissionAmbienceTrack(AE_WEAPON_FIRE_PLANE);
-        break;
-    case AE_CAS6_LD:
-        AEAmbienceTrackManager.PlaySpecialMissionAmbienceTrack(AE_RAIN_COLLISION);
-        break;
-    case AE_CAS9_AA:
-    case AE_CAS9_AC:
-        AEAmbienceTrackManager.StopSpecialMissionAmbienceTrack();
-        break;
-    case AE_CAS9_AB:
-        AEAmbienceTrackManager.PlaySpecialMissionAmbienceTrack(AE_GARAGE_DOOR_CLOSING);
-        break;
-    case AE_CAS9_AD:
-        if (CLocalisation::Blood() && physical && physical->GetIsTypePed()) {
-            physical->AsPed()->GetAE().AddAudioEvent(AE_PED_CRUNCH, 0.0f, 1.0f, physical, 0, 0, 0);
-        }
-        break;
-    case AE_CAS9_BA: {
-        auto sfxId = (int16)CAEAudioUtility::GetRandomNumberInRange(78, 80);
-        PlayResidentSoundEvent(5, 143, sfxId, eventId, posn, physical, 0.0f);
-        break;
-    }
-    case AE_CRANE_WINCH_MOVE:
-        if (!field_7D) {
+    // NOTE: The original only looks at the low 16 bits of the event (0x4ECCFB)
+    switch (static_cast<eAudioEvents>(static_cast<uint16>(eventId))) {
+    case AE_CRANE_WINCH_MOVE: // 0x4ECD8C
+        if (!m_InACrane) {
             break;
         }
         if (!AESoundManager.AreSoundsOfThisEventPlayingForThisEntityAndPhysical(eventId, this, physical)) {
-            PlayResidentSoundEvent(40, 44, 1, eventId, posn, physical, volume, speed, 0, 2.5f);
+            PlayResidentSoundEvent(SND_BANK_SLOT_PLAYER_ENGINE_P, SND_BANK_GENRL_CRANE_P, SND_GENRL_CRANE_P_LIFT_LOOP, eventId, posn, physical, volume, speed, 0, 2.5f);
         }
-        m_Speed = speed;
-        m_Volume = GetDefaultVolume(AE_CRANE_WINCH_MOVE) + volume;
-        m_nLastTimeHornPlayed = CTimer::GetTimeInMS();
+        m_CraneFrequencyScaling         = speed;
+        m_CraneVolume                   = GetDefaultVolume(AE_CRANE_WINCH_MOVE) + volume;
+        m_LastMiniGameLoopTriggerTimeMs = CTimer::GetTimeInMS();
+        break;
+    case AE_SCRIPT_DISABLE_HELI_AUDIO: // 0x4ECD7D
+        CAEVehicleAudioEntity::DisableHelicoptors();
+        break;
+    case AE_SCRIPT_ENABLE_HELI_AUDIO: // 0x4ECE0C
+        CAEVehicleAudioEntity::EnableHelicoptors();
+        break;
+    case AE_SCRIPT_CEILING_VENT_LAND: // 0x4ECE43
+        PlayResidentSoundEvent(SND_BANK_SLOT_COLLISIONS, SND_BANK_GENRL_COLLISIONS, SND_GENRL_COLLISIONS_SIGN_B, eventId, posn, physical, 0.0f, 0.79f, 35);
+        break;
+    case AE_SCRIPT_CLAXON_START: // 0x4ECE2C
+        PlayMissionBankSound(eventId, posn, physical, 1, BANK_LINK_A);
+        break;
+    case AE_SCRIPT_CLAXON_STOP: // 0x4ECE73
+        AESoundManager.CancelSoundsOfThisEventPlayingForThisEntity(AE_SCRIPT_CLAXON_START, this);
+        break;
+    case AE_SCRIPT_BLAST_DOOR_SLIDE_START: // 0x4ED390
+        PlayMissionBankSound(eventId, posn, physical, 0, BANK_LINK_A);
+        break;
+    case AE_SCRIPT_BLAST_DOOR_SLIDE_STOP: // 0x4ECEDC
+        AESoundManager.CancelSoundsOfThisEventPlayingForThisEntity(AE_SCRIPT_BLAST_DOOR_SLIDE_START, this);
+        break;
+    case AE_SCRIPT_BONNET_DENT:
+    case AE_SCRIPT_CAR_SMASH_CAR:
+    case AE_SCRIPT_MAGNET_VEHICLE_COLLISION: // 0x4EE25A
+        PlayResidentSoundEvent(SND_BANK_SLOT_COLLISIONS, SND_BANK_GENRL_COLLISIONS, CAEAudioUtility::GetRandomNumberInRange<eSoundID>(SND_GENRL_COLLISIONS_COLCAR01, SND_GENRL_COLLISIONS_COLCAR12), eventId, posn, physical, 0.0f);
+        break;
+    case AE_SCRIPT_BASKETBALL_BOUNCE: // 0x4ECEA3
+        PlayMissionBankSound(eventId, posn, physical, CAEAudioUtility::GetRandomNumberInRange<eSoundID>(0, 2), BANK_LINK_B);
+        break;
+    case AE_SCRIPT_BASKETBALL_HIT_HOOP:
+    case AE_SCRIPT_GOGO_EXPLOSION:
+    case AE_SCRIPT_BANDIT_INSERT_COIN:
+    case AE_SCRIPT_OTB_NO_CASH: // 0x4ED588
+        PlayMissionBankSound(eventId, posn, physical, 3, BANK_LINK_B);
+        break;
+    case AE_SCRIPT_BASKETBALL_SCORE: // 0x4ECFA1
+        if (!AESoundManager.AreSoundsOfThisEventPlayingForThisEntity(eventId, this)) {
+            PlayMissionBankSound(eventId, posn, physical, 4, BANK_LINK_B);
+        }
+        break;
+    case AE_SCRIPT_POOL_HIT_WHITE: // 0x4ECF0C
+        PlayMissionBankSound(eventId, posn, physical, 10, BANK_LINK_B);
+        break;
+    case AE_SCRIPT_POOL_HIT_CUSHION:
+    case AE_SCRIPT_DUAL_SHOOT: // 0x4ED317
+        PlayMissionBankSound(eventId, posn, physical, 8, BANK_LINK_B);
+        break;
+    case AE_SCRIPT_POOL_BALL_POT: // 0x4ECF3A
+        PlayMissionBankSound(eventId, posn, physical, CAEAudioUtility::GetRandomNumberInRange<eSoundID>(3, 5), BANK_LINK_B);
+        break;
+    case AE_SCRIPT_POOL_CHALK_CUE:
+    case AE_SCRIPT_TEMPEST_SELECT: // 0x4ECF73
+        PlayMissionBankSound(eventId, posn, physical, 7, BANK_LINK_B);
+        break;
+    case AE_SCRIPT_CRANE_ENTER: // 0x4ECFCD
+        if (!AEAudioHardware.IsSoundBankLoaded(SND_BANK_GENRL_CRANE_P, SND_BANK_SLOT_PLAYER_ENGINE_P)) {
+            if (AESoundManager.AreSoundsPlayingInBankSlot(SND_BANK_SLOT_PLAYER_ENGINE_P)) {
+                AESoundManager.CancelSoundsInBankSlot(SND_BANK_SLOT_PLAYER_ENGINE_P, false);
+            }
+            AEAudioHardware.LoadSoundBank(SND_BANK_GENRL_CRANE_P, SND_BANK_SLOT_PLAYER_ENGINE_P);
+        }
+        m_Crane    = physical;
+        m_InACrane = true;
+        break;
+    case AE_SCRIPT_CRANE_MOVE_START: // 0x4ED07B
+        if (m_InACrane && !AESoundManager.AreSoundsOfThisEventPlayingForThisEntityAndPhysical(eventId, this, physical)) {
+            PlayResidentSoundEvent(SND_BANK_SLOT_PLAYER_ENGINE_P, SND_BANK_GENRL_CRANE_P, SND_GENRL_CRANE_P_LIFT_LOOP, eventId, posn, physical, 0.0f, 1.0f, 0, 2.5f);
+        }
+        break;
+    case AE_SCRIPT_CRANE_MOVE_STOP: // 0x4ED0CC
+        if (!m_InACrane) {
+            break;
+        }
+        CancelSoundsOfEvent(AE_SCRIPT_CRANE_MOVE_START);
+        PlayResidentSoundEvent(SND_BANK_SLOT_PLAYER_ENGINE_P, SND_BANK_GENRL_CRANE_P, SND_GENRL_CRANE_P_CRANE_LIMIT, eventId, posn, physical, 0.0f, 1.0f, 0, 2.5f);
+        break;
+    case AE_SCRIPT_CRANE_EXIT: // 0x4ED024
+        if (!m_InACrane) {
+            break;
+        }
+        AESoundManager.CancelSoundsInBankSlot(SND_BANK_SLOT_PLAYER_ENGINE_P, true);
+        PlayResidentSoundEvent(SND_BANK_SLOT_PLAYER_ENGINE_P, SND_BANK_GENRL_CRANE_P, SND_GENRL_CRANE_P_CRANE_OFF, eventId, posn, physical, 0.0f, 1.0f, 0, 2.5f);
+        m_Crane    = nullptr;
+        m_InACrane = false;
+        break;
+    case AE_SCRIPT_VIDEO_POKER_PAYOUT: // 0x4ED129
+        PlayMissionBankSound(eventId, posn, physical, 1, BANK_LINK_B);
+        break;
+    case AE_SCRIPT_VIDEO_POKER_BUTTON: // 0x4ED157
+        PlayMissionBankSound(eventId, posn, physical, 0, BANK_LINK_B);
+        break;
+    case AE_SCRIPT_WHEEL_OF_FORTUNE_CLACKER: // 0x4ED34B
+        PlayResidentSoundEvent(SND_BANK_SLOT_COLLISIONS, SND_BANK_GENRL_COLLISIONS, SND_GENRL_COLLISIONS_COLBENCH1, eventId, posn, physical, 0.0f, 1.0f, 70);
+        break;
+    case AE_SCRIPT_KEYPAD_BEEP: // 0x4ED37B
+        if (AEAudioHardware.IsSoundBankLoaded(SND_BANK_SCRIPT_KEYPAD, SND_BANK_SLOT_MISSION3)) {
+            PlayMissionBankSound(eventId, posn, physical, 0, BANK_LINK_A);
+        } else if (AEAudioHardware.IsSoundBankLoaded(SND_BANK_SCRIPT_UNCLE_SAM, SND_BANK_SLOT_MISSION3)) { // 0x4ED3BE
+            PlayMissionBankSound(eventId, posn, physical, 3, BANK_LINK_A);
+        }
+        break;
+    case AE_SCRIPT_KEYPAD_PASS: // 0x4EE400
+        PlayMissionBankSound(eventId, posn, physical, 2, BANK_LINK_A);
+        break;
+    case AE_SCRIPT_KEYPAD_FAIL:
+    case AE_SCRIPT_DA_NANG_HEAVY_DOOR_OPEN:
+    case AE_SCRIPT_CAT2_WOODEN_DOOR_BREACH: // 0x4ED405
+        PlayMissionBankSound(eventId, posn, physical, 1, BANK_LINK_A);
+        break;
+    case AE_SCRIPT_SHOOTING_RANGE_TARGET_SHATTER: // 0x4ED4AD
+        PlayMissionBankSound(eventId, posn, physical, CAEAudioUtility::GetRandomNumberInRange<eSoundID>(2, 6), BANK_LINK_B);
+        break;
+    case AE_SCRIPT_SHOOTING_RANGE_TARGET_DROP: // 0x4ED433
+        PlayMissionBankSound(eventId, posn, physical, 1, BANK_LINK_B);
+        break;
+    case AE_SCRIPT_SHOOTING_RANGE_TARGET_MOVE_START: // 0x4ED447
+        PlayMissionBankSound(eventId, posn, physical, 0, BANK_LINK_B);
+        break;
+    case AE_SCRIPT_SHOOTING_RANGE_TARGET_MOVE_STOP: // 0x4ED475
+        CancelSoundsOfEvent(AE_SCRIPT_SHOOTING_RANGE_TARGET_MOVE_START);
+        break;
+    case AE_SCRIPT_SHUTTER_DOOR_START:
+    case AE_SCRIPT_GARAGE_DOOR_START: // 0x4EDBEA
+        AddDoorAudioEvent(AE_GARAGE_DOOR_OPENING, 1.0f);
+        break;
+    case AE_SCRIPT_SHUTTER_DOOR_STOP:
+    case AE_SCRIPT_GARAGE_DOOR_STOP: // 0x4EDC39
+        AddDoorAudioEvent(AE_GARAGE_DOOR_OPENED, 1.0f);
+        break;
+    case AE_SCRIPT_PARACHUTE_OPEN: // 0x4ED32B
+        PlayResidentSoundEvent(SND_BANK_SLOT_WEAPON_GEN, SND_BANK_GENRL_WEAPONS, 65, eventId, posn, physical, 0.0f);
+        break;
+    case AE_SCRIPT_DUAL_THRUST: // 0x4ED19B
+        PlayMissionBankSound(eventId, posn, physical, 0, BANK_LINK_B, true);
+        m_LastMiniGameLoopTriggerTimeMs = CTimer::GetTimeInMS();
+        break;
+    case AE_SCRIPT_DUAL_EXPLOSION_SHORT:
+    case AE_SCRIPT_OTB_LOSE: // 0x4ED1D5
+        PlayMissionBankSound(eventId, posn, physical, 2, BANK_LINK_B, true);
+        break;
+    case AE_SCRIPT_DUAL_EXPLOSION_LONG: // 0x4ED203
+        PlayMissionBankSound(eventId, posn, physical, 1, BANK_LINK_B, true);
+        break;
+    case AE_SCRIPT_DUAL_MENU_SELECT:
+    case AE_SCRIPT_BEE_SELECT: // 0x4ED231
+        PlayMissionBankSound(eventId, posn, physical, 5, BANK_LINK_B);
+        break;
+    case AE_SCRIPT_DUAL_MENU_DESELECT:
+    case AE_SCRIPT_BEE_PICKUP:
+    case AE_SCRIPT_TEMPEST_HIGHLIGHT: // 0x4ED248
+        PlayMissionBankSound(eventId, posn, physical, 4, BANK_LINK_B);
+        break;
+    case AE_SCRIPT_DUAL_GAME_OVER: // 0x4ED276
+        PlayMissionBankSound(eventId, posn, physical, 3, BANK_LINK_B, true);
+        break;
+    case AE_SCRIPT_DUAL_PICKUP_LIGHT: // 0x4ED2A4
+        PlayMissionBankSound(eventId, posn, physical, 7, BANK_LINK_B, true);
+        break;
+    case AE_SCRIPT_DUAL_PICKUP_DARK: // 0x4ED2BB
+        PlayMissionBankSound(eventId, posn, physical, 6, BANK_LINK_B, true);
+        break;
+    case AE_SCRIPT_DUAL_TOUCH_DARK: // 0x4ED2E9
+        PlayMissionBankSound(eventId, posn, physical, 9, BANK_LINK_B, true);
+        break;
+    case AE_SCRIPT_DUAL_TOUCH_LIGHT: // 0x4ED4E6
+        PlayMissionBankSound(eventId, posn, physical, 10, BANK_LINK_B, true);
+        break;
+    case AE_SCRIPT_AMMUNATION_BUY_WEAPON:
+    case AE_SCRIPT_SHOP_BUY: // 0x4ED939
+        AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_PURCHASE_WEAPON);
+        break;
+    case AE_SCRIPT_AMMUNATION_BUY_WEAPON_DENIED:
+    case AE_SCRIPT_SHOP_BUY_DENIED: // 0x4ED956
+        AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_CAR_NO_CASH);
+        break;
+    case AE_SCRIPT_RACE_321: // 0x4ED973
+        AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_RACE_321);
+        break;
+    case AE_SCRIPT_RACE_GO: // 0x4ED990
+        AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_RACE_GO);
+        break;
+    case AE_SCRIPT_PART_MISSION_COMPLETE:
+    case AE_SCRIPT_CHECKPOINT_GREEN:
+    case AE_SCRIPT_PROPERTY_PURCHASED: // 0x4EE5ED
+        AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_PART_MISSION_COMPLETE);
+        break;
+    case AE_SCRIPT_GOGO_PLAYER_FIRE: // 0x4ED543
+        PlayMissionBankSound(eventId, posn, physical, 5, BANK_LINK_B);
+        break;
+    case AE_SCRIPT_GOGO_ENEMY_FIRE: // 0x4ED571
+        PlayMissionBankSound(eventId, posn, physical, 2, BANK_LINK_B);
+        break;
+    case AE_SCRIPT_GOGO_TRACK_START: // 0x4ED655
+        PlayAmbienceTrack(TRACK_GOGO);
+        break;
+    case AE_SCRIPT_GOGO_TRACK_STOP:
+    case AE_SCRIPT_DUAL_TRACK_STOP:
+    case AE_SCRIPT_BEE_TRACK_STOP:
+    case AE_SCRIPT_AWARD_TRACK_STOP:
+    case AE_SCRIPT_OTB_TRACK_STOP:
+    case AE_SCRIPT_TEMPEST_TRACK_STOP:
+    case AE_SCRIPT_DRIVING_AWARD_TRACK_STOP:
+    case AE_SCRIPT_BIKE_AWARD_TRACK_STOP:
+    case AE_SCRIPT_PILOT_AWARD_TRACK_STOP: // 0x4EE565
+        AEAmbienceTrackManager.StopSpecialMissionAmbienceTrack();
+        break;
+    case AE_SCRIPT_GOGO_SELECT:
+    case AE_SCRIPT_TEMPEST_PLAYER_SHOOT: // 0x4ED5B6
+        PlayMissionBankSound(eventId, posn, physical, 6, BANK_LINK_B);
+        break;
+    case AE_SCRIPT_GOGO_ACCEPT: // 0x4ED5E4
+        PlayMissionBankSound(eventId, posn, physical, 0, BANK_LINK_B);
+        break;
+    case AE_SCRIPT_GOGO_DECLINE:
+    case AE_SCRIPT_BEE_ACCEPT: // 0x4ED5F9
+        PlayMissionBankSound(eventId, posn, physical, 1, BANK_LINK_B);
+        break;
+    case AE_SCRIPT_GOGO_GAME_OVER: // 0x4ED627
+        PlayMissionBankSound(eventId, posn, physical, 4, BANK_LINK_B, true);
+        break;
+    case AE_SCRIPT_DUAL_TRACK_START: // 0x4ED52A
+        PlayAmbienceTrack(TRACK_DUAL);
+        break;
+    case AE_SCRIPT_BEE_ZAP: // 0x4ED66E
+        PlayMissionBankSound(eventId, posn, physical, 6, BANK_LINK_B);
+        break;
+    case AE_SCRIPT_BEE_DROP: // 0x4ED685
+        PlayMissionBankSound(eventId, posn, physical, 2, BANK_LINK_B);
+        break;
+    case AE_SCRIPT_BEE_DECLINE: // 0x4ED6B3
+        PlayMissionBankSound(eventId, posn, physical, 1, BANK_LINK_B, false, 0.0f, 2.0f, 0.79f);
+        break;
+    case AE_SCRIPT_BEE_TRACK_START: // 0x4ED6F8
+        PlayAmbienceTrack(TRACK_BEE);
+        break;
+    case AE_SCRIPT_BEE_GAME_OVER:
+    case AE_SCRIPT_TEMPEST_GAME_OVER: // 0x4ED6E1
+        PlayMissionBankSound(eventId, posn, physical, 3, BANK_LINK_B, true);
+        break;
+    case AE_SCRIPT_FREEZER_OPEN: // 0x4ED86A
+        PlayMissionBankSound(eventId, posn, physical, 2, BANK_LINK_A, true, 0.0f, 3.0f);
+        break;
+    case AE_SCRIPT_FREEZER_CLOSE: // 0x4ED853
+        PlayMissionBankSound(eventId, posn, physical, 1, BANK_LINK_A, true, 0.0f, 3.0f);
+        break;
+    case AE_SCRIPT_MEAT_TRACK_START: // 0x4ED898
+        PlayMissionBankSound(eventId, posn, physical, 3, BANK_LINK_A, true, 0.0f, 3.0f);
+        PlayMissionBankSound(eventId, posn, physical, 0, BANK_LINK_A, false, 0.0f, 3.0f);
+        break;
+    case AE_SCRIPT_MEAT_TRACK_STOP: // 0x4ED8E2
+        AESoundManager.CancelSoundsOfThisEventPlayingForThisEntity(AE_SCRIPT_MEAT_TRACK_START, this);
+        PlayMissionBankSound(eventId, posn, physical, 4, BANK_LINK_A, true, 0.0f, 3.0f);
+        break;
+    case AE_SCRIPT_ROULETTE_ADD_CASH: // 0x4ED78F
+        AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_SELECT);
+        break;
+    case AE_SCRIPT_ROULETTE_REMOVE_CASH: // 0x4ED7AC
+        AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_BACK);
+        break;
+    case AE_SCRIPT_ROULETTE_NO_CASH: // 0x4ED7C9
+        AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_ERROR);
+        break;
+    case AE_SCRIPT_ROULETTE_SPIN: // 0x4ED7E6
+        PlayMissionBankSound(eventId, posn, physical, 0, BANK_LINK_B);
+        m_LastMiniGameLoopTriggerTimeMs = CTimer::GetTimeInMS();
+        m_MiniGameOneShotTriggered      = false;
+        break;
+    case AE_SCRIPT_BANDIT_WHEEL_STOP: // 0x4ED728
+        CancelSoundsOfEvent(AE_SCRIPT_BANDIT_WHEEL_START);
+        PlayMissionBankSound(eventId, posn, physical, 2, BANK_LINK_B);
+        break;
+    case AE_SCRIPT_BANDIT_WHEEL_START: // 0x4ED711
+        PlayMissionBankSound(eventId, posn, physical, 0, BANK_LINK_B);
+        break;
+    case AE_SCRIPT_BANDIT_PAYOUT: // 0x4ED778
+        PlayMissionBankSound(eventId, posn, physical, 1, BANK_LINK_B);
+        break;
+    case AE_SCRIPT_BIKE_PACKER_CLUNK: // 0x4ED823
+        PlayResidentSoundEvent(SND_BANK_SLOT_COLLISIONS, SND_BANK_GENRL_COLLISIONS, SND_GENRL_COLLISIONS_SOLID_METAL, eventId, posn, physical, 0.0f, 1.0f, 16);
+        break;
+    case AE_SCRIPT_AWARD_TRACK_START: // 0x4ED920
+        PlayAmbienceTrack(TRACK_AWARD);
+        break;
+    case AE_SCRIPT_MESH_GATE_OPEN_START: // 0x4ED9AD
+        if (m_MeshGateTriggerCount) {
+            PlayResidentSoundEvent(SND_BANK_SLOT_COLLISIONS, SND_BANK_GENRL_COLLISIONS, SND_GENRL_COLLISIONS_WIRE_FENCE1, eventId, posn, physical, 0.0f, 1.0f, 63);
+        } else {
+            PlayResidentSoundEvent(SND_BANK_SLOT_COLLISIONS, SND_BANK_GENRL_COLLISIONS, SND_GENRL_COLLISIONS_WIRE_FENCE2, eventId, posn, physical, 0.0f, 1.0f, 62);
+        }
+        m_MeshGateTriggerCount = (m_MeshGateTriggerCount + 1) % 2;
+        break;
+    case AE_SCRIPT_MESH_GATE_OPEN_STOP: // 0x4EDD79
+        if (m_MeshGateTriggerCount) {
+            PlayResidentSoundEvent(SND_BANK_SLOT_COLLISIONS, SND_BANK_GENRL_COLLISIONS, SND_GENRL_COLLISIONS_WIRE_FENCE1, eventId, posn, physical, 0.0f, 0.94f, 33);
+        } else {
+            PlayResidentSoundEvent(SND_BANK_SLOT_COLLISIONS, SND_BANK_GENRL_COLLISIONS, SND_GENRL_COLLISIONS_WIRE_FENCE2, eventId, posn, physical, 0.0f, 1.0f, 25);
+        }
+        m_MeshGateTriggerCount = (m_MeshGateTriggerCount + 1) % 2;
+        break;
+    case AE_SCRIPT_OGLOC_DOORBELL: // 0x4EE2EE
+        PlayMissionBankSound(eventId, posn, physical, 0, BANK_LINK_A);
+        break;
+    case AE_SCRIPT_OGLOC_WINDOW_RATTLE_BANG: // 0x4EE31C
+        PlayMissionBankSound(eventId, posn, physical, 1, BANK_LINK_A);
+        break;
+    case AE_SCRIPT_STINGER_RELOAD:
+    case AE_SCRIPT_MECHANIC_SLIDE_OUT: // 0x4EE361
+        PlayMissionBankSound(eventId, posn, physical, 1, BANK_LINK_A);
+        break;
+    case AE_SCRIPT_HEAVY_DOOR_START: // 0x4EDFDA
+        PlayMissionBankSound(eventId, posn, physical, 2, BANK_LINK_A);
+        break;
+    case AE_SCRIPT_SHOOT_CONTROLS: // 0x4EDFF1
+        if (AEAudioHardware.IsSoundBankLoaded(SND_BANK_SCRIPT_BLACK_PROJECT, SND_BANK_SLOT_MISSION3)) {
+            PlayMissionBankSound(eventId, posn, physical, 3, BANK_LINK_A);
+        } else if (AEAudioHardware.IsSoundBankLoaded(SND_BANK_SCRIPT_UNCLE_SAM, SND_BANK_SLOT_MISSION3)) { // 0x4EE00A
+            PlayMissionBankSound(eventId, posn, physical, 4, BANK_LINK_A);
+        }
+        break;
+    case AE_SCRIPT_CARGO_PLANE_DOOR_START: // 0x4EDF9C
+        PlayMissionBankSound(eventId, posn, physical, 1, BANK_LINK_A);
+        PlayMissionBankSound(eventId, posn, physical, 0, BANK_LINK_A);
+        break;
+    case AE_SCRIPT_CARGO_PLANE_DOOR_STOP: // 0x4EDFB3
+        AESoundManager.CancelSoundsOfThisEventPlayingForThisEntity(AE_SCRIPT_CARGO_PLANE_DOOR_START, this);
+        PlayMissionBankSound(eventId, posn, physical, 2, BANK_LINK_A);
+        break;
+    case AE_SCRIPT_DA_NANG_CONTAINER_OPEN:
+    case AE_SCRIPT_MECHANIC_ATTACH_CAR_BOMB:
+    case AE_SCRIPT_CAT2_SECURITY_ALARM: // 0x4EE38F
+        PlayMissionBankSound(eventId, posn, physical, 0, BANK_LINK_A);
+        break;
+    case AE_SCRIPT_GYM_BIKE_START: // 0x4EE1BC
+        PlayMissionBankSound(eventId, posn, physical, 0, BANK_LINK_B, true, -18.0f);
+        m_MissionSoundEnvelopePhase = ENVELOPE_FADE_IN;
+        break;
+    case AE_SCRIPT_GYM_BIKE_STOP:
+    case AE_SCRIPT_GYM_RUNNING_MACHINE_STOP: // 0x4EE246
+        m_MissionSoundEnvelopePhase = ENVELOPE_FADE_OUT;
+        break;
+    case AE_SCRIPT_GYM_BOXING_BELL:
+    case AE_SCRIPT_TEMPEST_EXPLOSION: // 0x4EDB04
+        PlayMissionBankSound(eventId, posn, physical, 2, BANK_LINK_B);
+        break;
+    case AE_SCRIPT_GYM_INCREASE_DIFFICULTY: // 0x4EE1DD
+        PlayMissionBankSound(eventId, posn, physical, 3, BANK_LINK_B);
+        break;
+    case AE_SCRIPT_GYM_REST_WEIGHTS: // 0x4EE1F4
+        PlayMissionBankSound(eventId, posn, physical, 7, BANK_LINK_B);
+        break;
+    case AE_SCRIPT_GYM_RUNNING_MACHINE_START: // 0x4EE20B
+        PlayMissionBankSound(eventId, posn, physical, 1, BANK_LINK_B, true, -18.0f);
+        m_MissionSoundEnvelopePhase = ENVELOPE_FADE_IN;
+        break;
+    case AE_SCRIPT_OTB_BET_ZERO: // 0x4EDA27
+        PlayMissionBankSound(eventId, posn, physical, 0, BANK_LINK_B);
+        break;
+    case AE_SCRIPT_OTB_INCREASE_BET:
+    case AE_SCRIPT_TEMPEST_ENEMY_SHOOT: // 0x4EDA55
+        PlayMissionBankSound(eventId, posn, physical, 1, BANK_LINK_B);
+        break;
+    case AE_SCRIPT_OTB_PLACE_BET: // 0x4EDA6C
+        PlayMissionBankSound(eventId, posn, physical, 4, BANK_LINK_B);
+        break;
+    case AE_SCRIPT_OTB_WIN: // 0x4EDA9A
+        PlayMissionBankSound(eventId, posn, physical, 5, BANK_LINK_B, true);
+        break;
+    case AE_SCRIPT_STINGER_FIRE: // 0x4EE333
+        PlayMissionBankSound(eventId, posn, physical, 0, BANK_LINK_A);
+        break;
+    case AE_SCRIPT_HEAVY_GATE_START: // 0x4EE3A6
+        PlayMissionBankSound(eventId, posn, physical, 1, BANK_LINK_A);
+        PlayMissionBankSound(eventId, posn, physical, 0, BANK_LINK_A);
+        break;
+    case AE_SCRIPT_HEAVY_GATE_STOP: // 0x4EE3F0
+        AESoundManager.CancelSoundsOfThisEventPlayingForThisEntity(AE_SCRIPT_HEAVY_GATE_START, this);
+        PlayMissionBankSound(eventId, posn, physical, 2, BANK_LINK_A);
+        break;
+    case AE_SCRIPT_VERTICAL_BIRD_LIFT_START: // 0x4EDEAE
+        PlayMissionBankSound(eventId, posn, physical, 2, BANK_LINK_A);
+        PlayMissionBankSound(eventId, posn, physical, 0, BANK_LINK_A);
+        break;
+    case AE_SCRIPT_VERTICAL_BIRD_LIFT_STOP: // 0x4EDEF8
+        CancelSoundsOfEvent(AE_SCRIPT_VERTICAL_BIRD_LIFT_START);
+        PlayMissionBankSound(eventId, posn, physical, 3, BANK_LINK_A);
+        break;
+    case AE_SCRIPT_PUNCH_PED: // 0x4EDDDD
+        PlayResidentSoundEvent(SND_BANK_SLOT_WEAPON_GEN, SND_BANK_GENRL_WEAPONS, 58, eventId, posn, physical, 0.0f);
+        PlayResidentSoundEvent(SND_BANK_SLOT_WEAPON_GEN, SND_BANK_GENRL_WEAPONS, 40, eventId, posn, physical, 0.0f);
+        break;
+    case AE_SCRIPT_AMMUNATION_GUN_COLLISION: // 0x4EDCFB
+        PlayResidentSoundEvent(SND_BANK_SLOT_COLLISIONS, SND_BANK_GENRL_COLLISIONS, SND_GENRL_COLLISIONS_COLSOLIDWOOD, eventId, posn, physical, 0.0f);
+        PlayResidentSoundEvent(SND_BANK_SLOT_COLLISIONS, SND_BANK_GENRL_COLLISIONS, SND_GENRL_COLLISIONS_GRENADE, eventId, posn, physical, 0.0f, 0.79f, 22);
+        break;
+    case AE_SCRIPT_CAMERA_SHOT: // 0x4EDC7D
+        if (physical) {
+            AudioEngine.ReportWeaponEvent(AE_WEAPON_FIRE, WEAPON_CAMERA, physical);
+        } else { // 0x4EDCA1
+            PlayResidentSoundEvent(SND_BANK_SLOT_WEAPON_GEN, SND_BANK_GENRL_WEAPONS, 45, eventId, posn, nullptr, 0.0f);
+        }
+        break;
+    case AE_SCRIPT_BUY_CAR_MOD: // 0x4EE5B3
+        AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_BUY_CAR_MOD);
+        break;
+    case AE_SCRIPT_BUY_CAR_RESPRAY: // 0x4EE5D0
+        AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_CAR_RESPRAY);
+        break;
+    case AE_SCRIPT_BASEBALL_BAT_HIT_PED: // 0x4EDDFA
+        PlayResidentSoundEvent(SND_BANK_SLOT_WEAPON_GEN, SND_BANK_GENRL_WEAPONS, 34, eventId, posn, physical, 5.0f);
+        PlayResidentSoundEvent(SND_BANK_SLOT_WEAPON_GEN, SND_BANK_GENRL_WEAPONS, 40, eventId, posn, physical, 0.0f);
+        break;
+    case AE_SCRIPT_STAMP_PED: // 0x4EDE3E
+        PlayResidentSoundEvent(SND_BANK_SLOT_WEAPON_GEN, SND_BANK_GENRL_WEAPONS, 82, eventId, posn, physical, -3.0f);
+        break;
+    case AE_SCRIPT_CHECKPOINT_AMBER: // 0x4EE579
+        AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_PART_MISSION_COMPLETE, 0.0f, 1.12f);
+        break;
+    case AE_SCRIPT_CHECKPOINT_RED: // 0x4EE596
+        AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_PART_MISSION_COMPLETE, 0.0f, 1.26f);
+        break;
+    case AE_SCRIPT_CAR_SMASH_GATE: // 0x4EE295
+        PlayResidentSoundEvent(SND_BANK_SLOT_COLLISIONS, SND_BANK_GENRL_COLLISIONS, CAEAudioUtility::GetRandomNumberInRange<eSoundID>(SND_GENRL_COLLISIONS_COLCAR01, SND_GENRL_COLLISIONS_COLCAR12), eventId, posn, physical, 0.0f);
+        PlayResidentSoundEvent(SND_BANK_SLOT_COLLISIONS, SND_BANK_GENRL_COLLISIONS, SND_GENRL_COLLISIONS_SOLID_METAL, eventId, posn, physical, 0.0f);
+        break;
+    case AE_SCRIPT_OTB_TRACK_START: // 0x4EDAB1
+        PlayAmbienceTrack(TRACK_OTB);
+        break;
+    case AE_SCRIPT_PED_HIT_WATER_SPLASH: // 0x4EE47F
+        if (physical) {
+            AudioEngine.ReportWaterSplash(physical, -6.0f, false);
+        } else { // 0x4EE4A3
+            AudioEngine.ReportWaterSplash(posn, -6.0f);
+        }
+        break;
+    case AE_SCRIPT_RESTAURANT_TRAY_COLLISION: // 0x4EDD49
+        PlayResidentSoundEvent(SND_BANK_SLOT_COLLISIONS, SND_BANK_GENRL_COLLISIONS, SND_GENRL_COLLISIONS_COLBENCH1, eventId, posn, physical, 0.0f, 1.0f, 65);
+        break;
+    case AE_SCRIPT_SWEETS_HORN: // 0x4EE42E
+        if (!AESoundManager.AreSoundsOfThisEventPlayingForThisEntity(eventId, this)) {
+            PlayResidentSoundEvent(SND_BANK_SLOT_HORN_AND_SIREN, SND_BANK_GENRL_HORN, SND_GENRL_HORN_HORNPICKUP, eventId, posn, physical, 0.0f);
+            m_LastMiniGameLoopTriggerTimeMs = CTimer::GetTimeInMS();
+        }
+        break;
+    case AE_SCRIPT_PICKUP_STANDARD: // 0x4EE60A
+        AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_PICKUP_MONEY);
+        break;
+    case AE_SCRIPT_MINITANK_FIRE: // 0x4EDC55
+        if (physical) {
+            AudioEngine.ReportWeaponEvent(AE_WEAPON_FIRE, WEAPON_M4, physical);
+        }
+        break;
+    case AE_SCRIPT_EXPLOSION: { // 0x4EDCBE
+        CVector pos = physical ? physical->GetPosition() : posn;
+        m_ExplosionAudioEntity.AddAudioEvent(AE_EXPLOSION, pos, 0.0f);
+        break;
+    }
+    case AE_SCRIPT_VERTICAL_BIRD_ALARM_START: // 0x4EDF36
+        PlayMissionBankSound(eventId, posn, physical, 1, BANK_LINK_A);
+        break;
+    case AE_SCRIPT_VERTICAL_BIRD_ALARM_STOP: // 0x4EDF64
+        CancelSoundsOfEvent(AE_SCRIPT_VERTICAL_BIRD_ALARM_START);
+        break;
+    case AE_SCRIPT_PED_COLLAPSE: // 0x4EE18C
+        PlayResidentSoundEvent(SND_BANK_SLOT_FOOTSTEPS_GENERIC, SND_BANK_FEET_GENERIC, 0, eventId, posn, physical, 0.0f);
+        break;
+    case AE_SCRIPT_AIR_HORN: // 0x4EE03A
+        PlayMissionBankSound(eventId, CVector{ -1.0f, 0.0f, 0.0f }, nullptr, 0, BANK_LINK_B);
+        PlayMissionBankSound(eventId, CVector{ 1.0f, 0.0f, 0.0f }, nullptr, 1, BANK_LINK_B);
+        break;
+    case AE_SCRIPT_SHUTTER_DOOR_SLOW_START: // 0x4EE0E6
+        AddDoorAudioEvent(AE_GARAGE_DOOR_OPENING, 0.79f);
+        break;
+    case AE_SCRIPT_SHUTTER_DOOR_SLOW_STOP: // 0x4EE145
+        AddDoorAudioEvent(AE_GARAGE_DOOR_OPENED, 1.0f);
+        break;
+    case AE_SCRIPT_BEE_BUZZ: // 0x4EDACA
+        PlayMissionBankSound(eventId, posn, physical, 0, BANK_LINK_B, true);
+        m_LastMiniGameLoopTriggerTimeMs = CTimer::GetTimeInMS();
+        break;
+    case AE_SCRIPT_RESTAURANT_CJ_EAT: // 0x4EE4D5
+        PlayMissionBankSound(eventId, posn, physical, 0, BANK_LINK_B);
+        break;
+    case AE_SCRIPT_RESTAURANT_CJ_PUKE: // 0x4EE4EC
+        PlayMissionBankSound(eventId, posn, physical, 1, BANK_LINK_B);
+        break;
+    case AE_SCRIPT_TEMPEST_PICKUP1: // 0x4EDB32
+        PlayMissionBankSound(eventId, posn, physical, 5, BANK_LINK_B, false, 0.0f, 2.0f, 0.67f);
+        break;
+    case AE_SCRIPT_TEMPEST_PICKUP2: // 0x4EDB3C
+        PlayMissionBankSound(eventId, posn, physical, 5, BANK_LINK_B, false, 0.0f, 2.0f, 0.79f);
+        break;
+    case AE_SCRIPT_TEMPEST_PICKUP3: // 0x4EDB53
+        PlayMissionBankSound(eventId, posn, physical, 5, BANK_LINK_B);
+        break;
+    case AE_SCRIPT_TEMPEST_WARP: // 0x4EDB81
+        PlayMissionBankSound(eventId, posn, physical, 8, BANK_LINK_B, true, 0.0f, 2.0f, 0.38f);
+        break;
+    case AE_SCRIPT_TEMPEST_SHIELD_GLOW: // 0x4EDB98
+        PlayMissionBankSound(eventId, posn, physical, 0, BANK_LINK_B, true);
+        m_LastMiniGameLoopTriggerTimeMs = CTimer::GetTimeInMS();
+        break;
+    case AE_SCRIPT_TEMPEST_TRACK_START: // 0x4EDBD1
+        PlayAmbienceTrack(TRACK_TEMPEST);
+        break;
+    case AE_SCRIPT_DRIVING_AWARD_TRACK_START: // 0x4EE51A
+        PlayAmbienceTrack(TRACK_DRIVING_AWARD);
+        break;
+    case AE_SCRIPT_BIKE_AWARD_TRACK_START: // 0x4EE533
+        PlayAmbienceTrack(TRACK_BIKE_AWARD);
+        break;
+    case AE_SCRIPT_PILOT_AWARD_TRACK_START: // 0x4EE54C
+        PlayAmbienceTrack(TRACK_PILOT_AWARD);
+        break;
+    case AE_SCRIPT_PED_DEATH_CRUNCH: // 0x4EDE61
+        if (CLocalisation::Blood() && physical && physical->GetIsTypePed()) {
+            physical->AsPed()->GetAE().AddAudioEvent(AE_PED_CRUNCH, 0.0f, 1.0f, physical);
+        }
+        break;
+    case AE_SCRIPT_UNNAMED_1190: // 0x4EE627
+        PlayResidentSoundEvent(SND_BANK_SLOT_WEAPON_GEN, SND_BANK_GENRL_WEAPONS, CAEAudioUtility::GetRandomNumberInRange<eSoundID>(78, 80), eventId, posn, physical, 0.0f);
+        break;
+    case AE_SCRIPT_WAREHOUSE_DOOR_SLIDE_START:
+    case AE_SCRIPT_WAREHOUSE_DOOR_SLIDE_STOP:
+    case AE_SCRIPT_POOL_BREAK:
+    case AE_SCRIPT_POOL_BALL_HIT_BALL:
+    case AE_SCRIPT_CRANE_SMASH_PORTACABIN:
+    case AE_SCRIPT_CONTAINER_COLLISION:
+    case AE_SCRIPT_FREEFALL_START:
+    case AE_SCRIPT_FREEFALL_STOP:
+    case AE_SCRIPT_PARACHUTE_COLLAPSE:
+    case AE_SCRIPT_OFFICE_FIRE_ALARM_START:
+    case AE_SCRIPT_OFFICE_FIRE_ALARM_STOP:
+    case AE_SCRIPT_OFFICE_FIRE_COUGHING_START:
+    case AE_SCRIPT_OFFICE_FIRE_COUGHING_STOP:
+    case AE_SCRIPT_BIKE_GANG_WHEEL_SPIN:
+    case AE_SCRIPT_MOLOTOV:
+    case AE_SCRIPT_HEAVY_DOOR_STOP:
+    case AE_SCRIPT_DA_NANG_MUFFLED_REFUGEES:
+    case AE_SCRIPT_PICKUP_CRATE:
+    case AE_SCRIPT_ROULETTE_BALL_BOUNCING: // 0x4EE65B
         break;
     default:
-        return;
+        break;
     }
-    */
 }
 
 // 0x4EE960
 void CAEScriptAudioEntity::ReportMissionAudioEvent(eAudioEvents eventId, CPhysical* physical, float volume, float speed) {
-    ProcessMissionAudioEvent(eventId, AUDIOPOS_SENTINEL, physical, volume, speed);
+    ProcessMissionAudioEvent(eventId, CAudioLink::UNSET_POSITION, physical, volume, speed);
 }
 
 // 0x4EE940
@@ -895,67 +842,110 @@ void CAEScriptAudioEntity::ReportMissionAudioEvent(eAudioEvents eventId, const C
     ProcessMissionAudioEvent(eventId, posn, nullptr);
 }
 
+// NOTSA - The part of `UpdateParameters` that looks after the looping sounds of the crane and the mini games
+void CAEScriptAudioEntity::UpdateMiniGameSound(CAESound* sound) {
+    constexpr auto VOLUME_STEP       = 0.1f; // NOTE: Per update, so framerate dependent
+
+    const auto StopIfNotTriggeredFor = [&](uint32 ms) {
+        if (CTimer::GetTimeInMS() > m_LastMiniGameLoopTriggerTimeMs + ms) {
+            sound->StopSoundAndForget();
+            m_LastMiniGameLoopTriggerTimeMs = 0;
+        }
+    };
+
+    switch (sound->m_Event) {
+    case AE_CRANE_WINCH_MOVE: // 0x4ECA37
+        if (CTimer::GetTimeInMS() > m_LastMiniGameLoopTriggerTimeMs + 300) {
+            sound->StopSoundAndForget();
+            m_LastMiniGameLoopTriggerTimeMs = 0;
+            // NOTE: The original passes the sound's physical entity, but `StopSoundAndForget` has just cleared it
+            PlayResidentSoundEvent(SND_BANK_SLOT_PLAYER_ENGINE_P, SND_BANK_GENRL_CRANE_P, SND_GENRL_CRANE_P_CRANE_LIMIT, AE_SCRIPT_CRANE_MOVE_STOP, sound->m_CurrPos, nullptr, -12.0f, 1.0f, 0, 2.5f);
+        } else { // 0x4ECA83
+            sound->SetVolume(m_CraneVolume);
+            sound->SetSpeed(m_CraneFrequencyScaling);
+        }
+        break;
+    case AE_SCRIPT_DUAL_THRUST:
+    case AE_SCRIPT_BEE_BUZZ:
+    case AE_SCRIPT_TEMPEST_SHIELD_GLOW: // 0x4ECC7D
+        StopIfNotTriggeredFor(300);
+        break;
+    case AE_SCRIPT_SWEETS_HORN: // 0x4ECC8D
+        StopIfNotTriggeredFor(500);
+        break;
+    case AE_SCRIPT_ROULETTE_SPIN: // 0x4ECA9A
+        if (CTimer::GetTimeInMS() > m_LastMiniGameLoopTriggerTimeMs + 4'500) {
+            if (sound->GetVolume() > -40.0f) {
+                sound->SetVolume(sound->GetVolume() - VOLUME_STEP);
+            } else {
+                sound->StopSoundAndForget();
+                m_LastMiniGameLoopTriggerTimeMs = 0;
+            }
+            if (sound->GetSpeed() > 0.0f) {
+                sound->SetSpeed(notsa::step_down_to(sound->GetSpeed(), 0.0f, 0.001f));
+            }
+        }
+        if (CTimer::GetTimeInMS() > m_LastMiniGameLoopTriggerTimeMs + 4'800 && !m_MiniGameOneShotTriggered) { // 0x4ECB08
+            PlayMissionBankSound(AE_SCRIPT_ROULETTE_BALL_BOUNCING, CAudioLink::UNSET_POSITION, nullptr, CAEAudioUtility::GetRandomNumberInRange<eSoundID>(1, 3), BANK_LINK_B);
+            m_MiniGameOneShotTriggered = true;
+        }
+        break;
+    case AE_SCRIPT_GYM_BIKE_START:
+    case AE_SCRIPT_GYM_RUNNING_MACHINE_START: { // 0x4ECB66, 0x4ECBC4
+        const auto maxVolume = GetDefaultVolume(static_cast<eAudioEvents>(sound->m_Event));
+        if (m_MissionSoundEnvelopePhase == ENVELOPE_FADE_IN) {
+            if (sound->GetVolume() < maxVolume) {
+                sound->SetVolume(notsa::step_up_to(sound->GetVolume(), maxVolume, VOLUME_STEP));
+            }
+        } else if (m_MissionSoundEnvelopePhase == ENVELOPE_FADE_OUT) { // 0x4ECC19
+            const auto minVolume = maxVolume - 18.0f;
+            if (sound->GetVolume() > minVolume) {
+                sound->SetVolume(notsa::step_down_to(sound->GetVolume(), minVolume, VOLUME_STEP));
+            } else {
+                sound->StopSoundAndForget();
+            }
+        }
+        break;
+    }
+    }
+}
+
 // 0x4EC970
-// -1 to delete the sound
-void CAEScriptAudioEntity::UpdateParameters(CAESound* sound, int16 playTime) {
-    // partially reversed, the code here should be fine
-#if 0
+void CAEScriptAudioEntity::UpdateParameters(CAESound* sound, int16 curPlayPos) {
     if (!sound) {
         return;
     }
 
-    for (auto& wav : m_WavLinks) {
-        if (wav.m_Sound == sound) {
-            if (playTime == -1) {
-                wav.m_Sound = nullptr;
-                return;
-            }
-
-            if (wav.m_pEntity) {
-                sound->SetPosition(wav.m_pEntity->GetPosition());
-            }
+    for (auto& link : m_WavLinks) {
+        if (link.Sound != sound) { // 0x4EC9B0
+            // NOTE: The original does this inside the loop, so it runs once for every link that doesn't play this sound (4 times for a mini game sound)
+            UpdateMiniGameSound(sound);
             continue;
         }
 
-        // TODO: make sense of this
-        if (wav.m_nAudioEvent > AE_SCRIPT_GYM_RUNNING_MACHINE_START) {
-            auto triggerEnd = m_LastMiniGameLoopTriggerTimeMs + 500;
-            if (const auto x = wav.m_nAudioEvent - AE_SCRIPT_SWEETS_HORN; x) {
-                const auto y = x - 20;
-                if (y && y != 10) {
-                    continue;
-                }
-                triggerEnd -= 200; // it's +300 instead of 500.
-            }
-
-            if (CTimer::GetTimeInMS() > triggerEnd) {
-                assert(wav.m_Sound);
-                wav.m_Sound->StopSoundAndForget();
-                m_LastMiniGameLoopTriggerTimeMs = 0;
-            }
-            continue;
+        if (curPlayPos == -1) { // The sound has finished
+            link.Sound = nullptr;
+            return;
         }
 
-        if (wav.m_nAudioEvent != AE_SCRIPT_GYM_RUNNING_MACHINE_START) {
-            break;
+        if (link.Entity) {
+            sound->SetPosition(link.Entity->GetPosition());
         }
     }
-#endif
 }
 
 // 0x4EC900
 void CAEScriptAudioEntity::Service() {
-    if (!m_Crane)
+    if (!m_Crane || AESoundManager.AreSoundsOfThisEventPlayingForThisEntity(AE_SCRIPT_CRANE_ENTER, this)) {
         return;
-    if (AESoundManager.AreSoundsOfThisEventPlayingForThisEntity(AE_SCRIPT_CRANE_ENTER, this) != 0)
-        return;
+    }
 
     PlayResidentSoundEvent(
         SND_BANK_SLOT_PLAYER_ENGINE_P,
         SND_BANK_GENRL_CRANE_P,
-        0,
+        SND_GENRL_CRANE_P_CRANE_ENGINE,
         AE_SCRIPT_CRANE_ENTER,
-        AUDIOPOS_SENTINEL,
+        CAudioLink::UNSET_POSITION,
         m_Crane,
         0.0f,
         1.0f,
@@ -968,7 +958,7 @@ void CAEScriptAudioEntity::InjectHooks() {
     RH_ScopedVirtualClass(CAEScriptAudioEntity, 0x862E58, 1);
     RH_ScopedCategory("Audio/Entities");
 
-    RH_ScopedInstall(Constructor, 0x5074D0);
+    RH_ScopedConstructorInstall(0x5074D0, "", {});
     RH_ScopedInstall(Initialise, 0x5B9B60);
     RH_ScopedInstall(Service, 0x4EC900);
     RH_ScopedInstall(Reset, 0x4EC150);
@@ -983,13 +973,8 @@ void CAEScriptAudioEntity::InjectHooks() {
     RH_ScopedInstall(GetMissionAudioPosition, 0x4EC4D0);
     RH_ScopedInstall(PlayResidentSoundEvent, 0x4EC550);
     RH_ScopedInstall(PlayMissionBankSound, 0x4EC6D0);
-    RH_ScopedInstall(ProcessMissionAudioEvent, 0x4ECCF0, { .Reversed = false });
+    RH_ScopedInstall(ProcessMissionAudioEvent, 0x4ECCF0);
     RH_ScopedOverloadedInstall(ReportMissionAudioEvent, "1", 0x4EE960, void (CAEScriptAudioEntity::*)(eAudioEvents, CPhysical*, float, float));
     RH_ScopedOverloadedInstall(ReportMissionAudioEvent, "2", 0x4EE940, void (CAEScriptAudioEntity::*)(eAudioEvents, const CVector&));
-    RH_ScopedVMTInstall(UpdateParameters, 0x4EC970, { .Reversed = false });
-}
-
-CAEScriptAudioEntity* CAEScriptAudioEntity::Constructor() {
-    this->CAEScriptAudioEntity::CAEScriptAudioEntity();
-    return this;
+    RH_ScopedVMTInstall(UpdateParameters, 0x4EC970);
 }
