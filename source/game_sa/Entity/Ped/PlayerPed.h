@@ -85,14 +85,14 @@ public:
     void ForceGroupToAlwaysFollow(bool enable);
     void ForceGroupToNeverFollow(bool enable);
     void MakeThisPedJoinOurGroup(CPed* ped);
-    bool PlayerWantsToAttack();
-    void SetInitialState(bool bGroupCreated);
+    void PlayerWantsToAttack();
+    void SetInitialState(bool groupCreated);
     void MakeChangesForNewWeapon(uint32 weaponSlot);
     void EvaluateTarget(CEntity* target, CEntity *& outTarget, float & outTargetPriority, float maxDistance, float arg4, bool arg5);
     void EvaluateNeighbouringTarget(CEntity* target, CEntity** outTarget, float* outTargetPriority, float maxDistance, float arg4, bool arg5);
     void ProcessGroupBehaviour(CPad* pad);
     // return PlayerWantsToAttack();
-    bool PlayerHasJustAttackedSomeone();
+    void PlayerHasJustAttackedSomeone();
     void ProcessWeaponSwitch(CPad* pad);
     bool FindWeaponLockOnTarget();
     bool FindNextWeaponLockOnTarget(CEntity* arg0, bool arg1);
