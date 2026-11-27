@@ -46,19 +46,20 @@ C2dEffectPedAttractor* __stdcall CTaskComplexUseClosestFreeScriptedAttractor::Co
         });
     };
 
-    C2dEffectPedAttractor* closestFx{};
-    float                  closestDistSq{ FLT_MAX };
-    for (auto&& [i, userList] : rngv::enumerate(CScripted2dEffects::ms_userLists)) {
-        if (!CScripted2dEffects::ms_activated[i] || !CanUse(userList)) {
-            continue;
-        }
-        auto* const fx     = CScripted2dEffects::GetEffect((int32)i);
-        const auto  distSq = CVector::DistSqr(ped.GetPosition(), fx->m_Pos);
-        if (distSq < closestDistSq && GetPedAttractorManager()->HasEmptySlot(fx, nullptr)) {
-            closestDistSq = distSq;
-            closestFx     = fx;
-        }
-    }
+    const auto [closestFx, closestDistSq] = notsa::SpatialQuery(
+        rngv::iota(0, (int32)NUM_SCRIPTED_2D_EFFECTS)
+            | rngv::filter([&](int32 i) {
+                  return CScripted2dEffects::ms_activated[i] && CanUse(CScripted2dEffects::ms_userLists[i]);
+              })
+            | rngv::transform([](int32 i) {
+                  return CScripted2dEffects::GetEffect(i);
+              })
+            | rngv::filter([](C2dEffectPedAttractor* fx) {
+                  return GetPedAttractorManager()->HasEmptySlot(fx, nullptr);
+              }),
+        ped.GetPosition(),
+        static_cast<C2dEffectPedAttractor*>(nullptr)
+    );
     return closestFx;
 }
 
