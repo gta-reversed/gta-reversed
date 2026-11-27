@@ -11,7 +11,7 @@ public:
     CEventOnFire() = default;
     ~CEventOnFire() override = default;
 
-    eEventType GetEventType() const override { return Type; }
+    eEventType    GetEventType() const override { return Type; }
     int32 GetEventPriority() const override { return 66; }
     int32 GetLifeTime() override { return 0; }
     CEventOnFire* Clone() const noexcept override { return new CEventOnFire(); }
