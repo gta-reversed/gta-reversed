@@ -124,7 +124,9 @@ CTask* CTaskComplexGoToPointAnyMeans::ControlSubTask(CPed* ped) {
     if (!veh || veh == m_Vehicle || !CCarEnterExit::IsVehicleStealable(veh, ped)) { // 0x672B58
         return m_pSubTask;
     }
-    // NOTE/BUG: The old vehicle's reference isn't cleaned up
+    if (notsa::IsFixBugs()) {
+        CEntity::SafeCleanUpRef(m_Vehicle); // NOTE/BUG: The original doesn't clean up the old vehicle's reference: deleting that vehicle later writes into this (maybe freed) task
+    }
     m_Vehicle = veh;
     m_Vehicle->RegisterReference(reinterpret_cast<CEntity**>(&m_Vehicle));
     return CreateSubTask(TASK_COMPLEX_ENTER_CAR_AS_DRIVER, ped);
