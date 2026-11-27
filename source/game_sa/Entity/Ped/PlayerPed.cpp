@@ -364,7 +364,7 @@ void CPlayerPed::UpdateCameraWeaponModes(CPad* pad) {
 void CPlayerPed::ProcessAnimGroups() {
     constexpr auto FPS_MOVE_HEADING_FORWARD = 0.87266463f; // 0x86D1D0 (50 degrees)
 
-    auto* const pd = GetPlayerData();
+    auto* const pd                          = GetPlayerData();
 
     // The `*F` / `*M` (fat / muscular) variants of the player move anim groups follow the normal one
     const auto WithMotionVariant = [](AssocGroupId group) {
@@ -441,7 +441,7 @@ void CPlayerPed::ProcessAnimGroups() {
         if (group == referencedGroup) {
             return;
         }
-        release = referencedGroup != ANIM_GROUP_DEFAULT;
+        release     = referencedGroup != ANIM_GROUP_DEFAULT;
 
         auto* block = CAnimManager::GetAnimationBlock(group);
         if (!block) {
@@ -693,7 +693,7 @@ void CPlayerPed::TellGroupToStartFollowingPlayer(bool arg0, bool arg1, bool arg2
         CEventPlayerCommandToGroup playerCmdEvent;
         playerCmdEvent.ComputeResponseTaskType(&group);
         if (playerCmdEvent.WillRespond()) {
-            auto* gatherCmdEvent = new CEventPlayerCommandToGroupGather{ nullptr };
+            auto* gatherCmdEvent     = new CEventPlayerCommandToGroupGather{ nullptr };
             gatherCmdEvent->m_TaskId = playerCmdEvent.m_TaskId;
 
             CEventGroupEvent groupEvent(this, gatherCmdEvent);
@@ -786,14 +786,14 @@ bool CPlayerPed::HandleSprintEnergy(bool sprint, float adrenalineConsumedPerTime
 
 constexpr auto PLAYER_SPRINT_THRESHOLD{ 5.0f }; // 0x8D2458
 constexpr struct tPlayerSprintSet { // From 0x8D2460
-    float TapIncrease;          //!< Move speed added when the sprint button is tapped
-    float HeldDecrease;         //!< Move speed lost per time step while the sprint button is held (down to 1)
-    float ReleasedDecrease;     //!< Move speed lost per time step while the sprint button is released (down to 0)
-    float FullSpeed;            //!< Move speed above which the result goes over 1
-    float MaxSpeed;             //!< Move speed limit
-    float EnergyUse;            //!< Sprint energy used per time step at most `FullSpeed`
-    float EnergyUseOverFull;    //!< Sprint energy used per time step over `FullSpeed`
-    float ResultMultiplier;     //!< How much the move speed over `FullSpeed` adds to the result
+    float TapIncrease;              //!< Move speed added when the sprint button is tapped
+    float HeldDecrease;             //!< Move speed lost per time step while the sprint button is held (down to 1)
+    float ReleasedDecrease;         //!< Move speed lost per time step while the sprint button is released (down to 0)
+    float FullSpeed;                //!< Move speed above which the result goes over 1
+    float MaxSpeed;                 //!< Move speed limit
+    float EnergyUse;                //!< Sprint energy used per time step at most `FullSpeed`
+    float EnergyUseOverFull;        //!< Sprint energy used per time step over `FullSpeed`
+    float ResultMultiplier;         //!< How much the move speed over `FullSpeed` adds to the result
 } PLAYER_SPRINT_SET[] = {
     { 4.0f, 0.7f, 0.2f, 5.0f, 10.0f, 1.0f, 0.5f, 0.3f }, // GROUND
     { 4.0f, 0.7f, 0.2f, 5.0f, 10.0f, 0.0f, 0.4f, 1.0f }, // BMX
@@ -807,8 +807,8 @@ float CPlayerPed::ControlButtonSprint(eSprintType sprintType) {
     if (!pd) {
         return 0.f;
     }
-    const auto* const pad    = GetPadFromPlayer();
-    const auto&       sprint = PLAYER_SPRINT_SET[sprintType];
+    const auto* const pad       = GetPadFromPlayer();
+    const auto&       sprint    = PLAYER_SPRINT_SET[sprintType];
     const bool        canSprint = !pd->m_bPlayerSprintDisabled && (pd->m_fMoveSpeed > 0.f || pd->m_fTimeCanRun > 0.f);
     if (pad->SprintJustDown() && canSprint) { // 0x60A69E
         pd->m_fMoveSpeed = notsa::step_up_to(pd->m_fMoveSpeed, sprint.MaxSpeed, sprint.TapIncrease);
@@ -865,8 +865,8 @@ void CPlayerPed::HandlePlayerBreath(bool bDecreaseAir, float fMultiplier) {
 
 // 0x60A9C0
 void CPlayerPed::SetRealMoveAnim() {
-    auto* const pd    = GetPlayerData();
-    auto* const clump = GetRpClump();
+    auto* const pd        = GetPlayerData();
+    auto* const clump     = GetRpClump();
 
     auto*       walk      = RpAnimBlendClumpGetAssociation(clump, ANIM_ID_WALK);
     auto*       run       = RpAnimBlendClumpGetAssociation(clump, ANIM_ID_RUN);
@@ -1015,7 +1015,7 @@ void CPlayerPed::SetRealMoveAnim() {
     } else { // 0x60ABAF
         const auto* const pad = GetPadFromPlayer();
         if (pad->GetForceCameraBehindPlayer() && pad->AimWeaponLeftRight(nullptr) && TheCamera.GetActiveCam().m_nMode == MODE_FOLLOWPED) {
-            const auto turnSpeed = pad->AimWeaponLeftRight(nullptr);
+            const auto turnSpeed  = pad->AimWeaponLeftRight(nullptr);
             const auto turnAnimId = turnSpeed >= 0 ? ANIM_ID_TURN_R : ANIM_ID_TURN_L;
             auto*      turn       = turnAnimId == ANIM_ID_TURN_R ? turnR : turnL;
             if (!turn || turn->GetBlendDelta() < 0.f || turn->GetBlendAmount() < 1.f && turn->GetBlendDelta() <= 0.f) {
@@ -1030,7 +1030,7 @@ void CPlayerPed::SetRealMoveAnim() {
         }
 
         // 0x60AD50
-        auto* const intel = GetIntelligence();
+        auto* const intel   = GetIntelligence();
         const bool  isTired = pd->m_fTimeCanRun < 0.f
             && !intel->GetTaskFighting()
             && !intel->GetTaskUseGun()
@@ -1195,7 +1195,7 @@ CPed* CPlayerPed::FindPedToAttack() {
     CVector origin = FindPlayerCoors();
     origin.z = 0.0f;
 
-    CVector end = origin + TheCamera.m_mCameraMatrix.GetForward() * 100.0f;
+    CVector end    = origin + TheCamera.m_mCameraMatrix.GetForward() * 100.0f;
     end.z = 0.0f;
 
     CPed* closestPed{};
@@ -1308,8 +1308,8 @@ void CPlayerPed::SetInitialState(bool groupCreated) {
     GetTaskManager().SetTaskSecondary(new CTaskComplexFacial{}, TASK_SECONDARY_FACIAL_COMPLEX);
 
     if (!groupCreated && !GetPlayerData()->m_bGroupNeverFollow) { // 0x60CECD
-        auto& group = GetPlayerGroup();
-        auto& groupIntel = group.GetIntelligence();
+        auto& group                         = GetPlayerGroup();
+        auto& groupIntel                    = group.GetIntelligence();
         group.m_bMembersEnterLeadersVehicle = true;
         groupIntel.SetDefaultTaskAllocatorType(ePedGroupDefaultTaskAllocatorType::RANDOM);
 

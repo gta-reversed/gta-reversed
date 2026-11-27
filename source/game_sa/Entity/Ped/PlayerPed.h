@@ -85,8 +85,8 @@ public:
     void ForceGroupToAlwaysFollow(bool enable);
     void ForceGroupToNeverFollow(bool enable);
     void MakeThisPedJoinOurGroup(CPed* ped);
-    void PlayerWantsToAttack();
-    void SetInitialState(bool groupCreated);
+    void         PlayerWantsToAttack();
+    void         SetInitialState(bool groupCreated);
     void MakeChangesForNewWeapon(uint32 weaponSlot);
     void EvaluateTarget(CEntity* target, CEntity *& outTarget, float & outTargetPriority, float maxDistance, float arg4, bool arg5);
     void EvaluateNeighbouringTarget(CEntity* target, CEntity** outTarget, float* outTargetPriority, float maxDistance, float arg4, bool arg5);
