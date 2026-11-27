@@ -209,7 +209,7 @@ bool CTaskSimpleFightingControl::ProcessPed(CPed* ped) {
     }
 
     auto* const tFight = notsa::cast<CTaskSimpleFight>(tm.GetTaskSecondary(TASK_SECONDARY_ATTACK));
-    m_maxAttackRange   = tFight->GetComboData().m_fRanges;
+    m_maxAttackRange   = CTaskSimpleFight::m_aComboData[std::max(tFight->m_nComboSet - MELEE_COMBO_UNARMED_1, 0)].m_fRanges;
     if (!m_nextAttackTime) { // 0x62A2DC
         const auto delay = CGeneral::GetRandomNumberInRange(0.25f, 1.25f) / (shootingRate * m_unk3 * 0.025f * 0.7f + 0.3f) * (float)FIGHT_CTRL_ATTACK_DELAY_MS;
         m_nextAttackTime = CTimer::GetTimeInMS() + (uint32)delay;
