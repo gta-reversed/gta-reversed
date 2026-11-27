@@ -1,17 +1,17 @@
 # Reimplementation progress (*): 92%
 This file is updated automatically every time the `hooks.json` file is updated (which happens every time there are changes to hooks made by a commit), and shows the current progress of reversed categories in the project.
 
-Last update was at Nov 27, 2026 at 00:08:44 UTC
-(Triggered by commit [fdebfac9](https://github.com/gta-reversed/gta-reversed/commit/fdebfac9c7f1c631befa58b1472f5cfe6ee0efe7))
+Last update was at Nov 27, 2026 at 02:03:41 UTC
+(Triggered by commit [a2711b41](https://github.com/gta-reversed/gta-reversed/commit/a2711b4165a1141ca338e337ecfa631ee0b44189))
 
 ## (*) Disclaimers
 **The progress** is based on the number of functions we have documented and reimplemented, so it might not completely reflect the actual progress, it's meant to be a rough estimate.
 
 **The percentages and the number of categories** shown here may not be completely accurate, because not all categories and functions are documented yet.
 
-## Stats (8191 out of 8906 functions done in 797 categories)
+## Stats (8193 out of 8906 functions done in 797 categories)
 
-#### Completely reversed categories (659/797) [83%]
+#### Completely reversed categories (660/797) [83%]
 
 <details>
 <summary>See list of categories</summary>
@@ -546,6 +546,7 @@ Last update was at Nov 27, 2026 at 00:08:44 UTC
 - CTaskSimpleStealthKill (7)<br />
 - CTaskSimpleAnim (1)<br />
 - CTaskSimpleRunAnim (5)<br />
+- CTaskComplexWanderCriminal (6)<br />
 - CTaskComplexWanderProstitute (5)<br />
 - CTaskComplexPartnerGreet (7)<br />
 - CTaskComplexMedicTreatInjuredPed (9)<br />
@@ -677,7 +678,7 @@ Last update was at Nov 27, 2026 at 00:08:44 UTC
 
 </details>
 
-#### Partially reversed categories (126/797) [16%]
+#### Partially reversed categories (125/797) [16%]
 
 <details>
 <summary>See list of categories</summary>
@@ -771,7 +772,6 @@ Last update was at Nov 27, 2026 at 00:08:44 UTC
 - CTaskComplexWalkRoundObject (5/8) [62%]<br />
 - CTaskComplexKillPedOnFoot (3/8) [38%]<br />
 - CTaskSimpleCarSetPedOut (5/7) [71%]<br />
-- CTaskComplexWanderCriminal (4/6) [67%]<br />
 - CTaskComplexWalkRoundCar (9/13) [69%]<br />
 - CTaskComplexKillPedFromBoat (3/7) [43%]<br />
 - CTaskComplexLeaveCar (6/11) [55%]<br />
