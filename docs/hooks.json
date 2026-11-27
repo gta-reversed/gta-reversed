@@ -19067,12 +19067,12 @@
   {
     "Category": "CShadows",
     "Name": "AddPermanentShadow",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CShadows",
     "Name": "UpdatePermanentShadows",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CShadows",
@@ -19172,17 +19172,17 @@
   {
     "Category": "CShadows",
     "Name": "GeneratePolysForStaticShadow",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CShadows",
     "Name": "StoreStaticShadow",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CShadows",
     "Name": "StoreShadowForVehicle",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CShadows",
@@ -33591,12 +33591,12 @@
   },
   {
     "Category": "CTaskComplexWalkRoundCar",
-    "Name": "Constructor",
+    "Name": "Constructor-1",
     "IsReversed": true
   },
   {
     "Category": "CTaskComplexWalkRoundCar",
-    "Name": "Destructor",
+    "Name": "Desructor",
     "IsReversed": true
   },
   {
@@ -33612,7 +33612,7 @@
   {
     "Category": "CTaskComplexWalkRoundCar",
     "Name": "ComputeRouteRoundSmallCar",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexWalkRoundCar",
@@ -33622,7 +33622,7 @@
   {
     "Category": "CTaskComplexWalkRoundCar",
     "Name": "ComputeRouteRoundBigCar",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexWalkRoundCar",
@@ -33647,12 +33647,12 @@
   {
     "Category": "CTaskComplexWalkRoundCar",
     "Name": "CreateFirstSubTask",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexWalkRoundCar",
     "Name": "ControlSubTask",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexMedicTreatInjuredPed",

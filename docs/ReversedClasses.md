@@ -1,17 +1,17 @@
 # Reimplementation progress (*): 92%
 This file is updated automatically every time the `hooks.json` file is updated (which happens every time there are changes to hooks made by a commit), and shows the current progress of reversed categories in the project.
 
-Last update was at Nov 27, 2026 at 20:57:37 UTC
-(Triggered by commit [127ff7f6](https://github.com/gta-reversed/gta-reversed/commit/127ff7f61a870efd390d00f9d74dd87ad5996703))
+Last update was at Nov 27, 2026 at 23:58:06 UTC
+(Triggered by commit [12fa4af6](https://github.com/gta-reversed/gta-reversed/commit/12fa4af6d42218f5b05a75559648604a36b1f1e4))
 
 ## (*) Disclaimers
 **The progress** is based on the number of functions we have documented and reimplemented, so it might not completely reflect the actual progress, it's meant to be a rough estimate.
 
 **The percentages and the number of categories** shown here may not be completely accurate, because not all categories and functions are documented yet.
 
-## Stats (8206 out of 8909 functions done in 797 categories)
+## Stats (8215 out of 8909 functions done in 797 categories)
 
-#### Completely reversed categories (667/797) [84%]
+#### Completely reversed categories (668/797) [84%]
 
 <details>
 <summary>See list of categories</summary>
@@ -555,6 +555,7 @@ Last update was at Nov 27, 2026 at 20:57:37 UTC
 - CTaskComplexWanderCriminal (6)<br />
 - CTaskComplexWanderProstitute (5)<br />
 - CTaskComplexPartnerGreet (7)<br />
+- CTaskComplexWalkRoundCar (13)<br />
 - CTaskComplexMedicTreatInjuredPed (9)<br />
 - CTaskSimplePlayHandSignalAnim (2)<br />
 - CTaskComplexCarDrive (11)<br />
@@ -685,7 +686,7 @@ Last update was at Nov 27, 2026 at 20:57:37 UTC
 
 </details>
 
-#### Partially reversed categories (118/797) [15%]
+#### Partially reversed categories (117/797) [15%]
 
 <details>
 <summary>See list of categories</summary>
@@ -729,7 +730,7 @@ Last update was at Nov 27, 2026 at 20:57:37 UTC
 - CPlayerPed (50/65) [77%]<br />
 - CPhysical (54/56) [96%]<br />
 - CRealTimeShadowManager (5/7) [71%]<br />
-- CShadows (21/31) [68%]<br />
+- CShadows (26/31) [84%]<br />
 - CCam (20/45) [44%]<br />
 - FxSystem_c (31/35) [89%]<br />
 - FxPrimBP_c (1/2) [50%]<br />
@@ -773,7 +774,6 @@ Last update was at Nov 27, 2026 at 20:57:37 UTC
 - CTaskComplexWalkRoundObject (5/8) [62%]<br />
 - CTaskComplexKillPedOnFoot (3/8) [38%]<br />
 - CTaskSimpleCarSetPedOut (5/7) [71%]<br />
-- CTaskComplexWalkRoundCar (9/13) [69%]<br />
 - CTaskComplexKillPedFromBoat (3/7) [43%]<br />
 - CTaskComplexLeaveCar (6/11) [55%]<br />
 - CTaskComplexPartnerShove (4/5) [80%]<br />
