@@ -2,57 +2,34 @@
 
 #include "TaskLeanOnVehicle.h"
 
-void CTaskLeanOnVehicle::InjectHooks() {
-    RH_ScopedVirtualClass(CTaskLeanOnVehicle, 0x86FAF4, 9);
-    RH_ScopedCategory("Tasks/TaskTypes");
-
-    RH_ScopedInstall(Constructor, 0x660F90);
-    RH_ScopedInstall(Destructor, 0x661030);
-
-    RH_ScopedInstall(FinishAnimCB, 0x661160);
-
-    RH_ScopedVMTInstall(MakeAbortable, 0x661110);
-    RH_ScopedVMTInstall(ProcessPed, 0x6648C0, { .Reversed = false });
-
-}
-
 // 0x660F90
-CTaskLeanOnVehicle::CTaskLeanOnVehicle(CEntity* vehicle, int32 leanAnimDurationInMs, uint8 a4) {
-    m_LeanAnimDurationInMs = leanAnimDurationInMs;
-    m_Vehicle = vehicle->AsVehicle(); // todo: strange
-    field_10 = a4;
-    m_LeanAnim = nullptr;
-    m_LastAnimId = ANIM_ID_UNDEFINED;
-    m_bFinished = 0;
-    m_LeanAnimId = 0;
-    m_StopLeaning = 0;
-    CEntity::SafeRegisterRef(m_Vehicle);
+CTaskLeanOnVehicle::CTaskLeanOnVehicle(CVehicle* vehicle, int32 leanAnimDurationInMs, bool skipLeanIn) :
+    m_Vehicle{ vehicle },
+    m_LeanAnimDurationInMs{ leanAnimDurationInMs },
+    m_SkipLeanIn{ skipLeanIn } {
 }
 
 // 0x661030
 CTaskLeanOnVehicle::~CTaskLeanOnVehicle() {
-    CEntity::SafeCleanUpRef(m_Vehicle);
     if (m_LeanAnim) {
-        m_LeanAnim->SetDeleteCallback(CDefaultAnimCallback::DefaultAnimCB, nullptr);
+        m_LeanAnim->SetDefaultDeleteCallback();
     }
 }
 
 // 0x661160
 void CTaskLeanOnVehicle::FinishAnimCB(CAnimBlendAssociation* assoc, void* data) {
-    const auto self = notsa::cast<CTaskLeanOnVehicle>(static_cast<CTask*>(data));
+    auto* const self   = notsa::cast<CTaskLeanOnVehicle>(static_cast<CTask*>(data));
 
-    self->m_LastAnimId = assoc->m_AnimId;
+    self->m_LastAnimId = assoc->GetAnimId();
 
-    if (assoc->m_AnimId == ANIM_ID_LEANOUT) {
-        assoc->m_BlendDelta = -1000.0f;
-        self->m_bFinished = true;
+    if (assoc->GetAnimId() == ANIM_ID_LEANOUT) {
+        assoc->SetBlendDelta(-1000.0f);
+        self->m_IsFinished = true;
     }
 
-    if (self->m_LeanAnimId) {
-        if (assoc->m_AnimId == ANIM_ID_LEANIN) {
-            assoc->m_BlendDelta = -1000.0f;
-            self->m_bFinished = true;
-        }
+    if (self->m_IsLeanOutRequested && assoc->GetAnimId() == ANIM_ID_LEANIN) {
+        assoc->SetBlendDelta(-1000.0f);
+        self->m_IsFinished = true;
     }
 
     self->m_LeanAnim = nullptr;
@@ -62,8 +39,8 @@ void CTaskLeanOnVehicle::FinishAnimCB(CAnimBlendAssociation* assoc, void* data) 
 bool CTaskLeanOnVehicle::MakeAbortable(CPed* ped, eAbortPriority priority, const CEvent* event) {
     if (priority == ABORT_PRIORITY_IMMEDIATE) {
         if (m_LeanAnim) {
-            m_LeanAnim->m_BlendDelta = -1000.0f;
-            m_LeanAnim->SetDeleteCallback(CDefaultAnimCallback::DefaultAnimCB, nullptr);
+            m_LeanAnim->SetBlendDelta(-1000.0f);
+            m_LeanAnim->SetDefaultDeleteCallback();
             m_LeanAnim = nullptr;
         }
         m_StopLeaning = true;
@@ -71,11 +48,92 @@ bool CTaskLeanOnVehicle::MakeAbortable(CPed* ped, eAbortPriority priority, const
         return true;
     }
 
-    m_LeanAnimId = 1;
+    m_IsLeanOutRequested = true;
     return false;
 }
 
 // 0x6648C0
 bool CTaskLeanOnVehicle::ProcessPed(CPed* ped) {
-    return plugin::CallMethodAndReturn<bool, 0x6648C0, CTaskLeanOnVehicle*, CPed*>(this, ped);
+    if (!m_Vehicle) {
+        m_StopLeaning = true;
+    }
+    ped->m_pEntityIgnoredCollision = m_Vehicle;
+
+    const auto StopLeaning         = [ped] {
+        ped->m_pEntityIgnoredCollision = nullptr;
+        return true;
+    };
+
+    const auto animId = m_LeanAnim
+        ? m_LeanAnim->GetAnimId()
+        : ANIM_ID_UNDEFINED;
+
+    if (m_StopLeaning) {
+        return StopLeaning();
+    }
+
+    ped->SetMoveState(PEDMOVE_STILL);
+
+    if (m_IsFinished && !RpAnimBlendClumpGetAssociation(ped->GetRpClump(), ANIM_ID_LEANOUT)) { // 0x6648F8
+        return StopLeaning();
+    }
+
+    const auto BlendLeanAnim = [&](AnimationId id, float blendDelta) {
+        m_LeanAnim = CAnimManager::BlendAnimation(ped->GetRpClump(), ANIM_GROUP_GANGS, id, blendDelta);
+        m_LeanAnim->SetFinishCallback(FinishAnimCB, this);
+    };
+
+    if (m_IsLeanOutRequested) { // 0x664926
+        switch (animId) {
+        case ANIM_ID_LEANIN: // 0x664935
+            m_LeanAnim->SetBlendDelta(-8.0f);
+            break;
+        case ANIM_ID_LEANIDLE: // 0x664949
+            m_LeanAnim->SetDefaultDeleteCallback();
+            BlendLeanAnim(ANIM_ID_LEANOUT, 1000.0f);
+            return false;
+        case ANIM_ID_LEANOUT: // 0x664975
+            m_LeanAnim->SetSpeed(3.0f);
+            break;
+        }
+    }
+
+    if (m_LeanAnim) { // 0x6649D1
+        if (m_LeanTimer.IsOutOfTime() && m_LeanAnim->GetAnimId() != ANIM_ID_LEANOUT) {
+            m_LeanAnim->SetDefaultDeleteCallback();
+            BlendLeanAnim(ANIM_ID_LEANOUT, 1000.0f);
+        }
+        return false;
+    }
+
+    switch (m_LastAnimId) {
+    case ANIM_ID_UNDEFINED: { // 0x66498E
+        if (!m_SkipLeanIn) {
+            BlendLeanAnim(ANIM_ID_LEANIN, 4.0f);
+            return false;
+        }
+        break;
+    }
+    case ANIM_ID_LEANIN: // 0x6649A8
+        break;
+    default:
+        return false;
+    }
+
+    m_LeanTimer.Start(m_LeanAnimDurationInMs);
+    BlendLeanAnim(ANIM_ID_LEANIDLE, 1000.0f);
+    return false;
+}
+
+void CTaskLeanOnVehicle::InjectHooks() {
+    RH_ScopedVirtualClass(CTaskLeanOnVehicle, 0x86FAF4, 9);
+    RH_ScopedCategory("Tasks/TaskTypes");
+
+    RH_ScopedConstructorInstall(0x660F90, "", {}, CVehicle*, int32, bool);
+    RH_ScopedDestructorInstall(0x661030);
+
+    RH_ScopedInstall(FinishAnimCB, 0x661160);
+
+    RH_ScopedVMTInstall(MakeAbortable, 0x661110);
+    RH_ScopedVMTInstall(ProcessPed, 0x6648C0);
 }
