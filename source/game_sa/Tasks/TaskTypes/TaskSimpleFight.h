@@ -13,7 +13,7 @@ class CPed;
 class CPlayerPed;
 
 //! Command given to `CTaskSimpleFight` (`ControlFight`, `m_nNextCommand`, `m_nLastCommand`)
-enum class eFightCommand : int32 { // 32-bit: `CTaskSimpleFightingControl::CalcMoveCommand` returns it in the whole `AX`
+enum class eFightCommand : int32 {
     NONE            = -1,
     IDLE            = 0,
     BLOCK           = 2,
