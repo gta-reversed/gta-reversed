@@ -18,10 +18,10 @@ public:
     static void LoadCdDirectory();
     static void RequestGeometry(int32 modelId, uint32 crc);
     static int32 RequestTexture(uint32 crc);
-    static void PreprocessClothesDesc(CPedClothesDesc& desc, bool a2);
+    static void  PreprocessClothesDesc(CPedClothesDesc& desc, bool isCutscenePlayer);
     static void ReleaseGeometry(int32 numToRelease);
-    static void AddWeightToBoneVertex(float(&out_weights)[8], uint8(&bone_vertex_indices)[8], float weight_to_add, RwUInt32 target_vertex);
-    static void StoreBoneArray(RpClump* clump, int32 a2);
+    static void  AddWeightToBoneVertex(float (&weights)[8], uint8 (&boneVertexIdxs)[8], float weightToAdd, RwUInt32 targetVertexIdx);
+    static void  StoreBoneArray(RpClump* clump, int32 idx);
 
     /*!
     * Blend 3 geometries together and store the result in the first one
@@ -51,10 +51,10 @@ public:
     */
     static RpGeometry* BlendGeometry(RpClump* clump, const char* frameName0, const char* frameName1, float r0, float r1);
 
-    static RpGeometry* CopyGeometry(RpClump* clump, const char* a2, const char* a3);
-    static void ConstructGeometryArray(RpGeometry** ppGeometry, uint32* pModelKeys, float normal, float fatness, float strength);
+    static RpGeometry* CopyGeometry(RpClump* clump, const char* frameNameDst, const char* frameNameSrc);
+    static void        ConstructGeometryArray(RpGeometry** outGeometries, uint32* modelKeys, float normal, float fatness, float strength);
     static void DestroySkinArrays(RwMatrixWeights* weights, RwUInt32* bones);
-    static void BuildBoneIndexConversionTable(uint8* a1, RpHAnimHierarchy* a2, int32 a3);
+    static void        BuildBoneIndexConversionTable(uint8* table, RpHAnimHierarchy* hier, int32 index);
 
     /*!
     * Create a copy of a texture
@@ -103,9 +103,9 @@ public:
     * @arg r3 Ratio of the `src2` texture
     */
     static void BlendTextures(RwTexture* dst, RwTexture* src1, RwTexture* src2, float r1, float r2, float r3, int32 numColors, RwTexture* tattoos);
-    static void ConstructTextures(RwTexDictionary* dict, uint32* hashes, float factorA, float factorB, float factorC);
-    static void ConstructGeometryAndSkinArrays(RpHAnimHierarchy* animHierarchy, RpGeometry** geometry1, RwMatrixWeights** weights, uint32** a4, uint32 a5, RpGeometry** geometry2, RpMaterial** material);
-    static RpClump* CreateSkinnedClump(RpClump* clump, RwTexDictionary* dict, CPedClothesDesc& newClothes, const CPedClothesDesc* oldClothes, bool CutscenePlayer);
+    static void     ConstructTextures(RwTexDictionary* dict, uint32* hashes, float normal, float fatness, float strength);
+    static void     ConstructGeometryAndSkinArrays(RpHAnimHierarchy* hier, RpGeometry** outGeometry, RwMatrixWeights** outWeights, uint32** outBoneIdxs, uint32 numGeometries, RpGeometry** geometries, RpMaterial** materials);
+    static RpClump* CreateSkinnedClump(RpClump* bones, RwTexDictionary* dict, CPedClothesDesc& newClothes, const CPedClothesDesc* oldClothes, bool isCutscenePlayer);
 };
 
 RpAtomic* GetAtomicWithName(RpClump* clump, const char* name);
