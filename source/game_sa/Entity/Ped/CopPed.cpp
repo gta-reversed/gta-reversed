@@ -187,8 +187,10 @@ int32 CCopPed::AddCriminalToKill(CPed* criminal) {
     if (criminal->m_fHealth <= 0.0f)
         return -1;
 
-    if (IsCriminalInList(criminal))
-        return -1;
+    // 0x5ddf83 - Already in the list: its slot
+    if (const auto it = rng::find(m_apCriminalsToKill, criminal); it != rng::end(m_apCriminalsToKill)) {
+        return (int32)rng::distance(rng::begin(m_apCriminalsToKill), it);
+    }
 
     /* Find slot, put criminal in there */
     size_t slot = GetEmptySlotForCriminalToKill();
