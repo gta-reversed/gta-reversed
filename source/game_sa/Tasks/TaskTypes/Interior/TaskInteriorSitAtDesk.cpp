@@ -192,8 +192,8 @@ bool CTaskInteriorSitAtDesk::ProcessPed(CPed* ped) {
     }
 
     if (m_Anim->GetAnimId() == ANIM_ID_OFF_SIT_IN) { // 0x677C90
-        const CVector pedToInfo        = m_InteriorInfo->Pos - ped->GetPosition();
-        const float   dist             = pedToInfo.Magnitude();
+        const CVector pedToInfo = m_InteriorInfo->Pos - ped->GetPosition();
+        const float   dist      = pedToInfo.Magnitude();
         // The original divides by `dist` unchecked: NaN shift when the ped stands exactly on the desk point (0x677D17)
         const CVector shift            = notsa::bugfixes::GenericUB && dist == 0.f
             ? CVector{}
