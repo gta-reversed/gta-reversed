@@ -17,8 +17,8 @@ void CShadows::InjectHooks() {
     RH_ScopedInstall(Init, 0x706CD0);
     RH_ScopedInstall(Shutdown, 0x706ED0);
     RH_ScopedInstall(TidyUpShadows, 0x707770);
-    RH_ScopedInstall(AddPermanentShadow, 0x706F60, { .Reversed = false });
-    RH_ScopedInstall(UpdatePermanentShadows, 0x70C950, { .Reversed = false });
+    RH_ScopedInstall(AddPermanentShadow, 0x706F60);
+    RH_ScopedInstall(UpdatePermanentShadows, 0x70C950);
     RH_ScopedOverloadedInstall(StoreShadowToBeRendered, "Texture", 0x707390, void(*)(uint8, RwTexture*, const CVector&, float, float, float, float, int16, uint8, uint8, uint8, float, bool, float, CRealTimeShadow*, bool));
     RH_ScopedOverloadedInstall(StoreShadowToBeRendered, "Type", 0x707930, void(*)(uint8, const CVector&, float, float, float, float, int16, uint8, uint8, uint8));
     RH_ScopedInstall(SetRenderModeForShadowType, 0x707460);
@@ -38,9 +38,9 @@ void CShadows::InjectHooks() {
     RH_ScopedInstall(CastShadowSectorList<CPtrListSingleLink<CPhysical*>>, 0x70A630, { .Reversed = false });
     RH_ScopedInstall(CastRealTimeShadowSectorList<CPtrListSingleLink<CPhysical*>>, 0x70A7E0, { .Reversed = false });
     RH_ScopedInstall(RenderStoredShadows, 0x70A960);
-    RH_ScopedInstall(GeneratePolysForStaticShadow, 0x70B730, { .Reversed = false });
-    RH_ScopedInstall(StoreStaticShadow, 0x70BA00, { .Reversed = false });
-    RH_ScopedInstall(StoreShadowForVehicle, 0x70BDA0, { .Reversed = false });
+    RH_ScopedInstall(GeneratePolysForStaticShadow, 0x70B730);
+    RH_ScopedInstall(StoreStaticShadow, 0x70BA00);
+    RH_ScopedInstall(StoreShadowForVehicle, 0x70BDA0);
     RH_ScopedInstall(StoreCarLightShadow, 0x70C500);
     RH_ScopedInstall(StoreShadowForPole, 0x70C750);
     RH_ScopedInstall(RenderIndicatorShadow, 0x70CCB0);
@@ -67,10 +67,9 @@ void CStaticShadow::Free() {
             it = static_cast<CPolyBunch*>(it->m_pNext);
         }
         it->m_pNext = prevHead;
-
-        m_pPolyBunch = nullptr;
-        m_nId = 0;
     }
+    m_pPolyBunch = nullptr;
+    m_nId        = 0;
 }
 
 // 0x706CD0
@@ -132,15 +131,171 @@ void CShadows::TidyUpShadows() {
 }
 
 // 0x706F60
-void CShadows::AddPermanentShadow(uint8 type, RwTexture* texture, CVector* posn, float topX, float topY, float rightX, float rightY, int16 intensity, uint8 red, uint8 greeb, uint8 blue, float drawDistance, uint32 time, float upDistance) {
-    ((void(__cdecl*)(uint8, RwTexture*, CVector*, float, float, float, float, int16, uint8, uint8, uint8, float, uint32, float))0x706F60)(type, texture, posn, topX, topY, rightX, rightY, intensity, red, greeb, blue, drawDistance, time, upDistance);
+void CShadows::AddPermanentShadow(uint8 type, RwTexture* texture, CVector* posn, float frontX, float frontY, float sideX, float sideY, int16 intensity, uint8 red, uint8 green, uint8 blue, float zDistance, uint32 time, float scale) {
+    constexpr auto MAX_REPLACEABLE_SHADOW_SIZE_SQ = 0.25f;
+
+    const auto GetSlot                            = []() -> CPermanentShadow* {
+        if (const auto it = rng::find(aPermanentShadows, SHADOW_NONE, &CPermanentShadow::m_nType); it != aPermanentShadows.end()) {
+            return &*it;
+        }
+
+        // 0x706FEB: All are in use, so replace the oldest of the small ones (if any)
+        CPermanentShadow* oldest{};
+        auto              oldestTimeCreated = std::numeric_limits<uint32>::max();
+        for (auto& shdw : aPermanentShadows) {
+            if (CVector2D{ shdw.m_fFrontX, shdw.m_fFrontY }.SquaredMagnitude() >= MAX_REPLACEABLE_SHADOW_SIZE_SQ) {
+                continue;
+            }
+            if (CVector2D{ shdw.m_fSideX, shdw.m_fSideY }.SquaredMagnitude() >= MAX_REPLACEABLE_SHADOW_SIZE_SQ) {
+                continue;
+            }
+            if (shdw.m_nTimeCreated < oldestTimeCreated) {
+                oldestTimeCreated = shdw.m_nTimeCreated;
+                oldest            = &shdw;
+            }
+        }
+        return oldest;
+    };
+
+    auto* const shdw = GetSlot();
+    if (!shdw) {
+        return;
+    }
+
+    // 0x7072D2
+    shdw->m_nType         = (eShadowType)type;
+    shdw->m_pTexture      = texture;
+    shdw->m_vecPosn       = *posn;
+    shdw->m_fFrontX       = frontX;
+    shdw->m_fFrontY       = frontY;
+    shdw->m_fSideX        = sideX;
+    shdw->m_fSideY        = sideY;
+    shdw->m_nIntensity    = intensity;
+    shdw->m_nRed          = red;
+    shdw->m_nGreen        = green;
+    shdw->m_nBlue         = blue;
+    shdw->m_fZDistance    = zDistance;
+    shdw->m_nTimeDuration = time;
+    shdw->m_fScale        = scale;
+    shdw->m_nTimeCreated  = CTimer::GetTimeInMS();
 }
 
 // 0x70C950
 void CShadows::UpdatePermanentShadows() {
     ZoneScoped;
 
-    ((void(__cdecl*)())0x70C950)();
+    constexpr auto OIL_FIRE_SPREAD_RADIUS  = 3.0f;
+    constexpr auto OIL_FIRE_SIZE           = 1.8f;
+    constexpr auto OIL_FIRE_BURN_TIME_MS   = 2'000u;
+    constexpr auto STATIC_SHADOW_DRAW_DIST = 40.0f;
+
+    for (auto& shdw : aPermanentShadows) {
+        if (shdw.m_nType == SHADOW_NONE) {
+            continue;
+        }
+
+        const auto age = CTimer::GetTimeInMS() - shdw.m_nTimeCreated;
+        if (age >= shdw.m_nTimeDuration) { // 0x70CA7D
+            shdw.m_nType = SHADOW_NONE;
+            continue;
+        }
+
+        // Fade out in the last quarter of the life time
+        const auto fadeOutAfter = shdw.m_nTimeDuration * 3 / 4;
+        const auto alpha        = age < fadeOutAfter
+            ? 1.0f
+            : 1.0f - (float)(age - fadeOutAfter) / (float)(shdw.m_nTimeDuration / 4);
+        const auto isStored     = StoreStaticShadow( // 0x70CA6B
+            reinterpret_cast<uint32>(&shdw),
+            shdw.m_nType,
+            shdw.m_pTexture,
+            shdw.m_vecPosn,
+            shdw.m_fFrontX,
+            shdw.m_fFrontY,
+            shdw.m_fSideX,
+            shdw.m_fSideY,
+            (int16)((float)(int16)shdw.m_nIntensity * alpha),
+            (uint8)((float)shdw.m_nRed * alpha),
+            (uint8)((float)shdw.m_nGreen * alpha),
+            (uint8)((float)shdw.m_nBlue * alpha),
+            shdw.m_fZDistance,
+            1.0f,
+            STATIC_SHADOW_DRAW_DIST,
+            false,
+            0.0f
+        );
+        if (!isStored && shdw.m_nType != SHADOW_OIL_5) { // There's nothing under it to be drawn on
+            shdw.m_nType = SHADOW_NONE;
+        }
+    }
+
+    // 0x70CA90: Burning oil burns out and sets (up to) 2 others next to it on fire
+    if (CTimer::GetFrameCounter() % 4 != 0) { // NOTE: Framerate dependent
+        return;
+    }
+
+    for (auto& burning : aPermanentShadows) {
+        if (burning.m_nType != SHADOW_OIL_2) {
+            continue;
+        }
+
+        burning.m_nType         = SHADOW_OIL_3;
+        burning.m_nTimeCreated  = CTimer::GetTimeInMS();
+        burning.m_nTimeDuration = OIL_FIRE_BURN_TIME_MS;
+
+        const auto IsOil        = [](const CPermanentShadow& shdw) {
+            return shdw.m_nType == SHADOW_OIL_1 || shdw.m_nType == SHADOW_OIL_5;
+        };
+        const auto GetDistTo = [&](const CPermanentShadow& shdw) {
+            const CVector diff = burning.m_vecPosn - shdw.m_vecPosn;
+            return std::sqrt(sq(diff.z) + sq(diff.y) + sq(diff.x)); // NOTE: Not `Magnitude()`, as the original sums up in this order
+        };
+        const auto SetOnFire = [](CPermanentShadow& shdw) {
+            shdw.m_nType = SHADOW_OIL_4;
+            gFireManager.StartFire(shdw.m_vecPosn, OIL_FIRE_SIZE, 0, nullptr, OIL_FIRE_BURN_TIME_MS, 0, 1);
+        };
+
+        // 0x70CAE0: The closest one
+        CPermanentShadow* closest{};
+        auto              closestDist = OIL_FIRE_SPREAD_RADIUS;
+        for (auto& shdw : aPermanentShadows) {
+            if (!IsOil(shdw)) {
+                continue;
+            }
+            if (const auto dist = GetDistTo(shdw); dist < closestDist) {
+                closestDist = dist;
+                closest     = &shdw;
+            }
+        }
+        if (!closest) {
+            continue;
+        }
+        SetOnFire(*closest);
+
+        // 0x70CB8C: The closest one on the other side
+        const CVector2D   burningToClosest{ closest->m_vecPosn - burning.m_vecPosn };
+        CPermanentShadow* closestOpposite{};
+        auto              closestOppositeDist = OIL_FIRE_SPREAD_RADIUS;
+        for (auto& shdw : aPermanentShadows) {
+            if (!IsOil(shdw)) {
+                continue;
+            }
+            if (const auto dist = GetDistTo(shdw); dist < closestOppositeDist && CVector2D{ shdw.m_vecPosn - burning.m_vecPosn }.Dot(burningToClosest) < 0.0f) {
+                closestOppositeDist = dist;
+                closestOpposite     = &shdw;
+            }
+        }
+        if (closestOpposite) {
+            SetOnFire(*closestOpposite);
+        }
+    }
+
+    // 0x70CC90
+    for (auto& shdw : aPermanentShadows) {
+        if (shdw.m_nType == SHADOW_OIL_4) {
+            shdw.m_nType = SHADOW_OIL_2;
+        }
+    }
 }
 
 // 0x707930
@@ -981,147 +1136,350 @@ void CShadows::RenderStoredShadows() {
 
 // 0x70B730
 void CShadows::GeneratePolysForStaticShadow(int16 staticShadowIndex) {
-    ((void(__cdecl*)(int16))0x70B730)(staticShadowIndex);
+    auto& shdw           = aStaticShadows[staticShadowIndex];
+
+    CVector         posn = shdw.m_vecPosn;
+    const CVector2D extent{
+        std::abs(shdw.m_fSideX) + std::abs(shdw.m_fFrontX),
+        std::abs(shdw.m_fSideY) + std::abs(shdw.m_fFrontY)
+    };
+    const auto minX = posn.x - extent.x;
+    const auto maxX = posn.x + extent.x;
+    const auto minY = posn.y - extent.y;
+    const auto maxY = posn.y + extent.y;
+
+    // NOTE: Not `CWorld::GetSectorX/Y()`, because the original multiplies by `0.02` here (instead of dividing by `50`)
+    const auto GetSectorCoord = [](float coord) {
+        return (int32)std::floor(coord * 0.02f + 60.0f);
+    };
+    const auto startSectorX = std::max<int32>(GetSectorCoord(minX), 0);
+    const auto startSectorY = std::max<int32>(GetSectorCoord(minY), 0);
+    const auto endSectorX   = std::min<int32>(GetSectorCoord(maxX), MAX_SECTORS_X - 1);
+    const auto endSectorY   = std::min<int32>(GetSectorCoord(maxY), MAX_SECTORS_Y - 1);
+
+    CWorld::AdvanceCurrentScanCode();
+
+    for (auto sectorY = startSectorY; sectorY <= endSectorY; sectorY++) {
+        for (auto sectorX = startSectorX; sectorX <= endSectorX; sectorX++) {
+            CastPlayerShadowSectorList( // 0x70B9C2
+                CWorld::GetSector(sectorX, sectorY).Buildings,
+                minX,
+                minY,
+                maxX,
+                maxY,
+                &posn,
+                shdw.m_fFrontX,
+                shdw.m_fFrontY,
+                shdw.m_fSideX,
+                shdw.m_fSideY,
+                0,
+                0,
+                0,
+                0,
+                shdw.m_fZDistance,
+                shdw.m_fScale,
+                &shdw.m_pPolyBunch,
+                &shdw.m_nDayNightIntensity,
+                0
+            );
+        }
+    }
 }
 
 // 0x70BA00
-bool CShadows::StoreStaticShadow(uint32 id, eShadowType type, RwTexture* texture, const CVector& posn, float frontX, float frontY, float sideX, float sideY, int16 intensity, uint8 red, uint8 green, uint8 blue, float zDistane, float scale, float drawDistance, bool temporaryShadow, float upDistance) {
-    return ((bool(__cdecl*)(uint32, eShadowType, RwTexture*, const CVector&, float, float, float, float, int16, uint8, uint8, uint8, float, float, float, bool, float))0x70BA00)(
-        id, type, texture, posn, frontX, frontY, sideX, sideY, intensity, red, green, blue, zDistane, scale, drawDistance, temporaryShadow, upDistance);
+bool CShadows::StoreStaticShadow(uint32 id, eShadowType type, RwTexture* texture, const CVector& posn, float frontX, float frontY, float sideX, float sideY, int16 intensity, uint8 red, uint8 green, uint8 blue, float zDistance, float scale, float drawDistance, bool temporaryShadow, float upDistance) {
+    constexpr auto MAX_MOVE_DIST_2D = 0.05f;
+    constexpr auto MAX_MOVE_DIST_Z  = 2.0f;
+
+    // A draw distance of `0` means it's always drawn
+    const auto distToCamSq = CVector2D{ posn - TheCamera.GetPosition() }.SquaredMagnitude();
+    if (drawDistance != 0.0f && sq(drawDistance) <= distToCamSq) { // 0x70BA6F
+        return true;
+    }
+
+    // 0x70BA7F: Fade out in the last quarter of the draw distance
+    const auto alpha = [&] {
+        if (drawDistance == 0.0f) {
+            return 1.0f;
+        }
+        const auto distToCam     = std::sqrt(distToCamSq);
+        const auto fadeStartDist = drawDistance * 0.75f;
+        return distToCam >= fadeStartDist
+            ? 1.0f - (distToCam - fadeStartDist) * (4.0f / drawDistance)
+            : 1.0f;
+    }();
+
+    const auto UpdateShadow = [&](CStaticShadow& shdw) {
+        shdw.m_pTexture         = texture;
+        shdw.m_nType            = type;
+        shdw.m_nIntensity       = (int16)((float)intensity * alpha);
+        shdw.m_nRed             = (uint8)((float)red * alpha);
+        shdw.m_nGreen           = (uint8)((float)green * alpha);
+        shdw.m_nBlue            = (uint8)((float)blue * alpha);
+        shdw.m_fZDistance       = zDistance;
+        shdw.m_fScale           = scale;
+        shdw.m_nTimeCreated     = CTimer::GetTimeInMS();
+        shdw.m_bJustCreated     = true;
+        shdw.m_bTemporaryShadow = temporaryShadow;
+    };
+
+    // 0x70BB1A: Find the shadow with this id
+    const auto existing = rng::find_if(aStaticShadows, [id](const CStaticShadow& shdw) {
+        return shdw.m_nId == id && shdw.m_pPolyBunch;
+    });
+    if (existing != aStaticShadows.end()) {
+        // 0x70BC53: The polys are kept if it has (almost) not moved
+        const auto moveX = std::abs(posn.x - existing->m_vecPosn.x);
+        const auto moveY = std::abs(posn.y - existing->m_vecPosn.y);
+        const auto moveZ = std::abs(posn.z - existing->m_vecPosn.z);
+        if (moveX < upDistance && moveY < upDistance) { // 0x70BD1A
+            UpdateShadow(*existing);
+            return true;
+        }
+        if (moveX < MAX_MOVE_DIST_2D && moveY < MAX_MOVE_DIST_2D && moveZ < MAX_MOVE_DIST_Z) {
+            if (frontX == existing->m_fFrontX && frontY == existing->m_fFrontY && sideX == existing->m_fSideX && sideY == existing->m_fSideY) { // 0x70BD1C
+                UpdateShadow(*existing);
+                return true;
+            }
+        }
+        existing->Free(); // 0x70BD0A
+    }
+
+    // 0x70BB43: Otherwise (re)create it in the same slot / in the first free one
+    const auto slot = existing != aStaticShadows.end()
+        ? existing
+        : rng::find_if(aStaticShadows, [](const CStaticShadow& shdw) {
+              return !shdw.m_pPolyBunch;
+          });
+    if (slot == aStaticShadows.end()) {
+        return true;
+    }
+
+    // 0x70BB71
+    UpdateShadow(*slot);
+    slot->m_nId     = id;
+    slot->m_vecPosn = posn;
+    slot->m_fFrontX = frontX;
+    slot->m_fFrontY = frontY;
+    slot->m_fSideX  = sideX;
+    slot->m_fSideY  = sideY;
+    GeneratePolysForStaticShadow((int16)rng::distance(aStaticShadows.begin(), slot));
+
+    return slot->m_pPolyBunch != nullptr;
 }
 
 // 0x70BDA0
 void CShadows::StoreShadowForVehicle(CVehicle* vehicle, VEH_SHD_TYPE vehShadowType) {
-    ((void(__cdecl*)(CVehicle*, VEH_SHD_TYPE))0x70BDA0)(vehicle, vehShadowType);
-    // So far so good (most likely), I'm just lazy to finish it
-    /*
-    const auto shdwStrength = CTimeCycle::m_CurrentColours.m_nShadowStrength;
+    constexpr auto STATIC_SHADOW_MAX_MOVE_PER_FRAME = 0.1f;
+    constexpr auto BIKE_TILT_FALLEN_OVER            = 0.6f;
+    constexpr auto HELI_TILT_USE_UP_VECTOR          = 0.57f;
 
-    if (GraphicsHighQuality() || !shdwStrength) {
+    if (GraphicsHighQuality()) {
         return;
     }
 
-    const auto isPlyrVeh = FindPlayerVehicle() == vehicle;
-
-    const auto& camPos = TheCamera.GetPosition();
-    const auto& vehPos = vehicle->GetPosition();
-
-    auto camToVehDist2DSq = (camPos - vehPos).SquaredMagnitude2D();
-    if (CCutsceneMgr::IsRunning()) {
-        camToVehDist2DSq /= sq(TheCamera.m_fLODDistMultiplier) * 4.f;
+    const auto shadowStrength = CTimeCycle::GetShadowStrength();
+    if (!shadowStrength) {
+        return;
     }
-    const auto camToVehDist2D = std::sqrt(camToVehDist2DSq);
+
+    const auto& vehPos      = vehicle->GetPosition();
+    const auto  distToCamSq = [&] {
+        const auto distSq = CVector2D{ vehPos - TheCamera.GetPosition() }.SquaredMagnitude();
+        return CCutsceneMgr::IsRunning()
+            ? distSq / (sq(TheCamera.m_fLODDistMultiplier) * 4.0f)
+            : distSq;
+    }();
 
     const auto maxDist = [&] {
         switch (vehShadowType) {
         case VEH_SHD_HELI:
         case VEH_SHD_PLANE:
-        case VEH_SHD_RC:
-            return 144.f;
-        case VEH_SHD_BIG_PLANE:
-            return 288.f;
-        default:
-            return 18.f;
+        case VEH_SHD_RC:        return 144.0f; // 0x70BE77
+        case VEH_SHD_BIG_PLANE: return 288.0f; // 0x70BE8E
+        default:                return 18.0f;                 // 0x70BEA5
         }
     }();
-
-    if (camToVehDist2DSq >= sq(maxDist)) {
+    if (distToCamSq >= sq(maxDist)) {
         return;
     }
 
-    const auto vehBB = vehicle->GetColModel()->GetBoundingBox();
+    // 0x70BEC2: Fade out in the last quarter of the distance
+    const auto distToCam     = std::sqrt(distToCamSq);
+    const auto fadeStartDist = maxDist * 0.75f;
+    auto       strength      = distToCam >= fadeStartDist
+        ? (int32)((1.0f - (distToCam - fadeStartDist) / (maxDist * 0.25f)) * (float)shadowStrength)
+        : (int32)shadowStrength;
 
-    auto shdwSize = CVector2D{ vehBB.GetSize() };
-
-    float sizeMultY = 1.f;
-    switch ((eModelID)vehicle->m_nModelIndex) {
-    case MODEL_VORTEX:
+    // 0x70BF09
+    const auto& bb = vehicle->GetColModel()->GetBoundingBox();
+    CVector2D   size{ bb.GetSize() };
+    auto        centerOffsetMult = 1.0f;
+    switch ((eModelID)(int16)vehicle->m_nModelIndex) { // NOTE: Signed, like in the original (for the `-2` case below)
+    case MODEL_VORTEX:                                 // 0x70BFF6
         return;
-    case UNLOAD_MODEL:
-        shdwSize.x *= 0.4f;
-        shdwSize.y *= 0.9f;
-        sizeMultY = 1.f;
-        break;
-    case MODEL_FREEWAY:
-    case MODEL_SANCHEZ:
-    case MODEL_COPBIKE:
-        shdwSize.x *= 1.f;
-        shdwSize.y *= 1.f;
-        sizeMultY = 0.03f;
+    case UNLOAD_MODEL: // 0x70C001 - NOTE: No vehicle has this model
+        size.y *= 0.9f;
+        size.x *= 0.4f;
         break;
     case MODEL_LEVIATHN:
     case MODEL_HUNTER:
     case MODEL_SEASPAR:
     case MODEL_SPARROW:
     case MODEL_MAVERICK:
-    case MODEL_POLMAV:
-        shdwSize.x *= 0.4f;
-        shdwSize.y *= 3.0f;
-        sizeMultY = 0.5f;
+    case MODEL_POLMAV: // 0x70BFB2
+        size.x *= 3.0f;
+        size.y *= 1.4f;
+        centerOffsetMult = 0.5f;
         break;
-    case MODEL_RCRAIDER:
-    case MODEL_RCGOBLIN:
-        shdwSize.x *= 2.0f;
-        shdwSize.y *= 1.5f;
-        sizeMultY = 0.2f;
-        break;
-    case MODEL_BIKE:
-    case MODEL_MTBIKE:
-    case MODEL_BMX:
     case MODEL_PIZZABOY:
     case MODEL_PCJ600:
     case MODEL_FAGGIO:
-        shdwSize.x *= 1.f;
-        shdwSize.y *= 1.2f;
-        sizeMultY = 0.05f;
+    case MODEL_BMX:
+    case MODEL_BIKE:
+    case MODEL_MTBIKE:
+    case MODEL_FCR900:
+    case MODEL_NRG500: // 0x70BFD4
+        size.y *= 1.2f;
+        centerOffsetMult = 0.05f;
+        break;
+    case MODEL_FREEWAY:
+    case MODEL_SANCHEZ:
+    case MODEL_COPBIKE: // 0x70C01F
+        size.y *= 1.5f;
+        centerOffsetMult = 0.03f;
+        break;
+    case MODEL_RCRAIDER:
+    case MODEL_RCGOBLIN: // 0x70BF8D
+        size.y *= 1.5f;
+        size.x *= 2.0f;
+        centerOffsetMult = 0.2f;
+        break;
+    default:
         break;
     }
 
-    auto cc = CTimeCycle::m_CurrentColours.m_nShadowStrength;
-    if (camToVehDist2D >= maxDist * 0.75f) {
-        auto cc = (uint16)(1.f - (camToVehDist2D - maxDist * 0.75f) / (camToVehDist2D * 0.25f)) * (float)CTimeCycle::m_CurrentColours.m_nShadowStrength;
+    // 0x70C035: The shadow's center is the center of the bounding box (more or less)
+    const auto&   mat          = vehicle->GetMatrix();
+    const auto    centerOffset = (size.y * 0.5f - bb.m_vecMax.y) * centerOffsetMult;
+    const CVector shadowPos{
+        vehPos.x - centerOffset * mat.GetForward().x,
+        vehPos.y - centerOffset * mat.GetForward().y,
+        vehPos.z
+    };
+
+    const auto isPlayerVehicle = [vehicle] {
+        return vehicle == FindPlayerVehicle();
+    };
+    auto* texture   = gpShadowCarTex;
+    auto  zDistance = 4.5f;
+    switch (vehShadowType) {
+    case VEH_SHD_CAR: // 0x70C13D
+        texture = gpShadowCarTex;
+        break;
+    case VEH_SHD_BIKE: { // 0x70C075
+        const auto leanMult = std::abs(vehicle->AsBike()->m_RideAnimData.LeanAngle) * 5.092958f + 1.0f;
+        const auto tilt     = std::abs(mat.GetRight().z);
+        size.x *= vehicle->GetStatus() == STATUS_ABANDONED && tilt > BIKE_TILT_FALLEN_OVER
+            ? leanMult + tilt * 4.0f
+            : leanMult;
+        texture = gpShadowBikeTex;
+        break;
+    }
+    case VEH_SHD_HELI: // 0x70C0D3
+        texture = gpShadowHeliTex;
+        if (isPlayerVehicle()) {
+            zDistance = 50.0f;
+        }
+        break;
+    case VEH_SHD_PLANE:
+    case VEH_SHD_BIG_PLANE: // 0x70C0F3
+        texture  = gpShadowBaronTex;
+        strength = shadowStrength; // Doesn't fade out
+        if (isPlayerVehicle()) {
+            zDistance = 50.0f;
+        }
+        break;
+    case VEH_SHD_RC: // 0x70C119
+        size.y *= 1.5f;
+        texture = gpShadowBaronTex;
+        size.x *= 2.2f;
+        break;
+    default:
+        break;
     }
 
-    const auto pos = vehPos - CVector{CVector2D{ vehicle->GetMatrix().GetForward() } * ((shdwSize.y * 0.5f - vehBB.m_vecMax.y) * sizeMultY)};
-
-    auto zDistance = 4.5;
-
-    const auto texture = [&] {
-        switch (vehShadowType) {
-        case VEH_SHD_CAR:
-            return gpShadowCarTex;
-        case VEH_SHD_BIKE: {
-            auto mult = vehicle->AsBike()->m_RideAnimData.m_fAnimLean * 5.092958f + 1.f; // TODO: Magic number
-            if (vehicle->GetStatus() == STATUS_ABANDONED) {
-                if (const auto tilt = std::abs(vehicle->GetMatrix().GetRight().z); tilt >= 0.6f) {
-                    mult += tilt * 4.f;
-                }
-            }
-            shdwSize.x *= mult;
-
-            return gpShadowBikeTex;
+    // 0x70C143
+    CVector2D front{ mat.GetForward() };
+    CVector2D side{ mat.GetForward().Cross(CVector{ 0.0f, 0.0f, 1.0f }) };
+    if (const auto sideLen = side.Magnitude(); sideLen < 0.5f) { // 0x70C1B3 - NOTE: `0` (and NaNs below) for a vehicle that points straight up
+        const auto recip = 1.0f / sideLen;
+        side             = CVector2D{ side.x * recip * 0.5f, recip * side.y * 0.5f };
+    }
+    if (mat.GetUp().z < 0.0f) { // 0x70C1EE
+        side = -side;
+    }
+    switch (vehShadowType) {
+    case VEH_SHD_BIKE: // 0x70C24C
+        if (std::abs(mat.GetRight().z) > BIKE_TILT_FALLEN_OVER) {
+            side = CVector2D{ mat.GetUp() };
         }
-        case VEH_SHD_HELI:
-            if (isPlyrVeh) {
-                zDistance = 50.f;
-            }
-            return gpShadowHeliTex;
-        case VEH_SHD_BIG_PLANE:
-        case VEH_SHD_PLANE:
-            cc = CTimeCycle::m_CurrentColours.m_nShadowStrength;
-            if (isPlyrVeh) {
-                zDistance = 50.f;
-            }
-            return gpShadowBaronTex;
-        case VEH_SHD_RC:
-            shdwSize.x *= 2.2f;
-            shdwSize.y *= 1.5f;
-            return gpShadowBaronTex;
+        break;
+    case VEH_SHD_HELI: // 0x70C20A
+        if (std::abs(mat.GetRight().z) > HELI_TILT_USE_UP_VECTOR) {
+            side = CVector2D{ mat.GetUp() };
         }
-    }();
+        if (std::abs(mat.GetForward().z) > HELI_TILT_USE_UP_VECTOR) {
+            front = CVector2D{ mat.GetUp() };
+        }
+        break;
+    default:
+        break;
+    }
 
-    // 0x70C143...
-    */
+    // 0x70C26C
+    const auto      isRCOrPlayerVehicle = vehicle->vehicleFlags.bIsRCVehicle || isPlayerVehicle();
+    const CVector2D halfSize            = size * 0.5f;
+    const CVector2D shadowFront         = front * halfSize.y;
+    const CVector2D shadowSide          = mat.GetUp().z > 0.0f ? side * halfSize.x : -(side * halfSize.x);
+    if (vehicle->GetMoveSpeed().Magnitude() * CTimer::GetTimeStep() > STATIC_SHADOW_MAX_MOVE_PER_FRAME || isRCOrPlayerVehicle) { // 0x70C38B
+        StoreShadowToBeRendered(
+            SHADOW_DEFAULT,
+            texture,
+            shadowPos,
+            shadowFront,
+            shadowSide,
+            (int16)strength,
+            (uint8)strength,
+            (uint8)strength,
+            (uint8)strength,
+            zDistance,
+            isRCOrPlayerVehicle,
+            1.0f,
+            nullptr,
+            isRCOrPlayerVehicle
+        );
+    } else { // 0x70C2CF
+        StoreStaticShadow(
+            reinterpret_cast<uint32>(vehicle) + 1,
+            SHADOW_DEFAULT,
+            texture,
+            shadowPos,
+            shadowFront.x,
+            shadowFront.y,
+            shadowSide.x,
+            shadowSide.y,
+            (int16)strength,
+            (uint8)strength,
+            (uint8)strength,
+            (uint8)strength,
+            4.5f,
+            1.0f,
+            0.0f,
+            false,
+            STATIC_SHADOW_MAX_MOVE_PER_FRAME
+        );
+    }
 }
 
 // 0x70C500
