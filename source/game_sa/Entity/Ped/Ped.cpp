@@ -4002,7 +4002,7 @@ CVector CPed::GetSeatPositionInVehicle() const {
         }
 
         if (m_pVehicle->IsSubBMX()) {
-            pos.z -= (0.001f * std::abs(m_pVehicle->AsBmx()->m_fControlJump));
+            pos.z -= (0.001f * std::abs(m_pVehicle->AsBmx()->GetControlJump()));
         }
 
         return pos;
