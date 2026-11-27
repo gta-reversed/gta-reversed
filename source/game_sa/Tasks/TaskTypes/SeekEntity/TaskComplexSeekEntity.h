@@ -177,12 +177,12 @@ public:
 
     bool MakeAbortable(CPed* ped, eAbortPriority priority = ABORT_PRIORITY_URGENT, const CEvent* event = nullptr) override {
         if (priority == ABORT_PRIORITY_LEISURE) {
-            m_scanInterval = -1;
+            m_seekInterval = -1;
             m_seekTimer.SetAsOutOfTime();
         }
 
         if (m_pSubTask->MakeAbortable(ped, priority, event)) {
-            m_scanTimer.SetAsOutOfTime();
+            m_scanTimer.Start(0);
             return true;
         }
 
