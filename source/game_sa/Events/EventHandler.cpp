@@ -1503,34 +1503,34 @@ void CEventHandler::ComputeKnockOffBikeResponse(CEvent* e, CTask* tactive, CTask
         };
     };
 
-    CEventKnockOffBike knockOffBikeEvent{};
-    auto* const        ke = [&]() -> CEventKnockOffBike* {
+    CEventKnockOffBike createdEvent{}; //!< Used when the event is not a knock off bike event itself
+    auto* const        knockOffEvent = [&]() -> CEventKnockOffBike* {
         switch (const auto et = e->GetEventType()) {
         case EVENT_KNOCK_OFF_BIKE: { // 0x4BA03A
-            auto* const  kobe = static_cast<CEventKnockOffBike*>(e);
-            CEventDamage damageEvent{ kobe->m_vehicle, CTimer::GetTimeInMS(), WEAPON_FALL, PED_PIECE_TORSO, 2, true, false };
+            auto* const  eKnockOffBike = notsa::cast<CEventKnockOffBike>(e);
+            CEventDamage damageEvent{ eKnockOffBike->m_vehicle, CTimer::GetTimeInMS(), WEAPON_FALL, PED_PIECE_TORSO, 2, true, false };
             if (damageEvent.AffectsPed(m_Ped)) {
-                CPedDamageResponseCalculator{ kobe->m_vehicle, kobe->field_28, WEAPON_FALL, PED_PIECE_TORSO, true }.ComputeDamageResponse(m_Ped, damageEvent.m_damageResponse, true);
+                CPedDamageResponseCalculator{ eKnockOffBike->m_vehicle, eKnockOffBike->field_28, WEAPON_FALL, PED_PIECE_TORSO, true }.ComputeDamageResponse(m_Ped, damageEvent.m_damageResponse, true);
             }
-            return kobe;
+            return eKnockOffBike;
         }
         case EVENT_DAMAGE: { // 0x4BA0E7
-            const auto* const de = notsa::cast<CEventDamage>(e);
-            knockOffBikeEvent    = MakeKnockOffBikeEvent((uint8)de->m_weaponType, de->m_ucDirection);
-            return &knockOffBikeEvent;
+            const auto* const eDamage = notsa::cast<CEventDamage>(e);
+            createdEvent    = MakeKnockOffBikeEvent((uint8)eDamage->m_weaponType, eDamage->m_ucDirection);
+            return &createdEvent;
         }
         case EVENT_VEHICLE_DIED:
         case EVENT_VEHICLE_ON_FIRE: { // 0x4BA221
             // NOTE: Not `CGeneral::GetRandomNumberInRange(0, 4)`: this one is `[0, 3]`, uniform
-            knockOffBikeEvent = MakeKnockOffBikeEvent(KNOCK_OFF_TYPE_EXPLOSION, (uint8)((float)CGeneral::GetRandomNumber() * (1.f / 32768.f) * 4.f));
-            return &knockOffBikeEvent;
+            createdEvent = MakeKnockOffBikeEvent(KNOCK_OFF_TYPE_EXPLOSION, (uint8)((float)CGeneral::GetRandomNumber() * (1.f / 32768.f) * 4.f));
+            return &createdEvent;
         }
         default:
             NOTSA_UNREACHABLE("Unexpected event type: {}", (int32)et); // NOTE: The original crashes here [null pointer]
         }
     }();
 
-    auto* const veh = ke->m_vehicle;
+    auto* const veh = knockOffEvent->m_vehicle;
 
     // NOTE: Only the first 3 passengers are checked
     if (!veh || (veh->GetDriver() != m_Ped && !notsa::contains(veh->m_apPassengers | rngv::take(3), m_Ped))) {
@@ -1539,15 +1539,15 @@ void CEventHandler::ComputeKnockOffBikeResponse(CEvent* e, CTask* tactive, CTask
 
     g_InterestingEvents.Add(CInterestingEvents::INTERESTING_EVENT_16, m_Ped);
 
-    if (!ke->SetPedSafePosition(m_Ped)) { // 0x4BA765
+    if (!knockOffEvent->SetPedSafePosition(m_Ped)) { // 0x4BA765
         if (m_Ped->bInVehicle) {
             m_Ped->SetUsesCollision(false);
         }
         return;
     }
 
-    ke->SetPedOutCar(m_Ped);
-    const auto fallAnim           = (AnimationId)ke->CalcForcesAndAnims(m_Ped);
+    knockOffEvent->SetPedOutCar(m_Ped);
+    const auto fallAnim           = (AnimationId)knockOffEvent->CalcForcesAndAnims(m_Ped);
 
     const auto SetBikeOnSideStand = [veh](bool onSideStand) {
         if (veh->IsBike()) {
@@ -1555,7 +1555,7 @@ void CEventHandler::ComputeKnockOffBikeResponse(CEvent* e, CTask* tactive, CTask
         }
     };
 
-    if (ke->m_knockOffType == KNOCK_OFF_TYPE_FALL) { // 0x4BA3E3
+    if (knockOffEvent->m_knockOffType == KNOCK_OFF_TYPE_FALL) { // 0x4BA3E3
         m_Ped->bIsStanding                     = false;
         m_Ped->bWasStanding                    = false;
         m_Ped->bIsInTheAir                     = true;
@@ -1564,14 +1564,14 @@ void CEventHandler::ComputeKnockOffBikeResponse(CEvent* e, CTask* tactive, CTask
         if (m_Ped->m_fHealth > 0.f) {
             m_EventResponseTask = new CTaskComplexInAirAndLand{ false, false };
         } else {
-            m_EventResponseTask = new CTaskComplexDie{ (eWeaponType)ke->m_knockOffType, ANIM_GROUP_DEFAULT, fallAnim };
+            m_EventResponseTask = new CTaskComplexDie{ (eWeaponType)knockOffEvent->m_knockOffType, ANIM_GROUP_DEFAULT, fallAnim };
         }
     } else if (m_Ped->m_fHealth <= 0.f) { // 0x4BA4CB
         const auto GetDieAnim = [&] {
             if (fallAnim != ANIM_ID_NO_ANIMATION_SET) {
                 return fallAnim;
             }
-            switch (ke->m_knockOffDirection) {
+            switch (knockOffEvent->m_knockOffDirection) {
             case 0:  return ANIM_ID_BIKE_FALLR; // 0x4BA4E3
             case 1:
             case 2:  return ANIM_ID_KO_SPIN_R; // 0x4BA4EA
@@ -1579,14 +1579,14 @@ void CEventHandler::ComputeKnockOffBikeResponse(CEvent* e, CTask* tactive, CTask
             default: return fallAnim;
             }
         };
-        m_EventResponseTask = new CTaskComplexDie{ (eWeaponType)ke->m_knockOffType, ANIM_GROUP_DEFAULT, GetDieAnim() };
+        m_EventResponseTask = new CTaskComplexDie{ (eWeaponType)knockOffEvent->m_knockOffType, ANIM_GROUP_DEFAULT, GetDieAnim() };
         m_Ped->bIsStanding  = false;
         SetBikeOnSideStand(false);
         return;
-    } else if (ke->m_knockOffType != KNOCK_OFF_TYPE_NONE) { // 0x4BA55F
-        m_EventResponseTask = new CTaskComplexFallAndGetUp{ fallAnim, ANIM_GROUP_DEFAULT, (int32)ke->m_time };
+    } else if (knockOffEvent->m_knockOffType != KNOCK_OFF_TYPE_NONE) { // 0x4BA55F
+        m_EventResponseTask = new CTaskComplexFallAndGetUp{ fallAnim, ANIM_GROUP_DEFAULT, (int32)knockOffEvent->m_time };
         if (auto* const grp = CPedGroups::GetPedsGroup(m_Ped)) {
-            if (!grp->GetMembership().IsLeader(m_Ped) && !ke->m_isVictimDriver) { // 0x4BA5CB
+            if (!grp->GetMembership().IsLeader(m_Ped) && !knockOffEvent->m_isVictimDriver) { // 0x4BA5CB
                 if (auto* const leader = grp->GetMembership().GetLeader(); leader && leader->bInVehicle && !leader->GetEventGroup().GetEventOfType(EVENT_KNOCK_OFF_BIKE)) {
                     m_EventResponseTask = new CTaskComplexSequence{
                         m_EventResponseTask,
@@ -1601,10 +1601,10 @@ void CEventHandler::ComputeKnockOffBikeResponse(CEvent* e, CTask* tactive, CTask
     }
 
     // 0x4BA701
-    if (ke->m_ped) {
-        m_Ped->GetEventGroup().Add(CEventDraggedOutCar{ veh, ke->m_ped, (bool)ke->m_isVictimDriver }, true);
+    if (knockOffEvent->m_ped) {
+        m_Ped->GetEventGroup().Add(CEventDraggedOutCar{ veh, knockOffEvent->m_ped, (bool)knockOffEvent->m_isVictimDriver }, true);
     }
-    SetBikeOnSideStand(ke->m_ped != nullptr);
+    SetBikeOnSideStand(knockOffEvent->m_ped != nullptr);
 }
 
 // 0x4BAAD0
