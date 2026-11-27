@@ -101,7 +101,7 @@ void CEntryExitManager::Update() {
 
         for (auto* const enex : matches) {
             if (enex->bEnableAccess) {
-                if (   enex->m_Link && enex->m_Area == CGame::currArea  // Has link and link is in current area
+                if (enex->m_Link && enex->m_Area == CGame::currArea     // Has link and link is in current area
                     || !enex->m_Link && enex->m_Area != CGame::currArea // Has no link, and is not in current area
                 ) {
                     // !bDontShowMarkers check moved before the loop, as doing all this would be useless if bDontShowMarkers was false
@@ -323,7 +323,7 @@ void CEntryExitManager::LinkEntryExit(CEntryExit* enex) {
             linkedEnEx->m_Link = enex;
         }
         // ?????
-        linkedEnEx->m_TimeOn = 0;
+        linkedEnEx->m_TimeOn  = 0;
         linkedEnEx->m_TimeOff = 24;
     }
 }

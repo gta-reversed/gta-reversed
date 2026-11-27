@@ -36,19 +36,22 @@ void CEntryExit::InjectHooks() {
 
 // Code based on 0x43FA00
 CEntryExit::CEntryExit(
-    CVector center,
-    CVector entranceRange,
-    float entranceAngleDeg,
-    CVector exit,
-    float exitAngle,
-    eAreaCodes area,
+    CVector            center,
+    CVector            entranceRange,
+    float              entranceAngleDeg,
+    CVector            exit,
+    float              exitAngle,
+    eAreaCodes         area,
     CEntryExit::eFlags flags,
-    int32 skyColor,
-    int32 timeOn, int32 timeOff,
-    int32 numberOfPeds,
-    const char* name
+    int32              skyColor,
+    int32              timeOn,
+    int32              timeOff,
+    int32              numberOfPeds,
+    const char*        name
 ) :
-    m_Flags{(uint16)flags}, // Set here, this way we can directly use the flag fields instead of using the enum
+    m_Flags{
+        (uint16)flags
+}, // Set here, this way we can directly use the flag fields instead of using the enum
     m_EntranceRect{
         center.x - entranceRange.x / 2.f,
         center.y - entranceRange.y / 2.f,
@@ -61,8 +64,7 @@ CEntryExit::CEntryExit(
     m_ExitAngle{ exitAngle },
     m_SkyColor{ (uint8)skyColor },
     m_EntranceZ{ center.z + 1.f },
-    m_EntranceAngleRad{ DegreesToRadians(entranceAngleDeg) }
-{
+    m_EntranceAngleRad{ DegreesToRadians(entranceAngleDeg) } {
     std::tie(m_TimeOn, m_TimeOff) = [&]() -> std::pair<uint8, uint8> {
         if (bUnknownBurglary && CGeneral::RandomBool(50.f)) {
             return { 0, 0 };
@@ -95,12 +97,14 @@ void CEntryExit::GenerateAmbientPeds(const CVector& posn) {
     CPopulation::bInPoliceStation = false;
     if (CGame::currArea == eAreaCodes::AREA_CODE_NORMAL_WORLD) {
         CPopulation::NumberOfPedsInUseInterior = 0;
-        float exitAngle = DegreesToRadians(ms_SpawnPoint->m_ExitAngle);
+        float exitAngle                        = DegreesToRadians(ms_SpawnPoint->m_ExitAngle);
         CPopulation::CreateWaitingCoppers(posn, exitAngle);
     } else {
         constexpr const char* PoliceStationEnExNames[]{ "POLICE1", "POLICE2", "POLICE3", "POLICE4" };
-        CPopulation::bInPoliceStation = rng::any_of(PoliceStationEnExNames, [this](auto&& n) { return _stricmp(m_Name, n) == 0; });
-        auto numPedsToSpawn = m_Link ? m_Link->m_NumberOfPeds : m_NumberOfPeds;
+        CPopulation::bInPoliceStation          = rng::any_of(PoliceStationEnExNames, [this](auto&& n) {
+            return _stricmp(m_Name, n) == 0;
+        });
+        auto numPedsToSpawn                    = m_Link ? m_Link->m_NumberOfPeds : m_NumberOfPeds;
         CPopulation::NumberOfPedsInUseInterior = numPedsToSpawn;
         CPopulation::PopulateInterior(numPedsToSpawn, posn);
     }
@@ -201,7 +205,6 @@ uint8 CEntryExit::GetMyOrLinkedArea() const {
 
 // 0x43E460
 bool CEntryExit::IsInArea(const CVector& position) {
-
     const auto CheckPointInEntranceRect = [this](const CVector& point) {
         if (m_EntranceRect.IsPointInside(point)) {
             if (std::abs(point.z - m_EntranceZ) < 1.0f) {
@@ -251,7 +254,7 @@ bool CEntryExit::TransitionStarted(CPed* ped) {
     }
 
     if (m_Link) {
-        ms_SpawnPoint = m_Link;
+        ms_SpawnPoint  = m_Link;
         m_Link->m_Link = this;
     } else {
         ms_SpawnPoint = this;
@@ -264,7 +267,7 @@ bool CEntryExit::TransitionStarted(CPed* ped) {
     }
 
     bEnteredWithoutExit = true;
-    ms_Door            = nullptr;
+    ms_Door                        = nullptr;
 
     ped->bCanExitCar    = false;
 
@@ -281,7 +284,7 @@ bool CEntryExit::TransitionStarted(CPed* ped) {
             ms_IsWarping = true;
         }
     } else {
-        ms_IsWarping = spawnPointExitToUs.SquaredMagnitude() > sq(10.f);
+        ms_IsWarping                     = spawnPointExitToUs.SquaredMagnitude() > sq(10.f);
 
         const auto spawnPointExitToUsDir = spawnPointExitToUs.Normalized();
 
@@ -355,7 +358,7 @@ bool CEntryExit::TransitionFinished(CPed* ped) {
             return false;
         }
         default: { // 0x44068F
-            CGame::currArea                         = ms_SpawnPoint->GetArea();
+            CGame::currArea                          = ms_SpawnPoint->GetArea();
             CEntryExitManager::ms_numVisibleEntities = 0;
             break;
         }

@@ -71,8 +71,8 @@ public:
     uint8        m_NumberOfPeds{};
     CEntryExit*  m_Link{};
 
-    static inline auto& ms_IsWarping = StaticRef<bool>(0x96A7B8);
-    static inline auto& ms_Door = StaticRef<CObject*>(0x96A7BC);
+    static inline auto& ms_IsWarping  = StaticRef<bool>(0x96A7B8);
+    static inline auto& ms_Door       = StaticRef<CObject*>(0x96A7BC);
     static inline auto& ms_SpawnPoint = StaticRef<CEntryExit*>(0x96A7C0);
 
 public:
@@ -81,17 +81,18 @@ public:
     void WarpGangWithPlayer(CPlayerPed* plyr);
 
     CEntryExit(
-        CVector center,
-        CVector entranceRange,
-        float entranceAngle,
-        CVector exit,
-        float exitAngle,
-        eAreaCodes area,
+        CVector            center,
+        CVector            entranceRange,
+        float              entranceAngle,
+        CVector            exit,
+        float              exitAngle,
+        eAreaCodes         area,
         CEntryExit::eFlags flags,
-        int32 skyColor,
-        int32 timeOn, int32 timeOff,
-        int32 numberOfPeds,
-        const char* name
+        int32              skyColor,
+        int32              timeOn,
+        int32              timeOff,
+        int32              numberOfPeds,
+        const char*        name
     );
 
     void GenerateAmbientPeds(const CVector& posn);
@@ -123,6 +124,6 @@ public:
     [[nodiscard]] CVector GetPosition() const;
     [[nodiscard]] CVector2D GetPosition2D() const;
     [[nodiscard]] uint8 GetMyOrLinkedArea() const;
-    [[nodiscard]] auto GetArea() const { return m_Area; }
+    [[nodiscard]] auto         GetArea() const { return m_Area; }
 };
 VALIDATE_SIZE(CEntryExit, 0x3C);
