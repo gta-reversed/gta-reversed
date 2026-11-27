@@ -12,9 +12,16 @@
 #include "Radar.h"
 #include "Shadows.h"
 #include "Coronas.h"
+#include "PostEffects.h"
 #include "TaskSimpleJetPack.h"
+#include "TaskComplexEnterCarAsDriver.h"
+#include "TaskComplexUseMobilePhone.h"
 
 using namespace ModelIndices;
+
+constexpr float PICKUP_ANGLE_STEP = 0.024543693f; // 2 PI / 256 - NOTE: The original's constant (0x859BBC), `TWO_PI / 256.f` is a few ulp off
+constexpr auto  NUM_SPOT_ATTEMPTS = 32;
+
 void CPickups::InjectHooks() {
     RH_ScopedClass(CPickups);
     RH_ScopedCategoryGlobal();
@@ -22,13 +29,13 @@ void CPickups::InjectHooks() {
     RH_ScopedInstall(Init, 0x454A70);
     RH_ScopedInstall(ReInit, 0x456E60);
     RH_ScopedInstall(AddToCollectedPickupsArray, 0x455240);
-    RH_ScopedOverloadedInstall(CreatePickupCoorsCloseToCoors, "", 0x458A80, void(*)(float, float, float, float&, float&, float&), {.Reversed = false});
+    RH_ScopedOverloadedInstall(CreatePickupCoorsCloseToCoors, "", 0x458A80, void(*)(float, float, float, float&, float&, float&));
     RH_ScopedInstall(CreateSomeMoney, 0x458970);
     RH_ScopedInstall(DetonateMinesHitByGunShot, 0x4590C0);
     RH_ScopedInstall(DoCollectableEffects, 0x455E20);
     RH_ScopedInstall(DoMineEffects, 0x4560E0);
     RH_ScopedInstall(DoMoneyEffects, 0x454E80);
-    RH_ScopedInstall(DoPickUpEffects, 0x455720, { .Reversed = false });
+    RH_ScopedInstall(DoPickUpEffects, 0x455720);
     RH_ScopedInstall(FindPickUpForThisObject, 0x4551C0);
 
     // Cannot be hooked at all for now due to ABI fuckery, the return value is 32 bit, but causes the function to assume the calling convention of of T* Function(T*, ...)
@@ -67,15 +74,15 @@ void CPickups::InjectHooks() {
 void CPickups::Init() {
     ZoneScoped;
 
-    NumMessages = 0;
+    ms_NumMessages = 0;
     for (auto& pickup : aPickUps) {
         pickup.m_nPickupType = PICKUP_NONE;
         pickup.m_nReferenceIndex = 1;
         pickup.m_pObject = nullptr;
     }
-    aPickUpsCollected.fill(0);
-    CollectedPickUpIndex = 0u;
-    DisplayHelpMessage = 10u;
+    ms_PickUpsCollected.fill(0);
+    ms_CollectedPickUpIndex = 0u;
+    ms_DisplayHelpMessage   = 10u;
 }
 
 // 0x456E60
@@ -86,8 +93,8 @@ void CPickups::ReInit() {
 
 // 0x455240
 void CPickups::AddToCollectedPickupsArray(int32 pickupIndex) {
-    aPickUpsCollected[CollectedPickUpIndex++] = GetUniquePickupIndex(pickupIndex).num;
-    CollectedPickUpIndex %= std::size(aPickUpsCollected);
+    ms_PickUpsCollected[ms_CollectedPickUpIndex++] = GetUniquePickupIndex(pickupIndex).num;
+    ms_CollectedPickUpIndex %= std::size(ms_PickUpsCollected);
 }
 
 /*!
@@ -97,7 +104,46 @@ void CPickups::AddToCollectedPickupsArray(int32 pickupIndex) {
  * @param [out] outX, outY, outZ Created pickup's position
  */
 void CPickups::CreatePickupCoorsCloseToCoors(float inX, float inY, float inZ, float& outX, float& outY, float& outZ) {
-    plugin::Call<0x458A80, float, float, float, float&, float&, float&>(inX, inY, inZ, outX, outY, outZ);
+    for (auto attempt = 0; attempt < NUM_SPOT_ATTEMPTS; attempt++) {
+        // 0x458AC9 - A random point on the ground around the position
+        const auto angle = (float)(CGeneral::GetRandomNumber() & 0xFF) * PICKUP_ANGLE_STEP; // NOTE: Not `GetRandomNumberInRange`, the angle is quantized to 256 steps
+        CVector    pos{ inX + std::sin(angle) * 1.5f, inY + std::cos(angle) * 1.5f, inZ };
+        bool       isGroundFound{};
+        pos.z = CWorld::FindGroundZFor3DCoord(pos, &isGroundFound, nullptr) + 0.5f;
+        if (!isGroundFound) {
+            continue;
+        }
+
+        // 0x458CB7 - Not too close to the player, nor to other pickups (Unless we're running out of attempts)
+        const auto isDesperate = attempt > 16;
+        if (CVector2D{ pos - FindPlayerCoors() }.SquaredMagnitude() > sq(2.f)) {
+            if (!isDesperate && TestForPickupsInBubble(pos, 1.3f)) {
+                continue;
+            }
+        } else if (!isDesperate) {
+            continue;
+        }
+
+        // 0x458CF8 - It must be reachable from the original position
+        const CVector origin{ inX, inY, inZ + 0.3f };
+        const CVector dir = pos - origin;
+        if (!CWorld::GetIsLineOfSightClear(origin + dir * ((dir.Magnitude() + 0.4f) / dir.Magnitude()), origin, true, attempt < 16, false, attempt < 16, false, false, false)) {
+            continue;
+        }
+        if (!isDesperate && CWorld::TestSphereAgainstWorld(pos, 1.2f, nullptr, false, true, false, false, false, false)) {
+            continue;
+        }
+
+        outX = pos.x;
+        outY = pos.y;
+        outZ = pos.z;
+        return;
+    }
+
+    // 0x458D6C - Couldn't find a good spot, just put it there
+    outX = inX;
+    outY = inY;
+    outZ = inZ + 0.4f;
 }
 
 /*!
@@ -108,14 +154,16 @@ void CPickups::CreateSomeMoney(CVector coors, int32 amount) {
     const auto wads = std::min(amount / 20 + 1, 7);
     const auto perWad = amount / wads;
 
+    CVector pos       = coors;
     for (auto i = 0; i < wads; i++) {
-        bool result;
-        coors.x += std::sinf(CGeneral::GetRandomNumberInRange(0.f, TWO_PI)) * 1.5f;
-        coors.y += std::cosf(CGeneral::GetRandomNumberInRange(0.f, TWO_PI)) * 1.5f;
-        coors.z = CWorld::FindGroundZFor3DCoord(coors, &result, nullptr) + 0.5f;
+        // NOTE: Each coordinate gets its own random angle, quantized to 256 steps
+        pos.x += std::sin((float)(CGeneral::GetRandomNumber() & 0xFF) * PICKUP_ANGLE_STEP) * 1.5f;
+        pos.y += std::cos((float)(CGeneral::GetRandomNumber() & 0xFF) * PICKUP_ANGLE_STEP) * 1.5f;
 
-        if (result) {
-            GenerateNewOne(coors, MI_MONEY, PICKUP_MONEY, perWad + (CGeneral::GetRandomNumber() % 4));
+        bool isGroundFound{};
+        pos.z = CWorld::FindGroundZFor3DCoord(pos, &isGroundFound, nullptr) + 0.5f;
+        if (isGroundFound) {
+            GenerateNewOne(pos, MI_MONEY, PICKUP_MONEY, perWad + (CGeneral::GetRandomNumber() % 4));
         }
     }
 }
@@ -135,7 +183,7 @@ void CPickups::DoCollectableEffects(CEntity* entity) {
 
     if (const auto d = DistanceBetweenPoints(TheCamera.GetPosition(), entityPos); d < 14.0f) {
         // shade of gray
-        const auto t = (uint8)((std::sinf((float)(((uint16)std::bit_cast<uintptr_t>(entity) + (uint16)CTimer::GetTimeInMS()) % 2048) * 0.0030664064f) + 1.0f) / 2.0f * ((14.0f - d) / 14.0f) * 255.0f);
+        const auto t = (uint8)((std::sinf((float)(((uint16)std::bit_cast<uintptr_t>(entity) + (uint16)CTimer::GetTimeInMS()) % 2'048) * 0.0030664064f) + 1.0f) * 0.5f * (14.0f - d) * (1.0f / 14.0f) * 255.0f);
 
         CShadows::StoreStaticShadow(
             (uint32)entity,
@@ -190,7 +238,7 @@ void CPickups::DoMineEffects(CEntity* entity) {
 
     if (const auto d = DistanceBetweenPoints(TheCamera.GetPosition(), entityPos); d < 20.0f) {
         // shade of red
-        const auto t = (uint8)((std::sinf((float)(((uint16)std::bit_cast<uintptr_t>(entity) + (uint16)CTimer::GetTimeInMS()) % 512) * 0.012265625f) + 1.0f) / 2.0f * ((20.0f - d) / 20.0f) * 64.0f);
+        const auto t = (uint8)((std::sinf((float)(((uint16)std::bit_cast<uintptr_t>(entity) + (uint16)CTimer::GetTimeInMS()) % 512) * 0.012265625f) + 1.0f) * 0.5f * (20.0f - d) * 0.05f * 64.0f);
 
         CShadows::StoreStaticShadow(
             (uint32)entity,
@@ -220,7 +268,7 @@ void CPickups::DoMineEffects(CEntity* entity) {
             255,
             entityPos,
             0.6f,
-            40.0f,
+            60.0f,
             CORONATYPE_TORUS,
             FLARETYPE_NONE,
             eCoronaReflType::CORREFL_NONE,
@@ -246,7 +294,133 @@ void CPickups::DoMoneyEffects(CEntity* entity) {
 
 // 0x455720
 void CPickups::DoPickUpEffects(CEntity* entity) {
-    plugin::Call<0x455720, CEntity*>(entity);
+    auto* const object = entity->AsObject();
+    auto* const pickup = FindPickUpForThisObject(object);
+    const auto  mi     = object->GetModelId();
+
+    if (mi == MI_PICKUP_CAMERA) {
+        if (TheCamera.GetActiveCam().m_nMode == MODE_CAMERA) { // 0x455767
+            object->objectFlags.bDoNotRender = false;
+        } else {
+            object->objectFlags.bDoNotRender = true;
+
+            // 0x455793 - Glow at night (or with night/thermal vision on)
+            if (CClock::GetGameClockHours() < 5 || CPostEffects::IsVisionFXActive()) {
+                // NOTE: Not `GetRandomNumberInRange`, the original scales by 1 / 32768 and truncates towards zero
+                const auto red = 100 - (int32)((float)(CGeneral::GetRandomNumber() & 0xFFFF) * (1.f / 32768.f) * -50.f);
+                const auto gb  = (uint8)((double)red * (double)0.7f); // NOTE: The original multiplies in 80-bit precision, with `float` `110 * 0.7f` would round up to 77
+                CCoronas::RegisterCorona(
+                    reinterpret_cast<uint32>(&entity) + 1, // NOTE: The original uses a stack address as the id, so it's the same for all camera pickups
+                    nullptr,
+                    (uint8)red,
+                    gb,
+                    gb,
+                    255,
+                    object->GetPosition(),
+                    (std::sin((float)(CTimer::GetTimeInMS() & 0x1FFF) * 0.0007666016f) + 1.7f) * 3.7f,
+                    100.f,
+                    CORONATYPE_HEADLIGHT,
+                    FLARETYPE_NONE,
+                    eCoronaReflType::CORREFL_NONE,
+                    eCoronaLOSCheck::LOSCHECK_OFF,
+                    eCoronaTrail::TRAIL_OFF,
+                    0.f,
+                    false,
+                    1.5f,
+                    false,
+                    15.f,
+                    false,
+                    false
+                );
+            }
+        }
+    } else {
+        object->objectFlags.bDoNotRender = pickup->PickUpShouldBeInvisible();
+    }
+    if (object->objectFlags.bDoNotRender) {
+        return;
+    }
+
+    // 0x455885 - Index into `ms_PickupColours` for the text
+    const auto colourIdx = [&]() -> int32 {
+        // NOTE/BUG: The original leaves the index uninitialised for these models (It ends up being the low word of `entity`)
+        const auto uninitialisedIdx = notsa::bugfixes::GenericUB ? 0 : (int32)(int16)(reinterpret_cast<uintptr_t>(entity) & 0xFFFF);
+
+        if (mi == MI_PICKUP_ADRENALINE) {
+            return 47;
+        }
+        if (mi == MI_PICKUP_BODYARMOUR) {
+            return 48;
+        }
+        if (mi == MI_PICKUP_BRIBE || mi == MI_PICKUP_INFO || mi == MI_PICKUP_KILLFRENZY) {
+            return uninitialisedIdx;
+        }
+        if (mi == MI_PICKUP_HEALTH || mi == MI_PICKUP_BONUS) {
+            return 47;
+        }
+        if (mi == MI_PICKUP_PROPERTY) {
+            return uninitialisedIdx;
+        }
+        if (mi == MI_PICKUP_PROPERTY_FORSALE) {
+            return 47;
+        }
+        if (mi == MI_PICKUP_REVENUE) {
+            return 53;
+        }
+        if (mi == MI_PICKUP_SAVEGAME) {
+            return uninitialisedIdx;
+        }
+        if (mi == MI_PICKUP_CLOTHES) {
+            return 47;
+        }
+        return WeaponForModel(mi);
+    }();
+
+    // 0x455943 - Show the price/bonus above shop and property pickups
+    if (object->objectFlags.bPickupPropertyForSale || object->objectFlags.bPickupInShopOutOfStock || object->m_nBonusValue || object->m_wCostValue) {
+        const auto distToCam = CVector2D{ TheCamera.GetPosition() - object->GetPosition() }.Magnitude();
+        CVector    screenPos{};
+        float      width{}, height{};
+        if (distToCam < 14.f && ms_NumMessages < MAX_PICKUP_MESSAGES && CSprite::CalcScreenCoors(object->GetPosition() + CVector{ 0.f, 0.f, 0.7f }, &screenPos, &width, &height, true, true)) {
+            const auto& colour     = ms_PickupColours.data()[colourIdx]; // NOTE: Not `[]`, the index may be out of range (See above)
+
+            auto& msg              = ms_Messages[ms_NumMessages];
+            msg.pos                = CVector2D{ screenPos };
+            msg.width              = width;
+            msg.height             = height;
+            msg.weaponType         = WeaponForModel(mi);
+            msg.color              = CRGBA{ colour.r, colour.g, colour.b, (uint8)((1.f - distToCam * (1.f / 14.f)) * 255.f) };
+            msg.flags.IsOutOfStock = object->objectFlags.bPickupInShopOutOfStock;
+            msg.bonus              = object->m_nBonusValue;
+            msg.price              = object->m_wCostValue * 5u;
+            if (mi == MI_PICKUP_PROPERTY) { // 0x455B61
+                msg.text                    = TheText.Get(CPickup::FindStringForTextIndex((ePickupPropertyText)pickup->m_nFlags.nPropertyTextIndex));
+                msg.flags.IsPropertyForSale = false;
+            } else if (mi == MI_PICKUP_PROPERTY_FORSALE) { // 0x455BA6
+                msg.text                    = TheText.Get(CPickup::FindStringForTextIndex((ePickupPropertyText)pickup->m_nFlags.nPropertyTextIndex));
+                msg.flags.IsPropertyForSale = true;
+            } else {
+                msg.text                    = nullptr;
+                msg.flags.IsPropertyForSale = false;
+            }
+            ms_NumMessages++;
+        }
+    }
+
+    // 0x455C07 - Spin it, and scale it up if it's small
+    const auto& bb        = object->GetModelInfo()->GetColModel()->GetBoundingBox();
+    const auto  bbSize    = bb.GetSize();
+    const auto  scale     = mi == MODEL_MINIGUN
+        ? 1.2f
+        : (std::max(1.2f / std::max({ bbSize.x, bbSize.y, bbSize.z }), 1.f) - 1.f) * 0.6f + 1.f;
+    const auto  angle     = (float)(CTimer::GetTimeInMS() % 2'048) * 0.0030566407f;
+    const auto  cosScaled = std::cos(angle) * scale;
+    const auto  sinScaled = std::sin(angle) * scale;
+
+    auto& mat             = object->GetMatrix();
+    mat.GetRight()        = CVector{ cosScaled, sinScaled, 0.f };
+    mat.GetForward()      = CVector{ -sinScaled, cosScaled, 0.f };
+    mat.GetUp()           = CVector{ 0.f, 0.f, scale };
 }
 
 // 0x4551C0
@@ -299,7 +473,7 @@ int32 CPickups::GetActualPickupIndex(tPickupReference pickupRef) {
 // 0x456A30
 tPickupReference CPickups::GetNewUniquePickupIndex(int32 pickupIndex) {
     auto& refIdx = aPickUps[pickupIndex].m_nReferenceIndex;
-    refIdx = (refIdx == -1) ? 1 : refIdx + 1;
+    refIdx       = (uint16)refIdx >= 0xFFFE ? 1 : refIdx + 1; // NOTE: The original treats it as unsigned, so -2 and -1 wrap to 1
 
     return GetUniquePickupIndex(pickupIndex);
 }
@@ -313,7 +487,7 @@ tPickupReference CPickups::GetUniquePickupIndex(int32 pickupIndex) {
 // returns TRUE if player got goodies
 // 0x4564F0
 bool CPickups::GivePlayerGoodiesWithPickUpMI(uint16 modelId, int32 playerId) {
-    auto* ped = FindPlayerPed(playerId);
+    auto* const ped = FindPlayerPed(playerId > 0 ? playerId : -1); // NOTE: The original uses the player in focus for player 0 too
 
     if (modelId == MI_PICKUP_ADRENALINE) {
         ped->GetPlayerData()->m_bAdrenaline = true;
@@ -336,7 +510,7 @@ bool CPickups::GivePlayerGoodiesWithPickUpMI(uint16 modelId, int32 playerId) {
 
     if (modelId == MI_PICKUP_HEALTH) {
         auto maxHealth = FindPlayerInfo(playerId).m_nMaxHealth;
-        CStats::UpdateStatsAddToHealth((uint32)((float)maxHealth - ped->m_fHealth));
+        CStats::UpdateStatsAddToHealth((uint32)(int32)((float)maxHealth - ped->m_fHealth));
         ped->m_fHealth = (float)maxHealth;
         AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_PICKUP_HEALTH);
         return true;
@@ -386,7 +560,7 @@ bool CPickups::GivePlayerGoodiesWithPickUpMI(uint16 modelId, int32 playerId) {
  * @addr 0x454B40
  */
 bool CPickups::IsPickUpPickedUp(tPickupReference pickupRef) {
-    if (const auto it = rng::find(aPickUpsCollected, pickupRef.num); it != aPickUpsCollected.end()) {
+    if (const auto it = rng::find(ms_PickUpsCollected, pickupRef.num); it != ms_PickUpsCollected.end()) {
         *it = 0; // Reset
         return true;
     }
@@ -428,13 +602,13 @@ void CPickups::PickedUpHorseShoe() {
     CStats::IncrementStat(STAT_HORSESHOES_COLLECTED);
     CStats::IncrementStat(STAT_LUCK, 1000.f / CStats::GetStatValue(STAT_TOTAL_HORSESHOES)); // TODO: Is this some inlined stuff? (The division part)
 
-    FindPlayerInfo().m_nMoney += 100; // originally rewarded to the player 1.
+    FindPlayerInfo(0).m_nMoney += 100; // NOTE: Always player 1
 
     const auto collected = CStats::GetStatValue(STAT_HORSESHOES_COLLECTED);
     const auto total = CStats::GetStatValue(STAT_TOTAL_HORSESHOES);
     if (collected == total) {
         CGarages::TriggerMessage("HO_ALL");
-        FindPlayerInfo().m_nMoney += 100'000; // originally rewarded to the player 1.
+        FindPlayerInfo(0).m_nMoney += 100'000; // NOTE: Always player 1
     } else {
         CGarages::TriggerMessage("HO_ONE", static_cast<int16>(collected), 5000u, static_cast<int16>(total));
     }
@@ -445,13 +619,13 @@ void CPickups::PickedUpOyster() {
     AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_PICKUP_COLLECTABLE1);
 
     CStats::IncrementStat(STAT_OYSTERS_COLLECTED);
-    FindPlayerInfo().m_nMoney += 100; // originally rewarded to the player 1.
+    FindPlayerInfo(0).m_nMoney += 100; // NOTE: Always player 1
 
     const auto collected = CStats::GetStatValue(STAT_OYSTERS_COLLECTED);
     const auto total = CStats::GetStatValue(STAT_TOTAL_OYSTERS);
     if (collected == total) {
         CGarages::TriggerMessage("OY_ALL");
-        FindPlayerInfo().m_nMoney += 100'000; // originally rewarded to the player 1.
+        FindPlayerInfo(0).m_nMoney += 100'000; // NOTE: Always player 1
     } else {
         CGarages::TriggerMessage("OY_ONE", static_cast<int16>(collected), 5000u, static_cast<int16>(total));
     }
@@ -470,7 +644,6 @@ void CPickups::PictureTaken() {
         const auto dist = DistanceBetweenPoints(TheCamera.GetPosition(), pupPos);
 
         if (90.0f / TheCamera.FindCamFOV() * 20.0f > dist && dist < lastFoundDist) {
-            CVector origin = pupPos;
             if (TheCamera.IsSphereVisible(pupPos, 0.2f) || TheCamera.IsSphereVisibleInMirror(pupPos, 0.2f)) {
                 capturedPickup = i;
                 lastFoundDist = dist;
@@ -483,7 +656,7 @@ void CPickups::PictureTaken() {
 
     aPickUps[*capturedPickup].Remove();
 
-    FindPlayerInfo().m_nMoney += 100'000; // originally rewarded to the player 1.
+    FindPlayerInfo(0).m_nMoney += 100; // NOTE: Always player 1
 
     AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_PICKUP_COLLECTABLE1);
     CStats::IncrementStat(STAT_SNAPSHOTS_TAKEN, 1.0f);
@@ -559,7 +732,7 @@ void CPickups::RemoveUnnecessaryPickups(const CVector& posn, float radius) {
         switch (pickup.m_nPickupType) {
         case PICKUP_ONCE_TIMEOUT:
         case PICKUP_MONEY: {
-            if (IsPointInSphere(pickup.GetPosn(), posn, radius)) {
+            if (DistanceBetweenPoints(posn, pickup.GetPosn()) < radius) { // NOTE: Not `IsPointInSphere`, the original's check is `<`
                 pickup.Remove();
             }
             break;
@@ -571,40 +744,41 @@ void CPickups::RemoveUnnecessaryPickups(const CVector& posn, float radius) {
 // 0x455000
 void CPickups::RenderPickUpText() {
     GxtChar msgText[352]{};
-    for (const auto& message : std::span{ aMessages.data(), NumMessages }) {
-        if (message.price == 0u) {
-            if (!message.text)
-                continue;
-
-            if (message.flags & 2) {
+    for (const auto& message : std::span{ ms_Messages.data(), ms_NumMessages }) {
+        const GxtChar* text{};
+        if (message.price) {
+            AsciiToGxtChar(std::format("${:d}", message.price).c_str(), msgText);
+            text = msgText;
+        } else if (message.text) {
+            if (message.flags.IsPropertyForSale) {
                 CMessages::InsertNumberInString(message.text, 0, 0, 0, 0, 0, 0, msgText);
+                text = msgText;
+            } else {
+                text = message.text;
             }
         } else {
-            AsciiToGxtChar(std::format("${:d}", message.price).c_str(), msgText);
+            continue;
         }
 
-        // TODO: scaled wrong in windowed mode, but it's fine in fullscreen.
-        auto scaleX = std::min(SCREEN_STRETCH_X(1.0f), message.width / 30.0f);
-        auto scaleY = std::min(SCREEN_STRETCH_X(1.0f), message.height / 30.0f);
-
+        const auto maxScale = (float)(RsGlobal.maximumWidth / 640); // NOTE: Integer division in the original
         CFont::SetProportional(true);
         CFont::SetBackground(false, false);
-        CFont::SetScale(scaleX, scaleY);
+        CFont::SetScale(std::min(maxScale, message.width * (1.f / 30.f)), std::min(maxScale, message.height * (1.f / 30.f)));
         CFont::SetOrientation(eFontAlignment::ALIGN_CENTER);
         CFont::SetCentreSize(SCREEN_WIDTH);
         CFont::SetColor(message.color);
         CFont::SetFontStyle(eFontStyle::FONT_PRICEDOWN);
-        CFont::PrintString(message.pos.x, message.pos.y, msgText);
+        CFont::PrintString(message.pos.x, message.pos.y, text);
     }
-    NumMessages = 0;
+    ms_NumMessages = 0;
 }
 
 // check for pickups in area
 // 0x456450
 bool CPickups::TestForPickupsInBubble(const CVector posn, float radius) {
     // NOTE: (Possible bug) - They dont check if the pickup is active (eg: type != NONE)
-    return rng::any_of(aPickUps, [sp = CSphere{ posn, radius }](const CPickup& p) {
-        return sp.IsPointWithin(p.GetPosn()); // They obviously didn't use `CSphere` here, but it's nicer.
+    return rng::any_of(aPickUps, [&](const CPickup& p) {
+        return DistanceBetweenPoints(posn, p.GetPosn()) < radius; // NOTE: Not `CSphere::IsPointWithin`, the original's check is `<`
     });
 }
 
@@ -614,7 +788,7 @@ bool CPickups::TryToMerge_WeaponType(CVector posn, eWeaponType weaponType, ePick
     const auto mi = CWeaponInfo::GetWeaponInfo(weaponType)->m_nModelId1;
 
     for (auto& pickup : aPickUps) {
-        if (mi == pickup.m_nModelIndex && pickup.m_nPickupType == pickupType && IsPointInSphere(pickup.GetPosn(), posn, 5.0f)) {
+        if (pickup.m_nPickupType == pickupType && mi == pickup.m_nModelIndex && DistanceBetweenPoints(posn, pickup.GetPosn()) < 5.5f) {
             pickup.m_nAmmo += ammo;
 
             return true;
@@ -653,20 +827,21 @@ void CPickups::Update() {
     const auto pad = CPad::GetPad();
     if (pad->CollectPickupJustDown()) {
         CollectPickupBuffer = 6;
-    } else if (CollectPickupBuffer) {
-        CollectPickupBuffer--;
+    } else {
+        CollectPickupBuffer = std::max(CollectPickupBuffer - 1, 0); // NOTE: Integer counters, `step_down_to` is for floats
     }
 
-    if (PlayerOnWeaponPickup) {
-        PlayerOnWeaponPickup--;
+    if (ms_PlayerOnWeaponPickup) {
+        ms_PlayerOnWeaponPickup = std::max(ms_PlayerOnWeaponPickup - 1, 0);
     }
 
     if (pad->GetTarget()) {
         CollectPickupBuffer = 0;
     }
 
-    const auto player1 = FindPlayerPed(PED_TYPE_PLAYER1);
-    const auto p1Busy = player1->GetIntelligence()->FindTaskByType(TASK_COMPLEX_ENTER_CAR_AS_DRIVER) || player1->GetIntelligence()->FindTaskByType(TASK_COMPLEX_USE_MOBILE_PHONE);
+    auto&      player1TaskMgr = FindPlayerPed(PED_TYPE_PLAYER1)->GetTaskManager();
+    const auto canP1Collect   = !player1TaskMgr.Find<CTaskComplexEnterCarAsDriver>(false) && !player1TaskMgr.Find<CTaskComplexUseMobilePhone>(false);
+    const auto canP2Collect   = FindPlayerPed(PED_TYPE_PLAYER2) && canP1Collect; // NOTE: The original checks player 1's tasks for player 2 too
 
     start = 620 * (CTimer::GetFrameCounter() % 6) / 6;
     end   = 620 * (CTimer::GetFrameCounter() % 6 + 1) / 6;
@@ -676,14 +851,14 @@ void CPickups::Update() {
         if (pickup.m_nPickupType == PICKUP_NONE || !pickup.m_nFlags.bVisible)
             continue;
 
-        if (!p1Busy) {
-            if (pickup.Update(FindPlayerPed(), FindPlayerVehicle(), CWorld::PlayerInFocus)) {
-                AddToCollectedPickupsArray(i);
-            }
-        } else if (FindPlayerPed(PED_TYPE_PLAYER2)) {
-            if (pickup.Update(FindPlayerPed(1), FindPlayerVehicle(1), PED_TYPE_PLAYER2)) {
-                AddToCollectedPickupsArray(i);
-            }
+        if (canP1Collect && pickup.Update(FindPlayerPed(), FindPlayerVehicle(), CWorld::PlayerInFocus)) {
+            AddToCollectedPickupsArray(i);
+            continue;
+        }
+
+        // 0x459069 - Player 2 gets a go only if player 1 didn't take it
+        if (canP2Collect && pickup.m_nPickupType != PICKUP_NONE && pickup.m_nFlags.bVisible && pickup.Update(FindPlayerPed(1), FindPlayerVehicle(1), PED_TYPE_PLAYER2)) {
+            AddToCollectedPickupsArray(i);
         }
     }
 }
@@ -723,7 +898,7 @@ eWeaponType CPickups::WeaponForModel(int32 modelId) {
 }
 
 // 0x5D35A0
-void CPickups::Load() {
+bool CPickups::Load() {
     for (auto& pickup : aPickUps) {
         CGenericGameStorage::LoadDataFromWorkBuffer(pickup);
         if (pickup.m_nPickupType != PICKUP_NONE && pickup.m_pObject) {
@@ -731,33 +906,37 @@ void CPickups::Load() {
             pickup.m_nFlags.bVisible = false;
         }
     }
-    NumMessages = 0u;
-    CGenericGameStorage::LoadDataFromWorkBuffer(CPickups::CollectedPickUpIndex);
-    CGenericGameStorage::LoadDataFromWorkBuffer(CPickups::DisplayHelpMessage);
+    ms_NumMessages = 0u;
+    CGenericGameStorage::LoadDataFromWorkBuffer(ms_CollectedPickUpIndex);
+    CGenericGameStorage::LoadDataFromWorkBuffer(ms_DisplayHelpMessage);
 
-    for (auto& collected : aPickUpsCollected) {
+    for (auto& collected : ms_PickUpsCollected) {
         CGenericGameStorage::LoadDataFromWorkBuffer(collected);
     }
+    return true;
 }
+
 // 0x5D3540
-void CPickups::Save() {
+bool CPickups::Save() {
     for (auto& pickup : aPickUps) {
         CGenericGameStorage::SaveDataToWorkBuffer(pickup);
     }
-    CGenericGameStorage::SaveDataToWorkBuffer(CPickups::CollectedPickUpIndex);
-    CGenericGameStorage::SaveDataToWorkBuffer(CPickups::DisplayHelpMessage);
+    CGenericGameStorage::SaveDataToWorkBuffer(ms_CollectedPickUpIndex);
+    CGenericGameStorage::SaveDataToWorkBuffer(ms_DisplayHelpMessage);
 
-    for (auto& collected : aPickUpsCollected) {
+    for (auto& collected : ms_PickUpsCollected) {
         CGenericGameStorage::SaveDataToWorkBuffer(collected);
     }
+    return true;
 }
 
 // 0x454B70
 void ModifyStringLabelForControlSetting(char* stringLabel) {
     const auto len = strlen(stringLabel);
 
-    if (len < 2 || stringLabel[len - 2] != '_')
+    if (len <= 2 || stringLabel[len - 2] != '_') {
         return;
+    }
 
     switch (CPad::GetPad(0)->Mode) {
     case 0:

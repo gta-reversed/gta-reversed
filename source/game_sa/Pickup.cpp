@@ -388,7 +388,7 @@ bool CPickup::Update(CPlayerPed* player, CVehicle* vehicle, int32 playerId) {
                                 };
 
                                 if (pedWeapon.m_Type != WEAPON_UNARMED && (pedWeapon.m_TotalAmmo != 0 || IsSlotExchangeable(weaponInfo->m_nSlot))) {
-                                    CPickups::PlayerOnWeaponPickup = 6;
+                                    CPickups::ms_PlayerOnWeaponPickup = 6;
 
                                     if (IsSlotExchangeable(weaponInfo->m_nSlot)) {
                                         switch (pt) {
@@ -406,7 +406,7 @@ bool CPickup::Update(CPlayerPed* player, CVehicle* vehicle, int32 playerId) {
                                     }
 
                                     const auto pad = CPad::GetPad();
-                                    if (!pad->GetTarget() && CPickups::DisplayHelpMessage && !m_nFlags.bHelpMessageDisplayed) {
+                                    if (!pad->GetTarget() && CPickups::ms_DisplayHelpMessage && !m_nFlags.bHelpMessageDisplayed) {
                                         switch (pad->Mode) {
                                         case 0:
                                         case 1:
@@ -422,8 +422,8 @@ bool CPickup::Update(CPlayerPed* player, CVehicle* vehicle, int32 playerId) {
                                             break;
                                         }
 
-                                        if (CPickups::DisplayHelpMessage) {
-                                            CPickups::DisplayHelpMessage--;
+                                        if (CPickups::ms_DisplayHelpMessage) {
+                                            CPickups::ms_DisplayHelpMessage--;
                                         }
                                         m_nFlags.bHelpMessageDisplayed = true;
                                     }
@@ -433,7 +433,7 @@ bool CPickup::Update(CPlayerPed* player, CVehicle* vehicle, int32 playerId) {
                                     }
                                 } else if (CTimer::GetTimeInMS() - player->GetPlayerData()->m_nLastHSMissileLOSTime < 1500 ||
                                            !CPickups::PlayerCanPickUpThisWeaponTypeAtThisMoment(weapon)) {
-                                    CPickups::PlayerOnWeaponPickup = 6;
+                                    CPickups::ms_PlayerOnWeaponPickup = 6;
                                     return false;
                                 }
                             }
@@ -513,12 +513,12 @@ bool CPickup::Update(CPlayerPed* player, CVehicle* vehicle, int32 playerId) {
                                         AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_PICKUP_WEAPON);
                                     } else if (mi == MI_PICKUP_CAMERA && vehicle) {
                                         AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_PICKUP_INFO);
-                                        CPickups::bPickUpcamActivated = true;
-                                        CPickups::pPlayerVehicle = FindPlayerVehicle();
-                                        CPickups::StaticCamCoors = &m_pObject->GetPosition();
-                                        CPickups::StaticCamStartTime = CTimer::GetTimeInMS();
+                                        CPickups::ms_PickUpCamActivated = true;
+                                        CPickups::ms_PlayerVehicle      = FindPlayerVehicle();
+                                        CPickups::ms_StaticCamCoors     = m_pObject->GetPosition();
+                                        CPickups::ms_StaticCamStartTime = CTimer::GetTimeInMS();
 
-                                        SetPickupRegenTimeAndDisable(CPickups::StaticCamStartTime);
+                                        SetPickupRegenTimeAndDisable(CPickups::ms_StaticCamStartTime);
                                         break;
                                     }
                                 }

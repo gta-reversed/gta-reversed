@@ -23,19 +23,27 @@ constexpr uint32 MAX_NUM_PICKUPS = 620;
 // Dump @ 0x8A5F50
 constexpr uint16 AmmoForWeapon_OnStreet[NUM_WEAPONS]{ 0u, 1u, 1u, 1u, 1u, 1u, 1u, 1u, 1u, 1u, 1u, 1u, 1u, 1u, 1u, 1u, 8u, 8u, 8u, 8u, 4u, 4u, 30u, 10u, 10u, 15u, 10u, 10u, 60u, 60u, 80u, 80u, 60u, 20u, 10u, 4u, 3u, 100u, 500u, 5u, 1u, 500u, 500u, 36u, 0u, 0u, 1u };
 
+//! Colour of the pickups' text, indexed by weapon type (+ a few extra entries for other pickups)
+struct tPickupColour {
+    uint8 r{}, g{}, b{};
+    float scale{}; //!< Unused (Always `1.f`)
+};
+VALIDATE_SIZE(tPickupColour, 0x8);
+
 class CPickups {
 public:
-    static inline auto& DisplayHelpMessage = StaticRef<uint8>(0x8A5F48);
-    static inline auto& PlayerOnWeaponPickup = StaticRef<int32>(0x97D640);
-    static inline auto& StaticCamStartTime = StaticRef<int32>(0x978618);
-    static inline CVector* StaticCamCoors = (CVector*)0x97D660;
-    static inline auto& pPlayerVehicle = StaticRef<CVehicle*>(0x97861C);
-    static inline auto& bPickUpcamActivated = StaticRef<bool>(0x978620);
-    static inline auto& CollectedPickUpIndex = StaticRef<uint16>(0x978624);
-    static inline auto& aPickUpsCollected = StaticRef<std::array<int32, MAX_COLLECTED_PICKUPS>>(0x978628);
-    static inline auto& NumMessages = StaticRef<uint16>(0x978678);
-    static inline auto& aMessages = StaticRef<std::array<tPickupMessage, MAX_PICKUP_MESSAGES>>(0x978680);
-    static inline auto& aPickUps = StaticRef<std::array<CPickup, MAX_NUM_PICKUPS>>(0x9788C0);
+    static inline auto& ms_DisplayHelpMessage   = StaticRef<uint8>(0x8A5F48);
+    static inline auto& ms_PickupColours        = StaticRef<std::array<tPickupColour, 54>>(0x8A5FB0);
+    static inline auto& ms_PlayerOnWeaponPickup = StaticRef<int32>(0x97D640);
+    static inline auto& ms_StaticCamStartTime   = StaticRef<int32>(0x978618);
+    static inline auto& ms_StaticCamCoors       = StaticRef<CVector>(0x97D660);
+    static inline auto& ms_PlayerVehicle        = StaticRef<CVehicle*>(0x97861C);
+    static inline auto& ms_PickUpCamActivated   = StaticRef<bool>(0x978620);
+    static inline auto& ms_CollectedPickUpIndex = StaticRef<uint16>(0x978624);
+    static inline auto& ms_PickUpsCollected     = StaticRef<std::array<int32, MAX_COLLECTED_PICKUPS>>(0x978628);
+    static inline auto& ms_NumMessages          = StaticRef<uint16>(0x978678);
+    static inline auto& ms_Messages             = StaticRef<std::array<tPickupMessage, MAX_PICKUP_MESSAGES>>(0x978680);
+    static inline auto& aPickUps                = StaticRef<std::array<CPickup, MAX_NUM_PICKUPS>>(0x9788C0); // NOTE: Not renamed (yet), it's used in `Radar.cpp`
 
 public:
     static void InjectHooks();
@@ -78,8 +86,8 @@ public:
     static void Update();
     static void UpdateMoneyPerDay(tPickupReference pickupRef, uint16 money);
     static eWeaponType WeaponForModel(int32 modelId);
-    static void Load();
-    static void Save();
+    static bool             Load();
+    static bool             Save();
 
     // Helpers NOTSA
 
