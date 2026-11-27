@@ -117,8 +117,8 @@ void CRoadBlocks::CreateRoadBlockBetween2Points(CVector a, CVector b, bool isGan
     const CVector dirPerpRight{ CVector2D{ dir }.GetPerpRight() };
 
     // Perpendicular to the road block, pointing towards the player's side of it
-    const CVector perp         = dirPerpRight.Normalized();
-    const CVector toPlayerSide = (FindPlayerCoors() - center).Dot(perp) < 0.f ? -perp : perp;
+    const CVector perp          = dirPerpRight.Normalized();
+    const CVector toPlayerSide  = (FindPlayerCoors() - center).Dot(perp) < 0.f ? -perp : perp;
 
     const auto GetRandomHeading = [](float scale) {
         return CGeneral::GetRandomNumberInRange(-128.f, 128.f) * scale;
