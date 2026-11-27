@@ -9,7 +9,7 @@
 #include "TaskSimpleCreateCarAndGetIn.h"
 #include "CarEnterExit.h"
 
-constexpr auto CREATE_CAR_INTERVAL_MS = 3000;
+constexpr auto CREATE_CAR_INTERVAL_MS = 3'000;
 
 void CTaskComplexGoToPointAnyMeans::InjectHooks() {
     RH_ScopedVirtualClass(CTaskComplexGoToPointAnyMeans, 0x86FF68, 11);
@@ -27,9 +27,9 @@ void CTaskComplexGoToPointAnyMeans::InjectHooks() {
 // 0x66B720
 CTaskComplexGoToPointAnyMeans::CTaskComplexGoToPointAnyMeans(int32 moveState, const CVector& posn, float radius, int32 modelId) : CTaskComplex() {
     m_Pos = posn;
-    m_Radius = radius;
+    m_Radius    = radius;
     m_MoveState = static_cast<eMoveState>(moveState);
-    m_ModelId = modelId;
+    m_ModelId   = modelId;
     m_Vehicle = nullptr;
 }
 
@@ -78,10 +78,10 @@ CTask* CTaskComplexGoToPointAnyMeans::CreateNextSubTask(CPed* ped) {
         return CreateSubTask(TASK_COMPLEX_GO_TO_POINT_AND_STAND_STILL, ped);
     case TASK_COMPLEX_ENTER_CAR_AS_DRIVER: // 0x672904
         return CreateSubTask(ped->IsInVehicle() ? TASK_COMPLEX_CAR_DRIVE_TO_POINT : TASK_COMPLEX_FOLLOW_NODE_ROUTE, ped);
-    case TASK_SIMPLE_CREATE_CAR_AND_GET_IN: // 0x672945
+    case TASK_SIMPLE_CREATE_CAR_AND_GET_IN:                                                                            // 0x672945
         return CreateSubTask(ped->bInVehicle ? TASK_COMPLEX_CAR_DRIVE_TO_POINT : TASK_COMPLEX_FOLLOW_NODE_ROUTE, ped); // NOTE: Only `bInVehicle`, no `m_pVehicle` check
-    case TASK_COMPLEX_GO_TO_POINT_AND_STAND_STILL: // 0x67299C
-    case TASK_COMPLEX_FOLLOW_NODE_ROUTE:           // 0x672995
+    case TASK_COMPLEX_GO_TO_POINT_AND_STAND_STILL:                                                                     // 0x67299C
+    case TASK_COMPLEX_FOLLOW_NODE_ROUTE:                                                                               // 0x672995
         return CreateSubTask(TASK_FINISHED, ped);
     case TASK_FINISHED: // 0x67298C
         return nullptr;

@@ -24,7 +24,7 @@ public:
     ~CTaskComplexGoToPointAnyMeans() override;
 
     eTaskType GetTaskType() const override { return Type; } // 0x66B780
-    CTask* Clone() const override { return new CTaskComplexGoToPointAnyMeans(m_MoveState, m_Pos, m_Vehicle, m_Radius, m_ModelId); } // 0x66D1E0
+    CTask*    Clone() const override { return new CTaskComplexGoToPointAnyMeans(m_MoveState, m_Pos, m_Vehicle, m_Radius, m_ModelId); } // 0x66D1E0
     CTask* CreateNextSubTask(CPed* ped) override;
     CTask* CreateFirstSubTask(CPed* ped) override;
     CTask* ControlSubTask(CPed* ped) override;
