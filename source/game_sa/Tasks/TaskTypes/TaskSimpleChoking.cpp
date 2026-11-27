@@ -74,9 +74,8 @@ bool CTaskSimpleChoking::ProcessPed(CPed* ped) {
         }
     }
 
-    const auto timeStepMs = (uint32)CTimer::GetTimeStepInMS();
-    m_TimeRemaining       = m_TimeRemaining > timeStepMs
-        ? m_TimeRemaining - timeStepMs
+    m_TimeRemaining = m_TimeRemaining > (uint32)CTimer::GetTimeStepInMS()
+        ? m_TimeRemaining - (uint32)CTimer::GetTimeStepInMS()
         : 0;
 
     if (!m_Anim) { // 0x620553
