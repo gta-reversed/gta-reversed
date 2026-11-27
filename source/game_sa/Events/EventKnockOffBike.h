@@ -36,7 +36,7 @@ public:
     CEventKnockOffBike();
     ~CEventKnockOffBike() override;
 
-    eEventType GetEventType() const override { return Type; }
+    eEventType          GetEventType() const override { return Type; }
     float GetLocalSoundLevel() override { return 60.0f; }
     int32 GetEventPriority() const override { return 70; }
     int32 GetLifeTime() override { return 0; }

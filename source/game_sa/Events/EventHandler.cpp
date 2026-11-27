@@ -1516,7 +1516,7 @@ void CEventHandler::ComputeKnockOffBikeResponse(CEvent* e, CTask* tactive, CTask
         }
         case EVENT_DAMAGE: { // 0x4BA0E7
             const auto* const eDamage = notsa::cast<CEventDamage>(e);
-            createdEvent    = MakeKnockOffBikeEvent((uint8)eDamage->m_weaponType, eDamage->m_ucDirection);
+            createdEvent              = MakeKnockOffBikeEvent((uint8)eDamage->m_weaponType, eDamage->m_ucDirection);
             return &createdEvent;
         }
         case EVENT_VEHICLE_DIED:
