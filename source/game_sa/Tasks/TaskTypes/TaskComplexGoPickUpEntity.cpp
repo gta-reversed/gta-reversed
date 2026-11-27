@@ -60,20 +60,22 @@ CTask* CTaskComplexGoPickUpEntity::CreateNextSubTask(CPed* ped) {
         return nullptr;
     }
     case TASK_SIMPLE_ACHIEVE_HEADING: { // 0x691BCC
-        auto movePedUntilAnimProgress = 0.6f;
+        const auto CreatePickUpTask = [&](AssocGroupId animGroupId, float movePedUntilAnimProgress) {
+            m_AnimGroupId           = animGroupId;
+            auto* const tPickUp     = new CTaskSimplePickUpEntity{ m_EntityToPickUp, &m_HoldPosition, PED_NODE_RIGHT_HAND, HOLD_ENTITY_FLAG_1, ANIM_ID_LIFTUP, animGroupId, movePedUntilAnimProgress };
+            tPickUp->m_vecPickuposn = m_PickUpPosition;
+            return tPickUp;
+        };
         if (m_AnimGroupId == ANIM_GROUP_CARRY) {
             const auto entityBottomZ = m_EntityToPickUp->GetColModel()->GetBoundingBox().m_vecMin.z + m_EntityToPickUp->GetPosition().z;
             if (entityBottomZ > ped->GetPosition().z) { // 0x691C12
-                m_AnimGroupId            = ANIM_GROUP_CARRY105;
-                movePedUntilAnimProgress = 0.2f;
-            } else if (ped->GetPosition().z < entityBottomZ + 0.55f) { // 0x691C47
-                m_AnimGroupId            = ANIM_GROUP_CARRY05;
-                movePedUntilAnimProgress = 0.26666668f;
+                return CreatePickUpTask(ANIM_GROUP_CARRY105, 0.2f);
+            }
+            if (ped->GetPosition().z < entityBottomZ + 0.55f) { // 0x691C47
+                return CreatePickUpTask(ANIM_GROUP_CARRY05, 0.26666668f);
             }
         }
-        auto* const tPickUp     = new CTaskSimplePickUpEntity{ m_EntityToPickUp, &m_HoldPosition, PED_NODE_RIGHT_HAND, HOLD_ENTITY_FLAG_1, ANIM_ID_LIFTUP, m_AnimGroupId, movePedUntilAnimProgress };
-        tPickUp->m_vecPickuposn = m_PickUpPosition;
-        return tPickUp;
+        return CreatePickUpTask(m_AnimGroupId, 0.6f);
     }
     case TASK_COMPLEX_GO_TO_POINT_AND_STAND_STILL: // 0x691B2E
         return new CTaskSimpleAchieveHeading{ (m_EntityToPickUp->GetPosition() - ped->GetPosition()).Heading(), 1.f, 0.001f };
