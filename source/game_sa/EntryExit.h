@@ -36,12 +36,12 @@ public:
         DELETE_ENEX            = 1 << 15,
     };
 
-    char    m_szName[8]{};
-    CRect   m_recEntrance{};
-    float   m_fEntranceZ{};
-    float   m_fEntranceAngleRad;
-    CVector m_vecExitPos{};
-    float   m_fExitAngle{};
+    char    m_Name[8]{};
+    CRect   m_EntranceRect{};
+    float   m_EntranceZ{};
+    float   m_EntranceAngleRad{};
+    CVector m_ExitPos{};
+    float   m_ExitAngle{}; //!< In degrees
     union {
         struct {
             uint16 bUnknownInterior : 1;     // 0x1
@@ -62,18 +62,18 @@ public:
             uint16 bEnableAccess : 1;        // 0x4000
             uint16 bDeleteEnex : 1;          // 0x8000
         };
-        uint16 m_nFlags{};
+        uint16 m_Flags{};
     };
-    eAreaCodesS8 m_nArea{};
-    uint8        m_nSkyColor{};
-    uint8        m_nTimeOn{};
-    uint8        m_nTimeOff{};
-    uint8        m_nNumberOfPeds{};
-    CEntryExit*  m_pLink{};
+    eAreaCodesS8 m_Area{};
+    uint8        m_SkyColor{};
+    uint8        m_TimeOn{};
+    uint8        m_TimeOff{};
+    uint8        m_NumberOfPeds{};
+    CEntryExit*  m_Link{};
 
-    static inline auto& ms_bWarping = StaticRef<bool>(0x96A7B8);
-    static inline auto& ms_pDoor = StaticRef<CObject*>(0x96A7BC);
-    static inline auto& ms_spawnPoint = StaticRef<CEntryExit*>(0x96A7C0);
+    static inline auto& ms_IsWarping = StaticRef<bool>(0x96A7B8);
+    static inline auto& ms_Door = StaticRef<CObject*>(0x96A7BC);
+    static inline auto& ms_SpawnPoint = StaticRef<CEntryExit*>(0x96A7C0);
 
 public:
     static void InjectHooks();
@@ -82,7 +82,7 @@ public:
 
     CEntryExit(
         CVector center,
-        CVector enteranceRage,
+        CVector entranceRange,
         float entranceAngle,
         CVector exit,
         float exitAngle,
@@ -109,8 +109,8 @@ public:
     // NOTSA
 
     // These 5 were probably inlined
-    auto GetLinkedOrThis() { return m_pLink ? m_pLink : this; }
-    auto GetLinkedOrThis() const { return m_pLink ? m_pLink : this; }
+    auto GetLinkedOrThis() { return m_Link ? m_Link : this; }
+    auto GetLinkedOrThis() const { return m_Link ? m_Link : this; }
     bool IsVisibleByTime() const;
 
     // Most likely didn't exist in this form.
@@ -123,6 +123,6 @@ public:
     [[nodiscard]] CVector GetPosition() const;
     [[nodiscard]] CVector2D GetPosition2D() const;
     [[nodiscard]] uint8 GetMyOrLinkedArea() const;
-    [[nodiscard]] auto GetArea() const { return m_nArea; }
+    [[nodiscard]] auto GetArea() const { return m_Area; }
 };
 VALIDATE_SIZE(CEntryExit, 0x3C);

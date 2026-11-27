@@ -404,10 +404,10 @@ InteriorGroup_c* InteriorManager_c::GetPedsInteriorGroup(const CPed* ped) {
 
 // 0x598180
 void InteriorManager_c::SetEntryExitPtr(CEntryExit* enex) {
-    if (enex->GetLinkedOrThis()->m_nArea == eAreaCodes::AREA_CODE_NORMAL_WORLD) {
+    if (enex->GetLinkedOrThis()->m_Area == eAreaCodes::AREA_CODE_NORMAL_WORLD) {
         return;
     }
-    if (enex->m_recEntrance == m_EnExRect) {
+    if (enex->m_EntranceRect == m_EnExRect) {
         return;
     }
 
@@ -417,7 +417,7 @@ void InteriorManager_c::SetEntryExitPtr(CEntryExit* enex) {
     rng::fill(m_InteriorPedsAliveState, true);
 
     m_EnEx     = enex;
-    m_EnExRect = enex->m_recEntrance;
+    m_EnExRect = enex->m_EntranceRect;
 }
 
 // 0x598090
