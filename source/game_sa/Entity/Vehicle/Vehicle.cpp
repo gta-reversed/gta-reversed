@@ -2367,7 +2367,7 @@ RwObject* FindReplacementUpgradeCB(RwObject* object, void* data) {
         return object;
     }
     compSearchStruct->m_pFrame = reinterpret_cast<RwFrame*>(atomic);
-    return 0;
+    return nullptr;
 }
 
 // 0x6D34D0
@@ -2381,6 +2381,7 @@ RpAtomic* RemoveAllUpgradesCB(RpAtomic* atomic, void* data) {
     return atomic;
 }
 
+// NOTSA, common code for CreateUpgradeAtomic, CreateReplacementAtomic and AddReplacementUpgrade
 static void SetupUpgradeAtomicRendering(RpAtomic* atomic, bool setAlpha) {
     RpMaterial* hasAlphaMaterial = nullptr;
     RpGeometryForAllMaterials(RpAtomicGetGeometry(atomic), CVehicleModelInfo::HasAlphaMaterialCB, &hasAlphaMaterial);
@@ -2420,7 +2421,7 @@ RpAtomic* CVehicle::CreateUpgradeAtomic(CBaseModelInfo* mi, const UpgradePosnDes
     CVisibilityPlugins::SetAtomicFlag(atomic, eAtomicComponentFlag::ATOMIC_UPGRADE);
     CVisibilityPlugins::SetAtomicFlag(atomic, eAtomicComponentFlag::ATOMIC_DONT_CULL);
 
-    SetupUpgradeAtomicRendering(atomic, true);
+    SetupUpgradeAtomicRendering(atomic, true); // 0x6D35C1 - 0x6D3608
 
     CDamageAtomicModelInfo::ms_bCreateDamagedVersion = false;
     return atomic;
@@ -2456,7 +2457,7 @@ int32 CVehicle::GetUpgrade(int32 upgradeId) {
         }
         break;
     }
-    return -1;
+    return MODEL_INVALID;
 }
 
 // 0x6D3700
@@ -2487,7 +2488,7 @@ RpAtomic* CVehicle::CreateReplacementAtomic(CBaseModelInfo* mi, RwFrame* parentF
     CVisibilityPlugins::SetAtomicId(atomic, flags & ~eAtomicComponentFlag::ATOMIC_MASK);
     CVisibilityPlugins::SetAtomicFlag(atomic, isDamaged ? eAtomicComponentFlag::ATOMIC_DAMAGED : eAtomicComponentFlag::ATOMIC_OK);
 
-    SetupUpgradeAtomicRendering(atomic, false);
+    SetupUpgradeAtomicRendering(atomic, false); // 0x6D37D9 - 0x6D380D
 
     CDamageAtomicModelInfo::ms_bCreateDamagedVersion = false;
 
@@ -2513,11 +2514,9 @@ void CVehicle::AddReplacementUpgrade(int32 upgradeModelIndex, int32 nodeId) {
     CVisibilityPlugins::SetAtomicId(atomic, flags & ~eAtomicComponentFlag::ATOMIC_MASK);
     CVisibilityPlugins::SetAtomicFlag(atomic, eAtomicComponentFlag::ATOMIC_OK);
 
-    SetupUpgradeAtomicRendering(atomic, false);
+    SetupUpgradeAtomicRendering(atomic, false);  // 0x6D38D5 - 0x6D390B
 
     CDamageAtomicModelInfo::ms_bCreateDamagedVersion = false;
-
-    assert(IsAutomobile()); // cars in og
 
     if (nodeId == eCarNodes::CAR_EXHAUST) {
         if (m_pHandlingData->m_bDoubleExhaust) {
@@ -5160,7 +5159,7 @@ void CVehicle::RemoveVehicleUpgrade(int32 upgradeModelIndex) {
         }
         for (auto& upgrade : m_anUpgrades) {
             if (upgrade == upgradeModelIndex) {
-                upgrade = -1;
+                upgrade = MODEL_INVALID;
             }
         }
     }
@@ -5889,7 +5888,7 @@ bool CVehicle::DoBladeCollision(CVector pos, CMatrix& matrix, int16 rotorType, f
 // 0x6E3290
 void CVehicle::AddVehicleUpgrade(int32 upgradeModelIndex) {
     const auto miUpgrade        = CModelInfo::GetModelInfo(upgradeModelIndex);
-    int32      resultModelIndex = -1;
+    int32      resultModelIndex = MODEL_INVALID;
     if (!SetVehicleUpgradeFlags(upgradeModelIndex, miUpgrade->CarMod, resultModelIndex)) {
         const auto other     = CVehicleModelInfo::ms_linkedUpgrades.FindOtherUpgrade(upgradeModelIndex);
         const auto upgradeId = miUpgrade->CarMod;
@@ -5926,20 +5925,20 @@ void CVehicle::AddVehicleUpgrade(int32 upgradeModelIndex) {
     auto toStore = upgradeModelIndex;
     for (auto& upgrade : m_anUpgrades) {
         if (upgrade == resultModelIndex) {
-            upgrade = -1;
-        } else if (upgrade != -1) {
+            upgrade = MODEL_INVALID;
+        } else if (upgrade != MODEL_INVALID) {
             continue;
         }
         upgrade = toStore;
-        toStore = -1;
+        toStore = MODEL_INVALID;
     }
 }
 
 // 0x6E3400
 void CVehicle::SetupUpgradesAfterLoad() {
     for (auto& upgrade : m_anUpgrades) {
-        if (upgrade != -1) {
-            AddVehicleUpgrade(std::exchange(upgrade, -1));
+        if (upgrade != MODEL_INVALID) {
+            AddVehicleUpgrade(std::exchange(upgrade, MODEL_INVALID));
         }
     }
 }

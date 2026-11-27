@@ -120,10 +120,9 @@ void CShopping::Buy(uint32 key, int32 extraInfo) {
 
             // todo: refactor
             const auto carModId = upgradeModel->CarMod;
-            auto parentId = vehModel->m_pVehicleStruct->m_aUpgrades[carModId].m_nParentComponentId;
-            if (upgradeModel->bUsesVehDummy) {
-                parentId = carModId;
-            }
+            const auto parentId = upgradeModel->bUsesVehDummy
+                ? carModId
+                : vehModel->m_pVehicleStruct->m_aUpgrades[carModId].m_nParentComponentId;
 
             switch (parentId) {
             case CAR_WHEEL_RF:
@@ -148,7 +147,6 @@ void CShopping::Buy(uint32 key, int32 extraInfo) {
                 break;
             }
         }
-
         [[fallthrough]];
     }
 
