@@ -123,7 +123,7 @@ CTask* CTaskComplexKillPedOnFoot::CreateNextSubTask(CPed* ped) {
         const auto* const standingOn = m_PedToKill->m_standingOnEntity;
         if (CCullZones::NoPolice() || standingOn && standingOn != ped->m_standingOnEntity && (m_PedToKill->GetPosition() - ped->GetPosition()).Magnitude() < 5.f) {
             if (player && player->GetPlayerData()->m_bStoppedMoving && (ped->IsGangster() || ped->IsCop()) && !ped->IsCreatedByMission()) { // 0x62B380
-                ped->GiveWeapon(WEAPON_PISTOL, 1000, true);
+                ped->GiveWeapon(WEAPON_PISTOL, 1'000, true);
                 ped->SetCurrentWeapon(WEAPON_PISTOL);
                 ped->SetMoveState(PEDMOVE_STILL);
             }
@@ -161,8 +161,8 @@ CTask* CTaskComplexKillPedOnFoot::CreateFirstSubTask(CPed* ped) {
         m_TargetKilled = true;
     }
 
-    const float dist   = (m_PedToKill->GetPosition() - ped->GetPosition()).Magnitude();
-    auto* const player = m_PedToKill->IsPlayer() ? m_PedToKill->AsPlayer() : nullptr;
+    const float dist     = (m_PedToKill->GetPosition() - ped->GetPosition()).Magnitude();
+    auto* const player   = m_PedToKill->IsPlayer() ? m_PedToKill->AsPlayer() : nullptr;
 
     CTask* const subTask = [&]() -> CTask* {
         if (ped->IsInVehicle()) { // 0x62B53E
@@ -173,7 +173,7 @@ CTask* CTaskComplexKillPedOnFoot::CreateFirstSubTask(CPed* ped) {
             const auto* const standingOn = m_PedToKill->m_standingOnEntity;
             if (CCullZones::NoPolice() || standingOn && standingOn != ped->m_standingOnEntity && dist < 5.f) {
                 if (player->GetPlayerData()->m_bStoppedMoving && (ped->IsGangster() || ped->IsCop()) && !ped->IsCreatedByMission()) { // 0x62B591
-                    ped->GiveWeapon(WEAPON_PISTOL, 1000, true);
+                    ped->GiveWeapon(WEAPON_PISTOL, 1'000, true);
                     ped->SetCurrentWeapon(WEAPON_PISTOL);
                     ped->SetMoveState(PEDMOVE_STILL);
                 }
@@ -220,7 +220,7 @@ CTask* CTaskComplexKillPedOnFoot::CreateFirstSubTask(CPed* ped) {
 CTask* CTaskComplexKillPedOnFoot::ControlSubTask(CPed* ped) {
     ped->bDontAcceptIKLookAts = true;
 
-    auto newTaskType = TASK_NONE;
+    auto newTaskType          = TASK_NONE;
     if (!m_PedToKill) {
         newTaskType = TASK_FINISHED;
     } else if (notsa::isa<CTaskSimplePause>(m_pSubTask)) { // 0x6262B1
@@ -297,7 +297,9 @@ CTask* CTaskComplexKillPedOnFoot::ControlSubTask(CPed* ped) {
                 if (ped->GetActiveWeapon().IsTypeMelee() && !ped->IsPlayer()) {
                     newTaskType = TASK_COMPLEX_KILL_PED_ON_FOOT_MELEE;
                 } else if (ped->GetActiveWeapon().GetTotalAmmo() == 0 && !ped->IsPlayer()) { // 0x626709
-                    const auto slot = rng::find_if(ped->m_aWeapons, [](const CWeapon& wep) { return (int32)wep.GetTotalAmmo() > 0; });
+                    const auto slot = rng::find_if(ped->m_aWeapons, [](const CWeapon& wep) {
+                        return (int32)wep.GetTotalAmmo() > 0;
+                    });
                     if (slot != ped->m_aWeapons.end()) {
                         ped->SetCurrentWeapon((int32)rng::distance(ped->m_aWeapons.begin(), slot));
                     } else {
@@ -379,7 +381,7 @@ CTask* CTaskComplexKillPedOnFoot::ControlSubTask(CPed* ped) {
                 m_Timer.Start(ROOM_TO_DRAG_CHECK_INTERVAL_MS);
                 break;
             }
-            case TASK_NONE:                   // 0x6269CF
+            case TASK_NONE: // 0x6269CF
             case TASK_SIMPLE_STAND_STILL:
             case TASK_COMPLEX_LEAVE_CAR:
             case TASK_SIMPLE_CAR_DRIVE_TIMED:
@@ -440,7 +442,7 @@ CTask* CTaskComplexKillPedOnFoot::CreateSubTask(eTaskType taskType, CPed* ped) {
     case TASK_COMPLEX_LEAVE_CAR: // 0x625FCC
         return new CTaskComplexLeaveCar{ ped->m_pVehicle, 0, 0, true, true };
     case TASK_SIMPLE_CAR_DRIVE_TIMED: // 0x626039
-        return new CTaskSimpleCarDriveTimed{ ped->m_pVehicle, 2000 };
+        return new CTaskSimpleCarDriveTimed{ ped->m_pVehicle, 2'000 };
     case TASK_COMPLEX_DESTROY_CAR: // 0x626138
         return new CTaskComplexDestroyCar{ m_PedToKill->m_pVehicle };
     case TASK_SIMPLE_STAND_STILL: // 0x625F89
@@ -457,7 +459,7 @@ CTask* CTaskComplexKillPedOnFoot::CreateSubTask(eTaskType taskType, CPed* ped) {
         } else if (auto* const grp = CPedGroups::GetPedsGroup(m_PedToKill); !grp || grp->GetMembership().GetLeader() != FindPlayerPed()) {
             ped->Say(CTX_GLOBAL_ENEMY_GANG_WASTED);
         }
-        return new CTaskComplexSignalAtPed{ m_PedToKill, CGeneral::GetRandomNumberInRange(0, 1500), true };
+        return new CTaskComplexSignalAtPed{ m_PedToKill, CGeneral::GetRandomNumberInRange(0, 1'500), true };
     }
     case TASK_FINISHED: // 0x62617E
         ped->bDontAcceptIKLookAts = false;

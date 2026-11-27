@@ -16,13 +16,13 @@ public:
 
     CTaskComplexKillPedOnFoot(
         CPed* target,
-        int32 time = -1,
-        int32 pedFlags = 0,
-        int32 delay = 0,
-        int32 chance = 0,
+        int32 time       = -1,
+        int32 pedFlags   = 0,
+        int32 delay      = 0,
+        int32 chance     = 0,
         uint8 competence = 1,
         /* VVV notsa VVV */
-        bool waitForPlayerToBeSafe = false,
+        bool waitForPlayerToBeSafe    = false,
         bool waitingForPlayerToBeSafe = false
     );
     CTaskComplexKillPedOnFoot(const CTaskComplexKillPedOnFoot&);
