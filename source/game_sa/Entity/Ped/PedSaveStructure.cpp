@@ -16,11 +16,11 @@ void CPedSaveStructure::Construct(CPed* ped) {
 
     // NOTE: The area is checked on the linked enex (if any), but the index saved is of the ped's own enex
     const auto* const enex = ped->m_pEnex;
-    m_EnexIndex = enex && enex->GetMyOrLinkedArea() != AREA_CODE_NORMAL_WORLD
+    m_EnexIndex            = enex && enex->GetMyOrLinkedArea() != AREA_CODE_NORMAL_WORLD
         ? (int32)(CEntryExitManager::GetPool()->GetIndex(enex))
         : -1;
 
-    m_Weapons = ped->m_aWeapons;
+    m_Weapons              = ped->m_aWeapons;
 }
 
 // 0x5D44B0
@@ -30,7 +30,7 @@ void CPedSaveStructure::Extract(CPed* ped) {
     ped->m_fHealth     = m_Health;
     ped->SetArmour(m_Armour);
     // The saved slot, weapon types and enex index are used unchecked by the original
-    const auto activeSlot = notsa::bugfixes::GenericOOB && (m_ActiveWeaponSlot < 0 || m_ActiveWeaponSlot >= (int8)(NUM_WEAPON_SLOTS))
+    const auto activeSlot    = notsa::bugfixes::GenericOOB && (m_ActiveWeaponSlot < 0 || m_ActiveWeaponSlot >= (int8)(NUM_WEAPON_SLOTS))
         ? (int8)(0)
         : m_ActiveWeaponSlot;
     ped->m_nActiveWeaponSlot = (uint8)(activeSlot);
@@ -58,7 +58,7 @@ void CPedSaveStructure::Extract(CPed* ped) {
     ped->SetAreaCode(m_AreaCode);
     if (notsa::bugfixes::GenericOOB) {
         auto* const pool = CEntryExitManager::GetPool();
-        ped->m_pEnex = pool->IsIndexInBounds(m_EnexIndex)
+        ped->m_pEnex     = pool->IsIndexInBounds(m_EnexIndex)
             ? pool->GetAt(m_EnexIndex)
             : nullptr;
     } else {
