@@ -3,6 +3,10 @@
 #include "TaskComplexDestroyCarArmed.h"
 #include "TaskSimplePause.h"
 #include <TaskComplexGoToPointAndStandStill.h>
+#include "TaskSimpleGunControl.h"
+#include "TaskSimpleThrowControl.h"
+#include "SeekEntity/TaskComplexSeekEntity.h"
+#include "SeekEntity/PosCalculators/EntitySeekPosCalculatorStandard.h"
 
 void CTaskComplexDestroyCarArmed::InjectHooks() {
     RH_ScopedVirtualClass(CTaskComplexDestroyCarArmed, 0x86d9c4, 11);
@@ -12,7 +16,7 @@ void CTaskComplexDestroyCarArmed::InjectHooks() {
     RH_ScopedInstall(Destructor, 0x622010);
 
     RH_ScopedInstall(CalculateSearchPositionAndRanges, 0x628C80, { .State = HS::RedirectToGTA, .Locked = true });
-    RH_ScopedInstall(CreateSubTask, 0x628DA0, { .Reversed = false });
+    RH_ScopedInstall(CreateSubTask, 0x628DA0);
 
     RH_ScopedVMTInstall(Clone, 0x623600);
     RH_ScopedVMTInstall(GetTaskType, 0x622000);
@@ -59,48 +63,31 @@ void CTaskComplexDestroyCarArmed::CalculateSearchPositionAndRanges(CPed* ped) {
 
 // 0x628DA0
 CTask* CTaskComplexDestroyCarArmed::CreateSubTask(eTaskType taskType, CPed* ped) {
-    // This locked original redirect may return; a noreturn placeholder breaks optimized callers.
-    return plugin::CallMethodAndReturn<CTask*, 0x628DA0, CTaskComplexDestroyCarArmed*, eTaskType, CPed*>(this, taskType, ped);
-    /* Redirected */
-
-    /*
-    * Missing stubs for the 3 of tasks below
-    * Other than that, it should be correct
     switch (taskType) {
-    case TASK_SIMPLE_GUN_CTRL: {
-        const auto& winfo = ped->GetActiveWeapon().GetWeaponInfo(ped);
-        if (winfo.flags.bThrow) {
-            return new CTaskSimpleThrowControl{ m_VehToDestroy, false };
+    case TASK_SIMPLE_GUN_CTRL: { // 0x628ED4
+        if (ped->GetActiveWeapon().GetWeaponInfo(ped).flags.bThrow) {
+            return new CTaskSimpleThrowControl{ m_VehToDestroy, nullptr };
         }
-        return new CTaskSimpleGunControl{ m_VehToDestroy, 0, 0, 3, 5, 5000 };
+        return new CTaskSimpleGunControl{ m_VehToDestroy, {}, {}, eGunCommand::FIREBURST, 5, 5'000 };
     }
-    case TASK_COMPLEX_SEEK_ENTITY: {
+    case TASK_COMPLEX_SEEK_ENTITY: // 0x628E6A
         return new CTaskComplexSeekEntity<CEntitySeekPosCalculatorStandard>{
             m_VehToDestroy,
-            50000,
-            1000,
-            1.0,
-            2.0,
-            2.0,
-            1,
-            1
-        };
-    }
-    case TASK_SIMPLE_PAUSE: {
-        return new CTaskSimplePause{ 100 };
-    }
-    case TASK_COMPLEX_GO_TO_POINT_AND_STAND_STILL: {
-        return new CTaskComplexGoToPointAndStandStill{
-            PEDMOVE_RUN,
-            m_VehiclePos,
-            0.5f,
+            50'000,
+            1'000,
+            1.0f,
             2.0f,
-            false,
-            false
+            2.0f,
+            true,
+            true
         };
+    case TASK_SIMPLE_PAUSE: // 0x628E30
+        return new CTaskSimplePause{ 100 };
+    case TASK_COMPLEX_GO_TO_POINT_AND_STAND_STILL: // 0x628DE0
+        return new CTaskComplexGoToPointAndStandStill{ PEDMOVE_RUN, m_VehiclePos, 0.5f, 2.0f, false, false };
+    default:
+        NOTSA_UNREACHABLE_CASE(taskType);
     }
-    }
-    */
 }
 
 // 0x622070
