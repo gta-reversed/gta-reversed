@@ -846,9 +846,8 @@ void CAEScriptAudioEntity::ReportMissionAudioEvent(eAudioEvents eventId, const C
 void CAEScriptAudioEntity::UpdateMiniGameSound(CAESound* sound) {
     constexpr auto VOLUME_STEP       = 0.1f; // NOTE: Per update, so framerate dependent
 
-    const auto timeMs                = CTimer::GetTimeInMS();
     const auto StopIfNotTriggeredFor = [&](uint32 ms) {
-        if (timeMs > m_LastMiniGameLoopTriggerTimeMs + ms) {
+        if (CTimer::GetTimeInMS() > m_LastMiniGameLoopTriggerTimeMs + ms) {
             sound->StopSoundAndForget();
             m_LastMiniGameLoopTriggerTimeMs = 0;
         }
@@ -856,7 +855,7 @@ void CAEScriptAudioEntity::UpdateMiniGameSound(CAESound* sound) {
 
     switch (sound->m_Event) {
     case AE_CRANE_WINCH_MOVE: // 0x4ECA37
-        if (timeMs > m_LastMiniGameLoopTriggerTimeMs + 300) {
+        if (CTimer::GetTimeInMS() > m_LastMiniGameLoopTriggerTimeMs + 300) {
             sound->StopSoundAndForget();
             m_LastMiniGameLoopTriggerTimeMs = 0;
             // NOTE: The original passes the sound's physical entity, but `StopSoundAndForget` has just cleared it
@@ -875,7 +874,7 @@ void CAEScriptAudioEntity::UpdateMiniGameSound(CAESound* sound) {
         StopIfNotTriggeredFor(500);
         break;
     case AE_SCRIPT_ROULETTE_SPIN: // 0x4ECA9A
-        if (timeMs > m_LastMiniGameLoopTriggerTimeMs + 4'500) {
+        if (CTimer::GetTimeInMS() > m_LastMiniGameLoopTriggerTimeMs + 4'500) {
             if (sound->GetVolume() > -40.0f) {
                 sound->SetVolume(sound->GetVolume() - VOLUME_STEP);
             } else {
@@ -886,7 +885,7 @@ void CAEScriptAudioEntity::UpdateMiniGameSound(CAESound* sound) {
                 sound->SetSpeed(notsa::step_down_to(sound->GetSpeed(), 0.0f, 0.001f));
             }
         }
-        if (timeMs > m_LastMiniGameLoopTriggerTimeMs + 4'800 && !m_MiniGameOneShotTriggered) { // 0x4ECB08
+        if (CTimer::GetTimeInMS() > m_LastMiniGameLoopTriggerTimeMs + 4'800 && !m_MiniGameOneShotTriggered) { // 0x4ECB08
             PlayMissionBankSound(AE_SCRIPT_ROULETTE_BALL_BOUNCING, CAudioLink::UNSET_POSITION, nullptr, CAEAudioUtility::GetRandomNumberInRange<eSoundID>(1, 3), BANK_LINK_B);
             m_MiniGameOneShotTriggered = true;
         }
