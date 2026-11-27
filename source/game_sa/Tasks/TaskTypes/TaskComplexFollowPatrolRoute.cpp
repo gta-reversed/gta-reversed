@@ -8,8 +8,8 @@
 #include "PatrolRoute.h"
 
 // 0x674930
-CTaskComplexFollowPatrolRoute::CTaskComplexFollowPatrolRoute(eMoveStateS32 moveState, const CPatrolRoute& route, int32 mode, float targetRadius, float slowDownDistance) :
-    m_Mode{ (int16)(mode) },
+CTaskComplexFollowPatrolRoute::CTaskComplexFollowPatrolRoute(eMoveStateS32 moveState, const CPatrolRoute& route, ePatrolRouteModeS32 mode, float targetRadius, float slowDownDistance) :
+    m_Mode{ mode },
     m_MoveState{ moveState },
     m_TargetRadius{ targetRadius },
     m_SlowDownDistance{ slowDownDistance },
@@ -148,17 +148,17 @@ eTaskType CTaskComplexFollowPatrolRoute::GetNextSubTaskType() {
     // Reached the end of the route
     ++m_RouteTraversals;
     switch (m_Mode) {
-    case 0: // 0x670AC5 - Once
+    case ePatrolRouteMode::ONE_WAY: // 0x670AC5
         return TASK_FINISHED;
-    case 1: // 0x670ACE - There and back
+    case ePatrolRouteMode::RETURN: // 0x670ACE
         if (m_RouteTraversals != 1) {
             return TASK_FINISHED;
         }
         [[fallthrough]];
-    case 2: // 0x670AD4 - Back and forth
+    case ePatrolRouteMode::BACK_AND_FORTH: // 0x670AD4
         m_Route->Reverse();
         [[fallthrough]];
-    case 3: // 0x670AD9 - Loop
+    case ePatrolRouteMode::LOOP: // 0x670AD9
         m_Progress = 0;
         return GetNextSubTaskType();
     default:
@@ -188,7 +188,7 @@ CTask* CTaskComplexFollowPatrolRoute::CreateSubTask(eTaskType taskType) {
     case TASK_NONE: // 0x670C03
         return new CTaskSimpleNone{};
     case TASK_COMPLEX_GO_TO_POINT_AND_STAND_STILL: { // 0x670C44
-        const auto keepsGoing = (m_Mode == 1 && m_RouteTraversals == 0) || m_Mode == 2 || m_Mode == 3;
+        const auto keepsGoing = (m_Mode == ePatrolRouteMode::RETURN && m_RouteTraversals == 0) || m_Mode == ePatrolRouteMode::BACK_AND_FORTH || m_Mode == ePatrolRouteMode::LOOP;
         return new CTaskComplexGoToPointAndStandStill{
             m_MoveState,
             m_Route->GetPosition(m_Progress),
@@ -217,7 +217,7 @@ void CTaskComplexFollowPatrolRoute::InjectHooks() {
     RH_ScopedVirtualClass(CTaskComplexFollowPatrolRoute, 0x870114, 11);
     RH_ScopedCategory("Tasks/TaskTypes");
 
-    RH_ScopedConstructorInstall(0x674930, "1", {}, eMoveStateS32, const CPatrolRoute&, int32, float, float);
+    RH_ScopedConstructorInstall(0x674930, "1", {}, eMoveStateS32, const CPatrolRoute&, ePatrolRouteModeS32, float, float);
     RH_ScopedDestructorInstall(0x6709F0);
 
     RH_ScopedInstall(GetNextSubTaskType, 0x670A70);
