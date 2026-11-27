@@ -86,7 +86,7 @@ CTask* CTaskComplexBeInCouple::CreateNextSubTask(CPed* ped) {
 
 // 0x684930
 CTask* CTaskComplexBeInCouple::ControlSubTask(CPed* ped) {
-    constexpr float LEADER_WAIT_DIST_SQ = 4.f;  // Leader waits for the partner if they're further than this
+    constexpr float LEADER_WAIT_DIST_SQ = 4.f; // Leader waits for the partner if they're further than this
     constexpr float HOLD_HANDS_DIST_SQ  = 2.25f;
 
     if (!m_Partner || !m_Partner->IsAlive()) {
@@ -100,9 +100,9 @@ CTask* CTaskComplexBeInCouple::ControlSubTask(CPed* ped) {
         return nullptr;
     }
 
-    auto* const  tCouple        = ped->GetTaskManager().Find<CTaskComplexBeInCouple>();
-    auto* const  tPartnerActive = m_Partner->GetTaskManager().Find<CTaskComplexBeInCouple>();
-    const auto   side           = GetPartnerSide(ped);
+    auto* const tCouple        = ped->GetTaskManager().Find<CTaskComplexBeInCouple>();
+    auto* const tPartnerActive = m_Partner->GetTaskManager().Find<CTaskComplexBeInCouple>();
+    const auto  side           = GetPartnerSide(ped);
     if (!m_IsLeader) {
         if (auto* const tWalkAlongside = ped->GetTaskManager().Find<CTaskComplexWalkAlongsidePed>(false)) { // 0x684A07
             tWalkAlongside->SetOffset({ side == LEFT ? -1.05f : 1.05f, 0.f, 0.f });
@@ -149,7 +149,7 @@ CTask* CTaskComplexBeInCouple::ControlSubTask(CPed* ped) {
     if (m_LookAtEachOther) { // 0x684C28
         const auto LookAtIfNotLooking = [](CPed* looker, CPed* target) {
             if (!g_ikChainMan.IsLooking(looker) && CGeneral::GetRandomNumberInRange(0, 100) > 80) {
-                g_ikChainMan.LookAt("TaskBeInCouple", looker, target, CGeneral::GetRandomNumberInRange(2000, 4000), BONE_HEAD, nullptr, false, 0.25f, 500, 3, false);
+                g_ikChainMan.LookAt("TaskBeInCouple", looker, target, CGeneral::GetRandomNumberInRange(2'000, 4'000), BONE_HEAD, nullptr, false, 0.25f, 500, 3, false);
             }
         };
         LookAtIfNotLooking(ped, m_Partner);
@@ -163,7 +163,7 @@ void CTaskComplexBeInCouple::InjectHooks() {
     RH_ScopedVirtualClass(CTaskComplexBeInCouple, 0x870724, 11);
     RH_ScopedCategory("Tasks/TaskTypes");
 
-    RH_ScopedConstructorInstall(0x6836F0, "1", {}, CPed *, bool, bool, bool, float);
+    RH_ScopedConstructorInstall(0x6836F0, "1", {}, CPed*, bool, bool, bool, float);
     RH_ScopedDestructorInstall(0x683780);
 
     RH_ScopedInstall(AbortArmIK, 0x6837F0);

@@ -22,7 +22,7 @@ public:
     CTaskComplexBeInCouple(const CTaskComplexBeInCouple&);
     ~CTaskComplexBeInCouple() override = default; // 0x683780
 
-    eTaskType GetTaskType() const override { return Type; }                       // 0x683770
+    eTaskType GetTaskType() const override { return Type; }                          // 0x683770
     CTask*    Clone() const override { return new CTaskComplexBeInCouple{ *this }; } // 0x6839C0
     bool      MakeAbortable(CPed* ped, eAbortPriority priority = ABORT_PRIORITY_URGENT, const CEvent* event = nullptr) override;
     CTask*    CreateFirstSubTask(CPed* ped) override;
