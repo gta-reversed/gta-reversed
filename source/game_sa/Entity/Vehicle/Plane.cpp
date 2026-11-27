@@ -579,7 +579,7 @@ void CPlane::ProcessControlInputs(uint8 playerNum) {
     auto* const   pad                       = CPad::GetPad(playerNum);
     const float   timeStep                  = CTimer::GetTimeStep();
     const CVector forward                   = GetForward();
-    const float fwdSpeed = m_vecMoveSpeed.Dot(forward);
+    const float   fwdSpeed                  = m_vecMoveSpeed.Dot(forward);
 
     // 0x6CADF4 - Roll and pitch
     const int16 padLeftRight = pad->GetSteeringLeftRight();
