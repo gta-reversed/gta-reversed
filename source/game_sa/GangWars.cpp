@@ -22,7 +22,7 @@ void CGangWars::InjectHooks() {
     RH_ScopedCategoryGlobal();
 
     RH_ScopedInstall(InitAtStartOfGame, 0x443920);
-    RH_ScopedInstall(AddKillToProvocation, 0x443950, { .Reversed = false });                  // ?
+    RH_ScopedInstall(AddKillToProvocation, 0x443950);
     RH_ScopedInstall(AttackWaveOvercome, 0x445B30);
     RH_ScopedInstall(CalculateTimeTillNextAttack, 0x443DB0);
     RH_ScopedInstall(CanPlayerStartAGangWarHere, 0x443F80);
@@ -101,9 +101,10 @@ void CGangWars::AddKillToProvocation(ePedType pedType) {
     }
 
     for (auto& zone : std::span { aSpecificZones.data(), (size_t)NumSpecificZones }) {
-        auto zoneInfo = CTheZones::GetZoneInfo(CTheZones::GetNavigationZone(zone));
+        // NOTE: Not using `CTheZones::GetZoneInfo`, it returns null for the zone info at index 0, the original reads it without any check
+        const auto& zoneInfo = CTheZones::ZoneInfoArray[CTheZones::GetNavigationZone(zone)->m_ZoneInfoIndex];
 
-        if (zoneInfo->GangStrength[pedType - PED_TYPE_GANG1] != 0) {
+        if (zoneInfo.GangStrength[pedType - PED_TYPE_GANG1] != 0) {
             Provocation += 1.0f;
             return;
         }
