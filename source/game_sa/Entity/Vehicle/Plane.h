@@ -71,7 +71,7 @@ public:
     };
     std::array<FxSystem_c*, 4> m_apJettrusParticles;
     FxSystem_c*  m_pSmokeParticle;
-    uint32       m_nSmokeTimer;
+    int32                      m_nSmokeTimer;
     bool         m_bSmokeEjectorEnabled;
 
     static constexpr auto Type = VEHICLE_TYPE_PLANE;
