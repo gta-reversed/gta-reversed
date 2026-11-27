@@ -35,8 +35,8 @@ public:
     void Flush();
     void Reverse();
 
-    auto            GetCount() const { return m_Count; }
-    const CVector&  GetPosition(size_t i) const { return m_Positions[i]; }
+    auto             GetCount() const { return m_Count; }
+    const CVector&   GetPosition(size_t i) const { return m_Positions[i]; }
     const PointInfo& GetInfo(size_t i) const { return m_Infos[i]; }
 
 public:

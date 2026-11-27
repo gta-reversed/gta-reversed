@@ -42,7 +42,7 @@ bool CTaskComplexFollowPatrolRoute::MakeAbortable(CPed* ped, eAbortPriority prio
     }
     m_PedPositionWhenAborted = ped->GetPosition();
     // NOTE: No null check, same as the original (0x66BAD4): `CreateFirstSubTask` never returns null, a null next sub task ends the task
-    m_IsAborting             = m_pSubTask->MakeAbortable(ped, priority, event);
+    m_IsAborting = m_pSubTask->MakeAbortable(ped, priority, event);
     return m_IsAborting;
 }
 
@@ -72,7 +72,7 @@ CTask* CTaskComplexFollowPatrolRoute::CreateNextSubTask(CPed* ped) {
 
 // 0x670E20
 CTask* CTaskComplexFollowPatrolRoute::CreateFirstSubTask(CPed* ped) {
-    m_IsNewRoute = false;
+    m_IsNewRoute         = false;
 
     const auto numPoints = (int32)(m_Route->GetCount());
     if (numPoints == 0) {
@@ -85,11 +85,11 @@ CTask* CTaskComplexFollowPatrolRoute::CreateFirstSubTask(CPed* ped) {
     int32 closest{ -1 };
     float closestDist{ FLT_MAX };
     for (auto i = 0; i < numPoints; i++) {
-        const auto     next = (i + 1) % numPoints;
-        const auto&    from = m_Route->GetPosition(i % numPoints);
-        const CVector  seg  = m_Route->GetPosition(next) - from;
-        const CVector  dir  = seg.Normalized();
-        const auto     proj = (pedPos - from).Dot(dir);
+        const auto    next = (i + 1) % numPoints;
+        const auto&   from = m_Route->GetPosition(i % numPoints);
+        const CVector seg  = m_Route->GetPosition(next) - from;
+        const CVector dir  = seg.Normalized();
+        const auto    proj = (pedPos - from).Dot(dir);
         if (proj <= 0.f || std::sqrt(seg.SquaredMagnitude()) <= proj) {
             continue;
         }

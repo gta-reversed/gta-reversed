@@ -31,10 +31,10 @@ private:
     CTask*    CreateSubTask(eTaskType taskType);
 
 private:
-    int16         m_Mode{};                   //!< 0 = once, 1 = there and back, 2 = back and forth, 3 = loop
+    int16         m_Mode{}; //!< 0 = once, 1 = there and back, 2 = back and forth, 3 = loop
     int16         m_RouteTraversals{};
     eMoveStateS16 m_MoveState{};
-    int16         m_Progress{};               //!< Index of the route point the ped is going to
+    int16         m_Progress{}; //!< Index of the route point the ped is going to
     float         m_TargetRadius{};
     float         m_SlowDownDistance{};
     CPatrolRoute* m_Route{};
