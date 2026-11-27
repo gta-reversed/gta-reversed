@@ -6,10 +6,6 @@
 #include "TaskComplexGoToPointAndStandStill.h"
 #include <numbers>
 
-// NOTE: Not `PI` / `HALF_PI` / `TWO_PI` / `FRAC_PI_4` from common.h: those are a few ulp off the game's constants (0x858CB8, 0x858FE4, 0x858CBC, 0x859AB0),
-//       which turns a heading of -PI into +PI (the ped at the entity's side in `CreateFirstSubTask`)
-constexpr auto GAME_PI = std::numbers::pi_v<float>;
-
 void CTaskComplexGoPickUpEntity::InjectHooks() {
     RH_ScopedVirtualClass(CTaskComplexGoPickUpEntity, 0x870b98, 11);
     RH_ScopedCategory("Tasks/TaskTypes");
@@ -102,7 +98,7 @@ CTask* CTaskComplexGoPickUpEntity::CreateFirstSubTask(CPed* ped) {
     if (bb.m_vecMax.x > 2.f * bb.m_vecMax.y) { // 0x6936BC
         entity->SetHeading(entityToPed.Heading());
     } else if (bb.m_vecMax.y > 2.f * bb.m_vecMax.x) { // 0x6936FD
-        entity->SetHeading(entityToPed.Heading() - GAME_PI / 2.f);
+        entity->SetHeading(entityToPed.Heading() - HALF_PI);
     } else if (entity->GetMatrix().GetUp().z < 0.9f) { // 0x69375C
         entity->SetHeading(entity->GetHeading());
     }
@@ -187,17 +183,17 @@ CTask* CTaskComplexGoPickUpEntity::ControlSubTask(CPed* ped) {
         const auto        stickMag      = CVector2D{ walkLeftRight, walkUpDown }.Magnitude() / 128.f;
         const auto        targetHeading = (tGoTo->m_vecTargetPoint - ped->GetPosition()).Heading();
         auto              stickHeading  = CGeneral::GetRadianAngleBetweenPoints(0.f, 0.f, -walkLeftRight, walkUpDown) - TheCamera.m_fOrientation;
-        if (stickHeading > targetHeading + GAME_PI) {
-            stickHeading -= 2.f * GAME_PI;
-        } else if (stickHeading < targetHeading - GAME_PI) {
-            stickHeading += 2.f * GAME_PI;
+        if (stickHeading > targetHeading + PI) {
+            stickHeading -= TWO_PI;
+        } else if (stickHeading < targetHeading - PI) {
+            stickHeading += TWO_PI;
         }
         const auto headingDiff = stickHeading - targetHeading;
 
         // NOTE/BUG: The original does `abs(diff > PI / 4)`, so only one side counts
         const auto isStickAway = notsa::bugfixes::GenericUB
-            ? std::abs(headingDiff) > GAME_PI / 4.f
-            : headingDiff > GAME_PI / 4.f;
+            ? std::abs(headingDiff) > FRAC_PI_4
+            : headingDiff > FRAC_PI_4;
         if (pad->JumpJustDown() || pad->SprintJustDown() || (stickMag > 0.75f && isStickAway)) { // 0x691F63
             m_pSubTask->MakeAbortable(ped);
             return nullptr;
