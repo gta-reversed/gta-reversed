@@ -4,6 +4,7 @@
 #include "TaskSimplePause.h"
 #include "TaskSimpleStandStill.h"
 #include "TaskSimplePlayerOnFoot.h"
+#include "EventOnFire.h"
 
 // 0x6348A0
 CTaskComplexUseMobilePhone::CTaskComplexUseMobilePhone(int32 duration) :
@@ -57,17 +58,14 @@ bool CTaskComplexUseMobilePhone::MakeAbortable(CPed* ped, eAbortPriority priorit
         return true;
     }
 
-    if (event) {                                                         // 0x6349DA
-        if (event->GetEventType() == EVENT_ON_FIRE && ped->IsPlayer()) { // NOTE: `CEventOnFire` has no `Type`, no `isa` possible
+    if (event) { // 0x6349DA
+        if (notsa::isa<CEventOnFire>(event) && ped->IsPlayer()) {
             return true;
         }
         m_IsAborting = true;
     }
 
-    // NOTE: Not `m_Timer.Start()`, the original doesn't check for a negative duration here
-    m_Timer.m_nStartTime = CTimer::GetTimeInMS();
-    m_Timer.m_nInterval  = m_Duration;
-    m_Timer.m_bStarted   = true;
+    m_Timer.Start(m_Duration);
 
     if (m_pSubTask->GetTaskType() == TASK_SIMPLE_PHONE_OUT) { // 0x634A1E - NOTE: A `CTaskSimpleRunAnim` with a custom type, no `isa` possible
         m_pSubTask->MakeAbortable(ped, priority, event);

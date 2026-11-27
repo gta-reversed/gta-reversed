@@ -6,10 +6,12 @@
 
 class NOTSA_EXPORT_VTABLE CEventOnFire : public CEvent {
 public:
+    static constexpr auto Type = EVENT_ON_FIRE;
+
     CEventOnFire() = default;
     ~CEventOnFire() override = default;
 
-    eEventType GetEventType() const override { return EVENT_ON_FIRE; }
+    eEventType GetEventType() const override { return Type; }
     int32 GetEventPriority() const override { return 66; }
     int32 GetLifeTime() override { return 0; }
     CEventOnFire* Clone() const noexcept override { return new CEventOnFire(); }
