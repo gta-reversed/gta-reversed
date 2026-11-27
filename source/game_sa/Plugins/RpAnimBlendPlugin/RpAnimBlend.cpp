@@ -1806,9 +1806,9 @@ void RpAnimBlendClumpUpdateAnimations(RpClump* clump, float timeStep, bool isOnS
         const auto step = !a->IsSyncronised()
             ? a->GetSpeed()
             : totalTime == 0.f
-                ? a->GetHier()->GetTotalTime()
-                : a->GetHier()->GetTotalTime() / totalTime * totalBlendAmnt;
-        a->m_TimeStep = step * timeStep;
+            ? a->GetHier()->GetTotalTime()
+            : a->GetHier()->GetTotalTime() / totalTime * totalBlendAmnt;
+        a->m_TimeStep   = step * timeStep;
     });
 
     // 0x4D360E - Update all animations's frames
