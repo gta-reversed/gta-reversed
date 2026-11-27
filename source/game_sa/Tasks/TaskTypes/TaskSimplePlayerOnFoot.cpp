@@ -757,12 +757,15 @@ void CTaskSimplePlayerOnFoot::PlayIdleAnimations(CPlayerPed* player) {
 
 // 0x687530
 void CTaskSimplePlayerOnFoot::PlayerControlFighter(CPlayerPed* player) {
-    // NOTE: Fight commands are raw numbers, master has no enum for them yet:
-    //       3/4/5/6 = move fwd/left/back/right, 15 = end quick, 16 = end runaway, 17 = end sprint away, 18 = end duck
+    using enum eFightCommand;
+
     auto* const tFight = player->GetIntelligence()->GetTaskFighting();
     if (!tFight) {
         return;
     }
+    const auto ControlFight = [&](eFightCommand command) {
+        tFight->ControlFight(nullptr, (uint8)command);
+    };
 
     const auto  isMelee      = player->GetActiveWeapon().IsTypeMelee();
     auto* const pad          = player->GetPadFromPlayer();
@@ -772,9 +775,9 @@ void CTaskSimplePlayerOnFoot::PlayerControlFighter(CPlayerPed* player) {
     const auto  maxStep     = CTimer::GetTimeStep() * 0.07f;
     const auto  isTargeting = player->m_pTargetedObject || CCamera::m_bUseMouse3rdPerson && pad->GetTarget();
 
-    // NOTE: The original's last command is compared signed (0x6878F2), -1 = none. 11 is the first attack command.
+    // NOTE: The original's last command is compared signed (0x6878F2)
     const auto IsAttacking = [&] {
-        return (int8)tFight->m_nLastCommand >= 11;
+        return (eFightCommand)(int8)tFight->m_nLastCommand >= ATTACK_1;
     };
     const auto GetStickDir = [&] {
         const auto heading = CGeneral::LimitRadianAngle(CGeneral::GetRadianAngleBetweenPoints(0.0f, 0.0f, -stick.x, stick.y) - TheCamera.m_fOrientation);
@@ -803,9 +806,9 @@ void CTaskSimplePlayerOnFoot::PlayerControlFighter(CPlayerPed* player) {
     auto&      fightMove        = player->GetPlayerData()->m_vecFightMovement;
     const auto ControlFightMove = [&] { // 0x687B6C
         if (std::abs(fightMove.y) > 0.0f && std::abs(fightMove.x) < std::abs(fightMove.y)) {
-            tFight->ControlFight(nullptr, fightMove.y >= 0.0f ? 5 : 3);
+            ControlFight(fightMove.y >= 0.0f ? MOVE_BACK : MOVE_FWD);
         } else if (std::abs(fightMove.x) > 0.0f) {
-            tFight->ControlFight(nullptr, fightMove.x > 0.0f ? 6 : 4);
+            ControlFight(fightMove.x > 0.0f ? MOVE_RIGHT : MOVE_LEFT);
         }
     };
 
@@ -819,9 +822,9 @@ void CTaskSimplePlayerOnFoot::PlayerControlFighter(CPlayerPed* player) {
             return ControlFightMove();
         }
         if (pad->GetSprint()) { // 0x687AE1
-            tFight->ControlFight(nullptr, 17);
+            ControlFight(END_SPRINT_AWAY);
         } else {
-            tFight->ControlFight(nullptr, stick.y >= -0.5f ? 15 : 16);
+            ControlFight(stick.y >= -0.5f ? END_QUICK : END_RUNAWAY);
         }
         return;
     }
@@ -847,10 +850,10 @@ void CTaskSimplePlayerOnFoot::PlayerControlFighter(CPlayerPed* player) {
     // 0x687967 - NOTE: The original calls `GetSprint` here once more and ignores the result
     if (pad->DuckJustDown() && CTaskSimpleDuck::CanPedDuck(player)) {
         player->GetIntelligence()->SetTaskDuckSecondary(0);
-        tFight->ControlFight(nullptr, 18);
+        ControlFight(END_DUCK);
         return;
     }
-    tFight->ControlFight(nullptr, moveBlendRatio > 0.5f ? 16 : 15);
+    ControlFight(moveBlendRatio > 0.5f ? END_RUNAWAY : END_QUICK);
 }
 
 // 0x687C20
