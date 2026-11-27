@@ -968,10 +968,11 @@ void CFileLoader::Load2dEffect(const char* line) {
     int32   type{};
     VERIFY(sscanf_s(line, "%d %f %f %f %d", &modelId, &pos.x, &pos.y, &pos.z, &type) == 5);
 
-    auto* const mi = CModelInfo::GetModelInfo(modelId);
-    if (notsa::bugfixes::GenericCrashing && !mi) {
-        return; // NOTE: The original adds the effect to the null model info and crashes
+    // NOTE: The original neither checks the range of the id nor the model info (and crashes in `Add2dEffect`)
+    if (notsa::bugfixes::GenericCrashing && (modelId < 0 || modelId >= CModelInfo::NUM_MODEL_INFOS || !CModelInfo::GetModelInfo(modelId))) {
+        return;
     }
+    auto* const mi = CModelInfo::GetModelInfo(modelId);
 
     const CTxdStore::ScopedTXDSlot txdSlot{ "particle" };
 
@@ -1207,6 +1208,7 @@ void CFileLoader::Load2dEffect(const char* line) {
         enex.m_nInteriorId = (eAreaCodes)(interiorId);
         enex.m_nFlags1     = (uint8)(flags);
         enex.m_nSkyColor   = (uint8)(skyColor);
+        // NOTE: Not NUL-terminated for 8 characters, the original's reader (`CEntryExitManager::AddOne` 0x43FA00) copies it with `strncpy` 8 too
         strncpy(enex.m_szInteriorName, interiorName, std::size(enex.m_szInteriorName));
         break;
     }
