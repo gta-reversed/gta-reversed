@@ -84,7 +84,7 @@ void CFileLoader::InjectHooks() {
     RH_ScopedInstall(LoadScene, 0x5B8700);
     RH_ScopedInstall(LoadObjectTypes, 0x5B8400);
 
-    RH_ScopedGlobalInstall(LinkLods, 0x5B51E0); 
+    RH_ScopedGlobalInstall(LinkLods, 0x5B51E0);
     RH_ScopedInstall(Load2dEffect, 0x5B7670);
 }
 
@@ -989,9 +989,11 @@ void CFileLoader::Load2dEffect(const char* line) {
         RET_IGNORED(sscanf_s(line, "%d %f %f %f %d %d %d %d %d", &modelId, &pos.x, &pos.y, &pos.z, &type, &red, &green, &blue, &alpha));
 
         // Copy the next "quoted" string into `out`, `it` ends up after its closing quote
-        const char* it = line;
-        const auto ReadQuoted = [&it](auto& out) {
-            const auto IsAtEnd = [&] { return notsa::bugfixes::GenericOOB && *it == '\0'; };
+        const char* it         = line;
+        const auto  ReadQuoted = [&it](auto& out) {
+            const auto IsAtEnd = [&] {
+                return notsa::bugfixes::GenericOOB && *it == '\0';
+            };
             while (!IsAtEnd() && *it++ != '"') {
             }
             size_t n{};
@@ -1027,18 +1029,18 @@ void CFileLoader::Load2dEffect(const char* line) {
             &offsetY,
             &offsetZ
         ));
-        light.m_color                  = { (uint8)(red), (uint8)(green), (uint8)(blue), (uint8)(alpha) };
-        light.m_nShadowColorMultiplier = (uint8)(shadowColorMultiplier);
-        light.m_nCoronaFlashType       = (e2dCoronaFlashType)(flashType);
+        light.m_color                   = { (uint8)(red), (uint8)(green), (uint8)(blue), (uint8)(alpha) };
+        light.m_nShadowColorMultiplier  = (uint8)(shadowColorMultiplier);
+        light.m_nCoronaFlashType        = (e2dCoronaFlashType)(flashType);
         light.m_bCoronaEnableReflection = reflection != 0; // NOTE: The original stores the byte as it is (bool member, only 0/1 are valid)
-        light.m_nCoronaFlareType       = (uint8)(flareType);
-        light.m_nFlags                 = (uint16)(flags);
-        light.m_nShadowZDistance       = (char)(shadowZDistance);
-        light.offsetX                  = (char)(offsetX);
-        light.offsetY                  = (char)(offsetY);
-        light.offsetZ                  = (char)(offsetZ);
-        light.m_pCoronaTex             = RwTextureRead(coronaTexName, nullptr);
-        light.m_pShadowTex             = RwTextureRead(shadowTexName, nullptr);
+        light.m_nCoronaFlareType        = (uint8)(flareType);
+        light.m_nFlags                  = (uint16)(flags);
+        light.m_nShadowZDistance        = (char)(shadowZDistance);
+        light.offsetX                   = (char)(offsetX);
+        light.offsetY                   = (char)(offsetY);
+        light.offsetZ                   = (char)(offsetZ);
+        light.m_pCoronaTex              = RwTextureRead(coronaTexName, nullptr);
+        light.m_pShadowTex              = RwTextureRead(shadowTexName, nullptr);
         if (light.m_nFogType & 0b10) { // 0x5B7A26
             light.m_nFogType &= 0b10;
         }
@@ -1099,10 +1101,10 @@ void CFileLoader::Load2dEffect(const char* line) {
     case EFFECT_INTERIOR: { // 0x5B7B1B
         auto* const interior = notsa::cast<C2dEffectInterior>(&effect);
 
-        int32 interiorType{}, door{}, seed{}, groupId{ -1 }, status{ 50 };
-        float width{}, depth{}, height{};
-        int32 lDoorStart{ -1 }, lDoorEnd{ -1 }, tDoorStart{ -1 }, tDoorEnd{ -1 }, rDoorStart{ -1 }, rDoorEnd{ -1 };
-        int32 lWindowStart{ -1 }, lWindowEnd{ -1 }, tWindowStart{ -1 }, tWindowEnd{ -1 }, rWindowStart{ -1 }, rWindowEnd{ -1 };
+        int32                       interiorType{}, door{}, seed{}, groupId{ -1 }, status{ 50 };
+        float                       width{}, depth{}, height{};
+        int32                       lDoorStart{ -1 }, lDoorEnd{ -1 }, tDoorStart{ -1 }, tDoorEnd{ -1 }, rDoorStart{ -1 }, rDoorEnd{ -1 };
+        int32                       lWindowStart{ -1 }, lWindowEnd{ -1 }, tWindowStart{ -1 }, tWindowEnd{ -1 }, rWindowStart{ -1 }, rWindowEnd{ -1 };
         notsa::mdarray<int32, 3, 4> noGo{}; // left, bottom, width, depth
         for (auto& v : noGo) {
             v.fill(-1);
@@ -1211,7 +1213,7 @@ void CFileLoader::Load2dEffect(const char* line) {
     case EFFECT_ROADSIGN: { // 0x5B7711
         auto& sign = effect.roadsign;
 
-        int32                        flags{};
+        int32                       flags{};
         notsa::mdarray<char, 4, 33> lines{};
         for (auto& l : lines) {
             l[0] = ' ';
