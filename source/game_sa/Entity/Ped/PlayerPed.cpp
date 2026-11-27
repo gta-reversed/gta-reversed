@@ -13,6 +13,10 @@
 #include "TaskSimpleUseGun.h"
 #include "EntryExitManager.h"
 #include "MBlur.h"
+#include "EventPlayerCommandToGroupGather.h"
+#include "TaskSimpleFight.h"
+#include "TaskSimplePlayerOnFoot.h"
+#include "TaskComplexFacial.h"
 
 bool CPlayerPed::bDebugPlayerInvincible;
 bool CPlayerPed::bDebugTargeting;
@@ -58,7 +62,7 @@ void CPlayerPed::InjectHooks() {
     RH_ScopedInstall(MakePlayerGroupDisappear, 0x60A440);
     RH_ScopedInstall(MakePlayerGroupReappear, 0x60A4B0);
     RH_ScopedInstall(HandleSprintEnergy, 0x60A550);
-    RH_ScopedInstall(GetButtonSprintResults, 0x60A820, { .Reversed = false });
+    RH_ScopedInstall(GetButtonSprintResults, 0x60A820);
     RH_ScopedInstall(HandlePlayerBreath, 0x60A8D0);
     RH_ScopedOverloadedInstall(MakeChangesForNewWeapon, "", 0x60B460, void(CPlayerPed::*)(eWeaponType));
     RH_ScopedGlobalInstall(LOSBlockedBetweenPeds, 0x60B550);
@@ -74,15 +78,15 @@ void CPlayerPed::InjectHooks() {
 
     RH_ScopedVMTInstall(ProcessControl, 0x60EA90);
     RH_ScopedVMTInstall(SetMoveAnim, 0x609490);
-    RH_ScopedInstall(ProcessAnimGroups, 0x6098F0, { .Reversed = false });
-    RH_ScopedInstall(ControlButtonSprint, 0x60A610, { .Reversed = false });
-    RH_ScopedInstall(SetRealMoveAnim, 0x60A9C0, { .Reversed = false });
+    RH_ScopedInstall(ProcessAnimGroups, 0x6098F0);
+    RH_ScopedInstall(ControlButtonSprint, 0x60A610);
+    RH_ScopedInstall(SetRealMoveAnim, 0x60A9C0);
     RH_ScopedInstall(Compute3rdPersonMouseTarget, 0x60B650, { .Reversed = false });
     RH_ScopedInstall(DrawTriangleForMouseRecruitPed, 0x60BA80, { .Reversed = false });
     RH_ScopedInstall(KeepAreaAroundPlayerClear, 0x60C1E0, { .Reversed = false });
     RH_ScopedInstall(MakeThisPedJoinOurGroup, 0x60C840, { .Reversed = false });
-    RH_ScopedInstall(PlayerWantsToAttack, 0x60CC50, { .Reversed = false });
-    RH_ScopedInstall(SetInitialState, 0x60CD20, { .Reversed = false });
+    RH_ScopedInstall(PlayerWantsToAttack, 0x60CC50);
+    RH_ScopedInstall(SetInitialState, 0x60CD20);
     RH_ScopedInstall(EvaluateNeighbouringTarget, 0x60D1C0, { .Reversed = false });
     RH_ScopedInstall(ProcessGroupBehaviour, 0x60D350, { .Reversed = false });
     RH_ScopedInstall(ProcessWeaponSwitch, 0x60D850, { .Reversed = false });
@@ -358,7 +362,118 @@ void CPlayerPed::UpdateCameraWeaponModes(CPad* pad) {
 
 // 0x6098F0
 void CPlayerPed::ProcessAnimGroups() {
-    plugin::CallMethod<0x6098F0, CPlayerPed *>(this);
+    constexpr auto FPS_MOVE_HEADING_FORWARD = 0.87266463f; // 0x86D1D0 (50 degrees)
+
+    auto* const pd                          = GetPlayerData();
+
+    // The `*F` / `*M` (fat / muscular) variants of the player move anim groups follow the normal one
+    const auto WithMotionVariant = [](AssocGroupId group) {
+        return (AssocGroupId)(group + CClothes::GetDefaultPlayerMotionGroup() - ANIM_GROUP_PLAYER);
+    };
+    const auto moveAnimGroup = [&] {
+        const bool isMovingForward = pd->m_fFPSMoveHeading > -FPS_MOVE_HEADING_FORWARD && pd->m_fFPSMoveHeading < FPS_MOVE_HEADING_FORWARD;
+        if (!isMovingForward && TheCamera.GetActiveCam().Using3rdPersonMouseCam() && CanStrafeOrMouseControl()) { // 0x609A1A
+            if (m_nAnimGroup != ANIM_GROUP_PLAYER) {
+                // NOTE: Adds the motion variant to the current group, that may have it already (the original does it too)
+                return WithMotionVariant(m_nAnimGroup);
+            }
+        } else {
+            const auto weaponType = [this] {
+                if (m_pWeaponObject) {
+                    if (auto* const mi = CVisibilityPlugins::GetClumpModelInfo(m_pWeaponObject); mi && mi->GetModelType() == MODEL_INFO_WEAPON) {
+                        return mi->AsWeaponModelInfoPtr()->GetWeaponInfo();
+                    }
+                }
+                return WEAPON_UNARMED;
+            }();
+            switch (weaponType) {
+            case WEAPON_RLAUNCHER:
+            case WEAPON_RLAUNCHER_HS: // 0x609A13
+                return WithMotionVariant(ANIM_GROUP_PLAYERROCKET);
+            default:
+                break;
+            }
+            if (GetIntelligence()->GetTaskJetPack()) { // 0x609998
+                return ANIM_GROUP_PLAYERJETPACK;
+            }
+            switch (weaponType) {
+            case WEAPON_BASEBALLBAT:
+            case WEAPON_SHOVEL:
+            case WEAPON_POOL_CUE: // 0x609A0C
+                return WithMotionVariant(ANIM_GROUP_PLAYERBBBAT);
+            case WEAPON_CHAINSAW:
+            case WEAPON_FLAMETHROWER:
+            case WEAPON_MINIGUN: // 0x609A05
+                return WithMotionVariant(ANIM_GROUP_PLAYERCSAW);
+            case WEAPON_M4:
+            case WEAPON_AK47:
+            case WEAPON_SPAS12_SHOTGUN:
+            case WEAPON_SHOTGUN:
+            case WEAPON_SNIPERRIFLE:
+            case WEAPON_COUNTRYRIFLE: // 0x6099FE
+                return WithMotionVariant(ANIM_GROUP_PLAYER2ARMED);
+            default:
+                break;
+            }
+            if (GetClothesDesc()->GetIsWearingBalaclava()) { // 0x6099F0
+                return ANIM_GROUP_PLAYERSNEAK;
+            }
+        }
+
+        // 0x609A1F
+        if (m_nPedType == PED_TYPE_PLAYER2 && GetPedModelInfo()->m_nAnimType != ANIM_GROUP_PLAYER) {
+            return GetPedModelInfo()->m_nAnimType;
+        }
+        return WithMotionVariant(ANIM_GROUP_PLAYER);
+    }();
+    if (m_nAnimGroup != moveAnimGroup) {
+        m_nAnimGroup = moveAnimGroup;
+        ReApplyMoveAnims();
+    }
+
+    // Keep the anim blocks of the melee combos the player can do referenced (one for the weapon, one for the fighting style)
+    const auto ReferenceComboAnimBlock = [](eMeleeCombo combo, uint32& referencedGroup, bool& release) {
+        if (combo == MELEE_COMBO_UNARMED_1) {
+            release = referencedGroup != ANIM_GROUP_DEFAULT;
+            return;
+        }
+        const auto group = CTaskSimpleFight::m_aComboData[combo - MELEE_COMBO_UNARMED_1].m_nAnimGroup;
+        if (group == referencedGroup) {
+            return;
+        }
+        release     = referencedGroup != ANIM_GROUP_DEFAULT;
+
+        auto* block = CAnimManager::GetAnimationBlock(group);
+        if (!block) {
+            block = CAnimManager::GetAnimationBlock(CAnimManager::GetAnimBlockName(group));
+        }
+        const auto blockIndex = CAnimManager::GetAnimationBlockIndex(block);
+        if (!block->IsLoaded) {
+            CStreaming::RequestModel(IFPToModelId(blockIndex), STREAMING_KEEP_IN_MEMORY);
+        } else if (referencedGroup == ANIM_GROUP_DEFAULT) {
+            CAnimManager::AddAnimBlockRef(blockIndex);
+            referencedGroup = group;
+        }
+    };
+    const auto ReleaseComboAnimBlock = [](uint32& referencedGroup) {
+        if (referencedGroup != ANIM_GROUP_DEFAULT) {
+            CAnimManager::RemoveAnimBlockRef(CAnimManager::GetAnimationBlockIndex((AssocGroupId)referencedGroup));
+            referencedGroup = ANIM_GROUP_DEFAULT;
+        }
+    };
+    bool releaseWeaponCombo{}, releaseStyleCombo{};
+    if (const auto* const wi = CWeaponInfo::GetWeaponInfo(this); wi->GetFireType() == WEAPON_FIRE_MELEE && !bInVehicle) { // NOTE: Only the flag, like the original (not `IsInVehicle()`)
+        ReferenceComboAnimBlock((eMeleeCombo)wi->m_nBaseCombo, pd->m_nMeleeWeaponAnimReferenced, releaseWeaponCombo);
+        ReferenceComboAnimBlock((eMeleeCombo)m_nFightingStyle, pd->m_nMeleeWeaponAnimReferencedExtra, releaseStyleCombo);
+    } else { // 0x609C73
+        releaseWeaponCombo = releaseStyleCombo = true;
+    }
+    if (releaseWeaponCombo) {
+        ReleaseComboAnimBlock(pd->m_nMeleeWeaponAnimReferenced);
+    }
+    if (releaseStyleCombo) {
+        ReleaseComboAnimBlock(pd->m_nMeleeWeaponAnimReferencedExtra);
+    }
 }
 
 // 0x609C80
@@ -578,7 +693,7 @@ void CPlayerPed::TellGroupToStartFollowingPlayer(bool arg0, bool arg1, bool arg2
         CEventPlayerCommandToGroup playerCmdEvent;
         playerCmdEvent.ComputeResponseTaskType(&group);
         if (playerCmdEvent.WillRespond()) {
-            auto gatherCmdEvent = new CEventPlayerCommandToGroup(ePlayerGroupCommand::PLAYER_GROUP_COMMAND_GATHER);
+            auto* gatherCmdEvent     = new CEventPlayerCommandToGroupGather{ nullptr };
             gatherCmdEvent->m_TaskId = playerCmdEvent.m_TaskId;
 
             CEventGroupEvent groupEvent(this, gatherCmdEvent);
@@ -671,16 +786,15 @@ bool CPlayerPed::HandleSprintEnergy(bool sprint, float adrenalineConsumedPerTime
 
 constexpr auto PLAYER_SPRINT_THRESHOLD{ 5.0f }; // 0x8D2458
 constexpr struct tPlayerSprintSet { // From 0x8D2460
-    float field_0;
-    float field_4;
-    float field_8;
-    float field_C;
-    float field_10;
-    float field_14;
-    float field_18;
-    float field_1C;
+    float TapIncrease;              //!< Move speed added when the sprint button is tapped
+    float HeldDecrease;             //!< Move speed lost per time step while the sprint button is held (down to 1)
+    float ReleasedDecrease;         //!< Move speed lost per time step while the sprint button is released (down to 0)
+    float FullSpeed;                //!< Move speed above which the result goes over 1
+    float MaxSpeed;                 //!< Move speed limit
+    float EnergyUse;                //!< Sprint energy used per time step at most `FullSpeed`
+    float EnergyUseOverFull;        //!< Sprint energy used per time step over `FullSpeed`
+    float ResultMultiplier;         //!< How much the move speed over `FullSpeed` adds to the result
 } PLAYER_SPRINT_SET[] = {
-    // 0x0, 0x4,  0x8,  0xC,  0x10,  0x14, 0x18, 0x1C
     { 4.0f, 0.7f, 0.2f, 5.0f, 10.0f, 1.0f, 0.5f, 0.3f }, // GROUND
     { 4.0f, 0.7f, 0.2f, 5.0f, 10.0f, 0.0f, 0.4f, 1.0f }, // BMX
     { 4.0f, 0.7f, 0.2f, 5.0f, 10.0f, 1.0f, 0.3f, 0.3f }, // WATER
@@ -689,25 +803,42 @@ constexpr struct tPlayerSprintSet { // From 0x8D2460
 
 // 0x60A610
 float CPlayerPed::ControlButtonSprint(eSprintType sprintType) {
-    return plugin::CallMethodAndReturn<float, 0x60A610, CPlayerPed *, eSprintType>(this, sprintType);
+    auto* const pd = GetPlayerData();
+    if (!pd) {
+        return 0.f;
+    }
+    const auto* const pad       = GetPadFromPlayer();
+    const auto&       sprint    = PLAYER_SPRINT_SET[sprintType];
+    const bool        canSprint = !pd->m_bPlayerSprintDisabled && (pd->m_fMoveSpeed > 0.f || pd->m_fTimeCanRun > 0.f);
+    if (pad->SprintJustDown() && canSprint) { // 0x60A69E
+        pd->m_fMoveSpeed = notsa::step_up_to(pd->m_fMoveSpeed, sprint.MaxSpeed, sprint.TapIncrease);
+    } else if (pad->GetSprint() && canSprint) { // 0x60A6E3
+        pd->m_fMoveSpeed = notsa::step_down_to(pd->m_fMoveSpeed, 1.f, CTimer::GetTimeStep() * sprint.HeldDecrease);
+    } else if (pd->m_fMoveSpeed > 0.f) { // 0x60A72C
+        pd->m_fMoveSpeed = notsa::step_down_to(pd->m_fMoveSpeed, 0.f, CTimer::GetTimeStep() * sprint.ReleasedDecrease);
+    }
+
+    const bool isOverFullSpeed = pd->m_fMoveSpeed > sprint.FullSpeed;
+    if (!isOverFullSpeed && (pd->m_fMoveSpeed <= 0.f || !canSprint)) { // 0x60A7DE
+        return 0.f;
+    }
+    const float speedRatio = isOverFullSpeed ? pd->m_fMoveSpeed / sprint.FullSpeed : 1.f;
+    if (!HandleSprintEnergy(true, isOverFullSpeed ? sprint.EnergyUseOverFull : sprint.EnergyUse)) { // 0x60A803
+        pd->m_fMoveSpeed = 0.f;
+        return 0.f;
+    }
+    return std::max(0.f, speedRatio - 1.f) * sprint.ResultMultiplier + 1.f;
 }
 
-// Reverse CPlayerPed::SetRealMoveAnim before hooking this func
+// NOTE: The original `SetRealMoveAnim` (0x60B430) keeps an anim association in EDX across its call to this function,
+//       so this one must not be hooked without it (both are now)
 // 0x60A820
 float CPlayerPed::GetButtonSprintResults(eSprintType sprintType) {
-    return plugin::CallMethodAndReturn<float, 0x60A820, CPlayerPed *, eSprintType>(this, sprintType);
-
-    // Forces the compiler to preserve the value of `edx`.
-    // Otherwise it's value is lost when called from 0x60B44C.
-    // which causes a crash (as it is used to store a pointer to an anim blend assoc)
-    __asm { and edx, edx };
-
-    if (GetPlayerData()->m_fMoveSpeed <= PLAYER_SPRINT_THRESHOLD) {
-        return GetPlayerData()->m_fMoveSpeed <= 0.0f ? 0.0f : 1.0f;
-    } else {
-        const float progress = std::max(0.0f, GetPlayerData()->m_fMoveSpeed / PLAYER_SPRINT_THRESHOLD - 1.0f);
-        return PLAYER_SPRINT_SET[sprintType].field_1C * progress + 1.0f;
+    const auto moveSpeed = GetPlayerData()->m_fMoveSpeed;
+    if (moveSpeed > PLAYER_SPRINT_THRESHOLD) {
+        return std::max(0.f, moveSpeed / PLAYER_SPRINT_THRESHOLD - 1.f) * PLAYER_SPRINT_SET[sprintType].ResultMultiplier + 1.f;
     }
+    return moveSpeed > 0.f ? 1.f : 0.f;
 }
 
 // 0x60A8A0
@@ -734,7 +865,212 @@ void CPlayerPed::HandlePlayerBreath(bool bDecreaseAir, float fMultiplier) {
 
 // 0x60A9C0
 void CPlayerPed::SetRealMoveAnim() {
-    plugin::CallMethod<0x60A9C0, CPlayerPed *>(this);
+    auto* const pd        = GetPlayerData();
+    auto* const clump     = GetRpClump();
+
+    auto*       walk      = RpAnimBlendClumpGetAssociation(clump, ANIM_ID_WALK);
+    auto*       run       = RpAnimBlendClumpGetAssociation(clump, ANIM_ID_RUN);
+    auto*       sprint    = RpAnimBlendClumpGetAssociation(clump, ANIM_ID_SPRINT);
+    auto*       walkStart = RpAnimBlendClumpGetAssociation(clump, ANIM_ID_WALK_START);
+    auto*       idle      = RpAnimBlendClumpGetAssociation(clump, ANIM_ID_IDLE);
+    auto* const runStop   = RpAnimBlendClumpGetAssociation(clump, ANIM_ID_RUN_STOP);
+    auto* const runStopR  = RpAnimBlendClumpGetAssociation(clump, ANIM_ID_RUN_STOPR);
+    auto* const turnL     = RpAnimBlendClumpGetAssociation(clump, ANIM_ID_TURN_L);
+    auto* const turnR     = RpAnimBlendClumpGetAssociation(clump, ANIM_ID_TURN_R);
+    auto* const idleTired = RpAnimBlendClumpGetAssociation(clump, ANIM_ID_IDLE_TIRED);
+
+    if (bResetWalkAnims) {
+        for (auto* const a : { walk, run, sprint }) {
+            if (a) {
+                a->SetCurrentTime(0.f);
+            }
+        }
+        bResetWalkAnims = false;
+    }
+
+    if (runStop && runStop->IsPlaying() || runStopR && runStopR->IsPlaying()) { // 0x60AAC8
+        m_nMoveState = PEDMOVE_RUN;
+        if (runStop && !runStop->IsPlaying() && runStop->GetCurrentTime() < runStop->GetHier()->GetTotalTime()) {
+            runStop->SetFlag(ANIMATION_IS_PLAYING);
+        }
+    } else if (runStop && runStop->GetBlendDelta() >= 0.f || runStopR && runStopR->GetBlendDelta() >= 0.f) { // 0x60AB2B
+        auto* const stop = runStop ? runStop : runStopR;
+        stop->SetFlag(ANIMATION_IS_BLEND_AUTO_REMOVE);
+        stop->SetBlend(1.f, -8.f);
+        RestoreHeadingRate();
+        if (!idle) {
+            idle = CAnimManager::BlendAnimation(clump, m_nAnimGroup, ANIM_ID_IDLE, 8.f);
+        }
+        idle->SetBlend(0.f, 8.f);
+    } else if (pd->m_fMoveBlendRatio != 0.f || sprint) { // 0x60AEAF
+        if (idle) {
+            if (walkStart) {
+                walkStart->SetBlend(1.f, 0.f);
+            } else {
+                walkStart = CAnimManager::AddAnimation(clump, m_nAnimGroup, ANIM_ID_WALK_START);
+            }
+            for (auto* const a : { walk, run }) {
+                if (a) {
+                    a->SetCurrentTime(0.f);
+                }
+            }
+            delete idle;
+            if (idleTired) {
+                idleTired->SetBlendDelta(-4.f);
+            }
+            delete std::exchange(sprint, nullptr);
+            m_nMoveState = PEDMOVE_WALK;
+        }
+        for (auto* const stop : { runStop, runStopR }) {
+            if (stop) {
+                delete stop;
+                RestoreHeadingRate();
+            }
+        }
+        delete turnL;
+        delete turnR;
+        if (!walk) {
+            walk = CAnimManager::AddAnimation(clump, m_nAnimGroup, ANIM_ID_WALK);
+            walk->SetBlendAmount(0.f);
+        }
+        if (!run) {
+            run = CAnimManager::AddAnimation(clump, m_nAnimGroup, ANIM_ID_RUN);
+            run->SetBlendAmount(0.f);
+        }
+        if (walkStart && (!walkStart->IsPlaying() || walkStart->GetHier()->GetTotalTime() <= walkStart->m_TimeStep + walkStart->GetCurrentTime())) { // 0x60B010
+            delete walkStart;
+            walk->SetFlag(ANIMATION_IS_PLAYING);
+            run->SetFlag(ANIMATION_IS_PLAYING);
+            walkStart = nullptr;
+        }
+        if (m_nMoveState == PEDMOVE_SPRINT && walkStart) {
+            m_nMoveState = PEDMOVE_STILL;
+        }
+
+        if (sprint && (m_nMoveState != PEDMOVE_SPRINT || pd->m_fMoveBlendRatio < 0.4f)) { // 0x60B081
+            if (sprint->GetBlendAmount() == 0.f) {
+                sprint->SetFlag(ANIMATION_IS_BLEND_AUTO_REMOVE);
+                sprint->SetBlendDelta(-1000.f);
+            } else if (sprint->GetBlendDelta() < 0.f && sprint->GetBlendAmount() < 0.8f) { // 0x60B0C1
+                if (pd->m_fMoveBlendRatio < 1.f) {
+                    sprint->SetBlendDelta(-8.f);
+                    run->SetBlendDelta(8.f);
+                }
+            } else if (pd->m_fMoveBlendRatio >= 0.4f) { // 0x60B1A3
+                if (sprint->GetBlendDelta() >= 0.f) {
+                    sprint->SetFlag(ANIMATION_IS_BLEND_AUTO_REMOVE);
+                    sprint->SetBlendDelta(-1.f);
+                    run->SetBlendDelta(1.f);
+                }
+            } else { // 0x60B108
+                auto* const stop = CAnimManager::AddAnimation(clump, ANIM_GROUP_DEFAULT, sprint->GetTimeProgress() >= 0.5f ? ANIM_ID_RUN_STOPR : ANIM_ID_RUN_STOP);
+                stop->SetBlendAmount(1.f);
+                stop->SetDeleteCallback(RestoreHeadingRateCB, this);
+                m_fHeadingChangeRate = 0.f;
+                sprint->SetFlag(ANIMATION_IS_BLEND_AUTO_REMOVE);
+                sprint->SetBlendDelta(-1000.f);
+                for (auto* const a : { walk, run }) {
+                    a->SetFlag(ANIMATION_IS_PLAYING, false);
+                    a->SetBlend(0.f, 0.f);
+                }
+            }
+            m_nMoveState = pd->m_fMoveBlendRatio > 1.f ? PEDMOVE_RUN : PEDMOVE_WALK;
+        } else if (walkStart) { // 0x60B1F4
+            for (auto* const a : { walk, run }) {
+                a->SetFlag(ANIMATION_IS_PLAYING, false);
+                a->SetBlendAmount(0.f);
+            }
+        } else if (m_nMoveState == PEDMOVE_SPRINT) { // 0x60B21C
+            if (!sprint && run->GetBlendAmount() < 1.f) {
+                if (walk->GetBlendAmount() == 0.f && run->GetBlendAmount() == 0.f) {
+                    walk->SetBlendAmount(1.f);
+                }
+                if (run->GetBlendDelta() <= 0.f) {
+                    run = CAnimManager::BlendAnimation(clump, m_nAnimGroup, ANIM_ID_RUN, 4.f);
+                }
+                pd->m_fMoveBlendRatio = run->GetBlendDelta() + 1.f; // NOTE: A blend delta, not a blend amount (like the original)
+            } else {
+                if (!sprint) { // 0x60B2A6
+                    sprint = CAnimManager::BlendAnimation(clump, m_nAnimGroup, ANIM_ID_SPRINT, 2.f);
+                } else if (sprint->GetBlendDelta() < 0.f) { // 0x60B2DA
+                    sprint->SetBlendDelta(2.f);
+                    run->SetBlendDelta(-2.f);
+                }
+                CStats::UpdateStatsWhenSprinting();
+            }
+        } else if (pd->m_fMoveBlendRatio < 1.f) { // 0x60B310
+            walk->SetBlend(1.f, 0.f);
+            run->SetBlend(0.f, 0.f);
+            m_nMoveState = PEDMOVE_WALK;
+        } else if (pd->m_fMoveBlendRatio < 2.f) { // 0x60B344
+            walk->SetBlend(2.f - pd->m_fMoveBlendRatio, 0.f);
+            run->SetBlend(pd->m_fMoveBlendRatio - 1.f, 0.f);
+            m_nMoveState = PEDMOVE_RUN;
+        } else { // 0x60B374
+            walk->SetBlend(0.f, 0.f);
+            run->SetBlend(1.f, 0.f);
+            m_nMoveState = PEDMOVE_RUN;
+            CStats::UpdateStatsWhenRunning();
+        }
+    } else { // 0x60ABAF
+        const auto* const pad = GetPadFromPlayer();
+        if (pad->GetForceCameraBehindPlayer() && pad->AimWeaponLeftRight(nullptr) && TheCamera.GetActiveCam().m_nMode == MODE_FOLLOWPED) {
+            const auto turnSpeed  = pad->AimWeaponLeftRight(nullptr);
+            const auto turnAnimId = turnSpeed >= 0 ? ANIM_ID_TURN_R : ANIM_ID_TURN_L;
+            auto*      turn       = turnAnimId == ANIM_ID_TURN_R ? turnR : turnL;
+            if (!turn || turn->GetBlendDelta() < 0.f || turn->GetBlendAmount() < 1.f && turn->GetBlendDelta() <= 0.f) {
+                turn = CAnimManager::BlendAnimation(clump, ANIM_GROUP_DEFAULT, turnAnimId, 16.f);
+            }
+            turn->SetSpeed(std::abs((float)turnSpeed) / 128.f);
+            if (idle && idle->GetBlendAmount() <= 0.01f) {
+                delete idle;
+            }
+        } else if (!idle) { // 0x60AD2E
+            CAnimManager::BlendAnimation(clump, m_nAnimGroup, ANIM_ID_IDLE, 4.f);
+        }
+
+        // 0x60AD50
+        auto* const intel   = GetIntelligence();
+        const bool  isTired = pd->m_fTimeCanRun < 0.f
+            && !intel->GetTaskFighting()
+            && !intel->GetTaskUseGun()
+            && !intel->GetTaskDuck(true)
+            && !intel->GetTaskThrow()
+            && !intel->GetTaskJetPack()
+            && !CWorld::TestSphereAgainstWorld(GetPosition(), 0.5f, nullptr, true, false, false, false, false, false);
+        if (isTired) {
+            if (!idleTired) { // 0x60AE1A
+                auto* const tired = CAnimManager::BlendAnimation(
+                    clump,
+                    CClothes::GetDefaultPlayerMotionGroup() == ANIM_GROUP_FAT ? ANIM_GROUP_FAT_TIRED : ANIM_GROUP_DEFAULT,
+                    ANIM_ID_IDLE_TIRED,
+                    4.f
+                );
+                tired->SetFlag(ANIMATION_IS_PLAYING);
+            }
+        } else if (idleTired && idleTired->GetBlendAmount() > 0.f && idleTired->GetBlendDelta() >= 0.f) { // 0x60AE95
+            idleTired->SetFlag(ANIMATION_IS_PLAYING, false);
+            idleTired->SetBlendDelta(-2.f);
+        }
+        m_nMoveState = PEDMOVE_STILL;
+    }
+
+    // 0x60B399
+    if (pd->m_bAdrenaline) {
+        const bool hasAdrenalineEnded = CTimer::GetTimeInMS() > pd->m_nAdrenalineEndTime && !CCheat::IsActive(CHEAT_ADRENALINE_MODE);
+        if (hasAdrenalineEnded) {
+            pd->m_bAdrenaline = false;
+        }
+        CTimer::SetTimeScale(hasAdrenalineEnded ? 1.f : 1.f / 3.f);
+        for (auto* const a : { walkStart, walk, run, sprint }) {
+            if (a) {
+                a->SetSpeed(hasAdrenalineEnded ? 1.f : 2.f);
+            }
+        }
+    }
+    if (sprint) { // 0x60B402
+        sprint->SetSpeed(TheCamera.GetActiveCam().m_nMode == MODE_FIXED ? 0.7f : std::max(1.f, GetButtonSprintResults(SPRINT_GROUND)));
+    }
 }
 
 // 0x60B460
@@ -859,14 +1195,14 @@ CPed* CPlayerPed::FindPedToAttack() {
     CVector origin = FindPlayerCoors();
     origin.z = 0.0f;
 
-    CVector end = origin + TheCamera.GetForward() * 100.0f;
+    CVector end    = origin + TheCamera.m_mCameraMatrix.GetForward() * 100.0f;
     end.z = 0.0f;
 
     CPed* closestPed{};
     float closestDistance = std::numeric_limits<float>::max();
 
     CPedGroupMembership& membership = GetPlayerGroup().GetMembership();
-    for (int i = 0; GetPedPool()->GetSize(); i++) {
+    for (auto i = GetPedPool()->GetSize(); i-- > 0;) { // NOTE: Backwards, like the original (matters for ties)
         CPed* ped = GetPedPool()->GetAt(i);
         if (!ped)
             continue;
@@ -885,7 +1221,7 @@ CPed* CPlayerPed::FindPedToAttack() {
         float dist = CCollision::DistToLine(origin, end, point);
         float pointDist = (point - origin).Magnitude2D();
         if (pointDist > 20.0f)
-            dist += (pointDist - 20.0f) / 5.0f;
+            dist += (pointDist - 20.0f) * 0.2f;
 
         if (IsPedTypeGang(ped->m_nPedType))
             dist = std::max(0.0f, dist / 2.0f - 2.0f);
@@ -918,13 +1254,76 @@ void CPlayerPed::MakeThisPedJoinOurGroup(CPed* ped) {
 }
 
 // 0x60CC50
-bool CPlayerPed::PlayerWantsToAttack() {
-    return plugin::CallMethodAndReturn<bool, 0x60CC50, CPlayerPed *>(this);
+void CPlayerPed::PlayerWantsToAttack() {
+    auto& group = GetPlayerGroup();
+    if (group.GetMembership().CountMembersExcludingLeader() < 1 || !group.m_bMembersEnterLeadersVehicle) {
+        return;
+    }
+    group.GetIntelligence().ReportAllBarScriptTasksFinished();
+
+    CEntity* const target = CCamera::m_bUseMouse3rdPerson && !m_pTargetedObject ? m_p3rdPersonMouseTarget : m_pTargetedObject;
+    if (target && !target->GetIsTypePed()) { // 0x60CCCB
+        if (CTagManager::IsTag(*target) || target->GetIsTypeObject() && target->AsObject()->CanBeTargetted()) {
+            return;
+        }
+    }
+    if (auto* const ped = target && target->GetIsTypePed() ? target->AsPed() : FindPedToAttack()) {
+        group.PlayerGaveCommand_Attack(this, ped);
+    }
 }
 
 // 0x60CD20
-void CPlayerPed::SetInitialState(bool bGroupCreated) {
-    plugin::CallMethod<0x60CD20, CPlayerPed *, bool>(this, bGroupCreated);
+void CPlayerPed::SetInitialState(bool groupCreated) {
+    CMBlur::ClearDrunkBlur();
+    CTimer::ResetTimeScale();
+    SetUsesCollision(true);
+    physicalFlags.bApplyGravity = true;
+    ClearAimFlag();
+    ClearLookFlag();
+    bRenderPedInCar = true;
+    if (m_pFire) {
+        m_pFire->Extinguish();
+    }
+    SetPedState(PEDSTATE_IDLE);
+    SetMoveState(PEDMOVE_STILL);
+    bIsDucking       = false;
+    bDontRender      = false;
+    bIsBeingArrested = false;
+    bCanExitCar      = true;
+    GetIntelligence()->FlushIntelligence();
+    RpAnimBlendClumpRemoveAllAssociations(GetRpClump());
+    GetTaskManager().SetTask(new CTaskSimplePlayerOnFoot{}, TASK_PRIMARY_DEFAULT);
+    m_nAnimGroup         = ANIM_GROUP_PLAYER;
+    bIsPedDieAnimPlaying = false;
+    if (auto* const pd = GetPlayerData()) {
+        pd->m_bAdrenaline = false;
+    }
+    SetRealMoveAnim();
+    m_pStats->m_nTemper = 50;
+    if (m_pAttachedTo && !GetUsesCollision()) {
+        SetUsesCollision(true);
+    }
+    m_pAttachedTo = nullptr;
+    m_nTurretAmmo = 0;
+    GetTaskManager().SetTaskSecondary(new CTaskComplexFacial{}, TASK_SECONDARY_FACIAL_COMPLEX);
+
+    if (!groupCreated && !GetPlayerData()->m_bGroupNeverFollow) { // 0x60CECD
+        auto& group                         = GetPlayerGroup();
+        auto& groupIntel                    = group.GetIntelligence();
+        group.m_bMembersEnterLeadersVehicle = true;
+        groupIntel.SetDefaultTaskAllocatorType(ePedGroupDefaultTaskAllocatorType::RANDOM);
+
+        CEventPlayerCommandToGroup playerCmdEvent{ PLAYER_GROUP_COMMAND_ATTACK };
+        playerCmdEvent.ComputeResponseTaskType(&group);
+        if (playerCmdEvent.WillRespond()) {
+            auto* const gatherCmdEvent = new CEventPlayerCommandToGroupGather{ nullptr };
+            gatherCmdEvent->m_TaskId   = playerCmdEvent.GetTaskId();
+            groupIntel.AddEvent(CEventGroupEvent{ this, gatherCmdEvent });
+        }
+    }
+    if (auto* const pd = GetPlayerData()) {
+        pd->SetInitialState();
+    }
 }
 
 // 0x60D000
@@ -970,8 +1369,8 @@ void CPlayerPed::ProcessGroupBehaviour(CPad* pad) {
 }
 
 // 0x60D5A0
-bool CPlayerPed::PlayerHasJustAttackedSomeone() {
-    return PlayerWantsToAttack();
+void CPlayerPed::PlayerHasJustAttackedSomeone() {
+    PlayerWantsToAttack();
 }
 
 // 0x60D790
