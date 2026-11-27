@@ -8,14 +8,13 @@ eDecisionRelationship CEventSource::ComputeEventSourceType(const CEvent& event, 
     if (!source || !source->GetIsTypePed()) {
         return DECISION_RELATIONSHIP_NEUTRAL;
     }
-    const auto& sourcePed = *source->AsPed();
-    if (ped.GetIntelligence()->IsThreatenedBy(sourcePed)) {
+    if (ped.GetIntelligence()->IsThreatenedBy(*source->AsPed())) {
         return DECISION_RELATIONSHIP_THREAT;
     }
-    if (ped.GetIntelligence()->IsFriendlyWith(sourcePed)) {
+    if (ped.GetIntelligence()->IsFriendlyWith(*source->AsPed())) {
         return DECISION_RELATIONSHIP_FRIEND;
     }
-    if (sourcePed.IsPlayer()) {
+    if (source->AsPed()->IsPlayer()) {
         return DECISION_RELATIONSHIP_PLAYER;
     }
     return DECISION_RELATIONSHIP_NEUTRAL;
