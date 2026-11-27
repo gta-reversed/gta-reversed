@@ -1915,8 +1915,8 @@ void CVehicle::SetComponentVisibility(RwFrame* component, uint32 visibilityState
         if (visibilityState == eAtomicComponentFlag::ATOMIC_DAMAGED) {
             vehicleFlags.bIsDamaged = true;
         }
-        RwFrameForAllObjects(component, SetVehicleAtomicVisibilityCB, (void*)visibilityState);
-        RwFrameForAllChildren(component, SetVehicleAtomicVisibilityCB, (void*)visibilityState);
+        RwFrameForAllObjects(component, SetVehicleAtomicVisibilityCB, reinterpret_cast<void*>(visibilityState));
+        RwFrameForAllChildren(component, SetVehicleAtomicVisibilityCB, reinterpret_cast<void*>(visibilityState));
     }
 }
 
@@ -2543,8 +2543,9 @@ void CVehicle::AddReplacementUpgrade(int32 upgradeModelIndex, int32 nodeId) {
 // 0x6D39E0
 void CVehicle::RemoveReplacementUpgrade(int32 frameId) {
     auto frameOfUpgrade = CClumpModelInfo::GetFrameFromId(GetRpClump(), frameId);
-    RwFrameForAllObjects(frameOfUpgrade, RemoveObjectsCB, &frameOfUpgrade);
-    RwFrameForAllChildren(frameOfUpgrade, RemoveObjectsCB, &frameOfUpgrade);
+    auto atomicFlags    = ATOMIC_NONE;
+    RwFrameForAllObjects(frameOfUpgrade, RemoveObjectsCB, &atomicFlags);
+    RwFrameForAllChildren(frameOfUpgrade, RemoveObjectsCB, &atomicFlags);
 
     CopyObjectsCB_TargetClump = GetRpClump();
     RwFrameForAllObjects(
