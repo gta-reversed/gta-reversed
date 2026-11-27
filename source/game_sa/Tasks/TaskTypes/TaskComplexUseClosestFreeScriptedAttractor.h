@@ -5,7 +5,7 @@
 #include "Ped.h"
 
 class CPed;
-struct C2dEffect;
+struct C2dEffectPedAttractor;
 
 class NOTSA_EXPORT_VTABLE CTaskComplexUseClosestFreeScriptedAttractor : public CTaskComplex {
 public:
@@ -21,10 +21,10 @@ public:
     */
     CTaskComplexUseClosestFreeScriptedAttractor(eMoveState ms);
 
-    CTaskComplexUseClosestFreeScriptedAttractor(const CTaskComplexUseClosestFreeScriptedAttractor&);
+    CTaskComplexUseClosestFreeScriptedAttractor(const CTaskComplexUseClosestFreeScriptedAttractor&); // NOTSA
     ~CTaskComplexUseClosestFreeScriptedAttractor() = default;
 
-    static C2dEffect* ComputeClosestFreeScriptedEffect(CPed const& ped);
+    static C2dEffectPedAttractor* __stdcall ComputeClosestFreeScriptedEffect(const CPed& ped);
 
     CTask*    Clone()                       const override { return new CTaskComplexUseClosestFreeScriptedAttractor{ *this }; } // 0x636F70
     eTaskType GetTaskType()                 const override { return Type; } // 0x634710
