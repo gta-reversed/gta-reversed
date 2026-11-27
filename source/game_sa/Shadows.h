@@ -42,8 +42,8 @@ enum eShadowType : uint8 {
     SHADOW_INVCOLOR = 3,
     SHADOW_OIL_1    = 4,
     SHADOW_OIL_2    = 5, // Oil on fire
-    SHADOW_OIL_3    = 6,
-    SHADOW_OIL_4    = 7,
+    SHADOW_OIL_3    = 6, // Burnt out oil (Fades out in 2 seconds)
+    SHADOW_OIL_4    = 7, // Oil set on fire by a burning one next to it (Becomes `SHADOW_OIL_2` at the end of `CShadows::UpdatePermanentShadows`)
     SHADOW_OIL_5    = 8
 };
 
@@ -186,7 +186,7 @@ public:
     static void Shutdown();
     static void TidyUpShadows();
 
-    static void AddPermanentShadow(uint8 type, RwTexture* texture, CVector* posn, float topX, float topY, float rightX, float rightY, int16 intensity, uint8 red, uint8 greeb, uint8 blue, float drawDistance, uint32 time, float upDistance);
+    static void AddPermanentShadow(uint8 type, RwTexture* texture, CVector* posn, float frontX, float frontY, float sideX, float sideY, int16 intensity, uint8 red, uint8 green, uint8 blue, float zDistance, uint32 time, float scale);
     static void UpdatePermanentShadows();
 
     static void StoreShadowToBeRendered(uint8 type, const CVector& posn, float frontX, float frontY, float sideX, float sideY, int16 intensity, uint8 red, uint8 green, uint8 blue);
@@ -232,7 +232,7 @@ public:
     static void CastRealTimeShadowSectorList(PtrListType& ptrList, float conrerAX, float cornerAY, float cornerBX, float cornerBY, CVector* posn, float frontX, float frontY, float sideX, float sideY, int16 intensity, uint8 red, uint8 green, uint8 blue, float zDistance, float scale, CPolyBunch** ppPolyBunch, CRealTimeShadow* realTimeShadow, uint8* pDayNightIntensity);
     static void RenderStoredShadows();
     static void GeneratePolysForStaticShadow(int16 staticShadowIndex);
-    static bool StoreStaticShadow(uint32 id, eShadowType type, RwTexture* texture, const CVector& posn, float frontX, float frontY, float sideX, float sideY, int16 intensity, uint8 red, uint8 green, uint8 blue, float zDistane, float scale, float drawDistance, bool temporaryShadow, float upDistance);
+    static bool StoreStaticShadow(uint32 id, eShadowType type, RwTexture* texture, const CVector& posn, float frontX, float frontY, float sideX, float sideY, int16 intensity, uint8 red, uint8 green, uint8 blue, float zDistance, float scale, float drawDistance, bool temporaryShadow, float upDistance);
     static void StoreShadowForVehicle(CVehicle* vehicle, VEH_SHD_TYPE vehShadowType);
     static void StoreCarLightShadow(CVehicle* vehicle, int32 id, RwTexture* texture, const CVector& posn, float frontX, float frontY, float sideX, float sideY, uint8 red, uint8 green, uint8 blue, float maxViewAngle);
     static void StoreShadowForPole(CEntity* entity, float offsetX, float offsetY, float offsetZ, float poleHeight, float poleWidth, uint32 localId);
