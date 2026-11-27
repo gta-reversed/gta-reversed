@@ -6,9 +6,6 @@
 #include "rtslerp.h"
 
 namespace {
-constexpr float HALF_TURN = 3.1415927f; // 0x858CB8
-constexpr float FULL_TURN = 6.2831855f; // 0x858CBC
-
 //! Critical blend times (of the vehicle anim group) with an absolute value from this on are special
 constexpr float SPECIAL_CRITICAL_BLEND_TIME = 10.f;
 
@@ -310,10 +307,10 @@ bool CTaskUtilityLineUpPedWithCar::ProcessPed(CPed* ped, CVehicle* vehicle, CAni
     const bool isUpsideDown = vehicle->GetUp().z <= -0.8f;
     if (isUpsideDown) { // 0x651421
         ped->m_fAimingRotation = door == TARGET_DOOR_FRONT_RIGHT || door == TARGET_DOOR_REAR_RIGHT
-            ? vehicle->GetHeading() - HALF_TURN
+            ? vehicle->GetHeading() - PI
             : vehicle->GetHeading();
     } else if (door == TARGET_DOOR_UNK) { // 0x65146e
-        ped->m_fAimingRotation = vehicle->GetHeading() + HALF_TURN;
+        ped->m_fAimingRotation = vehicle->GetHeading() + PI;
     } else if (m_nDoorOpenPosType != LINE_UP_FALLING) { // 0x651497
         ped->m_fAimingRotation = vehicle->GetHeading();
     }
@@ -384,10 +381,10 @@ bool CTaskUtilityLineUpPedWithCar::ProcessPed(CPed* ped, CVehicle* vehicle, CAni
 
         const float currHeading   = ped->m_fCurrentRotation;
         const float aimHeading    = CGeneral::LimitRadianAngle(ped->m_fAimingRotation);
-        const float targetHeading = aimHeading > currHeading + HALF_TURN
-            ? aimHeading - FULL_TURN
-            : aimHeading < currHeading - HALF_TURN
-            ? aimHeading + FULL_TURN
+        const float targetHeading = aimHeading > currHeading + PI
+            ? aimHeading - TWO_PI
+            : aimHeading < currHeading - PI
+            ? aimHeading + TWO_PI
             : aimHeading;
         ped->m_fCurrentRotation   = currHeading - (1.f - blend) * (currHeading - targetHeading);
 
@@ -404,7 +401,7 @@ bool CTaskUtilityLineUpPedWithCar::ProcessPed(CPed* ped, CVehicle* vehicle, CAni
             CMatrix vehMat{ vehicle->GetMatrix() };
             if (assoc->GetAnimId() == ANIM_ID_CAR_GETIN_BIKE_FRONT) {
                 CMatrix halfTurn;
-                halfTurn.SetRotateZ(HALF_TURN);
+                halfTurn.SetRotateZ(PI);
                 vehMat *= halfTurn;
             }
             SetPedMatrixBetween(ped, ped->GetMatrix(), vehMat, assoc->GetTimeProgress(), pos);
