@@ -2227,7 +2227,7 @@ void CEventHandler::ComputeSexyPedResponse(CEventSexyPed* e, CTask* tactive, CTa
         case TASK_NONE:
             return nullptr;
         case TASK_COMPLEX_GANG_HASSLE_PED:
-            return new CTaskGangHasslePed{ e->GetSexyPed(), 0, 10'000, 30'000 };
+            return new CTaskGangHasslePed{ e->GetSexyPed(), CTaskGangHasslePed::eHassleType::EYE, 10'000, 30'000 };
         default:
             NOTSA_UNREACHABLE(); // Not sure
         }
