@@ -10,6 +10,13 @@
 #include "Stats.h"
 #include "MenuSystem.h"
 #include "Hud.h"
+#include "TagManager.h"
+
+// NOTSA
+// NOTE: Not `CTimer::GetTimeStepInMS()`: The game multiplies by 0.02 (instead of dividing by 50) and drops the fraction
+static uint32 GetTimeStepInWholeMS() {
+    return (uint32)(CTimer::GetTimeStep() * 0.02f * 1000.0f);
+}
 
 void CStats::InjectHooks() {
     RH_ScopedClass(CStats);
@@ -55,18 +62,18 @@ void CStats::InjectHooks() {
     RH_ScopedInstall(FindMostFavoriteRadioStation, 0x558FA0);
     RH_ScopedInstall(FindLeastFavoriteRadioStation, 0x559010);
     RH_ScopedInstall(BuildStatLine, 0x559230, { .Reversed = false });
-    RH_ScopedInstall(CheckForStatsMessage, 0x559760, { .Reversed = false });
-    RH_ScopedInstall(LoadStatUpdateConditions, 0x559860, { .Reversed = false });
-    RH_ScopedInstall(GetFatAndMuscleModifier, 0x559AF0, { .Reversed = false });
+    RH_ScopedInstall(CheckForStatsMessage, 0x559760);
+    RH_ScopedInstall(LoadStatUpdateConditions, 0x559860);
+    RH_ScopedInstall(GetFatAndMuscleModifier, 0x559AF0);
     RH_ScopedInstall(FindCriminalRatingString, 0x55A210, { .Reversed = false });
     RH_ScopedInstall(ConstructStatLine, 0x55A780, { .Reversed = false });
-    RH_ScopedInstall(UpdateRespectStat, 0x55BC50, { .Reversed = false });
-    RH_ScopedInstall(UpdateSexAppealStat, 0x55BF20, { .Reversed = false });
-    RH_ScopedInstall(UpdateFatAndMuscleStats, 0x55C470, { .Reversed = false });
-    RH_ScopedInstall(UpdateStatsWhenCycling, 0x55C780, { .Reversed = false });
-    RH_ScopedInstall(UpdateStatsWhenSwimming, 0x55C990, { .Reversed = false });
-    RH_ScopedInstall(UpdateStatsWhenDriving, 0x55CAC0, { .Reversed = false });
-    RH_ScopedInstall(UpdateStatsWhenFlying, 0x55CC00, { .Reversed = false });
+    RH_ScopedInstall(UpdateRespectStat, 0x55BC50);
+    RH_ScopedInstall(UpdateSexAppealStat, 0x55BF20);
+    RH_ScopedInstall(UpdateFatAndMuscleStats, 0x55C470);
+    RH_ScopedInstall(UpdateStatsWhenCycling, 0x55C780);
+    RH_ScopedInstall(UpdateStatsWhenSwimming, 0x55C990);
+    RH_ScopedInstall(UpdateStatsWhenDriving, 0x55CAC0);
+    RH_ScopedInstall(UpdateStatsWhenFlying, 0x55CC00);
     RH_ScopedInstall(UpdateStatsWhenWeaponHit, 0x55CEB0);
     RH_ScopedInstall(UpdateStatsOnRespawn, 0x55CFC0);
     RH_ScopedInstall(UpdateStatsAddToHealth, 0x55D030);
@@ -120,7 +127,7 @@ void CStats::SetStatValue(eStats stat, float value) {
     } else { // int32
         assert(stat >= FIRST_INT_STAT);
 
-        StatTypesInt[stat - FIRST_INT_STAT] = static_cast<int32>(value);
+        StatTypesInt[stat - FIRST_INT_STAT] = (int16)(value); // NOTE: The game keeps the low 16 bits only (0x55A098)
     }
     CheckForStatsMessage();
 }
@@ -300,12 +307,67 @@ bool CStats::IsStatCapped(eStats stat) {
 
 // 0x559760
 void CStats::CheckForStatsMessage() {
-    plugin::Call<0x559760>();
+    if (CPad::GetPad(0)->JustOutOfFrontEnd
+        || !bShowUpdateStats
+        || TheCamera.m_bWideScreenOn
+        || CCutsceneMgr::ms_cutsceneProcessing
+        || CHud::HelpMessageDisplayed()
+        || CMenuSystem::num_menus_in_use) {
+        return;
+    }
+
+    for (auto& message : StatMessage | rngv::take(TotalNumStatMessages)) {
+        if (message.displayed) {
+            continue;
+        }
+        const auto value = GetStatValue((eStats)(message.stat_num));
+        if (message.condition != STATMESSAGE_LESSTHAN ? value < message.value : value > message.value) {
+            continue;
+        }
+        message.displayed = true;
+        CHud::SetHelpMessage(TheText.Get(message.text_id));
+        bStatUpdateMessageDisplayed = true;
+    }
 }
 
 // 0x559860
 void CStats::LoadStatUpdateConditions() {
-    plugin::Call<0x559860>();
+    CFileMgr::SetDir("");
+
+    auto* const file     = CFileMgr::OpenFile("DATA\\STATDISP.DAT", "rb");
+
+    TotalNumStatMessages = 0;
+
+    uint32 numMessages   = 0;
+    for (char* line = CFileLoader::LoadLine(file); line != nullptr; line = CFileLoader::LoadLine(file)) {
+        if (line[0] == '#' || line[0] == '\0') {
+            continue;
+        }
+
+        // NOTE/BUG: The original has no check for the size of the array
+        if (notsa::bugfixes::GenericOOB && numMessages >= StatMessage.size()) {
+            break;
+        }
+
+        int32 statId{};
+        float value{};
+        char  statName[80]{}, condition[12]{}, textId[8]{};
+        VERIFY(sscanf_s(line, "%d %s %s %f %s", &statId, SCANF_S_STR(statName), SCANF_S_STR(condition), &value, SCANF_S_STR(textId)) == 5);
+
+        auto& message     = StatMessage.data()[numMessages++];
+        message.stat_num  = (int16)(statId);
+        message.displayed = false;
+        if (!strcmp(condition, "lessthan")) {
+            message.condition = STATMESSAGE_LESSTHAN;
+        } else if (!strcmp(condition, "morethan")) {
+            message.condition = STATMESSAGE_MORETHAN;
+        }
+        message.value = value;
+        strcpy(message.text_id, textId);
+    }
+    TotalNumStatMessages = numMessages;
+
+    CFileMgr::CloseFile(file);
 }
 
 // 0x5599B0
@@ -350,7 +412,64 @@ int32 CStats::FindMaxNumberOfGroupMembers() {
 
 // 0x559AF0
 float CStats::GetFatAndMuscleModifier(eStatModAbilities statMod) {
-    return plugin::CallAndReturn<float, 0x559AF0, eStatModAbilities>(statMod);
+    constexpr auto FAT_START = 200.0f, MUSCLE_START = 50.0f, STAT_SCALE = 0.001f, MAX_HEALTH = 176.0f;
+
+    const auto GetFat = [](float mult) {
+        return (StatTypesFloat[STAT_FAT] - FAT_START) * mult / (1000.0f - FAT_START);
+    };
+    const auto GetFatProgress = [] {
+        return std::max(0.0f, (StatTypesFloat[STAT_FAT] - FAT_START) / (1000.0f - FAT_START));
+    };
+    const auto GetMuscle = [](float mult) {
+        return (StatTypesFloat[STAT_MUSCLE] - MUSCLE_START) * mult / (1000.0f - MUSCLE_START);
+    };
+    const auto GetBikeSkill = [] {
+        return std::min(1.0f, (float)(StatTypesInt[STAT_BIKE_SKILL - FIRST_INT_STAT]) * STAT_SCALE);
+    };
+    const auto GetCycleSkill = [] {
+        return (float)(StatTypesInt[STAT_CYCLING_SKILL - FIRST_INT_STAT]) * STAT_SCALE;
+    };
+
+    switch (statMod) {
+    case STAT_MOD_0: // 0x559B0A
+        return StatTypesFloat[STAT_FAT] > 800.0f
+            ? 2.0f
+            : StatTypesFloat[STAT_FAT] > 400.0f
+            ? 1.0f
+            : 0.0f;
+    case STAT_MOD_1: // 0x559B41
+        return std::max(GetFatProgress() * -0.4f + 1.0f + GetMuscle(0.2f), 0.7f);
+    case STAT_MOD_2: // 0x559BB3
+        return std::max(GetFatProgress() * -0.2f + 1.0f + GetMuscle(-0.1f), 0.8f);
+    case STAT_MOD_3: // 0x559C25
+        return std::max(GetFat(-0.2f) + 1.0f + GetMuscle(-0.1f), 0.8f);
+    case STAT_MOD_4: // 0x559C61
+        return std::min(GetFat(0.5f) + 1.0f + GetMuscle(1.0f), 2.0f);
+    case STAT_MOD_5: // 0x559CC5
+        return std::clamp(GetFat(-1.0f) + 1.0f + GetMuscle(0.5f) + StatTypesFloat[STAT_STAMINA] * STAT_SCALE * 0.5f + GetCycleSkill(), 0.25f, 2.0f);
+    case STAT_MOD_6: // 0x559D62
+        return std::clamp(GetFat(-0.5f) + 1.0f + GetCycleSkill(), 0.5f, 2.0f);
+    case STAT_MOD_TIME_CAN_RUN: // 0x559DC9
+        return StatTypesFloat[STAT_STAMINA] * STAT_SCALE * 3000.0f + 150.0f;
+    case STAT_MOD_AIR_IN_LUNG: // 0x559DE4
+        return ((float)(StatTypesInt[STAT_LUNG_CAPACITY - FIRST_INT_STAT]) + StatTypesFloat[STAT_STAMINA]) * 0.0005f * 3000.0f + 1000.0f;
+    case STAT_MOD_MAX_HEALTH: // 0x559E05
+        return StatTypesFloat[STAT_MAX_HEALTH] * STAT_SCALE * MAX_HEALTH;
+    case STAT_MOD_10: // 0x559E1A
+        return MAX_HEALTH;
+    case STAT_MOD_11: // 0x559E23
+        return GetBikeSkill() * 0.5f + 1.0f;
+    case STAT_MOD_12: // 0x559E4F
+        return GetBikeSkill() * 0.3f + 1.0f;
+    case STAT_MOD_13: // 0x559E7B
+        return GetBikeSkill() * 0.25f + 1.0f;
+    case STAT_MOD_DRIVING_SKILL: // 0x559EA7
+        return std::min(GetFat(0.5f) + ((float)(StatTypesInt[STAT_DRIVING_SKILL - FIRST_INT_STAT]) * STAT_SCALE * 0.5f + 1.0f), 1.0f);
+    case STAT_MOD_15: // 0x559EF9
+        return std::max(GetFat(-0.5f) + 1.0f + GetMuscle(-0.25f), 0.5f);
+    default:
+        return 1.0f;
+    }
 }
 
 // 0x559730
@@ -364,9 +483,14 @@ void CStats::DecrementStat(eStats stat, float value) {
     if (value <= 0.0f)
         return;
 
-    float oldValue = GetStatValue(stat);
+    if (IsStatFloat(stat)) {
+        StatTypesFloat[stat] = notsa::step_down_to(StatTypesFloat[stat], 0.0f, value);
+    } else {
+        assert(stat >= FIRST_INT_STAT);
 
-    SetStatValue(stat, std::max(oldValue - value, 0.0f));
+        auto& statValue = StatTypesInt[stat - FIRST_INT_STAT];
+        statValue       = std::max(statValue - (int16)(value), 0); // NOTE: The game uses the low 16 bits of the value only (0x55A008)
+    }
 
     ProcessReactionStatsOnDecrement(stat);
     CheckForStatsMessage();
@@ -503,13 +627,93 @@ void CStats::DisplayScriptStatUpdateMessage(eStatUpdateState state, eStats stat,
 }
 
 // 0x55BC50
-void CStats::UpdateRespectStat(uint8 arg0) {
-    plugin::Call<0x55BC50, uint8>(arg0);
+void CStats::UpdateRespectStat(bool reset) {
+    constexpr auto RESPECT_NOT_SET    = -99.0f;
+
+    static auto& s_LastRespectDisplay = StaticRef<float>(0x8CDEC4); // The respect the last message was shown at
+    static auto& s_LastRespect        = StaticRef<float>(0x8CDEC8);
+
+    if (reset) {
+        s_LastRespect        = RESPECT_NOT_SET;
+        s_LastRespectDisplay = RESPECT_NOT_SET;
+        return;
+    }
+
+    const auto missionRespect = (float)(StatTypesInt[STAT_RESPECT_MISSION - FIRST_INT_STAT]) * 1000.0f
+        / std::max((float)(StatTypesInt[STAT_RESPECT_MISSION_TOTAL - FIRST_INT_STAT]), 1.0f);
+    const auto runningRespect   = StatTypesFloat[STAT_RESPECT] * 0.4f + missionRespect * 0.36f + StatTypesFloat[STAT_GIRLFRIEND_RESPECT] * 0.03f;
+    const auto territoryRespect = std::max(CGangWars::TerritoryUnderControlPercentage - 0.2f, 0.0f) * 1250.0f * 0.05f + runningRespect;
+    const auto moneyRespect     = std::min((float)(FindPlayerInfo().m_nMoney) * 0.0000001f, 1.0f);
+    const auto tagRespect       = (float)(CTagManager::GetPercentageTagged() * 10) * 0.05f;
+    const auto totalRespect     = tagRespect
+        + (moneyRespect * 1000.0f * 0.05f + territoryRespect + StatTypesFloat[STAT_MUSCLE] * 0.03f + StatTypesFloat[STAT_CLOTHES_RESPECT] * 0.03f);
+    const auto respect = CCheat::IsActive(CHEAT_MAX_RESPECT)
+        ? 1000.0f
+        : std::max(totalRespect, 0.0f);
+
+    if ((int32)(s_LastRespect) == (int32)(respect)) {
+        return;
+    }
+
+    StatTypesFloat[STAT_TOTAL_RESPECT] = respect;
+    CheckForStatsMessage();
+
+    const auto wasSet = s_LastRespect != RESPECT_NOT_SET && s_LastRespectDisplay != RESPECT_NOT_SET;
+    if (respect > s_LastRespectDisplay || s_LastRespect < 2.0f) { // 0x55BE97
+        if (wasSet && (CheckForThreshold(&s_LastRespectDisplay, respect) || s_LastRespect < 2.0f)) {
+            DisplayScriptStatUpdateMessage(STAT_UPDATE_INCREASE, STAT_TOTAL_RESPECT, respect);
+        }
+        if (respect < s_LastRespect) {
+            s_LastRespectDisplay = respect;
+        }
+    } else {
+        if (wasSet && (CheckForThreshold(&s_LastRespectDisplay, respect) || respect < 2.0f)) {
+            DisplayScriptStatUpdateMessage(STAT_UPDATE_DECREASE, STAT_TOTAL_RESPECT, respect);
+        }
+        if (respect > s_LastRespect) {
+            s_LastRespectDisplay = respect;
+        }
+    }
+    s_LastRespect = respect;
 }
 
 // 0x55BF20
 void CStats::UpdateSexAppealStat() {
-    plugin::Call<0x55BF20>();
+    static auto& s_LastVehicle = StaticRef<CVehicle*>(0xB79530);
+
+    if (auto* const vehicle = FindPlayerVehicle()) {
+        s_LastVehicle = vehicle;
+        CEntity::RegisterReference(s_LastVehicle); // NOTE: The reference of the previous vehicle isn't removed, so no `notsa::EntityRef`
+    }
+
+    const auto GetVehicleAppeal = [] {
+        if (!s_LastVehicle || (CVector2D{ s_LastVehicle->GetPosition() } - CVector2D{ FindPlayerCoors() }).SquaredMagnitude() >= sq(35.0f)) { // NOTE: Using MagSq here
+            return 0.0f;
+        }
+        const auto condition = std::clamp(s_LastVehicle->GetHealth() * 2.0f - 1000.0f, 0.0f, 1000.0f);
+        switch (s_LastVehicle->GetVehicleModelInfo()->m_nVehicleClass) {
+        case VEHICLE_CLASS_POORFAMILY:
+        case VEHICLE_CLASS_BIG:
+        case VEHICLE_CLASS_MOPED:
+        case VEHICLE_CLASS_BICYCLE: // 0x55C038
+            return condition * 0.1f;
+        case VEHICLE_CLASS_RICHFAMILY:
+        case VEHICLE_CLASS_EXECUTIVE:
+        case VEHICLE_CLASS_LEISUREBOAT: // 0x55C04C
+            return condition;
+        case VEHICLE_CLASS_WORKER:
+        case VEHICLE_CLASS_TAXI:
+        case VEHICLE_CLASS_WORKERBOAT: // 0x55C030
+            return condition * 0.3f;
+        default: // 0x55C040
+            return condition * 0.5f;
+        }
+    };
+
+    StatTypesFloat[STAT_SEX_APPEAL] = CCheat::IsActive(CHEAT_MAX_SEX_APPEAL)
+        ? 1000.0f
+        : std::clamp(GetVehicleAppeal() * 0.5f + StatTypesFloat[STAT_APPEARANCE] * 0.5f, 0.0f, 1000.0f);
+    CheckForStatsMessage();
 }
 
 // 0x55C180
@@ -534,14 +738,12 @@ void CStats::IncrementStat(eStats stat, float value)
     CPlayerInfo* playerInfo = player->GetPlayerInfoForThisPlayerPed();
 
     if (stat == STAT_CALORIES) {
-        float healthDiff = playerInfo->m_nMaxHealth - player->m_fHealth;
+        const auto healthDiff = (float)((int32)((float)(playerInfo->m_nMaxHealth) - player->m_fHealth));
 
         IncrementStat(STAT_RIOT_MISSION_ACCOMPLISHED, value);
 
         if (value > healthDiff) {
-            float avg = (value - healthDiff) / 2.0f;
-
-            IncrementStat(STAT_FAT, avg);
+            IncrementStat(STAT_FAT, (value - healthDiff) * 0.5f);
         }
 
         ProcessReactionStatsOnIncrement(stat);
@@ -553,7 +755,7 @@ void CStats::IncrementStat(eStats stat, float value)
     if (stat != STAT_RIOT_MISSION_ACCOMPLISHED) {
         assert(stat >= FIRST_INT_STAT);
 
-        StatTypesInt[stat - FIRST_INT_STAT] += (int32)value;
+        StatTypesInt[stat - FIRST_INT_STAT] += (int16)(value); // NOTE: The game uses the low 16 bits of the value only (0x55C229)
 
         if (IsStatCapped(stat))
             StatTypesInt[stat - FIRST_INT_STAT] = std::min(StatTypesInt[stat - FIRST_INT_STAT], 1000);
@@ -566,31 +768,71 @@ void CStats::IncrementStat(eStats stat, float value)
 
     // STAT_RIOT_MISSION_ACCOMPLISHED increment, enum name incorrect?
 
-    float kcals = playerInfo->m_nNumHoursDidntEat - value / 2.0f;
-    kcals = std::clamp(kcals, 0.0f, 36.0f);
+    playerInfo->m_nNumHoursDidntEat = (int16)(std::clamp((float)(playerInfo->m_nNumHoursDidntEat) - value * 0.5f, 0.0f, 36.0f));
 
-    float healthDiff = playerInfo->m_nMaxHealth - player->m_fHealth;
-
+    const auto healthDiff           = (float)((int32)((float)(playerInfo->m_nMaxHealth) - player->m_fHealth));
     if (value >= healthDiff) {
         playerInfo->m_nNumHoursDidntEat = 0;
     }
+    const auto healthToAdd = std::min(value, healthDiff);
 
-    player->m_fHealth += value;
-    UpdateStatsAddToHealth((uint32)value);
+    player->m_fHealth += healthToAdd;
+    UpdateStatsAddToHealth((uint32)((int32)(healthToAdd)));
     ProcessReactionStatsOnIncrement(stat);
     CheckForStatsMessage();
 }
 
 // 0x55C470
-void CStats::UpdateFatAndMuscleStats(uint32 value) {
-    plugin::Call<0x55C470, uint32>(value);
+void CStats::UpdateFatAndMuscleStats(uint32 exerciseRate) {
+    enum class eMessage : uint8 {
+        NONE          = 0,
+        FAT_LOST      = 1,
+        MUSCLE_GAINED = 2,
+        MUSCLE_LOST   = 3,
+    };
+    static auto& s_LastMessage = StaticRef<eMessage>(0xB79534);
+
+    if (StatReactionValue[STAT_TIMELIMIT_FAT_ADJUST] * 1000.0f >= (float)(m_FatCounter)) {
+        m_FatCounter += GetTimeStepInWholeMS() * exerciseRate / 10;
+    } else {
+        m_FatCounter = 0;
+        if (StatTypesFloat[STAT_FAT] > 0.0f) {
+            if (StatReactionValue[STAT_DEC_FAT] > 0.0f) {
+                StatTypesFloat[STAT_FAT] = notsa::step_down_to(StatTypesFloat[STAT_FAT], 0.0f, StatReactionValue[STAT_DEC_FAT]);
+                CheckForStatsMessage();
+            }
+            IncrementStat(STAT_MUSCLE, StatReactionValue[STAT_INC_BODY_MUSCLE]);
+            if (s_LastMessage == eMessage::FAT_LOST) { // 0x55C519
+                s_LastMessage = eMessage::MUSCLE_GAINED;
+                DisplayScriptStatUpdateMessage(STAT_UPDATE_INCREASE, STAT_MUSCLE, StatReactionValue[STAT_INC_BODY_MUSCLE]);
+            } else {
+                s_LastMessage = eMessage::FAT_LOST;
+                DisplayScriptStatUpdateMessage(STAT_UPDATE_DECREASE, STAT_FAT, StatReactionValue[STAT_DEC_FAT]);
+            }
+        } else { // 0x55C556
+            if (StatReactionValue[STAT_DEC_BODY_MUSCLE] > 0.0f) {
+                StatTypesFloat[STAT_MUSCLE] = notsa::step_down_to(StatTypesFloat[STAT_MUSCLE], 0.0f, StatReactionValue[STAT_DEC_BODY_MUSCLE]);
+                CheckForStatsMessage();
+            }
+            s_LastMessage = eMessage::MUSCLE_LOST;
+            DisplayScriptStatUpdateMessage(STAT_UPDATE_DECREASE, STAT_MUSCLE, StatReactionValue[STAT_DEC_BODY_MUSCLE]);
+        }
+    }
+
+    if (StatReactionValue[STAT_TIMELIMIT_MAX_HEALTH] * 1000.0f >= (float)(m_MaxHealthCounter)) {
+        m_MaxHealthCounter += GetTimeStepInWholeMS();
+    } else {
+        IncrementStat(STAT_MAX_HEALTH, StatReactionValue[STAT_INC_MAX_HEALTH]);
+        DisplayScriptStatUpdateMessage(STAT_UPDATE_INCREASE, STAT_MAX_HEALTH, StatReactionValue[STAT_INC_MAX_HEALTH]);
+        m_MaxHealthCounter = 0;
+    }
 }
 
 // 0x55C660
 void CStats::UpdateStatsWhenSprinting() {
     UpdateFatAndMuscleStats(static_cast<uint32>(StatReactionValue[STAT_EXERCISE_RATE_SPRINT]));
     if (StatReactionValue[STAT_TIMELIMIT_SPRINT_STAMINA] * 1000.0f >= static_cast<float>(m_SprintStaminaCounter)) {
-        m_SprintStaminaCounter += static_cast<uint32>(CTimer::GetTimeStepInMS());
+        m_SprintStaminaCounter += GetTimeStepInWholeMS();
     } else {
         m_SprintStaminaCounter = 0;
         IncrementStat(STAT_STAMINA, StatReactionValue[STAT_INC_SPRINT_STAMINA]);
@@ -602,7 +844,7 @@ void CStats::UpdateStatsWhenSprinting() {
 void CStats::UpdateStatsWhenRunning() {
     UpdateFatAndMuscleStats((uint32)StatReactionValue[STAT_EXERCISE_RATE_RUN]);
     if (StatReactionValue[STAT_TIMELIMIT_RUNNING] * 1000.0f >= static_cast<float>(m_RunningCounter)) {
-        m_RunningCounter += static_cast<uint32>(CTimer::GetTimeStepInMS());
+        m_RunningCounter += GetTimeStepInWholeMS();
     } else {
         m_RunningCounter = 0;
         IncrementStat(STAT_STAMINA, StatReactionValue[STAT_INC_RUNNING]);
@@ -611,23 +853,98 @@ void CStats::UpdateStatsWhenRunning() {
 }
 
 // 0x55C780
-void CStats::UpdateStatsWhenCycling(bool arg0, CBmx* bmx) {
-    plugin::Call<0x55C780, bool, CBmx*>(arg0, bmx);
+void CStats::UpdateStatsWhenCycling(bool isSprinting, CBmx* bmx) {
+    if (isSprinting || std::abs(bmx->m_GasPedal) > 0.0f) {
+        UpdateFatAndMuscleStats((uint32)(StatReactionValue[isSprinting ? STAT_EXERCISE_RATE_CYCLE_SPRINT : STAT_EXERCISE_RATE_CYCLE]));
+        if (StatReactionValue[STAT_TIMELIMIT_CYCLE_STAMINA] * 1000.0f >= (float)(m_CycleStaminaCounter)) {
+            m_CycleStaminaCounter += GetTimeStepInWholeMS();
+        } else {
+            m_CycleStaminaCounter = 0;
+            IncrementStat(STAT_STAMINA, StatReactionValue[STAT_INC_CYCLE_STAMINA]);
+            DisplayScriptStatUpdateMessage(STAT_UPDATE_INCREASE, STAT_STAMINA, StatReactionValue[STAT_INC_CYCLE_STAMINA]);
+        }
+    }
+
+    if (StatReactionValue[STAT_TIMELIMIT_CYCLE_SKILL] * 1000.0f < (float)(m_CycleSkillCounter)) {
+        m_CycleSkillCounter = 0;
+        IncrementStat(STAT_CYCLING_SKILL, StatReactionValue[STAT_INC_CYCLE_SKILL]);
+        DisplayScriptStatUpdateMessage(STAT_UPDATE_INCREASE, STAT_CYCLING_SKILL, StatReactionValue[STAT_INC_CYCLE_SKILL]);
+        return;
+    }
+
+    const auto speedSq = bmx->GetMoveSpeed().SquaredMagnitude();
+    if (bmx->m_nNoOfContactWheels < 2 && speedSq > sq(0.05f)) { // 0x55C8A1
+        m_CycleSkillCounter += (uint32)(std::ceil((float)(GetTimeStepInWholeMS()) * 3.0f));
+    } else if (speedSq > sq(0.2f)) { // 0x55C8E6
+        m_CycleSkillCounter += (uint32)(std::ceil((float)(GetTimeStepInWholeMS()) * (isSprinting ? 1.5f : 1.0f)));
+    }
 }
 
 // 0x55C990
-void CStats::UpdateStatsWhenSwimming(bool arg0, bool arg1) {
-    plugin::Call<0x55C990, bool, bool>(arg0, arg1);
+void CStats::UpdateStatsWhenSwimming(bool isSprintingUnderwater, bool isSprinting) {
+    UpdateFatAndMuscleStats((uint32)(StatReactionValue[isSprintingUnderwater || isSprinting ? STAT_EXERCISE_RATE_SWIM_SPRINT : STAT_EXERCISE_RATE_SWIM]));
+    if (StatReactionValue[STAT_TIMELIMIT_SWIM_STAMINA] * 1000.0f >= (float)(m_SwimStaminaCounter)) {
+        m_SwimStaminaCounter += GetTimeStepInWholeMS();
+    } else {
+        m_SwimStaminaCounter = 0;
+        IncrementStat(STAT_STAMINA, StatReactionValue[STAT_INC_SWIM_STAMINA]);
+        DisplayScriptStatUpdateMessage(STAT_UPDATE_INCREASE, STAT_STAMINA, StatReactionValue[STAT_INC_SWIM_STAMINA]);
+    }
+
+    if (!isSprintingUnderwater) {
+        return;
+    }
+    if (StatReactionValue[STAT_TIMELIMIT_BREATH_UNDERWATER] * 1000.0f >= (float)(m_SwimUnderWaterCounter)) {
+        m_SwimUnderWaterCounter += GetTimeStepInWholeMS();
+    } else {
+        m_SwimUnderWaterCounter = 0;
+        IncrementStat(STAT_LUNG_CAPACITY, StatReactionValue[STAT_INC_BREATH_UNDERWATER]);
+        DisplayScriptStatUpdateMessage(STAT_UPDATE_INCREASE, STAT_LUNG_CAPACITY, StatReactionValue[STAT_INC_BREATH_UNDERWATER]);
+    }
 }
 
 // 0x55CAC0
 void CStats::UpdateStatsWhenDriving(CVehicle* vehicle) {
-    plugin::Call<0x55CAC0, CVehicle*>(vehicle);
+    const auto drivingCounter = (float)(m_DrivingCounter);
+    if (StatReactionValue[STAT_TIMELIMIT_DRIVING_SKILL] * 1000.0f < drivingCounter) {
+        m_DrivingCounter = 0;
+        IncrementStat(STAT_DRIVING_SKILL, StatReactionValue[STAT_INC_DRIVING_SKILL]);
+        DisplayScriptStatUpdateMessage(STAT_UPDATE_INCREASE, STAT_DRIVING_SKILL, StatReactionValue[STAT_INC_DRIVING_SKILL]);
+        return;
+    }
+
+    const auto speed = vehicle->GetMoveSpeed().Magnitude();
+    if (speed > 0.8f || (vehicle->IsAutomobile() && vehicle->AsAutomobile()->m_nNumContactWheels == 0)) {
+        m_DrivingCounter = (uint32)((float)(GetTimeStepInWholeMS()) * 1.5f + drivingCounter);
+    } else if (speed > 0.2f) {
+        m_DrivingCounter = (uint32)((float)(GetTimeStepInWholeMS()) * 0.5f + drivingCounter);
+    }
 }
 
 // 0x55CC00
 void CStats::UpdateStatsWhenFlying(CVehicle* vehicle) {
-    plugin::Call<0x55CC00, CVehicle*>(vehicle);
+    if (!vehicle->IsAutomobile()) {
+        return;
+    }
+
+    const auto flyingCounter = (float)(m_FlyingCounter);
+    if (StatReactionValue[STAT_TIMELIMIT_FLYING_SKILL] * 1000.0f < flyingCounter) {
+        m_FlyingCounter = 0;
+        IncrementStat(STAT_FLYING_SKILL, StatReactionValue[STAT_INC_FLYING_SKILL]);
+        DisplayScriptStatUpdateMessage(STAT_UPDATE_INCREASE, STAT_FLYING_SKILL, StatReactionValue[STAT_INC_FLYING_SKILL]);
+        return;
+    }
+
+    if (vehicle->AsAutomobile()->m_nNumContactWheels != 0) {
+        return;
+    }
+
+    const auto speed = vehicle->GetMoveSpeed().Magnitude();
+    if (speed > 1.3f || vehicle->GetUp().z < 0.0f) {
+        m_FlyingCounter = (uint32)((float)(GetTimeStepInWholeMS()) * 1.5f + flyingCounter);
+    } else if (speed > 0.5f) {
+        m_FlyingCounter = (uint32)((float)(GetTimeStepInWholeMS()) * 0.5f + flyingCounter);
+    }
 }
 
 // 0x55CD60
@@ -635,12 +952,12 @@ void CStats::UpdateStatsWhenOnMotorBike(CBike* bike) {
     auto bikeCounter = static_cast<float>(m_BikeCounter);
     if (StatReactionValue[STAT_TIMELIMIT_MOTORBIKE_SKILL] * 1000.0f >= bikeCounter) {
         const float bikeMoveSpeed = bike->m_vecMoveSpeed.Magnitude();
-        const auto  fTimeStep = CTimer::GetTimeStepInMS();
+        const auto  timeStep      = (float)(GetTimeStepInWholeMS());
 
         if (bikeMoveSpeed > 0.6f || bike->m_nNoOfContactWheels < 3u && bikeMoveSpeed > 0.1f)
-            m_BikeCounter = static_cast<uint32>(fTimeStep * 1.5f + bikeCounter);
+            m_BikeCounter = static_cast<uint32>(timeStep * 1.5f + bikeCounter);
         else if (bikeMoveSpeed > 0.2f)
-            m_BikeCounter = static_cast<uint32>(fTimeStep * 0.5f + bikeCounter);
+            m_BikeCounter = static_cast<uint32>(timeStep * 0.5f + bikeCounter);
     } else {
         m_BikeCounter = 0;
         IncrementStat(STAT_BIKE_SKILL, StatReactionValue[STAT_INC_MOTORBIKE_SKILL]);
