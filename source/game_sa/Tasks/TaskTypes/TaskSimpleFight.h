@@ -30,9 +30,8 @@ public:
     float  m_fGroundLoop;
     int32  ABlockHit;
     int32  ABlockChain;
-    uint8  m_nHitLevel;
-    int32  m_nDamage;
-    int32  field_58;
+    std::array<uint8, 5> m_nHitLevel; //!< Index into `CTaskSimpleFight::m_aHitOffset`
+    std::array<uint8, 5> m_nDamage;
     std::array<int32, 5> m_Hit;
     std::array<int32, 5> m_AltHit;
     uint16 m_wFlags;
@@ -58,6 +57,7 @@ public:
     uint8                  m_nLastCommand;
 
     static inline auto& m_aComboData = StaticRef<std::array<CMeleeInfo, MELEE_COMBO_NUM - MELEE_COMBO_UNARMED_1>>(0xC170D0); // One for each combo in `melee.dat`, `MELEE_COMBO_UNARMED_1` being the first
+    static inline auto& m_aHitOffset = StaticRef<std::array<CVector, 7>>(0xC177D0);
 
 public:
     static constexpr auto Type = eTaskType::TASK_SIMPLE_FIGHT;
