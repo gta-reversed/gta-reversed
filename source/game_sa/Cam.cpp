@@ -1128,13 +1128,13 @@ void CCam::Process_Rocket(const CVector& target, float orientation, float speedV
         auto& crosshair = gCrossHair[CrossHairId(0)];
         const auto time = CTimer::GetTimeInMS() - playerData->m_nFireHSMissilePressedTime;
 
-        crosshair.m_nTimeWhenToDeactivate = 0;
-        crosshair.m_color.Set(
+        crosshair.m_TimeWhenToDeactivate = 0;
+        crosshair.m_Color.Set(
             255,
             time <= 1'500 ? 255 : 0,
             time <= 1'500 ? 255 : 0
         );
-        crosshair.m_fRotation = time <= 1'500 ? 0.0f : 1.0f;
+        crosshair.m_IsLockedOn            = time <= 1'500 ? 0.0f : 1.0f;
         playerData->m_LastHSMissileTarget = hsTarget;
     }
 

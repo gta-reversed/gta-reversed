@@ -18,31 +18,34 @@ enum eWeaponEffectsLockTexture {
 
 class CWeaponEffects {
 public:
-    bool    m_bActive;
-    int32   m_nTimeWhenToDeactivate; // -1 default
-    CVector m_vecPosn;
-    CRGBA   m_color;
-    float   m_fSize;
-    int32   field_1C;
-    int32   field_20;
-    float   m_fRotation;
-    bool    m_bClearImmediately;
+    static constexpr uint32 CROSSHAIR_MARKED = (uint32)(-1); //!< Value of `m_TimeWhenToDeactivate` for a crosshair that was marked (And isn't being cleared)
 
 public:
-    static void InjectHooks();
-
     CWeaponEffects() = default;  // 0x742A90
     ~CWeaponEffects() = default; // 0x742AA0
 
     static void Init();
     static void Shutdown();
     static bool IsLockedOn(CrossHairId id);
-    static void MarkTarget(CrossHairId id, CVector posn, uint8 red, uint8 green, uint8 blue, uint8 alpha, float size, bool bClearImmediately);
+    static void MarkTarget(CrossHairId id, CVector pos, uint8 red, uint8 green, uint8 blue, uint8 alpha, float size, bool isFlightCrossHair);
     static void ClearCrossHair(CrossHairId id);
     static void ClearCrossHairs();
     static void ClearCrossHairImmediately(CrossHairId id);
     static void ClearCrossHairsImmediately();
     static void Render();
+
+    static void InjectHooks();
+
+public:
+    bool    m_IsActive{};
+    uint32  m_TimeWhenToDeactivate{}; //!< 0: Not set, `CROSSHAIR_MARKED`: Marked
+    CVector m_Pos{};
+    CRGBA   m_Color{};
+    float   m_Size{};
+    float   m_Rotation{};          //!< Of the 3 triangles
+    float   m_LockOnDist{};        //!< Distance of the lock-on sprite from the target on the screen (Flight crosshair)
+    float   m_IsLockedOn{};        //!< 1 if locked on, 0 otherwise
+    bool    m_IsFlightCrossHair{}; //!< Drawn with the lock-on sprites (Heat-seeking missiles) instead of the 3 triangles
 };
 
 VALIDATE_SIZE(CWeaponEffects, 0x2C);

@@ -5794,9 +5794,9 @@ CEntity* CVehicle::GetPlaneWeaponFiringStatus(bool& isFiring, eOrdnanceType& ord
                 && targetEntity == plane->m_LastMissileTarget
                 && CTimer::GetTimeInMS() - plane->m_FireMissilePressedTime > 1500u) {
                 ordnanceType = ORDNANCE_TYPE_SECONDARY;
-                gCrossHair[0].m_color.Set(255, 0, 0);
-                gCrossHair[0].m_fRotation             = 1.0f;
-                gCrossHair[0].m_nTimeWhenToDeactivate = 0;
+                gCrossHair[0].m_Color.Set(255, 0, 0);
+                gCrossHair[0].m_IsLockedOn           = 1.0f;
+                gCrossHair[0].m_TimeWhenToDeactivate = 0;
             } else {
                 ordnanceType = ORDNANCE_TYPE_PRIMARY;
             }
@@ -5811,13 +5811,13 @@ CEntity* CVehicle::GetPlaneWeaponFiringStatus(bool& isFiring, eOrdnanceType& ord
             if (!markedTarget || markedTarget != plane->m_LastMissileTarget) {
                 plane->m_FireMissilePressedTime = CTimer::GetTimeInMS();
             }
-            gCrossHair[0].m_nTimeWhenToDeactivate = 0;
+            gCrossHair[0].m_TimeWhenToDeactivate = 0;
             if (CTimer::GetTimeInMS() - plane->m_FireMissilePressedTime <= 1500u) {
-                gCrossHair[0].m_color.Set(255, 255, 255);
-                gCrossHair[0].m_fRotation = 0.0f;
+                gCrossHair[0].m_Color.Set(255, 255, 255);
+                gCrossHair[0].m_IsLockedOn = 0.0f;
             } else {
-                gCrossHair[0].m_color.Set(255, 0, 0);
-                gCrossHair[0].m_fRotation = 1.0f;
+                gCrossHair[0].m_Color.Set(255, 0, 0);
+                gCrossHair[0].m_IsLockedOn = 1.0f;
             }
             plane->m_LastMissileTarget = markedTarget;
         } else {

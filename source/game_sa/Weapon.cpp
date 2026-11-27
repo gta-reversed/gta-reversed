@@ -1439,9 +1439,9 @@ bool CWeapon::FireProjectile(CEntity* firedBy, const CVector& origin, CEntity* t
                         );
                         if (hsMissleTarget == pd->m_LastHSMissileTarget && CTimer::GetTimeInMS() - pd->m_nFireHSMissilePressedTime > 1500) { // 0x74178B
                             const auto ch = &gCrossHair[0];
-                            ch->m_color                 = { 255, 0, 0, 255 };
-                            ch->m_fRotation             = 1.f;
-                            ch->m_nTimeWhenToDeactivate = 0;
+                            ch->m_Color                = { 255, 0, 0, 255 };
+                            ch->m_IsLockedOn           = 1.f;
+                            ch->m_TimeWhenToDeactivate = 0;
                         }
                     }
                 }

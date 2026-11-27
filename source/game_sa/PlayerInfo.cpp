@@ -4,6 +4,9 @@
 #include "FireManager.h"
 #include "MenuSystem.h"
 #include "Hud.h"
+#include "Sprite.h"
+#include "Coronas.h"
+#include <reversiblebugfixes/Bugs.hpp>
 
 void CPlayerInfo::InjectHooks() {
     RH_ScopedClass(CPlayerInfo);
@@ -37,6 +40,84 @@ void CPlayerInfo::InjectHooks() {
     RH_ScopedInstall(SetLastTargetVehicle, 0x56DA80);
     RH_ScopedInstall(Load, 0x5D3B00);
     RH_ScopedInstall(Save, 0x5D3AC0);
+
+    RH_ScopedGlobalInstall(CPlayerCrossHair::Render, 0x56EF90);
+}
+
+constexpr auto      CROSSHAIR_TRAIL_LENGTH = 5;
+static inline auto& s_CrossHairTrailTimes  = StaticRef<notsa::mdarray<uint32, MAX_PLAYERS, CROSSHAIR_TRAIL_LENGTH>>(0xB9B8F8);
+static inline auto& s_CrossHairTrailY      = StaticRef<notsa::mdarray<float, MAX_PLAYERS, CROSSHAIR_TRAIL_LENGTH>>(0xB9B920);
+static inline auto& s_CrossHairTrailX      = StaticRef<notsa::mdarray<float, MAX_PLAYERS, CROSSHAIR_TRAIL_LENGTH>>(0xB9B948);
+
+// 0x56EF90
+void CPlayerCrossHair::Render(int32 playerId) {
+    constexpr auto NUM_RINGS   = 3;
+    constexpr auto NUM_SPRITES = 4; //!< In a ring
+    // NOTE: Not `TWO_PI` / `HALF_PI` / `FRAC_PI_4`, those are less precise than the values the original uses (0x865034, 0x858FE4, 0x859AB0)
+    constexpr auto TIME_TO_ANGLE = 6.2831855f / 1024.f;
+    constexpr auto QUARTER_TURN  = 1.5707964f;
+    constexpr auto EIGHTH_TURN   = 0.7853982f;
+
+    if (!m_IsActivated) {
+        return;
+    }
+
+    // NOTE/BUG: This corona has no texture on PC (See `aCoronaSpriteNames`), the original crashes here (0x56EFEE) if a crosshair is ever activated
+    auto* const texture = gpCoronaTexture[CORONATYPE_STREAK];
+    if (notsa::bugfixes::GenericCrashing && !texture) {
+        return;
+    }
+
+    RwRenderStateSet(rwRENDERSTATEZWRITEENABLE, RWRSTATE(FALSE));
+    RwRenderStateSet(rwRENDERSTATEZTESTENABLE, RWRSTATE(FALSE));
+    RwRenderStateSet(rwRENDERSTATEVERTEXALPHAENABLE, RWRSTATE(TRUE));
+    RwRenderStateSet(rwRENDERSTATESRCBLEND, RWRSTATE(rwBLENDSRCALPHA));
+    RwRenderStateSet(rwRENDERSTATEDESTBLEND, RWRSTATE(rwBLENDINVDESTALPHA));
+    RwRenderStateSet(rwRENDERSTATETEXTURERASTER, RWRSTATE(RwTextureGetRaster(texture)));
+
+    auto& times = s_CrossHairTrailTimes[playerId];
+    auto& xs    = s_CrossHairTrailX[playerId];
+    auto& ys    = s_CrossHairTrailY[playerId];
+
+    for (auto i = CROSSHAIR_TRAIL_LENGTH - 1; i > 0; i--) {
+        xs[i]    = xs[i - 1];
+        ys[i]    = ys[i - 1];
+        times[i] = std::bit_cast<uint32>(s_CrossHairTrailY[0][i - 1]); // 0x56F058 - NOTE: Not `times[i - 1]`, but only the first time is ever read
+    }
+    xs[0]             = m_Target.x;
+    ys[0]             = m_Target.y;
+    times[0]          = CTimer::GetTimeInMS();
+
+    const float pulse = std::sin((float)(times[0] & 0x3FF) * TIME_TO_ANGLE) * 0.2f + 1.f;
+
+    CRGBA color       = playerId == 0 ? CRGBA{ 0, 255, 50 } : CRGBA{ 50, 0, 255 };
+    for (auto i = 0; i < CROSSHAIR_TRAIL_LENGTH; i++) { // 0x56F0A0 - The older the position, the darker it's drawn
+        for (auto ring = 0; ring < NUM_RINGS; ring++) {
+            const float radius = (float)ring * 10.f + 20.f;
+            for (auto sprite = 0; sprite < NUM_SPRITES; sprite++) {
+                const float angle = (float)sprite * QUARTER_TURN + EIGHTH_TURN;
+                CSprite::RenderOneXLUSprite_Rotate_Aspect(
+                    CVector{
+                        (xs[i] + 1.f) * SCREEN_WIDTH * 0.5f + std::sin(angle) * radius * pulse,
+                        (ys[i] + 1.f) * SCREEN_HEIGHT * 0.5f + std::cos(angle) * radius * pulse,
+                        100.f,
+                    },
+                    CVector2D{ 15.f, 15.f },
+                    color.r,
+                    color.g,
+                    color.b,
+                    255,
+                    0.01f,
+                    0.f,
+                    255
+                );
+            }
+        }
+        color = CRGBA{ (uint8)(color.r >> 1), (uint8)(color.g >> 1), (uint8)(color.b >> 1) };
+    }
+
+    RwRenderStateSet(rwRENDERSTATEZWRITEENABLE, RWRSTATE(TRUE));
+    RwRenderStateSet(rwRENDERSTATEZTESTENABLE, RWRSTATE(TRUE));
 }
 
 // 0x571920
@@ -198,7 +279,7 @@ void CPlayerInfo::Clear() {
     m_nLastBustMessageNumber = 1;
     m_fCurrentChaseValue = 0.0f;
     m_nBustedAudioStatus = 0;
-    m_nCrosshairActivated = 0;
+    m_CrossHair.m_IsActivated            = false;
 
     m_nRequireParachuteTimer = 0;
 
@@ -526,8 +607,7 @@ CPlayerInfo& CPlayerInfo::operator=(const CPlayerInfo& rhs) {
     m_bCanDoDriveBy                    = rhs.m_bCanDoDriveBy;
     m_nBustedAudioStatus               = rhs.m_nBustedAudioStatus;
     m_nLastBustMessageNumber           = rhs.m_nLastBustMessageNumber;
-    m_nCrosshairActivated              = rhs.m_nCrosshairActivated;
-    m_vecCrosshairTarget               = rhs.m_vecCrosshairTarget;
+    m_CrossHair                        = rhs.m_CrossHair;
     m_pSkinTexture                     = rhs.m_pSkinTexture;
     m_bParachuteReferenced             = rhs.m_bParachuteReferenced;
     m_nRequireParachuteTimer           = rhs.m_nRequireParachuteTimer;
