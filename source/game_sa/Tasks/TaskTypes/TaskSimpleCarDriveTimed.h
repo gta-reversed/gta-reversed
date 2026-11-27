@@ -9,18 +9,17 @@ public:
     static constexpr auto Type = TASK_SIMPLE_CAR_DRIVE_TIMED;
 
     CTaskSimpleCarDriveTimed() = delete;
-    CTaskSimpleCarDriveTimed(CVehicle* vehicle, int32 nTime = -1);
+    CTaskSimpleCarDriveTimed(CVehicle* vehicle, int32 time = -1);
     ~CTaskSimpleCarDriveTimed() override = default;
 
     eTaskType GetTaskType() const override { return Type; }
-    CTask*    Clone() const override { return new CTaskSimpleCarDriveTimed(m_Vehicle, m_nTime); }
+    CTask*    Clone() const override { return new CTaskSimpleCarDriveTimed(m_Vehicle, m_Time); }
     bool      ProcessPed(class CPed* ped) override;
 
-public:
     static void InjectHooks();
 
-public:
-    int32      m_nTime;
-    CTaskTimer m_nTimer;
+private:
+    int32      m_Time{};
+    CTaskTimer m_Timer{};
 };
 VALIDATE_SIZE(CTaskSimpleCarDriveTimed, 0x70);
