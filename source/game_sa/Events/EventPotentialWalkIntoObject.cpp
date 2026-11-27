@@ -48,7 +48,7 @@ bool CEventPotentialWalkIntoObject::AffectsPed(CPed* ped) {
             assert(activeTask->GetTaskType() != TASK_COMPLEX_AVOID_ENTITY); // unused task
             if (activeTask->GetTaskType() == TASK_COMPLEX_WALK_ROUND_OBJECT) {
                 auto taskWalkRoundObject = reinterpret_cast<CTaskComplexWalkRoundObject*>(activeTask);
-                if (taskWalkRoundObject->m_object == m_object)
+                if (taskWalkRoundObject->GetObject() == m_object)
                     return false;
             }
             return true;

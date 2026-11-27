@@ -1,22 +1,12 @@
 #pragma once
 
+#include <extensions/EntityRef.hpp>
 #include "TaskComplex.h"
 #include "Vector.h"
 
 class CPointRoute;
 
 class NOTSA_EXPORT_VTABLE CTaskComplexWalkRoundObject : public CTaskComplex {
-public:
-    int32        m_moveState;
-    CVector      m_targetPoint;
-    CEntity*     m_object;
-    CPointRoute* m_pointRoute;
-    int32        field_24;
-    int32        field_28;
-    int8         field_2C;
-    int8         field_2D;
-    int32        field_30;
-
 public:
     static constexpr auto Type = TASK_COMPLEX_WALK_ROUND_OBJECT;
 
@@ -29,10 +19,24 @@ public:
     CTask*    CreateFirstSubTask(CPed* ped) override;
     CTask*    ControlSubTask(CPed* ped) override;
 
-    CTask* CreateRouteTask(CPed*) const;
+    CTask* CreateSubTask(eTaskType taskType, CPed* ped) const;
+    CTask* CreateRouteTask(CPed* ped) const;
+    float  ComputeRoute(CPed* ped) const;
+
+    CEntity* GetObject() const { return m_object; }
 
 public:
     static void InjectHooks();
+
+private:
+    int32              m_moveState{};
+    CVector            m_targetPoint{};
+    notsa::EntityRef<> m_object{};
+    CPointRoute*       m_pointRoute{};
+    CTaskTimer         m_Timer{};
+    CVector            m_ObjectPos{};
+    CVector            m_ObjectForwardsVec{};
+    CVector            m_ObjectRightVec{};
 };
 
-VALIDATE_SIZE(CTaskComplexWalkRoundObject, 0x34);
+VALIDATE_SIZE(CTaskComplexWalkRoundObject, 0x54);
