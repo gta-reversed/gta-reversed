@@ -9,14 +9,12 @@
 CTaskInteriorSitAtDesk::CTaskInteriorSitAtDesk(int32 duration, InteriorInfo_t* interiorInfo, bool doInstantly) :
     m_Duration{ duration },
     m_InteriorInfo{ interiorInfo },
-    m_DoInstantly{ doInstantly }
-{
+    m_DoInstantly{ doInstantly } {
 }
 
 // 0x6760E0
 CTaskInteriorSitAtDesk::CTaskInteriorSitAtDesk(const CTaskInteriorSitAtDesk& o) :
-    CTaskInteriorSitAtDesk{ o.m_Duration, o.m_InteriorInfo, o.m_DoInstantly }
-{
+    CTaskInteriorSitAtDesk{ o.m_Duration, o.m_InteriorInfo, o.m_DoInstantly } {
 }
 
 // 0x676080
@@ -52,11 +50,11 @@ void CTaskInteriorSitAtDesk::StartRandomLoopAnim(CPed* ped, float blendDelta) {
         chance > 40
             ? ANIM_ID_OFF_SIT_TYPE_LOOP
             : chance > 10
-                ? ANIM_ID_OFF_SIT_IDLE_LOOP
-                : ANIM_ID_OFF_SIT_BORED_LOOP,
+            ? ANIM_ID_OFF_SIT_IDLE_LOOP
+            : ANIM_ID_OFF_SIT_BORED_LOOP,
         blendDelta
     );
-    m_AnimTimer.Start(chance > 40 ? GetRandomNumberInRange(7000, 12000) : GetRandomNumberInRange(2000, 5000));
+    m_AnimTimer.Start(chance > 40 ? GetRandomNumberInRange(7'000, 12'000) : GetRandomNumberInRange(2'000, 5'000));
 }
 
 // 0x677880
@@ -93,7 +91,7 @@ bool CTaskInteriorSitAtDesk::MakeAbortable(CPed* ped, eAbortPriority priority, C
 bool CTaskInteriorSitAtDesk::ProcessPed(CPed* ped) {
     constexpr auto OFFICE_ANIMS = (int32)(eInteriorGroupType::OFFICE);
 
-    const auto animId = m_Anim
+    const auto animId           = m_Anim
         ? m_Anim->GetAnimId()
         : ANIM_ID_UNDEFINED;
 
@@ -194,9 +192,9 @@ bool CTaskInteriorSitAtDesk::ProcessPed(CPed* ped) {
     }
 
     if (m_Anim->GetAnimId() == ANIM_ID_OFF_SIT_IN) { // 0x677C90
-        const CVector pedToInfo = m_InteriorInfo->Pos - ped->GetPosition();
-        const float   dist      = pedToInfo.Magnitude();
-        const CVector shift     = pedToInfo * (1.f / dist) * std::min(dist, 0.02f);
+        const CVector pedToInfo        = m_InteriorInfo->Pos - ped->GetPosition();
+        const float   dist             = pedToInfo.Magnitude();
+        const CVector shift            = pedToInfo * (1.f / dist) * std::min(dist, 0.02f);
         ped->m_vecAnimMovingShiftLocal = {
             shift.Dot(ped->GetRight()),
             shift.Dot(ped->GetForward()),
