@@ -395,10 +395,12 @@ CTask* CTaskComplexKillPedOnFoot::ControlSubTask(CPed* ped) {
     }
 
     if (m_PedToKill) { // 0x6269D3
-        const auto* const targetContact = m_PedToKill->m_pContactEntity;
-        const auto* const ourContact    = ped->m_pContactEntity;
-        if (targetContact && ourContact && targetContact->GetAreaCode() != ourContact->GetAreaCode()) {
-            ped->GetEventGroup().Add(CEventAreaCodes{ m_PedToKill });
+        if (const auto* const targetContact = m_PedToKill->m_pContactEntity) {
+            if (const auto* const ourContact = ped->m_pContactEntity) {
+                if (targetContact->GetAreaCode() != ourContact->GetAreaCode()) {
+                    ped->GetEventGroup().Add(CEventAreaCodes{ m_PedToKill });
+                }
+            }
         }
     }
 
