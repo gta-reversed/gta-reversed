@@ -263,13 +263,13 @@ CTaskUtilityLineUpPedWithCar::CTaskUtilityLineUpPedWithCar(const CVector& offset
 
 // 0x64FC10
 CVector CTaskUtilityLineUpPedWithCar::GetLocalPositionToOpenCarDoor(CVehicle* vehicle, float animProgress, CAnimBlendAssociation* assoc) {
-    const auto  door               = GetTargetDoor();
-    const bool  isRearDoor         = door == TARGET_DOOR_REAR_LEFT || door == TARGET_DOOR_REAR_RIGHT;
-    const float seatOffset         = vehicle->vehicleFlags.bIsVan && isRearDoor
+    const auto  door                 = GetTargetDoor();
+    const bool  isRearDoor           = door == TARGET_DOOR_REAR_LEFT || door == TARGET_DOOR_REAR_RIGHT;
+    const float seatOffset           = vehicle->vehicleFlags.bIsVan && isRearDoor
         ? 0.f
         : animProgress * vehicle->m_pHandlingData->m_fSeatOffsetDistance;
 
-    const auto offsetType = GetDoorOffsetType(door, assoc);
+    const auto offsetType            = GetDoorOffsetType(door, assoc);
 
     auto&         animGroup          = vehicle->GetAnimGroup();
     const bool    isLockedDoorAnim   = assoc && (assoc->GetAnimId() == ANIM_ID_CAR_DOORLOCKED_LHS || assoc->GetAnimId() == ANIM_ID_CAR_DOORLOCKED_RHS);
@@ -320,15 +320,15 @@ bool CTaskUtilityLineUpPedWithCar::ProcessPed(CPed* ped, CVehicle* vehicle, CAni
 
     const auto [animProgress, heightBlend] = GetAnimProgressAndHeightBlend(vehicle, assoc);
 
-    const bool    isFalling   = m_nDoorOpenPosType == LINE_UP_FALLING;
-    const CVector doorPos     = isFalling
+    const bool    isFalling                = m_nDoorOpenPosType == LINE_UP_FALLING;
+    const CVector doorPos                  = isFalling
         ? ped->GetPosition()
         : GetPositionToOpenCarDoor(vehicle, animProgress, assoc);
-    const CVector openDoorPos = vehicle->IsBike() || isFalling // 0x6518cc
+    const CVector openDoorPos              = vehicle->IsBike() || isFalling // 0x6518cc
         ? doorPos
         : GetPositionToOpenCarDoor(vehicle, 1.f, assoc);
 
-    m_DoorOpenPosZ            = [&] {
+    m_DoorOpenPosZ                         = [&] {
         if (vehicle->physicalFlags.bSubmergedInWater) { // 0x651a1b
             return vehicle->IsBoat() && vehicle->IsUpsideDown()
                 ? openDoorPos.z + 1.f
