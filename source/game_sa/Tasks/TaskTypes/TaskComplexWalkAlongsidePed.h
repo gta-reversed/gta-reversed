@@ -24,6 +24,8 @@ public:
     CTask*    CreateFirstSubTask(CPed* ped) override;
     CTask*    ControlSubTask(CPed* ped) override;
 
+    const auto& GetOffset() const { return m_Offset; }
+
 private: // Wrappers for hooks
     // 0x683240
     CTaskComplexWalkAlongsidePed* Constructor(CPed* a, float b) {
