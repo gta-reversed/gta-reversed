@@ -13,8 +13,8 @@ void CTaskComplexFollowLeaderInFormation::InjectHooks() {
     RH_ScopedVirtualClass(CTaskComplexFollowLeaderInFormation, 0x870c3c, 11);
     RH_ScopedCategory("Tasks/TaskTypes");
 
-    RH_ScopedInstall(Constructor, 0x6949A0);
-    RH_ScopedInstall(Destructor, 0x694A40);
+    RH_ScopedConstructorInstall(0x6949A0, "1", {}, CPedGroup*, CPed*, const CVector&, float);
+    RH_ScopedDestructorInstall(0x694A40);
     RH_ScopedInstall(CreateSubTask, 0x6962A0);
 
     RH_ScopedVMTInstall(Clone, 0x695740);
@@ -136,7 +136,7 @@ CTask* CTaskComplexFollowLeaderInFormation::ControlSubTask(CPed* ped) {
     }
 
     const auto subTaskType = m_pSubTask->GetTaskType();
-    if (subTaskType == TASK_SIMPLE_CAR_DRIVE) { // 0x696976
+    if (notsa::isa<CTaskSimpleCarDrive>(m_pSubTask)) { // 0x696976
         return m_pSubTask;
     }
 

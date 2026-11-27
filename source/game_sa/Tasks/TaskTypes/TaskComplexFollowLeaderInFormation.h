@@ -34,21 +34,11 @@ public:
 private:
     CTask* CreateSubTask(eTaskType taskType, CPed* ped);
 
-    CTaskComplexFollowLeaderInFormation* Constructor(CPedGroup* pedGroup, CPed* leader, const CVector& offset, float maxDist) {
-        this->CTaskComplexFollowLeaderInFormation::CTaskComplexFollowLeaderInFormation(pedGroup, leader, offset, maxDist);
-        return this;
-    }
-
-    CTaskComplexFollowLeaderInFormation* Destructor() {
-        this->CTaskComplexFollowLeaderInFormation::~CTaskComplexFollowLeaderInFormation();
-        return this;
-    }
-
 private:
-    CPedGroup*             m_Group{};
-    notsa::EntityRef<CPed> m_Leader{};
-    CVector                m_Offset{};    //!< Offset (from the leader) the ped seeks
-    eMoveState             m_MoveState{}; //!< Never read
-    float                  m_MaxDist{};   //!< Followers farther than this from the leader stop following it
+    CPedGroup* m_Group{};
+    CPed::Ref  m_Leader{};
+    CVector    m_Offset{};    //!< Offset (from the leader) the ped seeks
+    eMoveState m_MoveState{}; //!< Never read
+    float      m_MaxDist{};   //!< Followers farther than this from the leader stop following it
 };
 VALIDATE_SIZE(CTaskComplexFollowLeaderInFormation, 0x28);
