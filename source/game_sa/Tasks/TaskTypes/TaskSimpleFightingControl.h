@@ -3,6 +3,8 @@
 #include "TaskSimple.h"
 #include "Base.h"
 
+enum class eFightCommand : int32;
+
 class CEntity;
 
 class NOTSA_EXPORT_VTABLE CTaskSimpleFightingControl : public CTaskSimple {
@@ -26,7 +28,7 @@ public:
     CTaskSimpleFightingControl(const CTaskSimpleFightingControl&);
     ~CTaskSimpleFightingControl();
 
-    int16 CalcMoveCommand(CPed* ped);
+    eFightCommand CalcMoveCommand(CPed* ped);
 
     CTask* Clone() const override { return new CTaskSimpleFightingControl{ *this }; }
     eTaskType GetTaskType() const override { return Type; }

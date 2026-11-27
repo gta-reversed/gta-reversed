@@ -47,9 +47,11 @@ CTaskSimpleFightingControl::~CTaskSimpleFightingControl() {
 }
 
 // 0x624B50
-int16 CTaskSimpleFightingControl::CalcMoveCommand(CPed* ped) {
+eFightCommand CTaskSimpleFightingControl::CalcMoveCommand(CPed* ped) {
+    using enum eFightCommand;
+
     if (!m_target) {
-        return -1;
+        return NONE;
     }
 
     const auto& targetPos = m_target->GetPosition();
@@ -60,31 +62,31 @@ int16 CTaskSimpleFightingControl::CalcMoveCommand(CPed* ped) {
     // Check if target is outside of the attacking angle
     if (std::abs(CGeneral::LimitRadianAngle(segmentPedToTarget.Heading()) - ped->m_fCurrentRotation) >= FIGHT_CTRL_MAX_ATTACK_ANGLE_RAD) {
         m_nextAttackTime += (uint32)CTimer::GetTimeStepInMS();
-        return 0;
+        return IDLE;
     }
 
     switch (m_target->GetType()) {
     case ENTITY_TYPE_PED: {
         const auto range = segmentPedToTarget.Magnitude() - m_maxAttackRange;
         if (range > 0.1f) {
-            return 3;
+            return MOVE_FWD;
         }
 
         const auto rnd = rand();
 
         if (range > -0.1f) { // Inverted
-            return (rnd % 16 == 0) ? 7 : -1;
+            return (rnd % 16 == 0) ? STEP_FWD : NONE;
         }
 
         if (range >= 0.8f) {
             if (rand() % 64 == 0) {
-                return 8;
+                return STEP_LEFT;
             }
             if (rand() % 64 == 0) {
-                return 10;
+                return STEP_RIGHT;
             }
         } else if (rnd % 16 == 0) {
-            return 9;
+            return STEP_BACK;
         }
      
         break;
@@ -96,20 +98,20 @@ int16 CTaskSimpleFightingControl::CalcMoveCommand(CPed* ped) {
 
         const auto hitSide = CPedGeometryAnalyser::ComputeEntityHitSide(pedPos, *m_target);
         if ((DotProduct(planeNormals[+hitSide], pedPos) + planeDs[+hitSide]) >= 0.7f) {
-            return 3;
+            return MOVE_FWD;
         }
 
         break;
     }
     default: {
         if (segmentPedToTarget.Magnitude() - m_maxAttackRange > 0.3f) {
-            return 3;
+            return MOVE_FWD;
         }
         break;
     }
     }
 
-    return -1;
+    return NONE;
 }
 
 // 0x61DD00
@@ -187,7 +189,7 @@ bool CTaskSimpleFightingControl::ProcessPed(CPed* ped) {
     ped->GiveWeaponAtStartOfFight();
 
     auto& tm      = ped->GetTaskManager();
-    int32 command = 0;
+    auto  command = eFightCommand::IDLE;
     if (!tm.GetTaskSecondary(TASK_SECONDARY_ATTACK)) { // 0x62A146
         tm.SetTaskSecondary(new CTaskSimpleFight{ m_target, false, (uint32)FIGHT_CTRL_FIGHT_IDLE_TIME }, TASK_SECONDARY_ATTACK);
         m_nextAttackTime = 0;
@@ -197,15 +199,15 @@ bool CTaskSimpleFightingControl::ProcessPed(CPed* ped) {
     } else if (m_nextAttackTime > CTimer::GetTimeInMS()) { // 0x62A21D
         if (m_target->GetIsTypePed() && !m_someTime && CGeneral::GetRandomNumberInRange(0.f, 100.f) < 2.f * shootingRate * 0.025f) {
             m_someTime = CGeneral::GetRandomNumberInRange(500, 2'000, true);
-            command    = 2;
+            command    = eFightCommand::BLOCK;
         } else if (m_someTime) { // 0x62A270
             const auto stepMs = (uint32)CTimer::GetTimeStepInMS();
             m_someTime        = m_someTime > stepMs ? m_someTime - stepMs : 0;
-            command           = 2;
+            command           = eFightCommand::BLOCK;
         }
     } else { // 0x62A1E1
         m_nextAttackTime = 0;
-        command          = ped->m_nFightingStyle != STYLE_STANDARD && ped->GetActiveWeapon().GetType() == WEAPON_UNARMED ? 12 : 11;
+        command          = ped->m_nFightingStyle != STYLE_STANDARD && ped->GetActiveWeapon().GetType() == WEAPON_UNARMED ? eFightCommand::ATTACK_2 : eFightCommand::ATTACK_1;
     }
 
     auto* const tFight = notsa::cast<CTaskSimpleFight>(tm.GetTaskSecondary(TASK_SECONDARY_ATTACK));
@@ -215,7 +217,7 @@ bool CTaskSimpleFightingControl::ProcessPed(CPed* ped) {
         m_nextAttackTime = CTimer::GetTimeInMS() + (uint32)delay;
     }
     if (tFight->m_nComboSet <= MELEE_COMBO_MOVE) { // 0x62A33D
-        if (const auto moveCommand = CalcMoveCommand(ped); moveCommand > -1) {
+        if (const auto moveCommand = CalcMoveCommand(ped); moveCommand != eFightCommand::NONE) {
             command = moveCommand;
         }
     }
