@@ -202,8 +202,8 @@ void CGenericGameStorage::DoGameSpecificStuffAfterSucessLoad() {
     CPopCycle::Update();
     CStreaming::RemoveInappropriatePedModels();
     CGangWars::ClearSpecificZonesToTriggerGangWar();
-    CGangWars::bTrainingMission = false;
-    CTheZones::FillZonesWithGangColours(CGangWars::bGangWarsActive);
+    CGangWars::ms_IsTrainingMission = false;
+    CTheZones::FillZonesWithGangColours(CGangWars::ms_GangWarsActive);
 }
 
 // 0x618E70

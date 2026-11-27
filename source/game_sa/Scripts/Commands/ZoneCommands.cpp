@@ -74,7 +74,7 @@ void SetZonePopulationRace(const char* label, uint8 races) {
 // SET_ZONE_FOR_GANG_WARS_TRAINING (2227)
 void SetZoneForGangWarsTraining(const char* label) {
     if (auto* const zone = GetZoneByLabel(label)) {
-        CGangWars::ZoneInfoForTraining = zone->m_ZoneInfoIndex;
+        CGangWars::ms_ZoneInfoForTraining = zone->m_ZoneInfoIndex;
     }
 }
 

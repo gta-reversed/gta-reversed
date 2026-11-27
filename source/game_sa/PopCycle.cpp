@@ -361,7 +361,7 @@ void CPopCycle::UpdateAreaDodgyness() {
 
 // 0x6104B0
 void CPopCycle::UpdateDealerStrengths() {
-    if (!CGangWars::bGangWarsActive) {
+    if (!CGangWars::ms_GangWarsActive) {
         return;
     }
 
