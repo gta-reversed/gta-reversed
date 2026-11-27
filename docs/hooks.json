@@ -24896,28 +24896,38 @@
   },
   {
     "Category": "CTaskGangHasslePed",
-    "Name": "Constructor",
+    "Name": "Constructor-1",
     "IsReversed": true
   },
   {
     "Category": "CTaskGangHasslePed",
-    "Name": "Destructor",
+    "Name": "Desructor",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskGangHasslePed",
+    "Name": "Clone",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskGangHasslePed",
+    "Name": "GetTaskType",
     "IsReversed": true
   },
   {
     "Category": "CTaskGangHasslePed",
     "Name": "CreateNextSubTask",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskGangHasslePed",
     "Name": "CreateFirstSubTask",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskGangHasslePed",
     "Name": "ControlSubTask",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskGangHassleVehicle",
@@ -25192,7 +25202,7 @@
   {
     "Category": "CTaskComplexDestroyCarArmed",
     "Name": "CreateSubTask",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexDestroyCarArmed",

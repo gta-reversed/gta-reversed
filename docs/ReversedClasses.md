@@ -1,17 +1,17 @@
 # Reimplementation progress (*): 92%
 This file is updated automatically every time the `hooks.json` file is updated (which happens every time there are changes to hooks made by a commit), and shows the current progress of reversed categories in the project.
 
-Last update was at Nov 27, 2026 at 02:03:41 UTC
-(Triggered by commit [a2711b41](https://github.com/gta-reversed/gta-reversed/commit/a2711b4165a1141ca338e337ecfa631ee0b44189))
+Last update was at Nov 27, 2026 at 02:18:57 UTC
+(Triggered by commit [5dbd8c72](https://github.com/gta-reversed/gta-reversed/commit/5dbd8c7212f1df9d538b07e212af4b96dd936a1d))
 
 ## (*) Disclaimers
 **The progress** is based on the number of functions we have documented and reimplemented, so it might not completely reflect the actual progress, it's meant to be a rough estimate.
 
 **The percentages and the number of categories** shown here may not be completely accurate, because not all categories and functions are documented yet.
 
-## Stats (8193 out of 8906 functions done in 797 categories)
+## Stats (8199 out of 8908 functions done in 797 categories)
 
-#### Completely reversed categories (660/797) [83%]
+#### Completely reversed categories (662/797) [83%]
 
 <details>
 <summary>See list of categories</summary>
@@ -347,10 +347,12 @@ Last update was at Nov 27, 2026 at 02:03:41 UTC
 - CTaskComplexUseClosestFreeScriptedAttractorSprint (4)<br />
 - CTaskSimpleLeaveGroup (2)<br />
 - CTaskComplexDiveFromAttachedEntityAndGetUp (7)<br />
+- CTaskGangHasslePed (7)<br />
 - CTaskGoToVehicleAndLean (9)<br />
 - CTaskComplexCarSlowBeDraggedOut (11)<br />
 - CTaskComplexCarSlowBeDraggedOutAndStandUp (9)<br />
 - CTaskComplexDestroyCar (9)<br />
+- CTaskComplexDestroyCarArmed (10)<br />
 - CTaskComplexDestroyCarMelee (10)<br />
 - CTaskComplexDieInCar (6)<br />
 - CTaskComplexDragPedFromCar (6)<br />
@@ -678,7 +680,7 @@ Last update was at Nov 27, 2026 at 02:03:41 UTC
 
 </details>
 
-#### Partially reversed categories (125/797) [16%]
+#### Partially reversed categories (123/797) [15%]
 
 <details>
 <summary>See list of categories</summary>
@@ -735,10 +737,8 @@ Last update was at Nov 27, 2026 at 02:03:41 UTC
 - CTaskAllocatorKillThreatsBasic (5/6) [83%]<br />
 - CTaskComplexUseClosestFreeScriptedAttractor (6/8) [75%]<br />
 - CTaskSimpleChoking (5/8) [62%]<br />
-- CTaskGangHasslePed (2/5) [40%]<br />
 - CTaskGangHassleVehicle (3/8) [38%]<br />
 - CTaskLeanOnVehicle (4/5) [80%]<br />
-- CTaskComplexDestroyCarArmed (9/10) [90%]<br />
 - CTaskComplexFollowPatrolRoute (5/9) [56%]<br />
 - CTaskComplexGangJoinRespond (3/7) [43%]<br />
 - CTaskComplexGoToPointAnyMeans (5/7) [71%]<br />
