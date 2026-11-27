@@ -162,7 +162,7 @@ CTask* CTaskComplexFollowPedFootsteps::ControlSubTask(CPed* ped) {
             CVector prevPoint = ped->GetPosition();
             for (const auto& point : m_PointRoute->GetAll()) {
                 trailLength += (point - prevPoint).Magnitude();
-                prevPoint    = point;
+                prevPoint = point;
             }
             return trailLength + (m_TargetPed->GetPosition() - prevPoint).Magnitude() <= WALK_DIST;
         }
