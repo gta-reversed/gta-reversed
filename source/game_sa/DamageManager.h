@@ -25,7 +25,7 @@ enum eDamageState : int8 {
 // TODO: Seems like these are the damage states for doors only.
 //       Panel's seems to be different, more like: DAMSTATE_OK, DAMSTATE_DAMAGED, DAMSTATE_MISSING
 // TODO(yukani): change prefix to something else?
-enum ePanelDamageState : uint32 { // 32-bit: the original getters return the whole `EAX`, the setters read the whole argument
+enum ePanelDamageState : uint32 {
     DAMSTATE_OK             = 0, // Closed, DT_DOOR_INTACT 
     DAMSTATE_OPENED         = 1, // Open, DT_DOOR_SWINGING_FREE
     DAMSTATE_DAMAGED        = 2, // Closed, DT_DOOR_BASHED
