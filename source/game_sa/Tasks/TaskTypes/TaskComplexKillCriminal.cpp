@@ -136,6 +136,18 @@ CTask* CTaskComplexKillCriminal::CreateSubTask(eTaskType tt, CPed* ped, bool for
 
 // 0x68C3C0
 CPed* CTaskComplexKillCriminal::FindNextCriminalToKill(CPed* ped, bool any) {
+    if (notsa::bugfixes::CTaskComplexKillCriminal_FindNextCriminalToKill_Closest) {
+        const auto [closest, distSq] = notsa::SpatialQuery(
+            m_Cop->m_apCriminalsToKill | rng::views::filter(notsa::Not(NoPedOrNoHp)),
+            m_Cop->GetPosition(),
+            m_Criminal.Get(),
+            !any && NoPedOrNoHp(m_Criminal)
+                ? m_Criminal.Get()
+                : nullptr
+        );
+        return closest;
+    }
+
     const auto GetDistSq = [ped](const CPed* criminal) {
         return (criminal->GetPosition() - ped->GetPosition()).SquaredMagnitude(); // NOTE: 3D
     };

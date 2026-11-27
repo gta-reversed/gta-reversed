@@ -42,7 +42,7 @@ private:
     void      MakeCriminalPassengersDoDriveBy(CPed* ped) const;                                 // NOTSA
 
 private:
-    notsa::EntityRef<CPed>    m_Criminal{};               //!< The ped to kill
+    CPed::Ref                 m_Criminal{};               //!< The ped to kill
     notsa::EntityRef<CCopPed> m_Cop{};                    //!< The cop this task belongs to (Set by `CreateFirstSubTask`)
     float                     m_TimeToGetOutOfCar{ 3.f }; //!< Counts down while the criminal's car stands still, at 0 the cop gets out
     bool                      m_Randomize{};              //!< Only chase a ped that isn't wanted if it's in a car driven madly (and then only by chance)

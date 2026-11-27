@@ -165,4 +165,9 @@ inline const ReversibleBugFix CTaskComplexSignalAtPed_Constructor_InitialPause{
     .Description = "The original constructor ignores the initial pause argument, so the ped always pauses for a random time between 0 and 2 seconds before signaling. The fix uses the provided initial pause value.",
     .Credit      = "Pirulax"
 };
+inline const ReversibleBugFix CTaskComplexKillCriminal_FindNextCriminalToKill_Closest{
+    .Name        = "CTaskComplexKillCriminal::FindNextCriminalToKill - Closest criminal",
+    .Description = "The original never updates its best distance while looking for the next criminal, so it returns the last one that is closer than the current criminal (or just the last one). The fix returns the closest one.",
+    .Credit      = "Pirulax"
+};
 };
