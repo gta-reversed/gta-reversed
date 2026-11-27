@@ -3,12 +3,6 @@
 #include "TaskSimpleGangDriveBy.h"
 #include "GameLogic.h"
 
-// The original's own constants (`PI` / `TWO_PI` / `FRAC_PI_4` of common.h are a few ulp off)
-constexpr float DRIVEBY_PI              = 3.1415927f;  // 0x858CB8
-constexpr float DRIVEBY_TWO_PI          = 6.2831855f;  // 0x858CBC
-constexpr float DRIVEBY_QUARTER_PI      = 0.7853982f;  // 0x859AB0
-constexpr float DRIVEBY_TWO_OVER_PI     = 0.63661975f; // 0x858FB8
-
 constexpr float DRIVEBY_ANIM_LOOP_START = 0.2667f; // 0x8D2E7C - Aiming loops back to this time
 constexpr float DRIVEBY_ANIM_LOOP_END   = 0.4333f; // 0x8D2E80
 constexpr float DRIVEBY_ANIM_FIRE_TIME  = 0.3f;    // 0x8D2E84
@@ -74,21 +68,10 @@ static AnimationId GetDriveByAnimId(eDriveByDirection dir, bool seatRHS) {
     }
 }
 
-// NOTSA - Wrapped once into [-PI, PI] with the original's constants
-static float LimitDriveByAngle(float angle) {
-    if (angle > DRIVEBY_PI) {
-        return angle - DRIVEBY_TWO_PI;
-    }
-    if (angle < -DRIVEBY_PI) {
-        return angle + DRIVEBY_TWO_PI;
-    }
-    return angle;
-}
-
 // NOTSA - The direction (`eDriveByDirection`) closest to `angle`
 static int8 GetDriveByDirection(float angle) {
-    const float fromFrontRight = angle + DRIVEBY_QUARTER_PI;
-    return (int8)(int32)((fromFrontRight < 0.f ? fromFrontRight + DRIVEBY_TWO_PI : fromFrontRight) * DRIVEBY_TWO_OVER_PI);
+    const float fromFrontRight = angle + FRAC_PI_4;
+    return (int8)(int32)((fromFrontRight < 0.f ? fromFrontRight + TWO_PI : fromFrontRight) * FRAC_2_PI);
 }
 
 // 0x621960
@@ -105,7 +88,7 @@ void CTaskSimpleGangDriveBy::SetupStaticAnimForPlayer(CPlayerPed* player) {
         if (cam.m_nMode == MODE_TWOPLAYER_IN_CAR_AND_SHOOTING) {
             cam.Get_TwoPlayer_AimVector(aim);
         }
-        switch (const auto dir = GetDriveByDirection(LimitDriveByAngle(CVector2D{ aim }.Heading() - player->m_pVehicle->GetHeading()))) {
+        switch (const auto dir = GetDriveByDirection(CGeneral::LimitRadianAngle(CVector2D{ aim }.Heading() - player->m_pVehicle->GetHeading()))) {
         case DRIVEBY_DIR_FWD:
         case DRIVEBY_DIR_LEFT:
         case DRIVEBY_DIR_BACK:
@@ -138,8 +121,7 @@ bool CTaskSimpleGangDriveBy::CheckIfThereNoObstaclesForFiring(CPed* ped, CVector
             }
             CWorld::pIgnoreEntity = nullptr;
         }
-        // NOTE: Not `CGeneral::GetRandomNumberInRange`, the original truncates `rand / 32768 * -500`
-        m_nLOSCheckTime = CTimer::GetTimeInMS() - (int32)((float)CGeneral::GetRandomNumber() / 32768.f * -500.f) + 1'750;
+        m_nLOSCheckTime = CTimer::GetTimeInMS() + (int32)CGeneral::GetRandomNumberInRange(0.f, 500.f) + 1'750;
     }
     return !m_nLOSBlocked;
 }
@@ -151,9 +133,8 @@ void CTaskSimpleGangDriveBy::SetupStaticAnimForNPC(CPed* ped) {
     const CVector toTarget = m_pTargetEntity
         ? m_pTargetEntity->GetMatrix().TransformPoint(m_vecCoords) - ped->GetPosition()
         : m_vecCoords - ped->GetPosition();
-    // NOTE: The original adds the squares in this order (z, x, y), not `Magnitude()`
-    const float dist  = std::sqrt(toTarget.z * toTarget.z + toTarget.x * toTarget.x + toTarget.y * toTarget.y);
-    const float angle = LimitDriveByAngle(CVector2D{ toTarget }.Heading() - ped->m_pVehicle->GetHeading());
+    const float dist  = toTarget.Magnitude();
+    const float angle = CGeneral::LimitRadianAngle(CVector2D{ toTarget }.Heading() - ped->m_pVehicle->GetHeading());
 
     m_bInRangeToShoot = false;
     m_bInWeaponRange  = dist < range;
@@ -194,14 +175,14 @@ void CTaskSimpleGangDriveBy::SetupStaticAnimForNPC(CPed* ped) {
         break;
     default: {
         closestDir = GetDriveByDirection(angle);
-        if (angle > 0.2617994f && angle < 2.8797934f) {
+        if (angle > DegreesToRadians(15.f) && angle < DegreesToRadians(165.f)) {
             sideDir = -1;
-        } else if (angle < -0.2617994f && angle > -2.8797934f) {
+        } else if (angle < -DegreesToRadians(15.f) && angle > -DegreesToRadians(165.f)) {
             sideDir = 1;
         }
-        if (angle < 1.3089969f && angle > -1.3089969f) {
+        if (angle < DegreesToRadians(75.f) && angle > -DegreesToRadians(75.f)) {
             fwdBackDir = -1;
-        } else if (angle > 1.8325958f && angle < -1.8325958f) { // NOTE/BUG: Never true (`&&` instead of `||`), so `AI_FWD_BAK` never picks the back while no anim is set
+        } else if (angle > DegreesToRadians(105.f) && angle < -DegreesToRadians(105.f)) { // NOTE/BUG: Never true (`&&` instead of `||`), so `AI_FWD_BAK` never picks the back while no anim is set
             fwdBackDir = 1;
         }
         break;
@@ -253,10 +234,10 @@ void CTaskSimpleGangDriveBy::SetupStaticAnimForNPC(CPed* ped) {
         }
     };
     switch (dir) {
-    case DRIVEBY_DIR_FWD:   return SetAnim(DRIVEBY_DIR_FWD, angle >= -DRIVEBY_QUARTER_PI && angle <= DRIVEBY_QUARTER_PI);
-    case DRIVEBY_DIR_LEFT:  return SetAnim(DRIVEBY_DIR_LEFT, angle >= DRIVEBY_QUARTER_PI && angle <= 2.3561945f);
-    case DRIVEBY_DIR_BACK:  return SetAnim(DRIVEBY_DIR_BACK, angle >= -2.3561945f || angle <= 2.3561945f); // NOTE: Always true (except NaN), unlike the other arcs
-    case DRIVEBY_DIR_RIGHT: return SetAnim(DRIVEBY_DIR_RIGHT, angle >= -2.3561945f && angle <= -DRIVEBY_QUARTER_PI);
+    case DRIVEBY_DIR_FWD:   return SetAnim(DRIVEBY_DIR_FWD, angle >= -FRAC_PI_4 && angle <= FRAC_PI_4);
+    case DRIVEBY_DIR_LEFT:  return SetAnim(DRIVEBY_DIR_LEFT, angle >= FRAC_PI_4 && angle <= DegreesToRadians(135.f));
+    case DRIVEBY_DIR_BACK:  return SetAnim(DRIVEBY_DIR_BACK, angle >= -DegreesToRadians(135.f) || angle <= DegreesToRadians(135.f)); // NOTE: Always true (except NaN), unlike the other arcs
+    case DRIVEBY_DIR_RIGHT: return SetAnim(DRIVEBY_DIR_RIGHT, angle >= -DegreesToRadians(135.f) && angle <= -FRAC_PI_4);
     default:                return; // 0x6279b7 - No direction: the anim stays
     }
 }
@@ -517,13 +498,9 @@ bool CTaskSimpleGangDriveBy::ProcessPed(CPed* ped) {
     }
 
     // 0x62d818
-    // NOTE: Not `CTimer::GetTimeStepInMS()` (it divides by 50 instead of multiplying by 0.02)
-    const auto GetTimeStepInMS = [] {
-        return (int32)(CTimer::GetTimeStep() * 0.02f * 1000.f);
-    };
     m_nAttackTimer = m_nAttackTimer < 0
         ? (int16)CGeneral::GetRandomNumberInRange(200, (100 - m_nFrequencyPercentage) * 100)
-        : (int16)(m_nAttackTimer - GetTimeStepInMS());
+        : (int16)(m_nAttackTimer - (int32)CTimer::GetTimeStepInMS());
 
     // 0x62d860 - The next command
     if (ped->IsPlayer() && m_nNextCommand < COMMAND_UNK_4) {
@@ -537,7 +514,7 @@ bool CTaskSimpleGangDriveBy::ProcessPed(CPed* ped) {
             } else if (m_bInRangeToShoot) {
                 m_nNextCommand = COMMAND_FIRE_BURST;
             } else if (m_nAttackTimer <= 0) {
-                m_nAttackTimer = (int16)(GetTimeStepInMS() * 2);
+                m_nAttackTimer = (int16)((int32)CTimer::GetTimeStepInMS() * 2);
             }
             break;
         }
