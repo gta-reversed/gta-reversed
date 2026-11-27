@@ -13,7 +13,7 @@ public:
     CEntity* m_target{};
     float m_angleRad{};
     float m_maxAttackRange{};
-    float m_unk3{};
+    float m_unk3{ 1.f };
     uint32 m_nextAttackTime{};
     uint32 m_someTime{};
 

@@ -8,7 +8,8 @@
 #include "EventBuildingCollision.h"
 
 constexpr auto FIGHT_CTRL_MAX_ATTACK_ANGLE_RAD = DegreesToRadians(15);
-constexpr auto FIGHT_CTRL_FIGHT_IDLE_TIME = 60000.f;
+constexpr auto FIGHT_CTRL_FIGHT_IDLE_TIME = 60000.f;  // 0x8D2E50
+constexpr auto FIGHT_CTRL_ATTACK_DELAY_MS = 2000u;   // 0x8D2E4C
 
 void CTaskSimpleFightingControl::InjectHooks() {
     RH_ScopedVirtualClass(CTaskSimpleFightingControl, 0x86d700, 9);
@@ -22,7 +23,7 @@ void CTaskSimpleFightingControl::InjectHooks() {
     RH_ScopedVMTInstall(Clone, 0x622EB0);
     RH_ScopedVMTInstall(GetTaskType, 0x61DC90);
     RH_ScopedVMTInstall(MakeAbortable, 0x61DD00);
-    RH_ScopedVMTInstall(ProcessPed, 0x62A0A0, { .Reversed = false });
+    RH_ScopedVMTInstall(ProcessPed, 0x62A0A0);
 }
 
 // 0x61DC10
@@ -174,42 +175,50 @@ bool CTaskSimpleFightingControl::MakeAbortable(CPed* ped, eAbortPriority priorit
 
 // 0x62A0A0
 bool CTaskSimpleFightingControl::ProcessPed(CPed* ped) {
-    return plugin::CallMethodAndReturn<bool, 0x62A0A0, CTaskSimpleFightingControl*, CPed*>(this, ped);
-
-    /*
-    * Code below should be good so far, I'm lazy to finish it
-    if (!m_target) {
-        return false;
-    }
-
-    if (m_bool) {
+    if (!m_target || m_bool) {
         return true;
     }
 
-    const auto pedShootingRange = [ped] {
-        const auto range = (int16)ped->m_nWeaponShootingRate;
-        if (!ped->IsCreatedByMission() && ped->m_nPedType != PED_TYPE_COP && range == 40) {
-            return ped->m_pStats->m_wShootingRate;
-        }
-        return range;
-    }();
+    // NOTE: The original reads the stat's `m_flags` (+0x30) here
+    const auto shootingRate = !ped->IsCreatedBy(PED_MISSION) && !ped->IsCop() && ped->m_nWeaponShootingRate == 40
+        ? (float)ped->m_pStats->m_flags
+        : (float)ped->m_nWeaponShootingRate;
 
     ped->GiveWeaponAtStartOfFight();
 
-    // Create fight task for ped if not already
-    if (!ped->GetTaskManager().GetTaskSecondary(TASK_SECONDARY_ATTACK)) {
-        ped->GetTaskManager().SetTaskSecondary(new CTaskSimpleFight{ m_target, false, (uint32)FIGHT_CTRL_FIGHT_IDLE_TIME }, TASK_SECONDARY_ATTACK);
+    auto& tm      = ped->GetTaskManager();
+    int32 command = 0;
+    if (!tm.GetTaskSecondary(TASK_SECONDARY_ATTACK)) { // 0x62A146
+        tm.SetTaskSecondary(new CTaskSimpleFight{ m_target, false, (uint32)FIGHT_CTRL_FIGHT_IDLE_TIME }, TASK_SECONDARY_ATTACK);
         m_nextAttackTime = 0;
-    }
-
-    const auto pedFightTask = ped->GetTaskManager().GetTaskSecondary(TASK_SECONDARY_ATTACK);
-    if (pedFightTask->GetTaskType() != TASK_SIMPLE_FIGHT) {
-        pedFightTask->MakeAbortable(ped);
+    } else if (!notsa::isa<CTaskSimpleFight>(tm.GetTaskSecondary(TASK_SECONDARY_ATTACK))) { // 0x62A1B7
+        tm.GetTaskSecondary(TASK_SECONDARY_ATTACK)->MakeAbortable(ped, ABORT_PRIORITY_URGENT, nullptr);
         return false;
+    } else if (m_nextAttackTime > CTimer::GetTimeInMS()) { // 0x62A21D
+        if (m_target->GetIsTypePed() && !m_someTime && CGeneral::GetRandomNumberInRange(0.f, 100.f) < 2.f * shootingRate * 0.025f) {
+            m_someTime = CGeneral::GetRandomNumberInRange(500, 2000, true);
+            command    = 2;
+        } else if (m_someTime) { // 0x62A270
+            const auto stepMs = (uint32)CTimer::GetTimeStepInMS();
+            m_someTime        = m_someTime > stepMs ? m_someTime - stepMs : 0;
+            command           = 2;
+        }
+    } else { // 0x62A1E1
+        m_nextAttackTime = 0;
+        command          = ped->m_nFightingStyle != STYLE_STANDARD && ped->GetActiveWeapon().GetType() == WEAPON_UNARMED ? 12 : 11;
     }
 
-    if (m_nextAttackTime <= CTimer::GetTimeInMS()) {
-        m_nextAttackTime = 0;
+    auto* const tFight = notsa::cast<CTaskSimpleFight>(tm.GetTaskSecondary(TASK_SECONDARY_ATTACK));
+    m_maxAttackRange   = tFight->GetComboData().m_fRanges;
+    if (!m_nextAttackTime) { // 0x62A2DC
+        const auto delay = CGeneral::GetRandomNumberInRange(0.25f, 1.25f) / (shootingRate * m_unk3 * 0.025f * 0.7f + 0.3f) * (float)FIGHT_CTRL_ATTACK_DELAY_MS;
+        m_nextAttackTime = CTimer::GetTimeInMS() + (uint32)delay;
     }
-    */
+    if (tFight->m_nComboSet <= MELEE_COMBO_MOVE) { // 0x62A33D
+        if (const auto moveCommand = CalcMoveCommand(ped); moveCommand > -1) {
+            command = moveCommand;
+        }
+    }
+    tFight->ControlFight(m_target, (uint8)command);
+    return false;
 }
