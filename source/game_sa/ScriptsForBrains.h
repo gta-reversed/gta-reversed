@@ -18,9 +18,9 @@ enum eScriptBrainType : int8 {
     SCRIPT_BRAIN_TYPE_PED_STREAMED           = 0,  //!< ALLOCATE_STREAMED_SCRIPT_TO_RANDOM_PED
     SCRIPT_BRAIN_TYPE_OBJECT_STREAMED        = 1,  //!< ALLOCATE_STREAMED_SCRIPT_TO_OBJECT
     SCRIPT_BRAIN_TYPE_PED_GENERATOR_STREAMED = 2,
-    SCRIPT_BRAIN_TYPE_CODE_PED               = 3,  //!< REGISTER_SCRIPT_BRAIN_FOR_CODE_USE
+    SCRIPT_BRAIN_TYPE_CODE_PED               = 3, //!< REGISTER_SCRIPT_BRAIN_FOR_CODE_USE
     SCRIPT_BRAIN_TYPE_CODE_OBJECT            = 4,
-    SCRIPT_BRAIN_TYPE_CODE_ATTRACTOR_PED     = 5,  //!< REGISTER_ATTRACTOR_SCRIPT_BRAIN_FOR_CODE_USE
+    SCRIPT_BRAIN_TYPE_CODE_ATTRACTOR_PED     = 5, //!< REGISTER_ATTRACTOR_SCRIPT_BRAIN_FOR_CODE_USE
 };
 
 //! Value of `CObject::objectFlags.b0x100000_0x200000`
@@ -32,7 +32,7 @@ enum eObjectScriptBrainStatus : uint8 {
 };
 
 struct tScriptForBrains {
-    int16 m_StreamedScriptIndex{ -1 }; /// SCM ID for `CStreaming` (Translated using SCMToModelId)
+    int16 m_StreamedScriptIndex{ -1 };             /// SCM ID for `CStreaming` (Translated using SCMToModelId)
     int8  m_TypeOfBrain{ SCRIPT_BRAIN_TYPE_NONE }; //!< See `eScriptBrainType`
     int8  m_ObjectGroupingId{ -1 };
     bool  m_IsBrainActive{ true };

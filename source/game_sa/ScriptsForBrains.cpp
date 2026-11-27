@@ -101,7 +101,7 @@ bool CScriptsForBrains::HasAttractorScriptBrainWithThisNameLoaded(const char* na
 
 // 0x46B270
 void CScriptsForBrains::StartNewStreamedScriptBrain(uint8 index, CEntity* entity, bool useAttractorInstantly) {
-    const auto& brain = m_aScriptForBrains[index];
+    const auto& brain  = m_aScriptForBrains[index];
 
     auto* const script = CTheScripts::StreamedScripts.StartNewStreamedScript(brain.m_StreamedScriptIndex);
     if (notsa::bugfixes::GenericCrashing && !script) {
@@ -113,7 +113,7 @@ void CScriptsForBrains::StartNewStreamedScriptBrain(uint8 index, CEntity* entity
     case SCRIPT_BRAIN_TYPE_PED_STREAMED:
     case SCRIPT_BRAIN_TYPE_CODE_PED:
     case SCRIPT_BRAIN_TYPE_CODE_ATTRACTOR_PED: { // 0x46B2AB
-        auto* const ped = entity->AsPed();
+        auto* const ped               = entity->AsPed();
 
         script->m_LocalVars[0].iParam = GetPedPool()->GetRef(ped);
         ped->bHasAScriptBrain         = true;
@@ -126,8 +126,8 @@ void CScriptsForBrains::StartNewStreamedScriptBrain(uint8 index, CEntity* entity
         break;
     }
     case SCRIPT_BRAIN_TYPE_OBJECT_STREAMED:
-    case SCRIPT_BRAIN_TYPE_CODE_OBJECT: { // 0x46B32A
-        auto* const obj = entity->AsObject();
+    case SCRIPT_BRAIN_TYPE_CODE_OBJECT:     { // 0x46B32A
+        auto* const obj                     = entity->AsObject();
 
         script->m_LocalVars[0].iParam       = GetObjectPool()->GetRef(obj);
         obj->objectFlags.b0x100000_0x200000 = OBJECT_SCRIPT_BRAIN_RUNNING;
@@ -167,7 +167,7 @@ void CScriptsForBrains::StartOrRequestNewStreamedScriptBrain(uint8 index, CEntit
         }
         switch (brainType) {
         case SCRIPT_BRAIN_TYPE_PED_STREAMED:
-        case SCRIPT_BRAIN_TYPE_CODE_PED: { // 0x46CDB8
+        case SCRIPT_BRAIN_TYPE_CODE_PED:     { // 0x46CDB8
             const auto* const ped = entity->AsPed();
             if (ped->bHasAScriptBrain || ped->bWaitingForScriptBrainToLoad) {
                 return;
@@ -175,7 +175,7 @@ void CScriptsForBrains::StartOrRequestNewStreamedScriptBrain(uint8 index, CEntit
             break;
         }
         case SCRIPT_BRAIN_TYPE_OBJECT_STREAMED:
-        case SCRIPT_BRAIN_TYPE_CODE_OBJECT: { // 0x46CDD6
+        case SCRIPT_BRAIN_TYPE_CODE_OBJECT:     { // 0x46CDD6
             if (entity->AsObject()->objectFlags.b0x100000_0x200000 != OBJECT_SCRIPT_BRAIN_NONE) {
                 return;
             }
@@ -205,13 +205,13 @@ void CScriptsForBrains::StartOrRequestNewStreamedScriptBrain(uint8 index, CEntit
     CStreaming::RequestModel(scriptModel, STREAMING_MISSION_REQUIRED);
 
     switch (brainType) {
-    case SCRIPT_BRAIN_TYPE_CODE_OBJECT: // 0x46CE7C
+    case SCRIPT_BRAIN_TYPE_CODE_OBJECT:    // 0x46CE7C
         if (notsa::bugfixes::GenericOOB) { // The original writes the ped fields below into the object
             break;
         }
         [[fallthrough]];
     case SCRIPT_BRAIN_TYPE_PED_STREAMED:
-    case SCRIPT_BRAIN_TYPE_CODE_PED: { // 0x46CE80
+    case SCRIPT_BRAIN_TYPE_CODE_PED:     { // 0x46CE80
         if (!isFirstTime) {
             break;
         }
