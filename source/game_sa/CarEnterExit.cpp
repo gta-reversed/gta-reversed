@@ -736,11 +736,7 @@ bool CCarEnterExit::SetPedInCarDirect(CPed* ped, CVehicle* vehicle, int32 doorId
     }
 
     // Warp ped into vehicle
-    {
-        CTaskSimpleCarSetPedInAsPassenger task{ vehicle, (eTargetDoor)doorId };
-        task.m_bWarpingInToCar = true;
-        task.ProcessPed(ped);
-    }
+    CTaskSimpleCarSetPedInAsPassenger{ vehicle, (eTargetDoor)doorId, true }.ProcessPed(ped);
 
     if (vehicle->IsBike()) {
         ped->GetTaskManager().SetTask(new CTaskComplexCarDrive{ vehicle, false }, TASK_PRIMARY_PRIMARY);
