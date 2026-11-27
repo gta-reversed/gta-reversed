@@ -30,6 +30,7 @@ public:
     CVehicle*      GetCameraAvoidVehicle();
 
     auto GetTargetCar() const { return m_Car; }
+    auto GetEnterCarStartTime() const { return m_EnterCarStartTime; }
     void SetMoveState(eMoveState ms) { m_MoveState = ms; }
 protected:
     virtual CTask* CreateNextSubTask_AfterSimpleCarAlign(CPed* ped);
