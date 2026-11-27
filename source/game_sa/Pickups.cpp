@@ -82,7 +82,7 @@ void CPickups::Init() {
     }
     ms_PickUpsCollected.fill(0);
     ms_CollectedPickUpIndex = 0u;
-    ms_DisplayHelpMessage = 10u;
+    ms_DisplayHelpMessage   = 10u;
 }
 
 // 0x456E60
@@ -154,7 +154,7 @@ void CPickups::CreateSomeMoney(CVector coors, int32 amount) {
     const auto wads = std::min(amount / 20 + 1, 7);
     const auto perWad = amount / wads;
 
-    CVector pos = coors;
+    CVector pos       = coors;
     for (auto i = 0; i < wads; i++) {
         // NOTE: Each coordinate gets its own random angle, quantized to 256 steps
         pos.x += std::sin((float)(CGeneral::GetRandomNumber() & 0xFF) * PICKUP_ANGLE_STEP) * 1.5f;
@@ -183,7 +183,7 @@ void CPickups::DoCollectableEffects(CEntity* entity) {
 
     if (const auto d = DistanceBetweenPoints(TheCamera.GetPosition(), entityPos); d < 14.0f) {
         // shade of gray
-        const auto t = (uint8)((std::sinf((float)(((uint16)std::bit_cast<uintptr_t>(entity) + (uint16)CTimer::GetTimeInMS()) % 2048) * 0.0030664064f) + 1.0f) * 0.5f * (14.0f - d) * (1.0f / 14.0f) * 255.0f);
+        const auto t = (uint8)((std::sinf((float)(((uint16)std::bit_cast<uintptr_t>(entity) + (uint16)CTimer::GetTimeInMS()) % 2'048) * 0.0030664064f) + 1.0f) * 0.5f * (14.0f - d) * (1.0f / 14.0f) * 255.0f);
 
         CShadows::StoreStaticShadow(
             (uint32)entity,
@@ -382,17 +382,17 @@ void CPickups::DoPickUpEffects(CEntity* entity) {
         CVector    screenPos{};
         float      width{}, height{};
         if (distToCam < 14.f && ms_NumMessages < MAX_PICKUP_MESSAGES && CSprite::CalcScreenCoors(object->GetPosition() + CVector{ 0.f, 0.f, 0.7f }, &screenPos, &width, &height, true, true)) {
-            const auto& colour = ms_PickupColours.data()[colourIdx]; // NOTE: Not `[]`, the index may be out of range (See above)
+            const auto& colour     = ms_PickupColours.data()[colourIdx]; // NOTE: Not `[]`, the index may be out of range (See above)
 
-            auto& msg                   = ms_Messages[ms_NumMessages];
-            msg.pos                     = CVector2D{ screenPos };
-            msg.width                   = width;
-            msg.height                  = height;
-            msg.weaponType              = WeaponForModel(mi);
-            msg.color                   = CRGBA{ colour.r, colour.g, colour.b, (uint8)((1.f - distToCam * (1.f / 14.f)) * 255.f) };
-            msg.flags.IsOutOfStock      = object->objectFlags.bPickupInShopOutOfStock;
-            msg.bonus                   = object->m_nBonusValue;
-            msg.price                   = object->m_wCostValue * 5u;
+            auto& msg              = ms_Messages[ms_NumMessages];
+            msg.pos                = CVector2D{ screenPos };
+            msg.width              = width;
+            msg.height             = height;
+            msg.weaponType         = WeaponForModel(mi);
+            msg.color              = CRGBA{ colour.r, colour.g, colour.b, (uint8)((1.f - distToCam * (1.f / 14.f)) * 255.f) };
+            msg.flags.IsOutOfStock = object->objectFlags.bPickupInShopOutOfStock;
+            msg.bonus              = object->m_nBonusValue;
+            msg.price              = object->m_wCostValue * 5u;
             if (mi == MI_PICKUP_PROPERTY) { // 0x455B61
                 msg.text                    = TheText.Get(CPickup::FindStringForTextIndex((ePickupPropertyText)pickup->m_nFlags.nPropertyTextIndex));
                 msg.flags.IsPropertyForSale = false;
@@ -408,19 +408,19 @@ void CPickups::DoPickUpEffects(CEntity* entity) {
     }
 
     // 0x455C07 - Spin it, and scale it up if it's small
-    const auto& bb      = object->GetModelInfo()->GetColModel()->GetBoundingBox();
-    const auto  bbSize  = bb.GetSize();
-    const auto  scale   = mi == MODEL_MINIGUN
+    const auto& bb        = object->GetModelInfo()->GetColModel()->GetBoundingBox();
+    const auto  bbSize    = bb.GetSize();
+    const auto  scale     = mi == MODEL_MINIGUN
         ? 1.2f
         : (std::max(1.2f / std::max({ bbSize.x, bbSize.y, bbSize.z }), 1.f) - 1.f) * 0.6f + 1.f;
-    const auto  angle   = (float)(CTimer::GetTimeInMS() % 2048) * 0.0030566407f;
+    const auto  angle     = (float)(CTimer::GetTimeInMS() % 2'048) * 0.0030566407f;
     const auto  cosScaled = std::cos(angle) * scale;
     const auto  sinScaled = std::sin(angle) * scale;
 
-    auto& mat        = object->GetMatrix();
-    mat.GetRight()   = CVector{ cosScaled, sinScaled, 0.f };
-    mat.GetForward() = CVector{ -sinScaled, cosScaled, 0.f };
-    mat.GetUp()      = CVector{ 0.f, 0.f, scale };
+    auto& mat             = object->GetMatrix();
+    mat.GetRight()        = CVector{ cosScaled, sinScaled, 0.f };
+    mat.GetForward()      = CVector{ -sinScaled, cosScaled, 0.f };
+    mat.GetUp()           = CVector{ 0.f, 0.f, scale };
 }
 
 // 0x4551C0
@@ -473,7 +473,7 @@ int32 CPickups::GetActualPickupIndex(tPickupReference pickupRef) {
 // 0x456A30
 tPickupReference CPickups::GetNewUniquePickupIndex(int32 pickupIndex) {
     auto& refIdx = aPickUps[pickupIndex].m_nReferenceIndex;
-    refIdx = (uint16)refIdx >= 0xFFFE ? 1 : refIdx + 1; // NOTE: The original treats it as unsigned, so -2 and -1 wrap to 1
+    refIdx       = (uint16)refIdx >= 0xFFFE ? 1 : refIdx + 1; // NOTE: The original treats it as unsigned, so -2 and -1 wrap to 1
 
     return GetUniquePickupIndex(pickupIndex);
 }
@@ -839,9 +839,9 @@ void CPickups::Update() {
         CollectPickupBuffer = 0;
     }
 
-    auto& player1TaskMgr = FindPlayerPed(PED_TYPE_PLAYER1)->GetTaskManager();
-    const auto canP1Collect = !player1TaskMgr.Find<CTaskComplexEnterCarAsDriver>(false) && !player1TaskMgr.Find<CTaskComplexUseMobilePhone>(false);
-    const auto canP2Collect = FindPlayerPed(PED_TYPE_PLAYER2) && canP1Collect; // NOTE: The original checks player 1's tasks for player 2 too
+    auto&      player1TaskMgr = FindPlayerPed(PED_TYPE_PLAYER1)->GetTaskManager();
+    const auto canP1Collect   = !player1TaskMgr.Find<CTaskComplexEnterCarAsDriver>(false) && !player1TaskMgr.Find<CTaskComplexUseMobilePhone>(false);
+    const auto canP2Collect   = FindPlayerPed(PED_TYPE_PLAYER2) && canP1Collect; // NOTE: The original checks player 1's tasks for player 2 too
 
     start = 620 * (CTimer::GetFrameCounter() % 6) / 6;
     end   = 620 * (CTimer::GetFrameCounter() % 6 + 1) / 6;
@@ -934,8 +934,9 @@ bool CPickups::Save() {
 void ModifyStringLabelForControlSetting(char* stringLabel) {
     const auto len = strlen(stringLabel);
 
-    if (len <= 2 || stringLabel[len - 2] != '_')
+    if (len <= 2 || stringLabel[len - 2] != '_') {
         return;
+    }
 
     switch (CPad::GetPad(0)->Mode) {
     case 0:

@@ -514,8 +514,8 @@ bool CPickup::Update(CPlayerPed* player, CVehicle* vehicle, int32 playerId) {
                                     } else if (mi == MI_PICKUP_CAMERA && vehicle) {
                                         AudioEngine.ReportFrontendAudioEvent(AE_FRONTEND_PICKUP_INFO);
                                         CPickups::ms_PickUpCamActivated = true;
-                                        CPickups::ms_PlayerVehicle = FindPlayerVehicle();
-                                        CPickups::ms_StaticCamCoors = m_pObject->GetPosition();
+                                        CPickups::ms_PlayerVehicle      = FindPlayerVehicle();
+                                        CPickups::ms_StaticCamCoors     = m_pObject->GetPosition();
                                         CPickups::ms_StaticCamStartTime = CTimer::GetTimeInMS();
 
                                         SetPickupRegenTimeAndDisable(CPickups::ms_StaticCamStartTime);

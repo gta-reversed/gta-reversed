@@ -21,10 +21,10 @@ public:
     struct {
         uint8 IsOutOfStock : 1;      //!< 0x1
         uint8 IsPropertyForSale : 1; //!< 0x2 - The price is inserted into the text
-    } flags{};                        //!< 0x18
-    uint8          bonus{};            //!< 0x19 - Bonus value of the pickup
-    uint32         price{};            //!< 0x1C
-    const GxtChar* text{};             //!< 0x20
+    } flags{};                       //!< 0x18
+    uint8          bonus{};          //!< 0x19 - Bonus value of the pickup
+    uint32         price{};          //!< 0x1C
+    const GxtChar* text{};           //!< 0x20
 };
 
 VALIDATE_SIZE(tPickupMessage, 0x24);

@@ -86,8 +86,8 @@ public:
     static void Update();
     static void UpdateMoneyPerDay(tPickupReference pickupRef, uint16 money);
     static eWeaponType WeaponForModel(int32 modelId);
-    static bool Load();
-    static bool Save();
+    static bool             Load();
+    static bool             Save();
 
     // Helpers NOTSA
 
