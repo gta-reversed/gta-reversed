@@ -42,7 +42,7 @@ private:
     ePatrolRouteModeS16 m_Mode{};
     int16         m_RouteTraversals{};
     eMoveStateS16 m_MoveState{};
-    int16         m_Progress{}; //!< Index of the route point the ped is going to
+    int16               m_Progress{}; //!< Index of the route point the ped is going to
     float         m_TargetRadius{};
     float         m_SlowDownDistance{};
     CPatrolRoute* m_Route{};
