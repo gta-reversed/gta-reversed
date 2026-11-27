@@ -57,9 +57,6 @@ public:
     static void InjectHooks();
 
 private:
-    CQuadBike* Constructor(int32 modelIndex, eVehicleCreatedBy createdBy);
-
-private:
     tBikeHandlingData* m_BikeHandling{};
     CRideAnimData      m_RideAnimData{ ANIM_GROUP_QUAD };
     float              field_9A8[4]{}; // unused

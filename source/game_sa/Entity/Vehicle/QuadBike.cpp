@@ -28,11 +28,6 @@ CQuadBike::CQuadBike(int32 modelIndex, eVehicleCreatedBy createdBy) :
     m_fSteerAngle = 0.0f;
 }
 
-CQuadBike* CQuadBike::Constructor(int32 modelIndex, eVehicleCreatedBy createdBy) {
-    this->CQuadBike::CQuadBike(modelIndex, createdBy);
-    return this;
-}
-
 // 0x6CE2B0
 void CQuadBike::Fix() {
     for (auto i = 2; i < 6; i++) { // from DOOR_LEFT_FRONT to MAX_DOORS
@@ -294,7 +289,7 @@ void CQuadBike::InjectHooks() {
     RH_ScopedVirtualClass(CQuadBike, 0x871ae8, 71);
     RH_ScopedCategory("Vehicle");
 
-    RH_ScopedInstall(Constructor, 0x6CE370);
+    RH_ScopedConstructorInstall(0x6CE370, "1", {}, int32, eVehicleCreatedBy);
     RH_ScopedVMTInstall(Fix, 0x6CE2B0);
     RH_ScopedVMTInstall(GetRideAnimData, 0x6CDC90);
     RH_ScopedVMTInstall(PreRender, 0x6CEAD0);
