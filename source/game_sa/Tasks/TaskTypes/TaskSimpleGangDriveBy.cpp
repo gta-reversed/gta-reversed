@@ -133,11 +133,11 @@ void CTaskSimpleGangDriveBy::SetupStaticAnimForNPC(CPed* ped) {
     const CVector toTarget = m_pTargetEntity
         ? m_pTargetEntity->GetMatrix().TransformPoint(m_vecCoords) - ped->GetPosition()
         : m_vecCoords - ped->GetPosition();
-    const float dist  = toTarget.Magnitude();
-    const float angle = CGeneral::LimitRadianAngle(CVector2D{ toTarget }.Heading() - ped->m_pVehicle->GetHeading());
+    const float   dist     = toTarget.Magnitude();
+    const float   angle    = CGeneral::LimitRadianAngle(CVector2D{ toTarget }.Heading() - ped->m_pVehicle->GetHeading());
 
-    m_bInRangeToShoot = false;
-    m_bInWeaponRange  = dist < range;
+    m_bInRangeToShoot      = false;
+    m_bInWeaponRange       = dist < range;
     if (!m_bReachedAbortRange) {
         if (dist < m_fAbortRange) {
             m_bReachedAbortRange = true;
