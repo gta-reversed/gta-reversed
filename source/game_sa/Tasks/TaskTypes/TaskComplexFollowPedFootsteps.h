@@ -2,6 +2,7 @@
 
 #include "TaskComplex.h"
 #include "Ped.h"
+#include "Enums/eMoveState.h"
 
 class CPointRoute;
 
@@ -13,7 +14,7 @@ public:
     ~CTaskComplexFollowPedFootsteps() override;
 
     CTask* Clone() const override {
-        return new CTaskComplexFollowPedFootsteps(m_targetPed);
+        return new CTaskComplexFollowPedFootsteps(m_TargetPed);
     }
     eTaskType      GetTaskType() const override { return Type; }
     bool           MakeAbortable(CPed* ped, eAbortPriority priority = ABORT_PRIORITY_URGENT, const CEvent* event = nullptr) override { return m_pSubTask->MakeAbortable(ped, priority, event); }
@@ -22,15 +23,16 @@ public:
     CTask*         ControlSubTask(CPed* ped) override;
     virtual CTask* CreateSubTask(eTaskType taskType, CPed* ped);
 
-public:
+    auto GetTargetPed() const { return m_TargetPed.Get(); }
+
     static void InjectHooks();
 
-public:
-    CPed::Ref    m_targetPed{};
-    uint32       m_subTaskCreateCheckTimer{};
-    uint32       m_lineOfSightCheckTimer{};
-    CPointRoute* m_pointRoute{};
-    int16        m_moveState{ PEDMOVE_WALK };
-    uint8        m_updateGoToPoint : 1 {};
+private:
+    CPed::Ref     m_TargetPed{};
+    uint32        m_SubTaskCreateCheckTimer{}; //!< Last time a footstep of the target was recorded
+    uint32        m_LineOfSightCheckTimer{};
+    CPointRoute*  m_PointRoute{}; //!< The target's recorded footsteps
+    eMoveStateS16 m_MoveState{ PEDMOVE_WALK };
+    bool          m_HasLineOfSight : 1 {}; //!< Result of the last line of sight check to the target
 };
 VALIDATE_SIZE(CTaskComplexFollowPedFootsteps, 0x20);
