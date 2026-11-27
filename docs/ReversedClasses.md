@@ -1,17 +1,17 @@
 # Reimplementation progress (*): 92%
 This file is updated automatically every time the `hooks.json` file is updated (which happens every time there are changes to hooks made by a commit), and shows the current progress of reversed categories in the project.
 
-Last update was at Nov 26, 2026 at 23:10:47 UTC
-(Triggered by commit [b2faec5b](https://github.com/gta-reversed/gta-reversed/commit/b2faec5bce0226a0f156cf3f60b95e20f3ef8ffd))
+Last update was at Nov 27, 2026 at 00:08:44 UTC
+(Triggered by commit [fdebfac9](https://github.com/gta-reversed/gta-reversed/commit/fdebfac9c7f1c631befa58b1472f5cfe6ee0efe7))
 
 ## (*) Disclaimers
 **The progress** is based on the number of functions we have documented and reimplemented, so it might not completely reflect the actual progress, it's meant to be a rough estimate.
 
 **The percentages and the number of categories** shown here may not be completely accurate, because not all categories and functions are documented yet.
 
-## Stats (8178 out of 8903 functions done in 797 categories)
+## Stats (8191 out of 8906 functions done in 797 categories)
 
-#### Completely reversed categories (655/797) [82%]
+#### Completely reversed categories (659/797) [83%]
 
 <details>
 <summary>See list of categories</summary>
@@ -368,6 +368,7 @@ Last update was at Nov 26, 2026 at 23:10:47 UTC
 - CTaskComplexFollowPointRoute (13)<br />
 - CTaskComplexGangLeader (13)<br />
 - CTaskComplexGetOnBoatSeat (8)<br />
+- CTaskComplexGoToAttractor (8)<br />
 - CTaskComplexGoToBoatSteeringWheel (6)<br />
 - CTaskComplexGoToCarDoorAndStandStill (11)<br />
 - CTaskComplexGoToPointAiming (8)<br />
@@ -535,14 +536,17 @@ Last update was at Nov 26, 2026 at 23:10:47 UTC
 - CTaskComplexEnterCarAsDriverTimed (9)<br />
 - CTaskComplexEnterCarAsPassenger (4)<br />
 - CTaskComplexEnterCarAsPassengerTimed (9)<br />
+- CTaskComplexEnterCarAsPassengerWait (8)<br />
 - CTaskSimpleNone (5)<br />
 - CTaskSimpleThrowProjectile (9)<br />
 - CTaskSimpleGoToPoint (6)<br />
 - CTaskComplexWanderMedic (5)<br />
 - CTaskSimpleCarDriveTimed (5)<br />
+- CTaskComplexCarDriveWander (6)<br />
 - CTaskSimpleStealthKill (7)<br />
 - CTaskSimpleAnim (1)<br />
 - CTaskSimpleRunAnim (5)<br />
+- CTaskComplexWanderProstitute (5)<br />
 - CTaskComplexPartnerGreet (7)<br />
 - CTaskComplexMedicTreatInjuredPed (9)<br />
 - CTaskSimplePlayHandSignalAnim (2)<br />
@@ -673,7 +677,7 @@ Last update was at Nov 26, 2026 at 23:10:47 UTC
 
 </details>
 
-#### Partially reversed categories (130/797) [16%]
+#### Partially reversed categories (126/797) [16%]
 
 <details>
 <summary>See list of categories</summary>
@@ -736,7 +740,6 @@ Last update was at Nov 26, 2026 at 23:10:47 UTC
 - CTaskComplexDestroyCarArmed (9/10) [90%]<br />
 - CTaskComplexFollowPatrolRoute (5/9) [56%]<br />
 - CTaskComplexGangJoinRespond (3/7) [43%]<br />
-- CTaskComplexGoToAttractor (2/5) [40%]<br />
 - CTaskComplexGoToPointAnyMeans (5/7) [71%]<br />
 - CTaskComplexKillCriminal (9/11) [82%]<br />
 - CTaskComplexKillPedOnFootArmed (9/11) [82%]<br />
@@ -766,12 +769,9 @@ Last update was at Nov 26, 2026 at 23:10:47 UTC
 - CTaskComplexBeInCouple (7/9) [78%]<br />
 - CTaskSimpleCarSetPedInAsPassenger (5/6) [83%]<br />
 - CTaskComplexWalkRoundObject (5/8) [62%]<br />
-- CTaskComplexEnterCarAsPassengerWait (4/8) [50%]<br />
 - CTaskComplexKillPedOnFoot (3/8) [38%]<br />
-- CTaskComplexCarDriveWander (4/6) [67%]<br />
 - CTaskSimpleCarSetPedOut (5/7) [71%]<br />
 - CTaskComplexWanderCriminal (4/6) [67%]<br />
-- CTaskComplexWanderProstitute (4/5) [80%]<br />
 - CTaskComplexWalkRoundCar (9/13) [69%]<br />
 - CTaskComplexKillPedFromBoat (3/7) [43%]<br />
 - CTaskComplexLeaveCar (6/11) [55%]<br />

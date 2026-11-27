@@ -26066,28 +26066,43 @@
   },
   {
     "Category": "CTaskComplexGoToAttractor",
-    "Name": "Constructor",
+    "Name": "Constructor-1",
     "IsReversed": true
   },
   {
     "Category": "CTaskComplexGoToAttractor",
-    "Name": "Destructor",
+    "Name": "Desructor",
     "IsReversed": true
   },
   {
     "Category": "CTaskComplexGoToAttractor",
     "Name": "Clone",
-    "IsReversed": false
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexGoToAttractor",
+    "Name": "GetTaskType",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexGoToAttractor",
+    "Name": "MakeAbortable",
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexGoToAttractor",
     "Name": "CreateNextSubTask",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexGoToAttractor",
     "Name": "CreateFirstSubTask",
-    "IsReversed": false
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexGoToAttractor",
+    "Name": "ControlSubTask",
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexGoToBoatSteeringWheel",
@@ -33111,18 +33126,18 @@
   },
   {
     "Category": "CTaskComplexEnterCarAsPassengerWait",
-    "Name": "Constructor",
+    "Name": "Constructor-0",
     "IsReversed": true
   },
   {
     "Category": "CTaskComplexEnterCarAsPassengerWait",
-    "Name": "Destructor",
+    "Name": "Desructor",
     "IsReversed": true
   },
   {
     "Category": "CTaskComplexEnterCarAsPassengerWait",
     "Name": "CreateSubTask",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexEnterCarAsPassengerWait",
@@ -33137,17 +33152,17 @@
   {
     "Category": "CTaskComplexEnterCarAsPassengerWait",
     "Name": "CreateNextSubTask",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexEnterCarAsPassengerWait",
     "Name": "CreateFirstSubTask",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexEnterCarAsPassengerWait",
     "Name": "ControlSubTask",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskSimpleNone",
@@ -33362,12 +33377,12 @@
   {
     "Category": "CTaskComplexCarDriveWander",
     "Name": "SetUpCar",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexCarDriveWander",
     "Name": "CreateSubTaskCannotGetInCar",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskSimpleStealthKill",
@@ -33522,7 +33537,7 @@
   {
     "Category": "CTaskComplexWanderProstitute",
     "Name": "ScanForStuff",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexPartnerGreet",
