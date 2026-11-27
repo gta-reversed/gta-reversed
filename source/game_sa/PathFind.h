@@ -298,8 +298,7 @@ public:
     bool TestForPedTrafficLight(CNodeAddress startNodeAddress, CNodeAddress targetNodeAddress);
     bool TestCrossesRoad(CNodeAddress startNodeAddress, CNodeAddress targetNodeAddress);
     bool GeneratePedCreationCoors_Interior(float x, float y, CVector* outCoords, CNodeAddress* unused1, CNodeAddress* unused2, float* outOrientation);
-    void GeneratePedCreationCoors(float x, float y, float minDist1, float maxDist1, float minDist2, float maxDist2, CVector* outCoords, CNodeAddress* outAddress1,
-                                  CNodeAddress* outAddress2, float* outOrientation, bool bLowTraffic, CMatrix* transformMatrix);
+    bool         GeneratePedCreationCoors(float x, float y, float minDist1, float maxDist1, float minDist2, float maxDist2, CVector* outCoords, CNodeAddress* outAddress1, CNodeAddress* outAddress2, float* outOrientation, bool bLowTraffic, CMatrix* transformMatrix);
     CNodeAddress FindNodeClosestToCoors(CVector pos, ePathType nodeType = PATH_TYPE_PED, float maxDistance = 999999.88f, uint16 unk2 = 1, int32 unk3 = 0, uint16 unk4 = 0,
                                          uint16 bBoatsOnly = 0, int32 unk6 = 0);
     void MarkRoadNodeAsDontWander(float x, float y, float z);
