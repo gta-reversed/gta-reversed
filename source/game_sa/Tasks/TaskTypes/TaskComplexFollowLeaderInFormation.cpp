@@ -76,10 +76,8 @@ CTask* CTaskComplexFollowLeaderInFormation::CreateSubTask(eTaskType taskType, CP
         auto* const randomMember = membership.GetMember(CGeneral::GetRandomNumberInRange(0, (int32)membership.CountMembers()));
         auto* const lookAtPed    = randomMember == ped ? membership.GetLeader() : randomMember;
         if (lookAtPed && CGeneral::GetRandomNumberInRange(0, 50) == 20) { // 0x69655B
-            const CVector dir = (lookAtPed->GetPosition() - ped->GetPosition()).Normalized();
-
-            // NOTE: Not `dir.Heading()`, the original replaces `y == 0` with a small value here
-            return new CTaskSimpleAchieveHeading{ CGeneral::LimitRadianAngle(CGeneral::GetRadianAngleBetweenPoints(dir.x, dir.y, 0.f, 0.f)) };
+            // NOTE: The original replaces `y == 0` with a small value here (`GetRadianAngleBetweenPoints`)
+            return new CTaskSimpleAchieveHeading{ (lookAtPed->GetPosition() - ped->GetPosition()).Heading() };
         }
         return new CTaskSimpleAchieveHeading{ ped->m_fCurrentRotation }; // 0x69661F
     }
