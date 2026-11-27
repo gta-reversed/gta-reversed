@@ -35,10 +35,18 @@ void CPatrolRoute::Flush() {
     m_Count = 0;
 }
 
+// 0x66D550
+void CPatrolRoute::Reverse() {
+    // NOTE: The original swaps the names with `strcpy`, so only the bytes after the terminators can differ
+    std::reverse(m_Infos, m_Infos + m_Count);
+    std::reverse(m_Positions, m_Positions + m_Count);
+}
+
 void CPatrolRoute::InjectHooks() {
     RH_ScopedClass(CPatrolRoute);
     RH_ScopedCategoryGlobal();
 
     RH_ScopedInstall(operator new, 0x41B810);
     RH_ScopedInstall(operator delete, 0x41B820);
+    RH_ScopedInstall(Reverse, 0x66D550);
 }
