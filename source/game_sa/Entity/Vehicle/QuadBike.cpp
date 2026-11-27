@@ -12,7 +12,7 @@ auto& vecQuadResistance = StaticRef<CVector>(0x8D3458); // { 0.995f, 0.995f, 1.0
 CQuadBike::CQuadBike(int32 modelIndex, eVehicleCreatedBy createdBy) :
     CAutomobile(modelIndex, createdBy, false)
 {
-    m_BikeHandling = gHandlingDataMgr.GetBikeHandlingPointer(GetVehicleModelInfo()->m_nHandlingId);
+    m_BikeHandling    = gHandlingDataMgr.GetBikeHandlingPointer(GetVehicleModelInfo()->m_nHandlingId);
     m_nVehicleSubType = VEHICLE_TYPE_QUAD;
 
     { // unused
@@ -174,7 +174,7 @@ bool CQuadBike::ProcessAI(uint32& extraHandlingFlags) {
                     }
                 }
             }
-            const float fValue = std::pow(m_BikeHandling->m_fDesLean, CTimer::GetTimeStep()); // TODO: Name this variable properly
+            const float fValue       = std::pow(m_BikeHandling->m_fDesLean, CTimer::GetTimeStep()); // TODO: Name this variable properly
             m_RideAnimData.LeanAngle = fValue * m_RideAnimData.LeanAngle - m_BikeHandling->m_fFullAnimLean * m_fSteerAngle / DegreesToRadians(m_pHandlingData->m_fSteeringLock) * (1.0f - fValue);
 
             DoDriveByShootings();
@@ -194,17 +194,17 @@ void CQuadBike::ProcessControl() {
         const auto&   mat            = GetMatrix();
         const CVector localTurnSpeed = mat.InverseTransformVector(m_vecTurnSpeed);
 
-        float pitchResistance = vecQuadResistance.x;
-        float pitchSpeedMult  = 0.995f;
+        float pitchResistance        = vecQuadResistance.x;
+        float pitchSpeedMult         = 0.995f;
         if (m_fWheelsSuspensionCompression[CAR_WHEEL_FRONT_LEFT] == 1.0f && m_fWheelsSuspensionCompression[CAR_WHEEL_FRONT_RIGHT] == 1.0f) { // 0x6CDD43
             const bool isAnyRearWheelOnGround = m_fWheelsSuspensionCompression[CAR_WHEEL_REAR_LEFT] < 1.0f || m_fWheelsSuspensionCompression[CAR_WHEEL_REAR_RIGHT] < 1.0f;
             if (isAnyRearWheelOnGround && mat.GetForward().z > 0.0f) { // 0x6CDD82 - Wheelie
                 pitchResistance -= std::min(0.07f, std::fabs(m_BikeHandling->m_fWheelieAng - mat.GetForward().z) * 0.25f);
-            } else { // 0x6CDDB3
+            } else {                      // 0x6CDDB3
                 pitchResistance = 0.995f; // NOTE: Not `vecQuadResistance.x`
             }
         } else if (m_WheelCounts[CAR_WHEEL_REAR_LEFT] == 1.0f && m_WheelCounts[CAR_WHEEL_REAR_RIGHT] == 1.0f) { // 0x6CDDD4
-            if (mat.GetForward().z < 0.0f) { // 0x6CDDED - Stoppie
+            if (mat.GetForward().z < 0.0f) {                                                                    // 0x6CDDED - Stoppie
                 pitchResistance *= 0.9f + std::min(0.1f, std::fabs(m_BikeHandling->m_fStoppieAng - mat.GetForward().z) * 0.3f);
             }
         } else { // 0x6CDE24
