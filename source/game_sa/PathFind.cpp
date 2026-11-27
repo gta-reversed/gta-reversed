@@ -104,6 +104,8 @@ void CPathFind::InjectHooks() {
     RH_ScopedInstall(Save, 0x5D34C0);
     RH_ScopedInstall(Load, 0x5D3500);
     RH_ScopedInstall(GeneratePedCreationCoors_Interior, 0x44ECA0, { .Reversed = false });
+    RH_ScopedInstall(GeneratePedCreationCoors, 0x44E790, { .Reversed = false });
+    RH_ScopedInstall(TakeWidthIntoAccountForCoors, 0x44DA30);
     RH_ScopedInstall(FindNodeClosestToCoors, 0x44F460, { .Reversed = false });
 }
 
@@ -256,6 +258,21 @@ bool CPathFind::TestCrossesRoad(CNodeAddress startNodeAddress, CNodeAddress targ
 // 0x44ECA0
 bool CPathFind::GeneratePedCreationCoors_Interior(float x, float y, CVector* outCoords, CNodeAddress* unused1, CNodeAddress* unused2, float* outOrientation) {
     return plugin::CallMethodAndReturn<bool, 0x44ECA0>(this, x, y, outCoords, unused1, unused2, outOrientation);
+}
+
+// 0x44E790
+bool CPathFind::GeneratePedCreationCoors(float x, float y, float minDist1, float maxDist1, float minDist2, float maxDist2, CVector* outCoords, CNodeAddress* outAddress1, CNodeAddress* outAddress2, float* outOrientation, bool bLowTraffic, CMatrix* transformMatrix) {
+    return plugin::CallMethodAndReturn<bool, 0x44E790>(this, x, y, minDist1, maxDist1, minDist2, maxDist2, outCoords, outAddress1, outAddress2, outOrientation, bLowTraffic, transformMatrix);
+}
+
+// 0x44DA30
+void CPathFind::TakeWidthIntoAccountForCoors(CNodeAddress address, CNodeAddress address2, uint16 seed, float* fOut1, float* fOut2) {
+    if (!address.IsAreaValid() || !IsAreaNodesAvailable(address) || !address2.IsAreaValid() || !IsAreaNodesAvailable(address2)) {
+        return;
+    }
+    const auto width = (int32)std::min(GetPathNode(address)->m_nPathWidth, GetPathNode(address2)->m_nPathWidth);
+    *fOut1 += (float)(((seed & 0xF) - 7) * width) * 0.00775f;
+    *fOut2 += (float)((((seed >> 4) & 0xF) - 7) * width) * 0.00775f;
 }
 
 // 0x44D480
