@@ -1781,7 +1781,7 @@ void RpAnimBlendClumpUpdateAnimations(RpClump* clump, float timeStep, bool isOnS
             return;
         }
         const auto ah = a->GetHier();
-        if (!ah->GetSequences().data()) { // NOTE: The original checks the pointer, not the count
+        if (ah->GetSequences().empty()) { // NOTE: The original checks the pointer, not the count
             return;
         }
         CAnimManager::UncompressAnimation(ah);
@@ -1798,17 +1798,12 @@ void RpAnimBlendClumpUpdateAnimations(RpClump* clump, float timeStep, bool isOnS
     ctx.BlendNodeArrays[nodesCnt] = nullptr; // Null terminator
 
     // 0x4D35A2 - Update animation's timesteps
-    // NOTE: `CAnimBlendAssociation::UpdateTimeStep` inlined, the original divides by the total time first (different rounding)
+    // NOTE: The original divides the anim's total time by `totalTime` first (different rounding)
+    const auto animTimeMult = totalTime == 0.f
+        ? 1.f
+        : 1.f / totalTime * totalBlendAmnt;
     RpAnimBlendClumpForEachAssociation(clump, [&](CAnimBlendAssociation* a) {
-        if (!a->IsPlaying()) {
-            return;
-        }
-        const auto step = !a->IsSyncronised()
-            ? a->GetSpeed()
-            : totalTime == 0.f
-            ? a->GetHier()->GetTotalTime()
-            : a->GetHier()->GetTotalTime() / totalTime * totalBlendAmnt;
-        a->m_TimeStep   = step * timeStep;
+        a->UpdateTimeStep(timeStep, animTimeMult);
     });
 
     // 0x4D360E - Update all animations's frames
