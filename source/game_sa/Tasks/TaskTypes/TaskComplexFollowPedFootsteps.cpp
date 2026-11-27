@@ -1,6 +1,7 @@
 #include "StdInc.h"
 
 #include "TaskComplexFollowPedFootsteps.h"
+#include <reversiblebugfixes/Bugs.hpp>
 #include "TaskSimpleStandStill.h"
 #include "TaskSimpleHitHead.h"
 #include "TaskSimpleGoToPoint.h"
@@ -155,14 +156,24 @@ CTask* CTaskComplexFollowPedFootsteps::ControlSubTask(CPed* ped) {
         }
     }
 
-    // NOTE: Sums the squared distances of every footstep to the FIRST one (not the length of the trail) and adds the squared distance to the target.
-    //       Not `CVector::DistSqr`: it is 2D on master (its `a - b` picks `CVector2D`'s `operator-`).
-    const CVector firstPoint = (*m_PointRoute)[0];
-    float         trailDistSq{};
-    for (const auto& point : m_PointRoute->GetAll() | rngv::drop(1)) {
-        trailDistSq += (point - firstPoint).SquaredMagnitude();
-    }
-    m_MoveState = (ped->GetPosition() - m_TargetPed->GetPosition()).SquaredMagnitude() + trailDistSq <= sq(WALK_DIST) // 0x69553E
+    const auto IsCloseEnoughToWalk = [&] {
+        if (notsa::bugfixes::CTaskComplexFollowPedFootsteps_ControlSubTask_TrailLength) {
+            float   trailLength{};
+            CVector prevPoint = ped->GetPosition();
+            for (const auto& point : m_PointRoute->GetAll()) {
+                trailLength += (point - prevPoint).Magnitude();
+                prevPoint    = point;
+            }
+            return trailLength + (m_TargetPed->GetPosition() - prevPoint).Magnitude() <= WALK_DIST;
+        }
+        const CVector firstPoint = (*m_PointRoute)[0];
+        float         trailDistSq{};
+        for (const auto& point : m_PointRoute->GetAll() | rngv::drop(1)) {
+            trailDistSq += (point - firstPoint).SquaredMagnitude();
+        }
+        return (ped->GetPosition() - m_TargetPed->GetPosition()).SquaredMagnitude() + trailDistSq <= sq(WALK_DIST);
+    };
+    m_MoveState = IsCloseEnoughToWalk() // 0x69553E
         ? PEDMOVE_WALK
         : PEDMOVE_RUN;
     if (auto* const tGoToPoint = notsa::dyn_cast<CTaskSimpleGoToPoint>(m_pSubTask)) { // 0x69555D

@@ -165,4 +165,9 @@ inline const ReversibleBugFix CTaskComplexSignalAtPed_Constructor_InitialPause{
     .Description = "The original constructor ignores the initial pause argument, so the ped always pauses for a random time between 0 and 2 seconds before signaling. The fix uses the provided initial pause value.",
     .Credit      = "Pirulax"
 };
+inline const ReversibleBugFix CTaskComplexFollowPedFootsteps_ControlSubTask_TrailLength{
+    .Name        = "CTaskComplexFollowPedFootsteps::ControlSubTask - Trail length",
+    .Description = "To choose between walking and running the original sums the squared distances of the footsteps to the first one. The fix uses the length of the way to the target along the footsteps.",
+    .Credit      = "TheReal-Kaze"
+};
 };
