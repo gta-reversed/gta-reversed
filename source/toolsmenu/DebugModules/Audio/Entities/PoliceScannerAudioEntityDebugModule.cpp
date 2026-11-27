@@ -21,13 +21,13 @@ void PoliceScannerAudioEntityDebugModule::RenderWindow() {
         ImGui::Text(vfmt, v);
     };
 
-    KVRow("Volume Offset",       "%f",   CAEPoliceScannerAudioEntity::ms_VolumeOffset);
-    KVRow("Stopping Scanner",    "%d",   CAEPoliceScannerAudioEntity::ms_IsStoppingScanner);
-    KVRow("Play Request",        "0x%p", CAEPoliceScannerAudioEntity::ms_Sound);
-    KVRow("Abort Playback Time", "%u",   CAEPoliceScannerAudioEntity::ms_AbortPlaybackTime);
-    KVRow("Playback Start Time", "%u",   CAEPoliceScannerAudioEntity::ms_PlaybackStartTime);
-    KVRow("Section Playing",     "%d",   CAEPoliceScannerAudioEntity::ms_SectionPlaying);
-    KVRow("Current Slots",       "0x%p", CAEPoliceScannerAudioEntity::ms_CurrentSlots);
+    KVRow("Volume Offset", "%f", CAEPoliceScannerAudioEntity::ms_VolumeOffset);
+    KVRow("Stopping Scanner", "%d", CAEPoliceScannerAudioEntity::ms_IsStoppingScanner);
+    KVRow("Play Request", "0x%p", CAEPoliceScannerAudioEntity::ms_Sound);
+    KVRow("Abort Playback Time", "%u", CAEPoliceScannerAudioEntity::ms_AbortPlaybackTime);
+    KVRow("Playback Start Time", "%u", CAEPoliceScannerAudioEntity::ms_PlaybackStartTime);
+    KVRow("Section Playing", "%d", CAEPoliceScannerAudioEntity::ms_SectionPlaying);
+    KVRow("Current Slots", "0x%p", CAEPoliceScannerAudioEntity::ms_CurrentSlots);
 
     ImGui::TableNextColumn();
     ImGui::Text("Slot State");
@@ -54,11 +54,10 @@ void PoliceScannerAudioEntityDebugModule::RenderWindow() {
     ImGui::TableNextColumn();
     PrintSlots(CAEPoliceScannerAudioEntity::ms_ScannerSlotSecond);
 
-
-    KVRow("PS Controlling",                "0x%p", CAEPoliceScannerAudioEntity::ms_PSControlling);
-    KVRow("Scanner Playback State",        "%d",   CAEPoliceScannerAudioEntity::ms_ScannerPlaybackState);
-    KVRow("Scanner Disabled",              "%d",   CAEPoliceScannerAudioEntity::ms_IsScannerDisabled);
-    KVRow("Next New Scanner DialogueTime", "%u",   CAEPoliceScannerAudioEntity::ms_NextNewScannerDialogueTime);
+    KVRow("PS Controlling", "0x%p", CAEPoliceScannerAudioEntity::ms_PSControlling);
+    KVRow("Scanner Playback State", "%d", CAEPoliceScannerAudioEntity::ms_ScannerPlaybackState);
+    KVRow("Scanner Disabled", "%d", CAEPoliceScannerAudioEntity::ms_IsScannerDisabled);
+    KVRow("Next New Scanner DialogueTime", "%u", CAEPoliceScannerAudioEntity::ms_NextNewScannerDialogueTime);
 
     ImGui::EndTable();
 }
