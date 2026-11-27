@@ -143,8 +143,8 @@ void CConversations::DoneSettingUpConversation(bool suppressSubtitles) {
     conversation->m_SuppressSubtitles         = suppressSubtitles;
     conversation->m_Status                    = CConversationForPed::eStatus::INACTIVE;
 
-    m_SettingUpConversationNumNodes = 0;
-    m_SettingUpConversation         = false;
+    m_SettingUpConversationNumNodes           = 0;
+    m_SettingUpConversation                   = false;
 }
 
 // 0x43A960
