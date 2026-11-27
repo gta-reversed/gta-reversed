@@ -25,7 +25,7 @@ CTaskSimpleChoking::~CTaskSimpleChoking() {
 
 // 0x620480
 void CTaskSimpleChoking::DeleteAnimChokeCB(CAnimBlendAssociation* anim, void* data) {
-    auto* const self = notsa::cast<CTaskSimpleChoking>(static_cast<CTask*>(data));
+    auto* const self   = notsa::cast<CTaskSimpleChoking>(static_cast<CTask*>(data));
 
     self->m_Anim       = nullptr;
     self->m_IsFinished = true;
@@ -75,7 +75,7 @@ bool CTaskSimpleChoking::ProcessPed(CPed* ped) {
     }
 
     const auto timeStepMs = (uint32)CTimer::GetTimeStepInMS();
-    m_TimeRemaining = m_TimeRemaining > timeStepMs
+    m_TimeRemaining       = m_TimeRemaining > timeStepMs
         ? m_TimeRemaining - timeStepMs
         : 0;
 
@@ -83,7 +83,7 @@ bool CTaskSimpleChoking::ProcessPed(CPed* ped) {
         m_Anim = CAnimManager::BlendAnimation(ped->GetRpClump(), ANIM_GROUP_DEFAULT, ANIM_ID_GAS_CWR, 4.f);
         m_Anim->SetFinishCallback(DeleteAnimChokeCB, this);
         m_Anim->SetSpeed(CGeneral::GetRandomNumberInRange(0.75f, 1.f));
-    } else if (!m_TimeRemaining) { // 0x6205A1
+    } else if (!m_TimeRemaining) {                    // 0x6205A1
         if (m_Anim->GetAnimId() == ANIM_ID_GAS_CWR) { // 0x6205B3
             m_Anim->SetDefaultFinishCallback();
             m_Anim = CAnimManager::BlendAnimation(ped->GetRpClump(), ANIM_GROUP_DEFAULT, ANIM_ID_IDLE_TIRED, 4.f);
@@ -91,7 +91,7 @@ bool CTaskSimpleChoking::ProcessPed(CPed* ped) {
 
             // NOTE: The original evaluates the random number twice (`std::min` macro)
             const auto chokedForMs = CTimer::GetTimeInMS() - m_TimeStarted;
-            m_TimeRemaining = chokedForMs < CGeneral::GetRandomNumberInRange<uint32>(8'000, 12'000)
+            m_TimeRemaining        = chokedForMs < CGeneral::GetRandomNumberInRange<uint32>(8'000, 12'000)
                 ? chokedForMs
                 : CGeneral::GetRandomNumberInRange<uint32>(8'000, 12'000);
         } else { // 0x620625
