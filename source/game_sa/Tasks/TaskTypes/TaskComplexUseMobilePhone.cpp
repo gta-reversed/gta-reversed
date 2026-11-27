@@ -57,7 +57,7 @@ bool CTaskComplexUseMobilePhone::MakeAbortable(CPed* ped, eAbortPriority priorit
         return true;
     }
 
-    if (event) { // 0x6349DA
+    if (event) {                                                         // 0x6349DA
         if (event->GetEventType() == EVENT_ON_FIRE && ped->IsPlayer()) { // NOTE: `CEventOnFire` has no `Type`, no `isa` possible
             return true;
         }
@@ -98,7 +98,7 @@ CTask* CTaskComplexUseMobilePhone::CreateNextSubTask(CPed* ped) {
         return nullptr;
     case TASK_SIMPLE_PHONE_OUT: // 0x634B71
         if (!m_IsQuitting && m_IsAborting) {
-            return new CTaskSimplePause{ 1000 };
+            return new CTaskSimplePause{ 1'000 };
         }
         StopUsingPhone();
         return nullptr;
