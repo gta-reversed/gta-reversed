@@ -21,11 +21,11 @@ public:
     static void InjectHooks();
 
 private:
-    CVector m_SlideToPos;
-    float   m_AimingRotation;
-    float   m_Speed;
-    bool    m_IsFirstTime : 1;
-    bool    m_IsRunningAnim : 1;
-    int32   m_EndTime; //!< Game time [ms] when `ProcessPed` gives up, -1 until the timeout starts
+    CVector m_SlideToPos{};
+    float   m_AimingRotation{};
+    float   m_Speed{};
+    bool    m_IsFirstTime : 1 {};
+    bool    m_IsRunningAnim : 1 {};
+    int32   m_EndTime{}; //!< Game time [ms] when `ProcessPed` gives up, -1 until the timeout starts
 };
 VALIDATE_SIZE(CTaskSimpleSlideToCoord, 0x80);
