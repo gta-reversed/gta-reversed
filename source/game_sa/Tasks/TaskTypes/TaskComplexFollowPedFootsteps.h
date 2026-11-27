@@ -31,8 +31,8 @@ private:
     CPed::Ref     m_TargetPed{};
     uint32        m_SubTaskCreateCheckTimer{}; //!< Last time a footstep of the target was recorded
     uint32        m_LineOfSightCheckTimer{};
-    CPointRoute*  m_PointRoute{};              //!< The target's recorded footsteps
+    CPointRoute*  m_PointRoute{}; //!< The target's recorded footsteps
     eMoveStateS16 m_MoveState{ PEDMOVE_WALK };
-    bool          m_HasLineOfSight : 1 {};     //!< Result of the last line of sight check to the target
+    bool          m_HasLineOfSight : 1 {}; //!< Result of the last line of sight check to the target
 };
 VALIDATE_SIZE(CTaskComplexFollowPedFootsteps, 0x20);

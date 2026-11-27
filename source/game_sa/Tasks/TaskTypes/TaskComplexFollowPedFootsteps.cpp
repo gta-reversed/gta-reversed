@@ -6,15 +6,15 @@
 #include "TaskSimpleGoToPoint.h"
 #include "TaskComplexSeekEntityStandard.h"
 
-constexpr auto  CLOSE_DIST               = 1.4f;  // 0x870C20
-constexpr auto  MIN_FOOTSTEP_DIST        = 0.35f; // 0x870C24
-constexpr auto  GO_TO_POINT_RADIUS       = 0.01f; // 0x870C28
-constexpr auto  WALK_DIST                = 3.5f;  // 0x870C2C
-constexpr auto  SEEK_DIST                = 8.f;   // 0x870C38
-constexpr auto  STRAIGHT_LINE_DOT        = 0.95f;
+constexpr auto   CLOSE_DIST              = 1.4f;  // 0x870C20
+constexpr auto   MIN_FOOTSTEP_DIST       = 0.35f; // 0x870C24
+constexpr auto   GO_TO_POINT_RADIUS      = 0.01f; // 0x870C28
+constexpr auto   WALK_DIST               = 3.5f;  // 0x870C2C
+constexpr auto   SEEK_DIST               = 8.f;   // 0x870C38
+constexpr auto   STRAIGHT_LINE_DOT       = 0.95f;
 constexpr uint32 FOOTSTEP_INTERVAL_MS    = 166;
 constexpr uint32 LOS_CHECK_INTERVAL_MS   = 500;
-constexpr int32  HIT_HEAD_STATIC_COUNTER = 30;    // 0x86C938
+constexpr int32  HIT_HEAD_STATIC_COUNTER = 30; // 0x86C938
 
 void CTaskComplexFollowPedFootsteps::InjectHooks() {
     RH_ScopedVirtualClass(CTaskComplexFollowPedFootsteps, 0x870cc0, 12);
@@ -129,7 +129,7 @@ CTask* CTaskComplexFollowPedFootsteps::ControlSubTask(CPed* ped) {
     }
 
     if (CTimer::GetTimeInMS() - m_SubTaskCreateCheckTimer < FOOTSTEP_INTERVAL_MS || m_PointRoute->IsFull()) { // 0x695310
-        if (notsa::isa<CTaskSimpleStandStill>(m_pSubTask) && m_PointRoute->GetSize() > 1) { // 0x695584
+        if (notsa::isa<CTaskSimpleStandStill>(m_pSubTask) && m_PointRoute->GetSize() > 1) {                   // 0x695584
             return TryChangeSubTaskTo(TASK_SIMPLE_GO_TO_POINT);
         }
         return m_pSubTask;
