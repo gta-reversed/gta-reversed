@@ -49,6 +49,11 @@ bool CTaskSimpleFight::ProcessPed(CPed* ped) {
     return plugin::CallMethodAndReturn<bool, 0x629920, CTaskSimpleFight*, CPed*>(this, ped);
 }
 
+// 0x6240B0
+void CTaskSimpleFight::FightStrike(CPed* ped, CVector& posn) {
+    plugin::CallMethod<0x6240B0, CTaskSimpleFight*, CPed*, CVector&>(this, ped, posn);
+}
+
 void CTaskSimpleFight::InjectHooks() {
     RH_ScopedVirtualClass(CTaskSimpleFight, 0x86D684, 9);
     RH_ScopedCategory("Tasks/TaskTypes");

@@ -20,7 +20,7 @@ class NOTSA_EXPORT_VTABLE CTaskSimpleUseGun : public CTaskSimple {
 public:
     static constexpr auto Type = TASK_SIMPLE_USE_GUN;
 
-    CTaskSimpleUseGun(CEntity* targetEntity, CVector vecTarget = {}, eGunCommand nCommand = eGunCommand::AIM, uint16 nBurstLength = 1, bool bAimImmediate = false);
+    CTaskSimpleUseGun(CEntity* targetEntity, CVector targetPos = {}, eGunCommand firstCmd = eGunCommand::AIM, uint16 burstLength = 1, bool isAimImmediate = false);
     ~CTaskSimpleUseGun() override;
 
     CTask* Clone() const override { return new CTaskSimpleUseGun(m_TargetEntity, m_TargetPos, m_LastCmd, m_BurstLength, m_IsAimImmediate); }
@@ -56,17 +56,14 @@ public:
     void Serialize();
 #endif
 
-private:
-    friend void InjectHooksMain();
     static void InjectHooks();
 
-    CTaskSimpleUseGun* Constructor(CEntity* targetEntity, CVector vecTarget, eGunCommand nCommand, uint16 nBurstLength, bool bAimImmediate) {
-        this->CTaskSimpleUseGun::CTaskSimpleUseGun(targetEntity, vecTarget, nCommand, nBurstLength, bAimImmediate);
-        return this;
-    }
+private:
+    void ProcessGunControl(CPed* ped);
+    void ProcessFireAnim(CPed* ped);
 
     CVector                      GetAimTargetPosition(CPed* ped) const;
-    std::pair<CVector, eBoneTag> GetAimLookAtInfo() const;
+    std::pair<CVector, eBoneTag> GetAimLookAtInfo(CPed* ped) const;
 
 public:
     bool                   m_IsFinished{};
@@ -76,6 +73,7 @@ public:
     bool                   m_IsLOSBlocked{};
     bool                   m_IsFiringGunRightHandThisFrame : 1{};
     bool                   m_IsFiringGunLeftHandThisFrame : 1{};
+    bool                   m_UnusedFiringFlags : 6 {};            //!< NOTSA: Only so that the whole byte is zeroed, like the original does (0x61DEA8)
     bool                   m_SkipAim{};                           //!< Don't aim (So no crosshair on HUD, etc)
     eGunCommand            m_NextCmd{};                           //!< Active command
     eGunCommand            m_LastCmd{ eGunCommand::UNKNOWN };     //!< Previous command
@@ -85,7 +83,7 @@ public:
     CAnimBlendAssociation* m_Anim{};                              //!< Animation for the current command (Reloading, Firing, etc)
     CWeaponInfo*           m_WeaponInfo{};                        //!< Ped active weapon's info
     uint16                 m_BurstLength{};                       //!< How many bullets to fire in a burst (For eGunCommand::FIREBURST)
-    uint16                 m_BurstShots{};                        //!< How many bullets have been fired this burst (For eGunCommand::FIREBURST)
+    int16                  m_BurstShots{};                        //!< How many bullets are left to fire in this burst (For eGunCommand::FIREBURST)
     uint8                  m_CountDownFrames{ 0xFF };             //!< Some countdown (Maybe for burst?)
     bool                   m_IsArmIKInUse{};                      //!< Are we using arm IK (PointArmAt)
     bool                   m_IsLookIKInUse{};                     //!< Are we using look at IK (LookAt)
