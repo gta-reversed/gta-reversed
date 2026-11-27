@@ -2428,7 +2428,7 @@ RpAtomic* CVehicle::CreateUpgradeAtomic(CBaseModelInfo* mi, const UpgradePosnDes
 
 // 0x6D3630
 void CVehicle::RemoveUpgrade(int32 upgradeId) {
-    RpClumpForAllAtomics(GetRpClump(), RemoveUpgradeCB, &upgradeId);
+    RpClumpForAllAtomics(GetRpClump(), RemoveUpgradeCB, reinterpret_cast<void*>(upgradeId));
 }
 
 // 0x6D3650
@@ -5146,7 +5146,7 @@ void CVehicle::RemoveVehicleUpgrade(int32 upgradeModelIndex) {
                 RemoveReplacementUpgrade(UPGRADE_SPOILER_DAM);
             }
         } else {
-            RpClumpForAllAtomics(GetRpClump(), RemoveUpgradeCB, &upgradeId);
+            RpClumpForAllAtomics(GetRpClump(), RemoveUpgradeCB, reinterpret_cast<void*>(upgradeId));
         }
         if (other != -1) {
             const auto miOtherUpgrade = CModelInfo::GetModelInfo(other);
@@ -5154,7 +5154,7 @@ void CVehicle::RemoveVehicleUpgrade(int32 upgradeModelIndex) {
             if (miOtherUpgrade->bUsesVehDummy) {
                 RemoveReplacementUpgrade(otherUpgradeId);
             } else {
-                RpClumpForAllAtomics(GetRpClump(), RemoveUpgradeCB, &otherUpgradeId);
+                RpClumpForAllAtomics(GetRpClump(), RemoveUpgradeCB, reinterpret_cast<void*>(otherUpgradeId));
             }
         }
         for (auto& upgrade : m_anUpgrades) {
@@ -5169,14 +5169,14 @@ void CVehicle::RemoveVehicleUpgrade(int32 upgradeModelIndex) {
 void CVehicle::AddUpgrade(int32 modelIndex, int32 upgradeIndex) {
     const auto  miThis      = GetModelInfo()->AsVehicleModelInfoPtr();
     const auto& vehStruct   = miThis->m_pVehicleStruct;
-    auto*       upgradePosn = &vehStruct->m_aUpgrades[upgradeIndex];
+    const auto* upgradePosn = &vehStruct->m_aUpgrades[upgradeIndex];
 
     const auto  miUpgrade   = CModelInfo::GetModelInfo(modelIndex);
     RwFrame*   parentFrame  = CClumpModelInfo::GetFrameFromId(GetRpClump(), upgradePosn->m_nParentComponentId);
     RpClumpForAllAtomics(GetRpClump(), RemoveUpgradeCB, reinterpret_cast<void*>(upgradeIndex));
     CreateUpgradeAtomic(miUpgrade, upgradePosn, parentFrame, false);
     if (upgradePosn->m_nParentComponentId != 1) {
-        if (upgradeIndex != UPGRADE_BONNET) {
+        if (upgradeIndex != UPGRADE_BONNET) { // todo: check enum names
             switch (upgradeIndex) {
             case UPGRADE_BONNET_LEFT:
                 if (vehStruct->m_aUpgrades[UPGRADE_BONNET_LEFT_DAM].m_nParentComponentId != -1) {

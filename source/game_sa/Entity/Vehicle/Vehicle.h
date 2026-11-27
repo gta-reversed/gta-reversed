@@ -602,7 +602,7 @@ public:
     // return upgrade model id or -1 if not present
     int32 GetUpgrade(int32 upgradeId);
     RpAtomic* CreateReplacementAtomic(CBaseModelInfo* model, RwFrame* component, eAtomicComponentFlag flags, bool bDamaged, bool bIsWheel);
-    void AddReplacementUpgrade(int32 modelIndex, int32 nodeId);
+    void AddReplacementUpgrade(int32 upgradeModelIndex, int32 nodeId);
     void RemoveReplacementUpgrade(int32 nodeId);
     // return upgrade model id or -1 if not present
     int32 GetReplacementUpgrade(int32 nodeId);
