@@ -199,13 +199,13 @@ bool CGangWars::CreateAttackWave(int32 warFerocity, int32 waveId) {
             }
         }
         switch (warFerocity) {
-        case 0: return WaveWeapons{ WEAPON_BASEBALLBAT, WEAPON_PISTOL, MODEL_BAT, MODEL_COLT45 };           // 0x44494d
-        case 1: return WaveWeapons{ WEAPON_PISTOL, WEAPON_MICRO_UZI, MODEL_COLT45, MODEL_MICRO_UZI };       // 0x444964
-        case 2: return WaveWeapons{ WEAPON_MICRO_UZI, WEAPON_MP5, MODEL_MICRO_UZI, MODEL_MP5LNG };          // 0x444978
-        case 3: return WaveWeapons{ WEAPON_MP5, WEAPON_AK47, MODEL_MP5LNG, MODEL_AK47 };                    // 0x444990
-        case 4: return WaveWeapons{ WEAPON_AK47, WEAPON_AK47, MODEL_AK47, MODEL_AK47 };                     // 0x4449ac
-        case 5: return STRONGEST_WAVE_WEAPONS;                                                              // 0x4449c2
-        default: // 0x4449de
+        case 0: return WaveWeapons{ WEAPON_BASEBALLBAT, WEAPON_PISTOL, MODEL_BAT, MODEL_COLT45 };     // 0x44494d
+        case 1: return WaveWeapons{ WEAPON_PISTOL, WEAPON_MICRO_UZI, MODEL_COLT45, MODEL_MICRO_UZI }; // 0x444964
+        case 2: return WaveWeapons{ WEAPON_MICRO_UZI, WEAPON_MP5, MODEL_MICRO_UZI, MODEL_MP5LNG };    // 0x444978
+        case 3: return WaveWeapons{ WEAPON_MP5, WEAPON_AK47, MODEL_MP5LNG, MODEL_AK47 };              // 0x444990
+        case 4: return WaveWeapons{ WEAPON_AK47, WEAPON_AK47, MODEL_AK47, MODEL_AK47 };               // 0x4449ac
+        case 5: return STRONGEST_WAVE_WEAPONS;                                                        // 0x4449c2
+        default:                                                                                      // 0x4449de
             // NOTE/BUG: The original uses uninitialized locals as the weapons and models here. `Update` passes 6 and 7 for the 2nd and 3rd wave when `ms_WarFerocity` is 5.
             if (notsa::bugfixes::GenericUB) {
                 return STRONGEST_WAVE_WEAPONS;
@@ -285,15 +285,14 @@ bool CGangWars::CreateAttackWave(int32 warFerocity, int32 waveId) {
             ped->SetCharCreatedBy(PED_MISSION);
             CWorld::Add(ped);
             ped->GetEventGroup().Add(CEventScriptCommand{
-                TASK_PRIMARY_PRIMARY,
-                new CTaskComplexKillPedOnFoot{ FindPlayerPed(), -1, 0, 0, 0, 2 },
-                false
+                TASK_PRIMARY_PRIMARY, new CTaskComplexKillPedOnFoot{ FindPlayerPed(), -1, 0, 0, 0, 2 },
+                  false
             });
 
             const auto weapon = CGeneral::GetRandomNumberInRange(-0.3f, 1.3f) <= ms_Difficulty
                 ? weapons->Weapon2
                 : weapons->Weapon1;
-            ped->GiveWeapon(weapon, 5000, false);
+            ped->GiveWeapon(weapon, 5'000, false);
             ped->SetCurrentWeapon(weapon);
             ped->SetWeaponAccuracy((uint8)(ms_Difficulty * 25.0f + 70.0f));
             ped->bPartOfAttackWave      = true;
@@ -301,16 +300,16 @@ bool CGangWars::CreateAttackWave(int32 warFerocity, int32 waveId) {
             ped->m_fMaxHealth           = 120.0f;
             ped->m_fHealth              = 120.0f;
 
-            const auto color = GetGangColor(gang);
-            const auto blip  = CRadar::SetEntityBlip(BLIP_CHAR, GetPedPool()->GetRef(ped), color, BLIP_DISPLAY_BLIPONLY);
+            const auto color            = GetGangColor(gang);
+            const auto blip             = CRadar::SetEntityBlip(BLIP_CHAR, GetPedPool()->GetRef(ped), color, BLIP_DISPLAY_BLIPONLY);
             CRadar::ChangeBlipScale(blip, 2);
             CRadar::ChangeBlipColour(blip, color);
             createdAnyPed = true;
         }
 
-        const auto pickupX = origin.x + CGeneral::GetRandomNumberInRange(-2.0f, 2.0f);
-        const auto pickupY = origin.y + CGeneral::GetRandomNumberInRange(-2.0f, 2.0f);
-        const auto pickupZ = CWorld::FindGroundZFor3DCoord({ pickupX, pickupY, origin.z + 1.0f }) + 0.75f;
+        const auto pickupX     = origin.x + CGeneral::GetRandomNumberInRange(-2.0f, 2.0f);
+        const auto pickupY     = origin.y + CGeneral::GetRandomNumberInRange(-2.0f, 2.0f);
+        const auto pickupZ     = CWorld::FindGroundZFor3DCoord({ pickupX, pickupY, origin.z + 1.0f }) + 0.75f;
         const auto pickupModel = [&]() -> std::optional<ModelIndex> {
             switch (waveId) {
             case 0: // 0x44506d
@@ -356,9 +355,9 @@ bool CGangWars::CreateAttackWave(int32 warFerocity, int32 waveId) {
     car->m_autoPilot.SetDrivingStyle(DRIVING_STYLE_AVOID_CARS);
     car->SetStatus(STATUS_PHYSICS);
     car->vehicleFlags.bNeverUseSmallerRemovalRange = true;
-    car->m_autoPilot.m_nStraightLineDistance = 30;
+    car->m_autoPilot.m_nStraightLineDistance       = 30;
 
-    constexpr auto GANG1_CAR_RATING = 14; // See `CPopulation::AddPedInCar`
+    constexpr auto GANG1_CAR_RATING                = 14; // See `CPopulation::AddPedInCar`
     CCarCtrl::SetUpDriverAndPassengersForVehicle(car, GANG1_CAR_RATING + ms_Gang1, 1, false, false, 1);
 
     auto* const driver = car->GetDriver();
@@ -371,12 +370,11 @@ bool CGangWars::CreateAttackWave(int32 warFerocity, int32 waveId) {
         if (!passenger) {
             continue;
         }
-        passenger->GiveDelayedWeapon(WEAPON_MICRO_UZI, 1500);
+        passenger->GiveDelayedWeapon(WEAPON_MICRO_UZI, 1'500);
         passenger->SetCurrentWeapon(WEAPON_MICRO_UZI);
         passenger->GetEventGroup().Add(CEventScriptCommand{
-            TASK_PRIMARY_PRIMARY,
-            new CTaskSimpleGangDriveBy{ FindPlayerPed(), nullptr, 100.0f, 50, eDrivebyStyle::AI_ALL_DIRN, seat % 2 == 0 },
-            false
+            TASK_PRIMARY_PRIMARY, new CTaskSimpleGangDriveBy{ FindPlayerPed(), nullptr, 100.0f, 50, eDrivebyStyle::AI_ALL_DIRN, seat % 2 == 0 },
+              false
         });
     }
 
@@ -427,7 +425,7 @@ bool CGangWars::CreateDefendingGroup(int32 unused) {
             nodePos.y + std::cos(angle) * (CGeneral::GetRandomNumberInRange(0.0f, 3.0f) + 2.0f),
             nodePos.z
         };
-        pedPos.z = CWorld::FindGroundZFor3DCoord({ pedPos.x, pedPos.y, nodePos.z + 2.0f }) + 1.0f;
+        pedPos.z        = CWorld::FindGroundZFor3DCoord({ pedPos.x, pedPos.y, nodePos.z + 2.0f }) + 1.0f;
 
         auto* const ped = new CCivilianPed((ePedType)(ms_Gang1 + PED_TYPE_GANG1), pedModel);
         ped->SetPosn(pedPos);
@@ -437,23 +435,22 @@ bool CGangWars::CreateDefendingGroup(int32 unused) {
         ped->SetCharCreatedBy(PED_MISSION);
         CWorld::Add(ped);
         ped->GetEventGroup().Add(CEventScriptCommand{
-            TASK_PRIMARY_PRIMARY,
-            new CTaskComplexKillPedOnFoot{ FindPlayerPed(), -1, 0, 0, 0, 2 },
-            false
+            TASK_PRIMARY_PRIMARY, new CTaskComplexKillPedOnFoot{ FindPlayerPed(), -1, 0, 0, 0, 2 },
+              false
         });
 
         ped->SetWeaponAccuracy((uint8)(90.0f - ms_Difficulty * 60.0f));
         ped->GetAcquaintance().SetAsAcquaintance(ACQUAINTANCE_HATE, CPedType::GetPedFlag(PED_TYPE_PLAYER1));
 
         static constexpr eWeaponType WEAPONS[]{ WEAPON_PISTOL, WEAPON_MICRO_UZI, WEAPON_SHOTGUN, WEAPON_MP5 };
-        const auto weapon = WEAPONS[i % 4];
-        ped->GiveDelayedWeapon(weapon, 5000);
+        const auto                   weapon = WEAPONS[i % 4];
+        ped->GiveDelayedWeapon(weapon, 5'000);
         ped->SetCurrentWeapon(weapon);
         ped->bPartOfAttackWave      = true;
         ped->bClearRadarBlipOnDeath = true;
 
-        const auto color = GetGangColor(ms_Gang1);
-        const auto blip  = CRadar::SetEntityBlip(BLIP_CHAR, GetPedPool()->GetRef(ped), color, BLIP_DISPLAY_BLIPONLY);
+        const auto color            = GetGangColor(ms_Gang1);
+        const auto blip             = CRadar::SetEntityBlip(BLIP_CHAR, GetPedPool()->GetRef(ped), color, BLIP_DISPLAY_BLIPONLY);
         CRadar::ChangeBlipScale(blip, 2);
         CRadar::ChangeBlipColour(blip, color);
     }
@@ -471,9 +468,9 @@ bool CGangWars::CreateDefendingGroup(int32 unused) {
         }
 
         // The car is put sideways, perpendicular to the direction from the defenders to its node
-        const CVector fwd = CVector{ carNodePos.y - nodePos.y, nodePos.x - carNodePos.x, 0.0f }.Normalized();
+        const CVector fwd             = CVector{ carNodePos.y - nodePos.y, nodePos.x - carNodePos.x, 0.0f }.Normalized();
 
-        auto* const car = CCarCtrl::CreateCarForScript(carModel, carNodePos, false);
+        auto* const car               = CCarCtrl::CreateCarForScript(carModel, carNodePos, false);
         car->GetMatrix().GetForward() = fwd;
         car->GetMatrix().GetRight()   = CVector{ fwd.y, -fwd.x, 0.0f };
         car->AsAutomobile()->PlaceOnRoadProperly();
@@ -558,8 +555,8 @@ void CGangWars::MakeEnemyGainInfluenceInZone(int32 gangId, int32 density) {
         return;
     }
 
-    const auto controlledBefore = DoesPlayerControlThisZone(ms_ZoneInfoToFightOver);
-    const auto& strength        = ms_ZoneInfoToFightOver->GangStrength;
+    const auto  controlledBefore = DoesPlayerControlThisZone(ms_ZoneInfoToFightOver);
+    const auto& strength         = ms_ZoneInfoToFightOver->GangStrength;
     if (strength[GANG_BALLAS] + strength[GANG_GROVE] + strength[GANG_VAGOS] == 0) {
         return;
     }
@@ -575,19 +572,19 @@ void CGangWars::MakeEnemyGainInfluenceInZone(int32 gangId, int32 density) {
 bool CGangWars::MakePlayerGainInfluenceInZone(float removeMult) {
     const auto controlledBefore = DoesPlayerControlThisZone(ms_ZoneInfoToFightOver);
 
-    auto& strength           = ms_ZoneInfoToFightOver->GangStrength;
-    auto  totalEnemyDensity  = 0;
+    auto& strength              = ms_ZoneInfoToFightOver->GangStrength;
+    auto  totalEnemyDensity     = 0;
     for (auto&& [gang, density] : rngv::enumerate(strength)) {
         if (gang == GANG_GROVE) {
             continue;
         }
         const auto densityBefore = density;
-        density = (uint8)((1.0f - removeMult) * (float)density);
+        density                  = (uint8)((1.0f - removeMult) * (float)density);
         if (density < 4) {
             density = 0;
         }
         strength[GANG_GROVE] += densityBefore - density;
-        totalEnemyDensity    += density;
+        totalEnemyDensity += density;
     }
 
     if (!controlledBefore && DoesPlayerControlThisZone(ms_ZoneInfoToFightOver)) {
@@ -606,7 +603,7 @@ bool CGangWars::PedStreamedInForThisGang(eGangID gangId) {
 bool CGangWars::PickStreamedInPedForThisGang(eGangID gangId, int32& outPedId) {
     static auto& s_LastPickedPed = StaticRef<int32>(0x96ABD4);
 
-    const auto groupId = CPopulation::GetGangGroupId(gangId);
+    const auto groupId           = CPopulation::GetGangGroupId(gangId);
     for (auto i = 0; i < CPopulation::GetNumPedsInGroup(groupId); i++) {
         s_LastPickedPed = (s_LastPickedPed + 1) % CPopulation::GetNumPedsInGroup(groupId);
         outPedId        = CPopulation::GetPedGroupModelId(groupId, s_LastPickedPed);
@@ -794,7 +791,7 @@ void CGangWars::StartOffensiveGangWar() {
     }
 
     const auto provText = TheText.Get("GW_PROV");
-    CMessages::AddMessageQ(provText, 4500, 1, true);
+    CMessages::AddMessageQ(provText, 4'500, 1, true);
     CMessages::AddToPreviousBriefArray(provText);
     ms_TimeStarted = CTimer::GetTimeInMS();
     ms_State       = PRE_FIRST_WAVE;
@@ -826,9 +823,9 @@ void CGangWars::StartOffensiveGangWar() {
 void CGangWars::StrengthenPlayerInfluenceInZone(int32 density) {
     constexpr auto MAX_GROVE_DENSITY = 55;
 
-    const auto controlledBefore = DoesPlayerControlThisZone(ms_ZoneInfoToFightOver);
+    const auto controlledBefore      = DoesPlayerControlThisZone(ms_ZoneInfoToFightOver);
 
-    auto& groveDensity = ms_ZoneInfoToFightOver->GangStrength[GANG_GROVE];
+    auto& groveDensity               = ms_ZoneInfoToFightOver->GangStrength[GANG_GROVE];
     if (groveDensity < MAX_GROVE_DENSITY) {
         groveDensity = (uint8)std::min(groveDensity + density, MAX_GROVE_DENSITY);
     }
@@ -852,17 +849,19 @@ void CGangWars::TellGangMembersTo(bool isGangWarEnding) {
 
         if (!isGangWarEnding) {
             ped.GetEventGroup().Add(CEventScriptCommand{
-            TASK_PRIMARY_PRIMARY,
-            new CTaskComplexKillPedOnFoot{ FindPlayerPed(), -1, 0, 0, 0, 2 },
-            false
-        });
+                TASK_PRIMARY_PRIMARY, new CTaskComplexKillPedOnFoot{ FindPlayerPed(), -1, 0, 0, 0, 2 },
+                  false
+            });
             continue;
         }
 
         // NOTE: The original only checks `bInVehicle`, not `m_pVehicle`
         if (ped.bInVehicle) {
             if (ped.m_pVehicle->IsDriver(&ped)) { // 0x444604
-                ped.GetEventGroup().Add(CEventScriptCommand{ TASK_PRIMARY_PRIMARY, new CTaskComplexCarDriveWander{ ped.m_pVehicle, DRIVING_STYLE_STOP_FOR_CARS, 10.0f }, false });
+                ped.GetEventGroup().Add(CEventScriptCommand{
+                    TASK_PRIMARY_PRIMARY, new CTaskComplexCarDriveWander{ ped.m_pVehicle, DRIVING_STYLE_STOP_FOR_CARS, 10.0f },
+                      false
+                });
             } else { // 0x444680
                 ped.GetEventGroup().Add(CEventScriptCommand{ TASK_PRIMARY_PRIMARY, new CTaskSimpleCarDrive{ ped.m_pVehicle }, false });
             }
@@ -870,9 +869,8 @@ void CGangWars::TellGangMembersTo(bool isGangWarEnding) {
         }
 
         ped.GetEventGroup().Add(CEventScriptCommand{
-            TASK_PRIMARY_PRIMARY,
-            new CTaskComplexWanderGang{ PEDMOVE_WALK, (uint8)CGeneral::GetRandomNumberInRange(0, 8), 5000, true, 0.5f },
-            false
+            TASK_PRIMARY_PRIMARY, new CTaskComplexWanderGang{ PEDMOVE_WALK, (uint8)CGeneral::GetRandomNumberInRange(0, 8), 5'000, true, 0.5f },
+              false
         });
     }
 }
@@ -925,7 +923,7 @@ void CGangWars::Update() {
             return;
         }
         const auto msg = TheText.Get(msgKey);
-        CMessages::AddMessageQ(msg, 4500, 1, true);
+        CMessages::AddMessageQ(msg, 4'500, 1, true);
         CMessages::AddToPreviousBriefArray(TheText.Get(msgKey));
         StartWave(next);
     };
@@ -976,9 +974,9 @@ void CGangWars::Update() {
         const CVector playerPos = FindPlayerCoors();
         const auto&   zone      = *ms_ZoneToFightOver;
         const auto    isInArea  = (float)zone.m_fX1 - 50.0f <= playerPos.x
-                           && (float)zone.m_fX2 + 50.0f >= playerPos.x
-                           && (float)zone.m_fY1 - 50.0f <= playerPos.y
-                           && (float)zone.m_fY2 + 50.0f >= playerPos.y;
+            && (float)zone.m_fX2 + 50.0f >= playerPos.x
+            && (float)zone.m_fY1 - 50.0f <= playerPos.y
+            && (float)zone.m_fY2 + 50.0f >= playerPos.y;
         if (CGame::currArea != AREA_CODE_NORMAL_WORLD || isInArea) {
             ms_LastTimeInArea = CTimer::GetTimeInMS();
         } else if (CTimer::GetTimeInMS() - ms_LastTimeInArea > 30'000) { // 0x446a1f
@@ -988,9 +986,9 @@ void CGangWars::Update() {
             ReleaseCarsInAttackWave();
             CTheZones::FillZonesWithGangColours(false);
             CMessages::AddMessageQ(TheText.Get("GW_FLEE"), 4500, 1, true);
-            CMessages::AddToPreviousBriefArray(TheText.Get("GW_WARN")); // NOTE: The original adds the warning to the brief, not `GW_FLEE`
+            CMessages::AddToPreviousBriefArray(TheText.Get("GW_WARN"));                                                                 // NOTE: The original adds the warning to the brief, not `GW_FLEE`
         } else if (CTimer::GetTimeInMS() - ms_LastTimeInArea > 10'000 && CTimer::GetPreviousTimeInMS() - ms_LastTimeInArea <= 10'000) { // 0x446a55
-            CMessages::AddMessageQ(TheText.Get("GW_WARN"), 4500, 1, true);
+            CMessages::AddMessageQ(TheText.Get("GW_WARN"), 4'500, 1, true);
             CMessages::AddToPreviousBriefArray(TheText.Get("GW_WARN"));
         }
     }
@@ -1024,13 +1022,13 @@ void CGangWars::Update() {
         if (DistanceBetweenPoints2D(FindPlayerCoors(), ms_PointOfAttack) < 70.0f) {
             if (CreateDefendingGroup(0)) {
                 ms_FightTimer += 30'000;
-                ms_State2      = PLAYER_CAME_TO_WAR;
+                ms_State2 = PLAYER_CAME_TO_WAR;
             }
             break;
         }
         ms_FightTimer -= (int32)CTimer::GetTimeStepInMS();
         if (ms_FightTimer < 0) { // 0x446ced - The player didn't show up
-            CMessages::AddMessageQ(TheText.Get("GW_NOSH"), 4500, 1, true);
+            CMessages::AddMessageQ(TheText.Get("GW_NOSH"), 4'500, 1, true);
             CMessages::AddToPreviousBriefArray(TheText.Get("GW_NOSH"));
             ms_State2 = NO_ATTACK;
             MakeEnemyGainInfluenceInZone(ms_Gang1, 30);
@@ -1044,7 +1042,7 @@ void CGangWars::Update() {
         if (AttackWaveOvercome()) {
             ms_State2             = NO_ATTACK;
             ms_TimeTillNextAttack = (float)CalculateTimeTillNextAttack();
-            CMessages::AddMessageQ(TheText.Get("GW_WON"), 4500, 1, true);
+            CMessages::AddMessageQ(TheText.Get("GW_WON"), 4'500, 1, true);
             CMessages::AddToPreviousBriefArray(TheText.Get("GW_WON"));
             StrengthenPlayerInfluenceInZone(10);
             CTheZones::FillZonesWithGangColours(false);
@@ -1055,7 +1053,7 @@ void CGangWars::Update() {
         if (ms_FightTimer < 0) { // 0x446bc5 - The player was too slow
             ms_State2             = NO_ATTACK;
             ms_TimeTillNextAttack = (float)CalculateTimeTillNextAttack();
-            CMessages::AddMessageQ(TheText.Get("GW_SLOW"), 4500, 1, true);
+            CMessages::AddMessageQ(TheText.Get("GW_SLOW"), 4'500, 1, true);
             CMessages::AddToPreviousBriefArray(TheText.Get("GW_SLOW"));
             MakeEnemyGainInfluenceInZone(ms_Gang1, 3 * ReleasePedsInAttackWave(true, false));
             CTheZones::FillZonesWithGangColours(false);
@@ -1074,8 +1072,8 @@ void CGangWars::Update() {
         } else {
             // Blinks faster as the time runs out
             const auto blinkShift = ms_FightTimer > 120'000 ? 10
-                                  : ms_FightTimer > 60'000  ? 9
-                                  : ms_FightTimer > 30'000  ? 8
+                : ms_FightTimer > 60'000                    ? 9
+                : ms_FightTimer > 30'000                    ? 8
                                                             : 7;
             CRadar::ChangeBlipDisplay(ms_RadarBlip, (CTimer::GetTimeInMS() >> blinkShift) & 1 ? BLIP_DISPLAY_NEITHER : BLIP_DISPLAY_BLIPONLY);
         }
@@ -1129,11 +1127,13 @@ void CGangWars::UpdateTerritoryUnderControlPercentage() {
         eGangID Gang;
         int32   NumZones;
     };
-    std::array<GangRanking, 3> ranking{ {
-        { GANG_GROVE,  groveZones  },
-        { GANG_BALLAS, ballasZones },
-        { GANG_VAGOS,  vagosZones  },
-    } };
+    std::array<GangRanking, 3> ranking{
+        {
+         { GANG_GROVE, groveZones },
+         { GANG_BALLAS, ballasZones },
+         { GANG_VAGOS, vagosZones },
+         }
+    };
     rng::stable_sort(ranking, rng::greater{}, &GangRanking::NumZones);
     for (auto&& [i, r] : rngv::enumerate(ranking)) {
         ms_GangRatings[i]        = r.Gang;
@@ -1146,7 +1146,7 @@ eBlipColour CGangWars::GetGangColor(int32 gang) {
     // 0x8D1344, 0x8D1350, 0x8D135C
     static constexpr uint8 gaGangColoursR[] = { 200,  70, 255,   0, 255, 200, 240,   0, 255, 255, 0, 0 };
     static constexpr uint8 gaGangColoursG[] = {   0, 200, 200,   0, 220, 200, 140, 200, 255, 255, 0, 0 };
-    static constexpr uint8 gaGangColoursB[] = { 200,   0,   0, 200, 190, 200, 240, 255, 255, 255, 0, 0 };
+    static constexpr uint8 gaGangColoursB[] = { 200, 0, 0, 200, 190, 200, 240, 255, 255, 255, 0, 0 };
 
     return (eBlipColour)(gaGangColoursR[gang] << 24 | gaGangColoursG[gang] << 16 | gaGangColoursB[gang] << 8 | 0xFF);
 }
