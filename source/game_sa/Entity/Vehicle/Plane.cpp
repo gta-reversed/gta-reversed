@@ -171,8 +171,7 @@ void CPlane::BlowUpCar(CEntity* damager, bool bHideExplosion) {
         auto& playerInfo = FindPlayerInfo();
         playerInfo.m_nHavocCaused += 20;
         playerInfo.m_fCurrentChaseValue += 10.0f;
-        // NOTE: `CGeneral::GetRandomNumberInRange` isn't used, the original is `rand() % 6000 + 4000` here
-        CStats::IncrementStat(STAT_COST_OF_PROPERTY_DAMAGED, (float)(CGeneral::GetRandomNumber() % 6'000 + 4'000));
+        CStats::IncrementStat(STAT_COST_OF_PROPERTY_DAMAGED, CGeneral::GetRandomNumberInRange(4'000.f, 10'000.f));
     }
 
     if (GetStatus() == STATUS_PLAYER) { // 0x6CCDA6
@@ -376,10 +375,9 @@ void CPlane::VehicleDamage(float damageIntensity, eVehicleCollisionComponent com
     }
 
     // 0x6CC850 - A hit on the rudder can damage one of the elevators instead
-    // NOTE: Not `CGeneral::DoCoinFlip()`, the original checks the lowest bit of `rand()`
     const int32 node = [&] {
-        if (closest == PLANE_RUDDER && (CGeneral::GetRandomNumber() & 1)) {
-            if (m_aCarNodes[PLANE_ELEVATOR_L] && (CGeneral::GetRandomNumber() & 1)) {
+        if (closest == PLANE_RUDDER && CGeneral::DoCoinFlip()) {
+            if (m_aCarNodes[PLANE_ELEVATOR_L] && CGeneral::DoCoinFlip()) {
                 return +PLANE_ELEVATOR_L;
             }
             if (m_aCarNodes[PLANE_ELEVATOR_R]) {
@@ -581,8 +579,7 @@ void CPlane::ProcessControlInputs(uint8 playerNum) {
     auto* const   pad                       = CPad::GetPad(playerNum);
     const float   timeStep                  = CTimer::GetTimeStep();
     const CVector forward                   = GetForward();
-    // NOTE: Not `Dot()`, the original sums in this order
-    const float fwdSpeed = m_vecMoveSpeed.z * forward.z + m_vecMoveSpeed.y * forward.y + m_vecMoveSpeed.x * forward.x;
+    const float fwdSpeed = m_vecMoveSpeed.Dot(forward);
 
     // 0x6CADF4 - Roll and pitch
     const int16 padLeftRight = pad->GetSteeringLeftRight();
@@ -603,13 +600,12 @@ void CPlane::ProcessControlInputs(uint8 playerNum) {
                 m_fSteeringLeftRight += mouseMoved.x * MOUSE_STEER_SCALE;
                 m_fSteeringUpDown += mouseMoved.y * MOUSE_STEER_SCALE;
             }
-            // NOTE: The original multiplies by the unrounded (x87) result of `pow`, so it's done in double precision here
-            const double damping = std::pow((double)MOUSE_STEER_DAMP, (double)timeStep);
+            const float damping = std::pow(MOUSE_STEER_DAMP, timeStep);
             if (std::fabs(m_fSteeringLeftRight) < MOUSE_STEER_DAMP_BELOW) {
-                m_fSteeringLeftRight = (float)(damping * m_fSteeringLeftRight);
+                m_fSteeringLeftRight *= damping;
             }
             if (std::fabs(m_fSteeringUpDown) < MOUSE_STEER_DAMP_BELOW) {
-                m_fSteeringUpDown = (float)(damping * m_fSteeringUpDown);
+                m_fSteeringUpDown *= damping;
             }
         } else if (isPadSteered || !wasMouseLast) { // 0x6CAEF1
             SteerWithPad();
@@ -629,8 +625,7 @@ void CPlane::ProcessControlInputs(uint8 playerNum) {
     m_fLeftRightSkid     = std::clamp(m_fLeftRightSkid + (yawInput - m_fLeftRightSkid) * timeStep * PAD_STEER_RATE, -1.0f, 1.0f);
 
     // 0x6CB260
-    // NOTE: Not `DegreesToRadians()`, the original multiplies in this order
-    m_fSteerAngle = -(m_pHandlingData->m_fSteeringLock * DEG_TO_RAD * m_fLeftRightSkid * std::max(1.0f - fwdSpeed, 0.1f));
+    m_fSteerAngle = -(DegreesToRadians(m_pHandlingData->m_fSteeringLock) * m_fLeftRightSkid * std::max(1.0f - fwdSpeed, 0.1f));
     if (m_nModelIndex == MODEL_VORTEX && pad->GetHandBrake()) { // 0x6CB2A9
         m_fSteerAngle *= 1.5f;
         m_fLeftRightSkid *= 1.5f;
