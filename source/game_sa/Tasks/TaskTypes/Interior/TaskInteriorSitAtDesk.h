@@ -16,7 +16,7 @@ public:
 
     static void InjectHooks();
 
-    CTaskInteriorSitAtDesk(int32 duration, InteriorInfo_t* interiorInfo, bool bDoInstantly);
+    CTaskInteriorSitAtDesk(int32 duration, InteriorInfo_t* interiorInfo, bool doInstantly);
     CTaskInteriorSitAtDesk(const CTaskInteriorSitAtDesk&);
     ~CTaskInteriorSitAtDesk();
     static void FinishAnimCB(CAnimBlendAssociation*, void*);
@@ -46,14 +46,14 @@ private: // Wrappers for hooks
     }
 
 private:
-    int32                  m_Duration;
-    InteriorInfo_t*        m_InteriorInfo;
-    bool                   m_bDoInstantly;
-    CAnimBlendAssociation* m_Anim;
-    AnimationId            m_PrevAnimId{ANIM_ID_UNDEFINED};
-    CTaskTimer             m_TaskTimer;
-    CTaskTimer             m_AnimTimer;
-    bool                   m_bUpdatePedPos;
-    bool                   m_bTaskFinished;
-    bool                   m_bTaskAborting;
+    int32                  m_Duration{};
+    InteriorInfo_t*        m_InteriorInfo{};
+    bool                   m_DoInstantly{};
+    CAnimBlendAssociation* m_Anim{};
+    AnimationId            m_PrevAnimId{ ANIM_ID_UNDEFINED };
+    CTaskTimer             m_TaskTimer{};
+    CTaskTimer             m_AnimTimer{};
+    bool                   m_UpdatePedPos{};
+    bool                   m_TaskFinished{};
+    bool                   m_TaskAborting{};
 };

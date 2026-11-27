@@ -18,7 +18,7 @@ public:
     void Exit();
 
     static void AddSameGroupEffectInfos(InteriorEffectInfo_t* intFxInfo, int32 a2);
-    static bool AreAnimsLoaded(int32 animBlock);
+    static bool __stdcall AreAnimsLoaded(int32 animBlock);
 
     void PruneVisibleEffects(InteriorEffectInfo_t* pInteriorEffectInfos, size_t numInfos, size_t reqdNumInfos, float maxDist);
     size_t GetVisibleEffects(InteriorEffectInfo_t* effectInfo, uint32 totalEffects);
