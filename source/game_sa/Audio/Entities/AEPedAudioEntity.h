@@ -52,25 +52,25 @@ private:
     static float GetHitSurfaceVolume(eSurfaceType surface);
 
 private:
-    bool                   m_CanAddEvent{};
-    eSoundID               m_SwimSplashSoundID{};          //!< Last played sound of the swimming bank, cycles through 0-4
-    uint32                 m_LastSwimWakeTriggerTimeMs{};
+    bool     m_CanAddEvent{};
+    eSoundID m_SwimSplashSoundID{}; //!< Last played sound of the swimming bank, cycles through 0-4
+    uint32   m_LastSwimWakeTriggerTimeMs{};
 
-    float                  m_JetPackSound0Volume{};
-    float                  m_JetPackSound1Volume{};
-    float                  m_JetPackSound2Volume{};
-    float                  m_JetPackSoundSpeedMult{};
-    CPed*                  m_Ped{};
+    float m_JetPackSound0Volume{};
+    float m_JetPackSound1Volume{};
+    float m_JetPackSound2Volume{};
+    float m_JetPackSoundSpeedMult{};
+    CPed* m_Ped{};
 
-    bool                   m_IsJetPackPlaying{};
-    CAESound*              m_JetPackSound0{};
-    CAESound*              m_JetPackSound1{};
-    CAESound*              m_JetPackSound2{};
+    bool      m_IsJetPackPlaying{};
+    CAESound* m_JetPackSound0{};
+    CAESound* m_JetPackSound1{};
+    CAESound* m_JetPackSound2{};
 
     CAETwinLoopSoundEntity m_ShirtFlapSound{};
-    CAESound*              m_UnkSound{};                   //!< Only ever reset (`Initialise`, `UpdateParameters`)
-    float                  m_UnkVolume{};                  //!< Only ever set in `Initialise`
-    float                  m_ShirtFlapVolume{};            //!< Current volume of the shirt flap (wind) sound, see `Service`
+    CAESound*              m_UnkSound{};        //!< Only ever reset (`Initialise`, `UpdateParameters`)
+    float                  m_UnkVolume{};       //!< Only ever set in `Initialise`
+    float                  m_ShirtFlapVolume{}; //!< Current volume of the shirt flap (wind) sound, see `Service`
 };
 
 VALIDATE_SIZE(CAEPedAudioEntity, 0x15C);
