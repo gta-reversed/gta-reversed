@@ -550,35 +550,38 @@ void CEntryExit::WarpGangWithPlayer(CPlayerPed* player) {
     const auto& offsets = CTaskComplexFollowLeaderInFormation::ms_offsets.Offsets;
 
     size_t offsetIdx = 0;
+
+    // Teleports the member to the first valid of the next (at most 3) formation offsets around the player
+    const auto TeleportToNextValidPoint = [&](CPed* mem) {
+        for (auto i = 0; i < MAX_TRIES_PER_MEMBER && offsetIdx < offsets.size(); i++) {
+            const CVector point = plyrPos + CVector{ offsets[offsetIdx++], 0.f };
+            if (!IsTeleportPointValid(plyrPos, point)) {
+                continue;
+            }
+
+            // Make them face the player
+            // NOTE: Not `Heading()`, `GetRadianAngleBetweenPoints` replaces a zero `y` with a small value
+            const CVector dirToPlyr = CVector{ CVector2D{ plyrPos - mem->GetPosition() }, 0.f }.Normalized();
+            const auto    heading   = CGeneral::LimitRadianAngle(CGeneral::GetRadianAngleBetweenPoints(dirToPlyr.x, dirToPlyr.y, 0.f, 0.f));
+
+            mem->Teleport(point, false);
+            mem->GetIntelligence()->FlushImmediately(false);
+            mem->m_fCurrentRotation = mem->m_fAimingRotation = heading;
+            mem->SetHeading(heading);
+            mem->SetAreaCode(player->GetAreaCode());
+            mem->m_pEnex = player->m_pEnex;
+            return true;
+        }
+        return false;
+    };
+
     for (auto* const mem : ms.GetFollowers()) {
         if (mem == player || offsetIdx >= offsets.size()) {
             continue;
         }
-
-        // Try the next (at most 3) formation offsets around the player
-        std::optional<CVector> teleportTo{};
-        for (auto i = 0; i < MAX_TRIES_PER_MEMBER && offsetIdx < offsets.size(); i++) {
-            const CVector point = plyrPos + CVector{ offsets[offsetIdx++], 0.f };
-            if (IsTeleportPointValid(plyrPos, point)) {
-                teleportTo = point;
-                break;
-            }
-        }
-        if (!teleportTo) {
+        if (!TeleportToNextValidPoint(mem)) {
             return;
         }
-
-        // Make them face the player
-        // NOTE: Not `Heading()`, `GetRadianAngleBetweenPoints` replaces a zero `y` with a small value
-        const CVector dirToPlyr = CVector{ CVector2D{ plyrPos - mem->GetPosition() }, 0.f }.Normalized();
-        const auto    heading   = CGeneral::LimitRadianAngle(CGeneral::GetRadianAngleBetweenPoints(dirToPlyr.x, dirToPlyr.y, 0.f, 0.f));
-
-        mem->Teleport(*teleportTo, false);
-        mem->GetIntelligence()->FlushImmediately(false);
-        mem->m_fCurrentRotation = mem->m_fAimingRotation = heading;
-        mem->SetHeading(heading);
-        mem->SetAreaCode(player->GetAreaCode());
-        mem->m_pEnex = player->m_pEnex;
     }
 }
 
