@@ -29,15 +29,14 @@ CTaskComplexUseClosestFreeScriptedAttractor::CTaskComplexUseClosestFreeScriptedA
 }
 
 CTaskComplexUseClosestFreeScriptedAttractor::CTaskComplexUseClosestFreeScriptedAttractor(const CTaskComplexUseClosestFreeScriptedAttractor& o) :
-    CTaskComplexUseClosestFreeScriptedAttractor{ o.m_MoveState }
-{
+    CTaskComplexUseClosestFreeScriptedAttractor{ o.m_MoveState } {
 }
 
 // 0x634740
 C2dEffectPedAttractor* __stdcall CTaskComplexUseClosestFreeScriptedAttractor::ComputeClosestFreeScriptedEffect(const CPed& ped) {
     constexpr int32 USER_BY_PED_TYPE = -2; //!< `m_UserTypes` value: the user is given by the ped type at the same index
 
-    const auto CanUse = [&](const tUserList& userList) {
+    const auto CanUse                = [&](const tUserList& userList) {
         if (!userList.m_bUseList || rng::contains(userList.m_UserTypes, (int32)ped.GetModelIndex())) {
             return true;
         }
