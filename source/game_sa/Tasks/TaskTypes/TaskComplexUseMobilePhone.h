@@ -14,7 +14,7 @@ public:
     CTaskComplexUseMobilePhone(const CTaskComplexUseMobilePhone&);
     ~CTaskComplexUseMobilePhone() override = default;
 
-    static void RemovePhoneModel(CPed* ped);
+    void RemovePhoneModel(CPed* ped);
 
     int8 Stop(CPed*);
 
@@ -25,10 +25,9 @@ public:
     CTask*    CreateFirstSubTask(CPed* ped) override;
     CTask*    ControlSubTask(CPed* ped) override;
 
-public:
     static void InjectHooks();
 
-public:
+private:
     int32      m_Duration{};
     CTaskTimer m_Timer{};
     bool       m_IsAborting{};
