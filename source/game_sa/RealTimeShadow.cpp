@@ -13,6 +13,7 @@ void CRealTimeShadow::InjectHooks() {
     RH_ScopedInstall(GetShadowRwTexture, 0x7059F0);
     RH_ScopedInstall(DrawBorderAroundTexture, 0x705A00);
     RH_ScopedInstall(Create, 0x706460);
+    RH_ScopedInstall(SetupForThisEntity, 0x706520);
     RH_ScopedInstall(Update, 0x706600);
     RH_ScopedInstall(Destroy, 0x705990);
 }
@@ -93,6 +94,47 @@ bool CRealTimeShadow::Create(bool isBlurred, int32 blurPasses, bool drawMoreBlur
 
     Destroy();
     return false;
+}
+
+// 0x706520
+bool CRealTimeShadow::SetupForThisEntity(CPhysical* owner) {
+    m_pOwner = owner;
+
+    const auto object = owner->GetRwObject();
+    if (!object) {
+        return false;
+    }
+
+    m_nRwObjectType = RwObjectGetType(object);
+    switch (m_nRwObjectType) {
+    case rpATOMIC: {
+        const auto sphere = RpAtomicGetBoundingSphere(owner->GetRpAtomic());
+        m_boundingSphere  = { sphere->center, sphere->radius };
+        break;
+    }
+    case rpCLUMP: {
+        RwSphere sphere;
+        RpClumpGetBoundingSphere(owner->GetRpClump(), &sphere, true);
+        m_boundingSphere = { sphere.center, sphere.radius };
+        break;
+    }
+    default:
+        Destroy();
+        return false;
+    }
+
+    m_baseSphere.m_fRadius = m_boundingSphere.m_fRadius;
+    RwV3dTransformPoints(
+        &m_baseSphere.m_vecCenter,
+        &m_boundingSphere.m_vecCenter,
+        1,
+        owner->GetRwMatrix()
+    );
+
+    m_camera.SetFrustum(m_boundingSphere.m_fRadius * 1.1f);
+    m_camera.SetCenter(m_baseSphere.m_vecCenter);
+
+    return true;
 }
 
 // 0x706600
