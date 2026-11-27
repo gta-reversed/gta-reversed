@@ -90,7 +90,7 @@ public:
     bool           m_bCanDoDriveBy;
     uint8          m_nBustedAudioStatus;
     uint16         m_nLastBustMessageNumber;
-    CPlayerCrossHair m_CrossHair;
+    CPlayerCrossHair m_CrossHair{};
     char           m_szSkinName[32];
     RwTexture*     m_pSkinTexture;
     bool           m_bParachuteReferenced;
