@@ -533,7 +533,7 @@ void CHud::DrawAreaName() {
 
     const CZoneInfo* info = CPopCycle::m_pCurrZoneInfo;
     const auto& color = info->ZoneColor; // Cppcheck: (warning) nullPointerRedundantCheck: Either the condition 'info' is redundant or there is possible null pointer dereference: info.
-    if (CGangWars::bGangWarsActive && info && color.r && color.g && color.b) {
+    if (CGangWars::ms_GangWarsActive && info && color.r && color.g && color.b) {
         CFont::SetColor({ color.r, color.g, color.b, (uint8)alpha});
     } else {
         CFont::SetColor(HudColour.GetRGBA(HUD_COLOUR_LIGHT_BLUE, (uint8)alpha));

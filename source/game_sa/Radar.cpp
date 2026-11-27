@@ -1504,7 +1504,7 @@ void CRadar::DrawRadarGangOverlay(bool inMenu) {
         g_RadarGangOverlay = CRect{};
     }
 
-    if (!CGangWars::bGangWarsActive || !FrontEndMenuManager.m_abPrefsMapBlips[4])
+    if (!CGangWars::ms_GangWarsActive || !FrontEndMenuManager.m_abPrefsMapBlips[4])
         return;
 
     for (auto& zone : CTheZones::GetNavigationZones()) {
