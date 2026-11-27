@@ -371,12 +371,6 @@ CTaskAllocator* CGroupEventHandler::ComputeResponseLeaderEnteredCar(const CEvent
         return nullptr;
     }
 
-    // Mission peds get the seats first
-    auto followers = rng::to<std::vector>(pgms.GetFollowers());
-    rng::stable_partition(followers, [](CPed* f) {
-        return f->IsCreatedByMission();
-    });
-
     // A single follower may take the front seat, unless someone who stays (a member, or a ped that can't be dragged out) sits there
     const auto CanUseFrontSeat = [&](CPed* m) {
         if (pgms.CountMembersExcludingLeader() != 1 || veh->IsBike() || veh->IsSubQuad()) {
@@ -409,25 +403,30 @@ CTaskAllocator* CGroupEventHandler::ComputeResponseLeaderEnteredCar(const CEvent
 
     CPed* waitFor   = leader;
     auto  numSeated = 0;
-    for (auto* const m : followers) {
-        if (numSeated >= veh->m_nMaxPassengers) { // 0x5F8E8A - No seat left
-            grpIntel.SetEventResponseTask(m, CTaskComplexLeaveAnyCar{ 0, true, false });
-            continue;
-        }
-        if (performSeq) { // 0x5F8A4B
-            grpIntel.SetEventResponseTask(
-                m,
-                CTaskComplexSequence{
-                    new CTaskComplexEnterCarAsPassengerWait{ veh, waitFor, CanUseFrontSeat(m), PEDMOVE_RUN },
-                    new CTaskComplexUseSequence{ seqId }
+    for (const auto isMissionPeds : { true, false }) { // Mission peds get the seats first
+        for (auto* const m : pgms.GetFollowers()) {
+            if (m->IsCreatedByMission() != isMissionPeds) {
+                continue;
             }
-            );
-        } else { // 0x5F8BCC
-            grpIntel.SetEventResponseTask(m, CTaskComplexEnterCarAsPassengerWait{ veh, waitFor, CanUseFrontSeat(m), PEDMOVE_RUN });
-            SetDriveDefaultTask(m);
+            if (numSeated >= veh->m_nMaxPassengers) { // 0x5F8E8A - No seat left
+                grpIntel.SetEventResponseTask(m, CTaskComplexLeaveAnyCar{ 0, true, false });
+                continue;
+            }
+            if (performSeq) { // 0x5F8A4B
+                grpIntel.SetEventResponseTask(
+                    m,
+                    CTaskComplexSequence{
+                        new CTaskComplexEnterCarAsPassengerWait{ veh, waitFor, CanUseFrontSeat(m), PEDMOVE_RUN },
+                        new CTaskComplexUseSequence{ seqId }
+                }
+                );
+            } else { // 0x5F8BCC
+                grpIntel.SetEventResponseTask(m, CTaskComplexEnterCarAsPassengerWait{ veh, waitFor, CanUseFrontSeat(m), PEDMOVE_RUN });
+                SetDriveDefaultTask(m);
+            }
+            numSeated++;
+            waitFor = m; // Each one waits for the one before
         }
-        numSeated++;
-        waitFor = m; // Each one waits for the one before
     }
 
     if (!leader->IsPlayer()) { // 0x5F8FA0
