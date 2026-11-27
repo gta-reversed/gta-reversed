@@ -110,19 +110,18 @@ void CRoadBlocks::CreateRoadBlockBetween2Points(CVector a, CVector b, bool isGan
     constexpr auto FIRE_BURN_TIME_MS     = 60'000u;
     constexpr auto FIRE_NUM_GENERATIONS  = 2;
     constexpr auto FIRE_REMOVAL_DISTANCE = 92;
-    constexpr auto HALF_TURN             = 3.1415927f; // NOTE: Not `PI`, that one is 3.14159f - the original passes this value (0x461EFB)
 
     const float   length                 = (b - a).Magnitude();
     const CVector center                 = (a + b) * 0.5f;
     const CVector dir                    = (b - a).Normalized();
+    const CVector dirPerpRight{ CVector2D{ dir }.GetPerpRight() };
 
     // Perpendicular to the road block, pointing towards the player's side of it
-    const CVector perp         = CVector{ dir.y, -dir.x, 0.f }.Normalized();
+    const CVector perp         = dirPerpRight.Normalized();
     const CVector toPlayerSide = (FindPlayerCoors() - center).Dot(perp) < 0.f ? -perp : perp;
 
-    // NOTE: The original masks the bits of `rand()` in this function (`& 0xFF`, `& 0xF`, `& 1`), `GetRandomNumberInRange` scales differently
     const auto GetRandomHeading = [](float scale) {
-        return ((float)(CGeneral::GetRandomNumber() & 0xFF) - 128.f) * scale;
+        return CGeneral::GetRandomNumberInRange(-128.f, 128.f) * scale;
     };
     const auto GetCornersOfBB = [](const CMatrix& mat, const CBoundingBox& bb) {
         // NOTE: The original uses the inverse (0x59C810) of the rotation here
@@ -161,7 +160,7 @@ void CRoadBlocks::CreateRoadBlockBetween2Points(CVector a, CVector b, bool isGan
     float                          spaceLeft = length;
     int32                          numVehs   = 0;
     for (; numVehs < MAX_VEHICLES; numVehs++) {
-        isParkedAcross[numVehs] = vehModel != MODEL_BARRACKS && !isGangRoadBlock && (CGeneral::GetRandomNumber() & 1) != 0;
+        isParkedAcross[numVehs] = vehModel != MODEL_BARRACKS && !isGangRoadBlock && CGeneral::DoCoinFlip();
         const float space       = isParkedAcross[numVehs] ? spaceAcross : spaceAlong;
         if (spaceLeft < space) {
             break;
@@ -183,16 +182,16 @@ void CRoadBlocks::CreateRoadBlockBetween2Points(CVector a, CVector b, bool isGan
         } else { // 0x461E33
             distAlong += spaceAlong * 0.5f;
             if (isGangRoadBlock) {
-                isOnItsSide = (CGeneral::GetRandomNumber() & 0xFF) < 64;
+                isOnItsSide = CGeneral::RandomBool(25.f);
             }
-            mat.GetRight()   = isOnItsSide ? CVector{ 0.f, 0.f, 1.f } : CVector{ dir.y, -dir.x, 0.f };
+            mat.GetRight()   = isOnItsSide ? CVector{ 0.f, 0.f, 1.f } : dirPerpRight;
             mat.GetForward() = dir;
-            mat.GetUp()      = isOnItsSide ? CVector{ -dir.y, dir.x, 0.f } : CVector{ 0.f, 0.f, 1.f };
-            if (CGeneral::GetRandomNumber() & 1) {
+            mat.GetUp()      = isOnItsSide ? CVector{ CVector2D{ dir }.GetPerpLeft() } : CVector{ 0.f, 0.f, 1.f };
+            if (CGeneral::DoCoinFlip()) {
                 if (isOnItsSide) {
-                    mat.RotateY(HALF_TURN);
+                    mat.RotateY(PI);
                 } else {
-                    mat.RotateZ(HALF_TURN);
+                    mat.RotateZ(PI);
                 }
             }
             mat.RotateZ(GetRandomHeading(isGangRoadBlock ? 0.006f : 0.003f));
@@ -210,7 +209,7 @@ void CRoadBlocks::CreateRoadBlockBetween2Points(CVector a, CVector b, bool isGan
             continue;
         }
 
-        if (isGangRoadBlock && (isOnItsSide || (CGeneral::GetRandomNumber() & 0xFF) < 64)) { // 0x462110 - A burning wreck
+        if (isGangRoadBlock && (isOnItsSide || CGeneral::RandomBool(25.f))) { // 0x462110 - A burning wreck
             auto* const wreck  = new CObject(ModelIndices::MI_ROADBLOCKFUCKEDCAR1, true);
             wreck->GetMatrix() = mat;
             wreck->SetPosn(mat.GetPosition());
@@ -245,15 +244,14 @@ void CRoadBlocks::CreateRoadBlockBetween2Points(CVector a, CVector b, bool isGan
 
         bool isOnFire                                  = false;
         if (isGangRoadBlock) { // 0x4622F4
-            // NOTE: 1 in 4. `CGeneral::GetRandomNumberInRange(0, 4)` isn't the same (It scales by `max - 1`)
-            if (CGeneral::GetRandomNumber() < (RAND_MAX + 1) / 4) {
+            if (CGeneral::RandomBool(25.f)) {
                 veh->SetTotalDamage(true);
             } else {
                 veh->BlowUpCarCutSceneNoExtras(true, true, true, true);
                 veh->m_nTimeWhenBlowedUp += 1'000'000;
                 isOnFire = true;
             }
-        } else if (veh->UsesSiren() && (CGeneral::GetRandomNumber() & 1)) { // 0x462342
+        } else if (veh->UsesSiren() && CGeneral::DoCoinFlip()) { // 0x462342
             veh->vehicleFlags.bSirenOrAlarm = true;
         }
 
@@ -309,13 +307,13 @@ void CRoadBlocks::CreateRoadBlockBetween2Points(CVector a, CVector b, bool isGan
         const float barrierDistAlong = ((float)i + 0.5f) * barrierSpace + (float)(i + 1) * gapBetweenBarriers;
 
         mat.GetRight()               = dir;
-        mat.GetForward()             = CVector{ dir.y, -dir.x, 0.f };
+        mat.GetForward()             = dirPerpRight;
         mat.GetUp()                  = CVector{ 0.f, 0.f, 1.f };
         mat.GetPosition()            = CVector{};
         mat.RotateZ(GetRandomHeading(0.003f));
         mat.SetTranslateOnly(a + dir * barrierDistAlong + toPlayerSide * 5.f);
-        mat.GetPosition().x += (float)(CGeneral::GetRandomNumber() & 0xF) * 0.05f;
-        mat.GetPosition().y += (float)(CGeneral::GetRandomNumber() & 0xF) * 0.05f;
+        mat.GetPosition().x += CGeneral::GetRandomNumberInRange(0.f, 0.75f);
+        mat.GetPosition().y += CGeneral::GetRandomNumberInRange(0.f, 0.75f);
 
         bool isGroundFound{};
         mat.GetPosition().z = CWorld::FindGroundZFor3DCoord(mat.GetPosition() + CVector{ 0.f, 0.f, 2.f }, &isGroundFound);
