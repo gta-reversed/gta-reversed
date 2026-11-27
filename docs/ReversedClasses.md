@@ -1,17 +1,17 @@
 # Reimplementation progress (*): 92%
 This file is updated automatically every time the `hooks.json` file is updated (which happens every time there are changes to hooks made by a commit), and shows the current progress of reversed categories in the project.
 
-Last update was at Nov 27, 2026 at 02:18:57 UTC
-(Triggered by commit [5dbd8c72](https://github.com/gta-reversed/gta-reversed/commit/5dbd8c7212f1df9d538b07e212af4b96dd936a1d))
+Last update was at Nov 27, 2026 at 20:57:37 UTC
+(Triggered by commit [127ff7f6](https://github.com/gta-reversed/gta-reversed/commit/127ff7f61a870efd390d00f9d74dd87ad5996703))
 
 ## (*) Disclaimers
 **The progress** is based on the number of functions we have documented and reimplemented, so it might not completely reflect the actual progress, it's meant to be a rough estimate.
 
 **The percentages and the number of categories** shown here may not be completely accurate, because not all categories and functions are documented yet.
 
-## Stats (8199 out of 8908 functions done in 797 categories)
+## Stats (8206 out of 8909 functions done in 797 categories)
 
-#### Completely reversed categories (662/797) [83%]
+#### Completely reversed categories (667/797) [84%]
 
 <details>
 <summary>See list of categories</summary>
@@ -86,6 +86,7 @@ Last update was at Nov 27, 2026 at 02:18:57 UTC
 - CCompressedMatrixNotAligned (2)<br />
 - CVisibilityPlugins (84)<br />
 - CPedIntelligence (52)<br />
+- CPedGroupIntelligence (27)<br />
 - CCollision (61)<br />
 - CTrafficLights (12)<br />
 - CMotionBlurStreaks (4)<br />
@@ -349,6 +350,7 @@ Last update was at Nov 27, 2026 at 02:18:57 UTC
 - CTaskComplexDiveFromAttachedEntityAndGetUp (7)<br />
 - CTaskGangHasslePed (7)<br />
 - CTaskGoToVehicleAndLean (9)<br />
+- CTaskLeanOnVehicle (5)<br />
 - CTaskComplexCarSlowBeDraggedOut (11)<br />
 - CTaskComplexCarSlowBeDraggedOutAndStandUp (9)<br />
 - CTaskComplexDestroyCar (9)<br />
@@ -392,6 +394,7 @@ Last update was at Nov 27, 2026 at 02:18:57 UTC
 - CTaskComplexMoveBackAndJump (8)<br />
 - CTaskComplexOnFire (9)<br />
 - CTaskComplexOpenDriverDoor (4)<br />
+- CTaskComplexOpenPassengerDoor (4)<br />
 - CTaskComplexPassObject (9)<br />
 - CTaskComplexReactToGunAimedAt (8)<br />
 - CTaskComplexRoadRage (9)<br />
@@ -528,6 +531,7 @@ Last update was at Nov 27, 2026 at 02:18:57 UTC
 - CTaskComplexEnterCar (14)<br />
 - CTaskSimpleTogglePedThreatScanner (6)<br />
 - CTaskComplexUseGoggles (5)<br />
+- CTaskComplexBeInCouple (10)<br />
 - CTaskComplexGoToPointAndStandStill (7)<br />
 - CTaskSimpleAchieveHeading (5)<br />
 - CTaskSimpleGiveCPR (6)<br />
@@ -675,12 +679,13 @@ Last update was at Nov 27, 2026 at 02:18:57 UTC
 - FurnitureGroup_c (6)<br />
 - FurnitureManager_c (7)<br />
 - InteriorManager_c (21)<br />
+- CTheScripts (69)<br />
 - CStreamedScripts (12)<br />
 - CScriptResourceManager (4)<br />
 
 </details>
 
-#### Partially reversed categories (123/797) [15%]
+#### Partially reversed categories (118/797) [15%]
 
 <details>
 <summary>See list of categories</summary>
@@ -697,7 +702,6 @@ Last update was at Nov 27, 2026 at 02:18:57 UTC
 - CFileLoader (47/48) [98%]<br />
 - CClothesBuilder (15/23) [65%]<br />
 - CPopulation (64/66) [97%]<br />
-- CPedGroupIntelligence (26/27) [96%]<br />
 - CWaterLevel (25/35) [71%]<br />
 - CWeapon (35/41) [85%]<br />
 - CStats (38/51) [75%]<br />
@@ -738,14 +742,12 @@ Last update was at Nov 27, 2026 at 02:18:57 UTC
 - CTaskComplexUseClosestFreeScriptedAttractor (6/8) [75%]<br />
 - CTaskSimpleChoking (5/8) [62%]<br />
 - CTaskGangHassleVehicle (3/8) [38%]<br />
-- CTaskLeanOnVehicle (4/5) [80%]<br />
 - CTaskComplexFollowPatrolRoute (5/9) [56%]<br />
 - CTaskComplexGangJoinRespond (3/7) [43%]<br />
 - CTaskComplexGoToPointAnyMeans (5/7) [71%]<br />
 - CTaskComplexKillCriminal (9/11) [82%]<br />
 - CTaskComplexKillPedOnFootArmed (9/11) [82%]<br />
 - CTaskComplexLeaveCarAndWander (4/8) [50%]<br />
-- CTaskComplexOpenPassengerDoor (3/4) [75%]<br />
 - CTaskSimpleBeKickedOnGround (4/8) [50%]<br />
 - CTaskSimpleCarForcePedOut (4/6) [67%]<br />
 - CTaskSimpleDead (5/6) [83%]<br />
@@ -767,7 +769,6 @@ Last update was at Nov 27, 2026 at 02:18:57 UTC
 - CTaskComplexWanderStandard (5/10) [50%]<br />
 - CTaskComplexSunbathe (4/8) [50%]<br />
 - CTaskComplexCrossRoadLookAndAchieveHeading (5/9) [56%]<br />
-- CTaskComplexBeInCouple (7/9) [78%]<br />
 - CTaskSimpleCarSetPedInAsPassenger (5/6) [83%]<br />
 - CTaskComplexWalkRoundObject (5/8) [62%]<br />
 - CTaskComplexKillPedOnFoot (3/8) [38%]<br />
@@ -805,7 +806,6 @@ Last update was at Nov 27, 2026 at 02:18:57 UTC
 - Interior_c (1/52) [2%]<br />
 - InteriorGroup_c (3/24) [12%]<br />
 - CRunningScript (24/39) [62%]<br />
-- CTheScripts (68/69) [99%]<br />
 - CScripted2dEffects (4/5) [80%]<br />
 
 </details>

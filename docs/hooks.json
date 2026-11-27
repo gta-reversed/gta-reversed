@@ -6662,7 +6662,7 @@
   {
     "Category": "CPedGroupIntelligence",
     "Name": "ComputeScriptCommandTasks",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CCollision",
@@ -25021,7 +25021,7 @@
   },
   {
     "Category": "CTaskLeanOnVehicle",
-    "Name": "Destructor",
+    "Name": "Desructor",
     "IsReversed": true
   },
   {
@@ -25037,7 +25037,7 @@
   {
     "Category": "CTaskLeanOnVehicle",
     "Name": "ProcessPed",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexCarSlowBeDraggedOut",
@@ -27112,7 +27112,7 @@
   {
     "Category": "CTaskComplexOpenPassengerDoor",
     "Name": "Clone",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexOpenPassengerDoor",
@@ -32716,6 +32716,11 @@
   },
   {
     "Category": "CTaskComplexBeInCouple",
+    "Name": "GetPartnerSide",
+    "IsReversed": true
+  },
+  {
+    "Category": "CTaskComplexBeInCouple",
     "Name": "Clone",
     "IsReversed": true
   },
@@ -32732,7 +32737,7 @@
   {
     "Category": "CTaskComplexBeInCouple",
     "Name": "CreateNextSubTask",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexBeInCouple",
@@ -32742,7 +32747,7 @@
   {
     "Category": "CTaskComplexBeInCouple",
     "Name": "ControlSubTask",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexGoToPointAndStandStill",
@@ -44347,7 +44352,7 @@
   {
     "Category": "CTheScripts",
     "Name": "ScriptDebugCircle2D",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTheScripts",
