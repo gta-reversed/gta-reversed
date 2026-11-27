@@ -10,10 +10,11 @@ public:
         CTaskComplexEnterCar(vehicle, false, true, false, false) {
         m_TargetSeat = targetSeat;
     }
+    CTaskComplexOpenPassengerDoor(const CTaskComplexOpenPassengerDoor& o); // NOTSA
     ~CTaskComplexOpenPassengerDoor() override = default;
 
-    eTaskType GetTaskType() const override { return Type; }                                             // 0x640410
-    CTask*    Clone() const override { return new CTaskComplexOpenPassengerDoor(m_Car, m_TargetSeat); } // 0x6438E0
+    eTaskType GetTaskType() const override { return Type; }                                 // 0x640410
+    CTask*    Clone() const override { return new CTaskComplexOpenPassengerDoor{ *this }; } // 0x6438E0
 
 public:
     static void InjectHooks();
