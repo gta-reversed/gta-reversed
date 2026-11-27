@@ -3489,7 +3489,7 @@ void CPed::RemoveBodyPart(ePedNode pedNode, char localDir) {
             m_nBodypartToRemove = pedNode;
         }
     } else {
-        NOTSA_LOG_DEBUG("Trying to remove ped component");
+        NOTSA_LOG_DEBUG("Trying to remove ped component"); // R* log
     }
 }
 

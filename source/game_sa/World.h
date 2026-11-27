@@ -423,8 +423,8 @@ inline CRepeatSector& CWorld::GetRepeatSector(int32 x, int32 y) {
 
 // 0x4072C0
 inline auto& CWorld::GetLodPtrList(int32 x, int32 y) {
-    assert(x < MAX_LOD_PTR_LISTS_X);
-    assert(y < MAX_LOD_PTR_LISTS_Y);
+    assert(x >= 0 && x < MAX_LOD_PTR_LISTS_X);
+    assert(y >= 0 && y < MAX_LOD_PTR_LISTS_Y);
 
     return ms_aLodPtrLists[y][x];
 }
