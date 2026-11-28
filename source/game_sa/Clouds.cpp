@@ -997,7 +997,9 @@ void CClouds::RenderBottomFromHeight() {
             CSprite::RenderBufferedOneXLUSprite(
                 screenPos,
                 screenSize * size,
-                color.r, color.g, color.b,
+                color.r,
+                color.g,
+                color.b,
                 256,
                 1.f / screenPos.z,
                 (uint8)(dist < 0.1f ? (int32)((dist - 0.05f) * (float)alpha * 20.f) : alpha) // Fade in close to the camera (0x715E4B)
