@@ -10,27 +10,11 @@ class CEntity;
 
 class NOTSA_EXPORT_VTABLE CTaskComplexGangLeader : public CTaskComplex {
 public:
-    CPedGroup* m_gang{};
-    CTaskTimer m_wanderTimer{};
-    CTaskTimer m_scanTimer{};
-    CTaskTimer m_exhaleTimer{};     // Creates exahle FX when smoking cigs
-    bool       m_animsReferenced{};
-
-public:
-    static void InjectHooks();
-
     static constexpr auto Type = eTaskType::TASK_COMPLEX_GANG_LEADER;
 
-    CTaskComplexGangLeader(CPedGroup* gang);
+    explicit CTaskComplexGangLeader(CPedGroup* gang);
     CTaskComplexGangLeader(const CTaskComplexGangLeader&);
-    ~CTaskComplexGangLeader();
-
-    static auto GetRandomGangAmbientAnim(CPed* ped, CEntity* entity) ->AnimationId;
-    static auto ShouldLoadGangAnims() -> bool;
-    static auto DoGangAbuseSpeech(CPed* talker, CPed* sayTo) -> void;
-
-    CPed* TryToPassObject(CPed* ped, CPedGroup* group);
-    void  UnrefAnimBlock(); // NOTSA
+    ~CTaskComplexGangLeader() override;
 
     CTask*    Clone() const override { return new CTaskComplexGangLeader{ *this }; }
     eTaskType GetTaskType() const override { return Type; }
@@ -41,15 +25,21 @@ public:
 
     virtual void ScanForStuff(CPed* ped);
 
-private: // Wrappers for hooks
-    // 0x65DED0
-    CTaskComplexGangLeader* Constructor(CPedGroup* gang) {
-        this->CTaskComplexGangLeader::CTaskComplexGangLeader(gang);
-        return this;
-    }
-    // 0x65DF30
-    CTaskComplexGangLeader* Destructor() {
-        this->CTaskComplexGangLeader::~CTaskComplexGangLeader();
-        return this;
-    }
+    static AnimationId GetRandomGangAmbientAnim(CPed* ped, CEntity* entity);
+    static bool        ShouldLoadGangAnims();
+    static void        DoGangAbuseSpeech(CPed* talker, CPed* sayTo);
+    static CPed*       TryToPassObject(CPed* ped, CPedGroup* group);
+
+    static void InjectHooks();
+
+private:
+    void UnrefAnimBlock(); // NOTSA
+
+private:
+    CPedGroup* m_Gang{};
+    CTaskTimer m_WanderTimer{};
+    CTaskTimer m_ScanTimer{};
+    CTaskTimer m_ExhaleTimer{}; //!< Creates the exhale FX when smoking
+    bool       m_AnimsReferenced{};
 };
+VALIDATE_SIZE(CTaskComplexGangLeader, 0x38);
