@@ -29,14 +29,12 @@ constexpr AnimationId s_gangTalkAnims[]{
 
 // 0x65DED0
 CTaskComplexGangLeader::CTaskComplexGangLeader(CPedGroup* gang) :
-    m_Gang{ gang }
-{
+    m_Gang{ gang } {
 }
 
 // NOTSA
 CTaskComplexGangLeader::CTaskComplexGangLeader(const CTaskComplexGangLeader& o) :
-    CTaskComplexGangLeader{ o.m_Gang }
-{
+    CTaskComplexGangLeader{ o.m_Gang } {
 }
 
 // 0x65DF30
@@ -142,10 +140,10 @@ CTask* CTaskComplexGangLeader::CreateNextSubTask(CPed* ped) {
 
     if (CGeneral::GetRandomNumberInRange(0, 100) > 95 || m_Gang->GetMembership().CountMembers() < 3) { // 0x65E0E6
         m_WanderTimer.Start(CGeneral::GetRandomNumberInRange(15'000, 30'000));
-        return new CTaskComplexWanderGang{ PEDMOVE_WALK, CGeneral::RandomNodeHeading(), 5000, true, 0.05f };
+        return new CTaskComplexWanderGang{ PEDMOVE_WALK, CGeneral::RandomNodeHeading(), 5'000, true, 0.05f };
     }
 
-    return new CTaskSimpleStandStill{ 5000 }; // 0x65E10E
+    return new CTaskSimpleStandStill{ 5'000 }; // 0x65E10E
 }
 
 // 0x65E1F0
@@ -206,7 +204,7 @@ CTask* CTaskComplexGangLeader::ControlSubTask(CPed* ped) {
 
     // If ped isn't already looking at someone, look at a random member
     if (!g_ikChainMan.IsLooking(ped) && CGeneral::GetRandomNumberInRange(0, 100) > 95) { // 0x6625A9
-        const auto lookTime = CGeneral::GetRandomNumberInRange(3000, 5000);
+        const auto lookTime = CGeneral::GetRandomNumberInRange(3'000, 5'000);
         if (auto* const mem = m_Gang->GetMembership().GetMember(CGeneral::GetRandomNumberInRange(0, TOTAL_PED_GROUP_MEMBERS)); mem && mem != ped) {
             g_ikChainMan.LookAt(
                 "TaskGangLeader",
@@ -273,13 +271,13 @@ CTask* CTaskComplexGangLeader::ControlSubTask(CPed* ped) {
         // Start exhale timer (for smkcig anims)
         if (!m_ExhaleTimer.IsStarted()) {
             if (rng::any_of(
-                std::array{ SMKCIG_PRTL, SMKCIG_PRTL_F },
-                [&](auto idx) {
-                    const auto* const anim = anims[idx];
-                    return anim && anim->GetCurrentTime() < 0.5f;
-                })
-            ) {
-                m_ExhaleTimer.Start(2700);
+                    std::array{ SMKCIG_PRTL, SMKCIG_PRTL_F },
+                    [&](auto idx) {
+                        const auto* const anim = anims[idx];
+                        return anim && anim->GetCurrentTime() < 0.5f;
+                    }
+                )) {
+                m_ExhaleTimer.Start(2'700);
             }
         }
     }
@@ -296,7 +294,7 @@ CTask* CTaskComplexGangLeader::ControlSubTask(CPed* ped) {
         return m_pSubTask;
     }
 
-    if (CGeneral::GetRandomNumberInRange(0, 500) != 200) { // 0x662789
+    if (CGeneral::GetRandomNumberInRange(0, 500) != 200) {    // 0x662789
         if (CGeneral::GetRandomNumberInRange(0, 100) == 50) { // 0x6628A7
             if (auto* const tHold = ped->GetTaskManager().Find<CTaskSimpleHoldEntity>()) {
                 tHold->PlayAnim(GetRandomGangAmbientAnim(ped, pedHeldEntity), ANIM_GROUP_GANGS);
@@ -362,8 +360,8 @@ void CTaskComplexGangLeader::ScanForStuff(CPed* ped) {
             m_Gang->GetIntelligence().AddEvent(
                 CEventGroupEvent{
                     ped,
-                    new CEventLeanOnVehicle{&veh, CGeneral::GetRandomNumberInRange(10'000, 25'000)}
-                }
+                    new CEventLeanOnVehicle{ &veh, CGeneral::GetRandomNumberInRange(10'000, 25'000) }
+            }
             );
 
             m_ScanTimer.Start(60'000);
@@ -410,8 +408,7 @@ void CTaskComplexGangLeader::ScanForStuff(CPed* ped) {
                 scannedPed.GetEventGroup().Add(
                     CEventScriptCommand{
                         TASK_PRIMARY_PRIMARY,
-                        new CTaskComplexBeInGroup{m_Gang->GetId()}
-                    }
+                        new CTaskComplexBeInGroup{ m_Gang->GetId() } }
                 );
                 m_Gang->GetMembership().AddFollower(&scannedPed);
                 m_Gang->Process();
@@ -419,8 +416,7 @@ void CTaskComplexGangLeader::ScanForStuff(CPed* ped) {
 
             // Find a member close enough to the scanned ped, and make them partners
             if (const auto [closestMem, distSq] = m_Gang->GetMembership().GetMemberClosestTo(&scannedPed); // 0x65E610
-                closestMem && sq(10.f) >= distSq && distSq >= sq(4.f)
-            ) {
+                closestMem && sq(10.f) >= distSq && distSq >= sq(4.f)) {
                 const auto partnerType = CGeneral::GetRandomNumberInRange(0, 7);
                 scannedPed.GetEventGroup().Add(CEventCreatePartnerTask{ partnerType, closestMem, true, 0.5f });
                 closestMem->GetEventGroup().Add(CEventCreatePartnerTask{ partnerType, &scannedPed, false, 0.5f });
