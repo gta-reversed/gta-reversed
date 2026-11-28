@@ -163,65 +163,34 @@ void CTaskSimpleGangDriveBy::SetupStaticAnimForNPC(CPed* ped) {
         return;
     }
 
-    // 0x627825 - The direction(s) the target is in
-    int8 closestDir = -1;
-    int8 sideDir    = 0; // -1 = left, 1 = right
-    int8 fwdBackDir = 0; // -1 = front, 1 = back
-    switch (m_nDrivebyStyle) {
-    case eDrivebyStyle::FIXED_LHS:
-    case eDrivebyStyle::FIXED_RHS:
-    case eDrivebyStyle::FIXED_FWD:
-    case eDrivebyStyle::FIXED_BAK:
-        break;
-    default: {
-        closestDir = GetDriveByDirection(angle);
-        if (angle > DegreesToRadians(15.f) && angle < DegreesToRadians(165.f)) {
-            sideDir = -1;
-        } else if (angle < -DegreesToRadians(15.f) && angle > -DegreesToRadians(165.f)) {
-            sideDir = 1;
-        }
-        if (angle < DegreesToRadians(75.f) && angle > -DegreesToRadians(75.f)) {
-            fwdBackDir = -1;
-        } else if (angle > DegreesToRadians(105.f) && angle < -DegreesToRadians(105.f)) { // NOTE/BUG: Never true (`&&` instead of `||`), so `AI_FWD_BAK` never picks the back while no anim is set
-            fwdBackDir = 1;
-        }
-        break;
-    }
-    }
-
-    // 0x627922 - The direction to use for the style
-    const bool noAnim           = m_nRequiredAnimID == ANIM_ID_NO_ANIMATION_SET;
-    const auto GetClosestIfSide = [&]() -> int8 {
-        return closestDir == DRIVEBY_DIR_LEFT || closestDir == DRIVEBY_DIR_RIGHT ? closestDir : -1;
+    // 0x627825 - The direction to use for the style
+    const bool noAnim          = m_nRequiredAnimID == ANIM_ID_NO_ANIMATION_SET;
+    const auto IsAngleBetween  = [&](float minDeg, float maxDeg) {
+        return angle > DegreesToRadians(minDeg) && angle < DegreesToRadians(maxDeg);
     };
-    const auto GetClosestIfFwdBack = [&]() -> int8 {
-        return closestDir == DRIVEBY_DIR_FWD || closestDir == DRIVEBY_DIR_BACK ? closestDir : -1;
+    const auto GetClosestIfAny = [&](eDriveByDirection a, eDriveByDirection b) -> int8 {
+        const auto closest = GetDriveByDirection(angle);
+        return closest == a || closest == b ? closest : -1;
     };
     const auto dir = [&]() -> int8 {
         switch (m_nDrivebyStyle) {
         case eDrivebyStyle::FIXED_LHS:      return DRIVEBY_DIR_LEFT;
         case eDrivebyStyle::FIXED_RHS:      return DRIVEBY_DIR_RIGHT;
-        case eDrivebyStyle::START_FROM_LHS: return noAnim ? DRIVEBY_DIR_LEFT : GetClosestIfSide();
-        case eDrivebyStyle::START_FROM_RHS: return noAnim ? DRIVEBY_DIR_RIGHT : GetClosestIfSide();
-        case eDrivebyStyle::AI_SIDE:        { // 0x627952
-            if (!noAnim) {
-                return GetClosestIfSide();
-            }
-            return sideDir == -1 ? DRIVEBY_DIR_LEFT
-                : sideDir == 1   ? DRIVEBY_DIR_RIGHT
-                                 : -1;
-        }
-        case eDrivebyStyle::FIXED_FWD:  return DRIVEBY_DIR_FWD;
-        case eDrivebyStyle::FIXED_BAK:  return DRIVEBY_DIR_BACK;
-        case eDrivebyStyle::AI_FWD_BAK: { // 0x62797f
-            if (!noAnim) {
-                return GetClosestIfFwdBack();
-            }
-            return fwdBackDir == -1 ? DRIVEBY_DIR_FWD
-                : fwdBackDir == 1   ? DRIVEBY_DIR_BACK
-                                    : -1;
-        }
-        case eDrivebyStyle::AI_ALL_DIRN: return closestDir;
+        case eDrivebyStyle::START_FROM_LHS: return noAnim ? DRIVEBY_DIR_LEFT : GetClosestIfAny(DRIVEBY_DIR_LEFT, DRIVEBY_DIR_RIGHT);
+        case eDrivebyStyle::START_FROM_RHS: return noAnim ? DRIVEBY_DIR_RIGHT : GetClosestIfAny(DRIVEBY_DIR_LEFT, DRIVEBY_DIR_RIGHT);
+        case eDrivebyStyle::AI_SIDE: // 0x627952
+            return !noAnim                   ? GetClosestIfAny(DRIVEBY_DIR_LEFT, DRIVEBY_DIR_RIGHT)
+                : IsAngleBetween(15.f, 165.f)   ? DRIVEBY_DIR_LEFT
+                : IsAngleBetween(-165.f, -15.f) ? DRIVEBY_DIR_RIGHT
+                                                : -1;
+        case eDrivebyStyle::FIXED_FWD: return DRIVEBY_DIR_FWD;
+        case eDrivebyStyle::FIXED_BAK: return DRIVEBY_DIR_BACK;
+        case eDrivebyStyle::AI_FWD_BAK: // 0x62797f
+            // NOTE/BUG: The original's check for the back (`angle > 105deg && angle < -105deg`) is never true
+            return !noAnim                  ? GetClosestIfAny(DRIVEBY_DIR_FWD, DRIVEBY_DIR_BACK)
+                : IsAngleBetween(-75.f, 75.f) ? DRIVEBY_DIR_FWD
+                                              : -1;
+        case eDrivebyStyle::AI_ALL_DIRN: return GetDriveByDirection(angle);
         default:                         return -1;
         }
     }();
