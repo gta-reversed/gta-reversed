@@ -9,11 +9,11 @@ void CTaskComplexUseEffectSprinting::InjectHooks() {
     RH_ScopedVMTInstall(GetTaskType, 0x636890);
 }
 
-// 0x636780
+// 0x636860
 CTaskComplexUseEffectSprinting::CTaskComplexUseEffectSprinting(C2dEffectPedAttractor* fx, CEntity* e) :
     CTaskComplexUseEffect{ fx, e }
 {
-    m_MoveState = PEDMOVE_RUN;
+    m_MoveState = PEDMOVE_SPRINT;
 }
 
 // 0x6367C0

@@ -223,6 +223,8 @@ struct C2dEffectBase {
     CVector       m_Pos;
     e2dEffectType m_Type;
 
+    const CVector& GetPosition() const { return m_Pos; } // NOTSA
+
     // Casting.hpp support //
     template<typename From, typename Self>
     static constexpr bool classof(const From* f) { return f->m_Type == Self::Type; }
