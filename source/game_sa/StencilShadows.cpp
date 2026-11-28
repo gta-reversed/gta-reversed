@@ -1,11 +1,90 @@
 #include "StdInc.h"
 #include "StencilShadowObject.h"
+#include "RenderBuffer.hpp"
 
 // TODO: Statically allocate after reversing RenderForVehicle&RenderForObject.
 static inline auto& s_ShadowTrianglePointsUnk         = StaticRef<RxVertexIndex*>(0xC6A170);
 static inline auto& s_ShadowTrianglePoints            = StaticRef<CVector*>(0xC6A174);
 static inline auto& s_TransformedShadowTrianglePoints = StaticRef<CVector*>(0xC6A178);
 static inline auto& s_SunPosNrm                       = StaticRef<CVector>(0x8D5244); // CVector(1.0, 1.0, -2.0)
+
+namespace {
+constexpr auto VEHICLE_SHADOW_LENGTH        = 5.f;
+constexpr auto FLYING_VEHICLE_SHADOW_LENGTH = 40.f;
+constexpr auto OBJECT_SHADOW_LENGTH         = 60.f;
+
+//! An edge of the silhouette, `s_ShadowTrianglePointsUnk` holds these (as 2 vertex indices each)
+struct ShadowEdge {
+    RxVertexIndex a, b;
+};
+
+// 0x70FA70
+void ToggleEdge(ShadowEdge* edges, uint16& numEdges, RxVertexIndex a, RxVertexIndex b) {
+    // An edge shared by 2 faces facing the sun isn't on the silhouette, so it's removed when it's seen again
+    for (auto i = 0; i < numEdges; i++) {
+        auto& e = edges[i];
+        if (e.a == a && e.b == b || e.a == b && e.b == a) {
+            e = edges[--numEdges];
+            return;
+        }
+    }
+    edges[numEdges++] = { a, b };
+}
+
+//! Add vertices to the shadow volume, returns false if they don't fit
+bool AddShadowVertices(CStencilShadowObject& object, std::initializer_list<CVector> vertices) {
+    // NOTE: `m_FaceID` is the size of `m_ShadowFacesData` (15 vertices per shadow face, set in 0x711280)
+    if (object.m_SizeOfShadowFacesData + vertices.size() >= object.m_FaceID) {
+        return false;
+    }
+    rng::copy(vertices, object.m_ShadowFacesData + object.m_SizeOfShadowFacesData);
+    object.m_SizeOfShadowFacesData += vertices.size();
+    return true;
+}
+
+//! NOTSA: The common part of `RenderForVehicle` and `RenderForObject`
+void BuildShadowVolume(CStencilShadowObject& object, CCollisionData& colData, const CMatrix& mat, float shadowLength) {
+    // NOTE: The original transforms the sun as `Invert(mat) * sun - Invert(mat) * CVector{}`, only the sign of the dot product below uses it
+    const auto sunDir              = mat.InverseTransformVector(s_SunPosNrm);
+
+    object.m_SizeOfShadowFacesData = 0;
+
+    auto* const points             = s_ShadowTrianglePoints;
+    auto* const world              = s_TransformedShadowTrianglePoints;
+    for (auto i = 0; i < (int32)colData.m_nNumShadowVertices; i++) {
+        colData.GetShadTrianglePoint(points[i], i);
+    }
+    TransformPoints(world, (int32)colData.m_nNumShadowVertices, mat, points);
+
+    auto* const edges    = reinterpret_cast<ShadowEdge*>(s_ShadowTrianglePointsUnk);
+    uint16      numEdges = 0;
+
+    const auto offset    = s_SunPosNrm * shadowLength;
+    for (auto i = 0; i < object.m_NumShadowFaces; i++) {
+        const auto& tri = colData.m_pShadowTriangles[i];
+        const auto& a   = points[tri.vA];
+        if ((points[tri.vB] - a).Cross(points[tri.vC] - a).Dot(sunDir) >= 0.f) { // 0x70fee9 - Facing the sun: the near cap + its edges
+            ToggleEdge(edges, numEdges, tri.vA, tri.vB);
+            ToggleEdge(edges, numEdges, tri.vB, tri.vC);
+            ToggleEdge(edges, numEdges, tri.vC, tri.vA);
+            if (!AddShadowVertices(object, { world[tri.vA], world[tri.vC], world[tri.vB] })) {
+                break;
+            }
+        } else if (!AddShadowVertices(object, { world[tri.vA] + offset, world[tri.vC] + offset, world[tri.vB] + offset })) { // 0x70ffa4 - The far cap
+            break;
+        }
+    }
+
+    // 0x7100ff - The sides of the volume
+    for (const auto& e : std::span{ edges, numEdges }) {
+        const auto& a = world[e.a];
+        const auto& b = world[e.b];
+        if (!AddShadowVertices(object, { a, b, a + offset, b, b + offset, a + offset })) {
+            break;
+        }
+    }
+}
+}; // namespace
 
 void CStencilShadows::InjectHooks() {
     RH_ScopedClass(CStencilShadows);
@@ -18,9 +97,9 @@ void CStencilShadows::InjectHooks() {
     RH_ScopedInstall(UpdateHierarchy, 0x710BC0);
     RH_ScopedInstall(RegisterStencilShadows, 0x711760, {.Reversed = false});
     RH_ScopedInstall(RenderStencilShadows, 0x7113B0);
-    RH_ScopedInstall(RenderForVehicle, 0x70FAE0, {.Reversed = false});
-    RH_ScopedInstall(RenderForObject, 0x710310, {.Reversed = false});
-    RH_ScopedInstall(Render, 0x710D50, {.Reversed = false});
+    RH_ScopedInstall(RenderForVehicle, 0x70FAE0);
+    RH_ScopedInstall(RenderForObject, 0x710310);
+    RH_ScopedInstall(Render, 0x710D50);
     RH_ScopedInstall(RenderBuffer, 0x710B50);
     RH_ScopedInstall(SunSetPositionFromEntity, 0x710AF0);
     RH_ScopedInstall(sub_710CC0, 0x710CC0);
@@ -58,40 +137,42 @@ void CStencilShadows::Shutdown() {
 
 // 0x710D50
 void CStencilShadows::Render(const CRGBA& color) {
-    plugin::Call<0x710D50, const CRGBA&>(color);
+    ::RenderBuffer::ClearRenderBuffer();
 
-    /*
-    uiTempBufferIndicesStored = 0;
-    uiTempBufferVerticesStored = 0;
+    const auto PushTriangles = [&](std::span<const CVector> vertices) {
+        sub_710CC0((int32)vertices.size(), (int32)vertices.size());
 
-    const auto intColor = color.ToInt();
-    for (auto* shadow = pFirstActiveStencilShadowObject; shadow; shadow = shadow->m_pNext) {
-        auto*      facePts  = shadow->m_ShadowFacesData;
-        const auto numFaces = shadow->m_SizeOfShadowFacesData / sizeof(*facePts);
-         
-        for (auto face = 0u; face < numFaces; face++, facePts += 6) {
-            auto points = std::span{ facePts, 6 };
-
-            sub_710CC0(6, 6);
-
-            auto nextVert = std::exchange(uiTempBufferVerticesStored, uiTempBufferVerticesStored + 6);
-            auto nextIdx  = std::exchange(uiTempBufferIndicesStored, uiTempBufferIndicesStored + 6);
-            for (auto i = 0; i < 6; i++) {
-                auto& vert     = TempBufferVertices.m_3d[nextVert + i];
-                vert.objVertex = points[0];
-                vert.color     = intColor;
-
-                aTempBufferIndices[nextIdx + i] = nextIdx + i;
-            }
+        // NOTE: The original uses the number of stored indices as the base, it's always the same as the number of stored vertices here
+        for (auto i = 0u; i < vertices.size(); i++) {
+            ::RenderBuffer::PushIndex((int32)i, true);
         }
+        for (const auto& vertex : vertices) {
+            ::RenderBuffer::PushVertex(vertex, color);
+        }
+    };
+    for (auto* obj = pFirstActiveStencilShadowObject; obj; obj = obj->m_pNext) {
+        const auto vertices = std::span<const CVector>{ obj->m_ShadowFacesData, obj->m_SizeOfShadowFacesData };
 
-        // what the fuck?
-        // TODO: maybe this just boils down to size > 0 && size % 2 == 0
-        const auto v14 = (0x55555556ull * shadow->m_SizeOfShadowFacesData) >> 32;
-        if (((v14 & 0x80000000) != 0) + (v14 & 1) != 0) {
+        // 2 triangles at a time, then the last one
+        auto i = 0u;
+        for (; i + 6 <= vertices.size(); i += 6) {
+            PushTriangles(vertices.subspan(i, 6));
+        }
+        if (vertices.size() - i >= 3) { // 0x710fbd
+            PushTriangles(vertices.subspan(i, 3));
         }
     }
-    */
+
+    // 0x7110fa
+    if (uiTempBufferIndicesStored && uiTempBufferVerticesStored) {
+        RwRenderStateSet(rwRENDERSTATETEXTURERASTER, RWRSTATE(nullptr));
+        LittleTest();
+        if (RwIm3DTransform(TempBufferVertices.m_3d, uiTempBufferVerticesStored, nullptr, rwIM3D_VERTEXXYZ | rwIM3D_VERTEXRGBA)) {
+            RwIm3DRenderIndexedPrimitive(rwPRIMTYPETRILIST, aTempBufferIndices, uiTempBufferIndicesStored);
+            RwIm3DEnd();
+        }
+        ::RenderBuffer::ClearRenderBuffer();
+    }
 }
 
 // unused
@@ -200,13 +281,35 @@ void CStencilShadows::RenderStencilShadows() {
 }
 
 // 0x70FAE0
-void CStencilShadows::RenderForVehicle(CStencilShadowObject* object) {
-    plugin::Call<0x70FAE0, CStencilShadowObject*>(object);
+bool CStencilShadows::RenderForVehicle(CStencilShadowObject* object) {
+    auto* const owner        = object->m_pOwner;
+    const auto  shadowLength = owner->GetIsTypeVehicle() && (owner->AsVehicle()->IsSubPlane() || owner->AsVehicle()->IsSubHeli())
+        ? FLYING_VEHICLE_SHADOW_LENGTH
+        : VEHICLE_SHADOW_LENGTH;
+
+    auto* const colData      = owner->GetColData();
+    if (!colData || (int32)colData->m_nNumShadowTriangles != object->m_NumShadowFaces) {
+        return false;
+    }
+
+    const CMatrix* mat = &owner->GetMatrix();
+    if (owner->GetIsTypeVehicle() && owner->AsVehicle()->IsBike()) { // 0x70fb80
+        owner->AsBike()->CalculateLeanMatrix();
+        mat = &owner->AsBike()->m_mLeanMatrix;
+    }
+    BuildShadowVolume(*object, *colData, *mat, shadowLength);
+    return true;
 }
 
 // 0x710310
-void CStencilShadows::RenderForObject(CStencilShadowObject* object) {
-    plugin::Call<0x710310, CStencilShadowObject*>(object);
+bool CStencilShadows::RenderForObject(CStencilShadowObject* object) {
+    auto* const owner   = object->m_pOwner;
+    auto* const colData = owner->GetColData();
+    if (!colData || (int32)colData->m_nNumShadowTriangles != object->m_NumShadowFaces) {
+        return false;
+    }
+    BuildShadowVolume(*object, *colData, owner->GetMatrix(), OBJECT_SHADOW_LENGTH);
+    return true;
 }
 
 // 0x711D90

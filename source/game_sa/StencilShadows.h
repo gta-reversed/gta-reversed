@@ -4,11 +4,6 @@ class CStencilShadowObject;
 
 class CStencilShadows {
 public:
-    static inline auto& m_StencilShadowObjects = StaticRef<std::array<CStencilShadowObject, 64>>(0xC6A198);
-
-    static inline auto& pFirstAvailableStencilShadowObject = StaticRef<CStencilShadowObject*>(0xC6A168);
-    static inline auto& pFirstActiveStencilShadowObject    = StaticRef<CStencilShadowObject*>(0xC6A16C);
-
     static void InjectHooks();
 
     static void Init();
@@ -22,11 +17,17 @@ public:
     static void RegisterStencilShadows(CVector& cameraPos, bool doNotCreateNew);
 
     static void RenderStencilShadows();
-    static void RenderForVehicle(CStencilShadowObject*);
-    static void RenderForObject(CStencilShadowObject*);
+    static bool RenderForVehicle(CStencilShadowObject* object);
+    static bool RenderForObject(CStencilShadowObject* object);
     static void Render(const CRGBA& color);
     static void RenderBuffer(const CVector& pos);
     static void SunSetPositionFromEntity(const CEntity* entity);
 
     static void sub_710CC0(int32 indices, int32 vertices);
+
+public:
+    static inline auto& m_StencilShadowObjects             = StaticRef<std::array<CStencilShadowObject, 64>>(0xC6A198);
+
+    static inline auto& pFirstAvailableStencilShadowObject = StaticRef<CStencilShadowObject*>(0xC6A168);
+    static inline auto& pFirstActiveStencilShadowObject    = StaticRef<CStencilShadowObject*>(0xC6A16C);
 };
