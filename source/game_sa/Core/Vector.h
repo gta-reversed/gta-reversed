@@ -12,6 +12,10 @@
 #include "Vector2D.h"
 
 class CMatrix;
+class CVector;
+
+// Declared before the class, so `Dist` / `DistSqr` (`a - b`) don't pick `CVector2D`'s operator via the implicit conversion
+constexpr CVector operator-(const CVector& vecOne, const CVector& vecTwo);
 
 class CVector : public RwV3d {
 public:
