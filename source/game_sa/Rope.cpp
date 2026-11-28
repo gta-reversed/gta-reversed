@@ -7,7 +7,7 @@ namespace {
 constexpr uint8 ROPE_FLAG_REGISTERED  = 0x1; // Set by `CRopes::RegisterRope`, cleared at the end of `Update`
 constexpr uint8 ROPE_FLAG_HITS_GROUND = 0x4;
 
-constexpr auto PICK_UP_RANGE = 2.5f;
+constexpr auto PICK_UP_RANGE          = 2.5f;
 
 //! The magno crane objects that can be picked up by one of their sides too
 bool IsMagnoCraneObjectWithSides(int32 model) {
@@ -91,13 +91,13 @@ void CRope::CreateHookObjectForRope() {
 // 0x5561B0
 // Returns true if the rope is stretched - `outWeightPos` is then where the weight has to be
 bool CRope::UpdateWeightInRope(CVector weightPos, float unused, CVector* outWeightPos) {
-    const CVector top        = m_aSegments[m_nSegments];
-    const auto    ropeLength = (float)(int32)(NUM_ROPE_SEGMENTS - 1 - m_nSegments) * m_fTotalLength;
+    const CVector top                  = m_aSegments[m_nSegments];
+    const auto    ropeLength           = (float)(int32)(NUM_ROPE_SEGMENTS - 1 - m_nSegments) * m_fTotalLength;
     m_aSegments[NUM_ROPE_SEGMENTS - 1] = weightPos;
 
-    const CVector topToWeight = weightPos - top;
+    const CVector topToWeight          = weightPos - top;
     if (const auto dist = topToWeight.Magnitude(); dist >= ropeLength) { // 0x556266 - Stretched: a straight line from the top
-        *outWeightPos = top + topToWeight * (ropeLength / dist);
+        *outWeightPos      = top + topToWeight * (ropeLength / dist);
 
         const CVector step = topToWeight.Normalized() * m_fTotalLength; // NOTE: The original normalizes (and scales) it again for every segment
         for (auto i = m_nSegments + 1u; i < NUM_ROPE_SEGMENTS; i++) {
@@ -301,10 +301,10 @@ void CRope::Update() {
             segment.z = std::max(segment.z, m_fGroundZ + 0.3f);
         }
         const CVector& upper = m_aSegments[i - 1];
-        segment = upper + (segment - upper) * (m_fTotalLength / (segment - upper).Magnitude());
+        segment              = upper + (segment - upper) * (m_fTotalLength / (segment - upper).Magnitude());
 
-        speed  = (segment - oldPos) / CTimer::GetTimeStep();
-        staleZ = oldPos.z;
+        speed                = (segment - oldPos) / CTimer::GetTimeStep();
+        staleZ               = oldPos.z;
     }
 
     if (m_nType != eRopeType::NONE && m_nType != eRopeType::SWAT) { // 0x55792D
@@ -328,7 +328,7 @@ void CRope::ProcessControls() {
         switch (m_nType) {
         case eRopeType::CRANE_MAGNET1:
         case eRopeType::CRANE_HARNESS:
-        case eRopeType::MAGNET: { // 0x557B04
+        case eRopeType::MAGNET:        { // 0x557B04
             const auto upDown = CPad::GetPad(0)->GetCarGunUpDown();
             if ((upDown < 0 && CTheScripts::bEnableCraneRaise) || (upDown > 0 && CTheScripts::bEnableCraneLower)) {
                 m_fSegmentLength -= (float)upDown * CTimer::GetTimeStep() * 0.00001f;
@@ -375,7 +375,7 @@ std::optional<float> CRope::ProcessWeight() {
             return 0.06f;
         }
         carried->m_nFakePhysics = 0;
-        const auto mass = carried->GetModelIndex() == MODEL_SECURICA ? 750.f : carried->m_fMass;
+        const auto mass         = carried->GetModelIndex() == MODEL_SECURICA ? 750.f : carried->m_fMass;
         return std::min(0.06f + 0.13f * (mass / 1200.f), 0.5f);
     }();
 
@@ -396,7 +396,7 @@ std::optional<float> CRope::ProcessWeight() {
         if (const auto outwards = speed.Dot(dir); outwards > 0.f) {
             speed -= dir * outwards;
         }
-        weightSpeedZ = speed.z;
+        weightSpeedZ              = speed.z;
 
         const CVector speedChange = speed + holderSpeed - weight->GetMoveSpeed();
         weight->GetMoveSpeed() += speedChange * (1.f - holderShare);
@@ -416,7 +416,7 @@ std::optional<float> CRope::ProcessWeight() {
     }
 
     if (carried) { // 0x558121 - The hook object goes with the carried entity
-        hook->GetMatrix() = carried->GetMatrix();
+        hook->GetMatrix()    = carried->GetMatrix();
         hook->GetMoveSpeed() = carried->GetMoveSpeed();
         hook->SetPosn(carried->GetMatrix().TransformPoint({ 0.f, 0.f, CRopes::FindPickupHeight(carried) }));
     }
@@ -529,7 +529,7 @@ void CRope::PickUpPed(const CVector& lastSegment, float staleZ) {
         m_pRopeAttachObject = ped;
         ped->RegisterReference(&m_pRopeAttachObject);
         ped->physicalFlags.bCarriedByRope = true;
-        const CVector pickUpPos = ped->GetMatrix().TransformPoint({ 0.f, 0.f, CRopes::FindPickupHeight(ped) });
+        const CVector pickUpPos           = ped->GetMatrix().TransformPoint({ 0.f, 0.f, CRopes::FindPickupHeight(ped) });
         m_pAttachedEntity->SetPosn(pickUpPos);
         m_pAttachedEntity->SetUsesCollision(false);
 
@@ -566,14 +566,18 @@ void CRope::PickUpRopeObject(const CVector& lastSegment, eRopeType type) {
         if (!obj || !obj->objectFlags.bCanBeAttachedToMagnet || !CanPickUp(*obj)) {
             continue;
         }
-        const auto height = CRopes::FindPickupHeight(obj);
-        const auto& mat   = obj->GetMatrix();
+        const auto  height = CRopes::FindPickupHeight(obj);
+        const auto& mat    = obj->GetMatrix();
 
         // 0x558914 - The top, or the highest side
         CVector pickUpPos = mat.TransformPoint({ 0.f, 0.f, height });
         uint32  numTurns  = 0;
         if (IsMagnoCraneObjectWithSides(obj->GetModelIndex())) {
-            for (const auto& [offset, turns] : { std::pair{ CVector{ 0.f, 0.f, -height }, 2u }, { CVector{ height, 0.f, 0.f }, 3u }, { CVector{ -height, 0.f, 0.f }, 1u } }) {
+            for (const auto& [offset, turns] : {
+                     std::pair{ CVector{ 0.f, 0.f, -height }, 2u },
+                     { CVector{ height, 0.f, 0.f },  3u },
+                     { CVector{ -height, 0.f, 0.f }, 1u }
+            }) {
                 if (const CVector pos = mat.TransformPoint(offset); pos.z > pickUpPos.z) {
                     pickUpPos = pos;
                     numTurns  = turns;
