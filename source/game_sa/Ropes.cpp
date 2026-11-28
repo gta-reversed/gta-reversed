@@ -97,7 +97,7 @@ bool CRopes::RegisterRope(uint32 ropeId, uint32 ropeType, CVector startPos, bool
     if (it == aRopes.end()) {
         return false;
     }
-    auto& rope = *it;
+    auto& rope               = *it;
 
     rope.m_nId               = ropeId;
     rope.m_aSegments[0]      = startPos;
@@ -131,7 +131,7 @@ bool CRopes::RegisterRope(uint32 ropeId, uint32 ropeType, CVector startPos, bool
     case eRopeType::CRANE_MAGNO:
     case eRopeType::WRECKING_BALL:
     case eRopeType::QUARRY_CRANE_ARM:
-    case eRopeType::CRANE_TROLLEY: { // 0x556DDA - Straight down
+    case eRopeType::CRANE_TROLLEY:    { // 0x556DDA - Straight down
         for (auto i = 1u; i < NUM_ROPE_SEGMENTS; i++) {
             rope.m_aSegments[i] = rope.m_aSegments[i - 1] - CVector{ 0.f, 0.f, rope.m_fTotalLength }; // NOTE: The speeds are not reset here
         }
@@ -178,7 +178,7 @@ bool CRopes::FindCoorsAlongRope(uint32 ropeId, float distAlongRope, CVector* out
     const auto segmentPos = std::clamp(distAlongRope, 0.f, 0.999f) * (float)(NUM_ROPE_SEGMENTS - 1);
     const auto segment    = (uint32)segmentPos;
 
-    *outPos = Lerp(rope.m_aSegments[segment], rope.m_aSegments[segment + 1], segmentPos - (float)segment);
+    *outPos               = Lerp(rope.m_aSegments[segment], rope.m_aSegments[segment + 1], segmentPos - (float)segment);
     if (outSpeed) {
         *outSpeed = rope.m_aSpeed[segment + 1];
     }
@@ -190,7 +190,7 @@ int32 CRopes::CreateRopeForSwatPed(const CVector& startPos) {
     const auto ropeId = RopeIdCreationCounter + 100;
 
     // NOTE: The original checks the result for `< 0` (0x558D4D), so it never fails, even when there was no free slot
-    RegisterRope(ropeId, static_cast<uint32>(eRopeType::SWAT), startPos, true, 0, 0, nullptr, 4000);
+    RegisterRope(ropeId, static_cast<uint32>(eRopeType::SWAT), startPos, true, 0, 0, nullptr, 4'000);
     RopeIdCreationCounter = (RopeIdCreationCounter + 1) % 256; // 0x558D56
     return (int32)ropeId;
 }

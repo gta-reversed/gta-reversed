@@ -42,7 +42,7 @@ public:
     static void InjectHooks();
 
 public:
-    static inline auto& aRopes              = StaticRef<std::array<CRope, MAX_NUM_ROPES>>(0xB768B8); // Access using CRopes::GetRope()
-    static inline auto& PlayerControlsCrane = StaticRef<eControlledCrane>(0xB76898);
+    static inline auto& aRopes                = StaticRef<std::array<CRope, MAX_NUM_ROPES>>(0xB768B8); // Access using CRopes::GetRope()
+    static inline auto& PlayerControlsCrane   = StaticRef<eControlledCrane>(0xB76898);
     static inline auto& RopeIdCreationCounter = StaticRef<uint32>(0xB781F8);
 };
