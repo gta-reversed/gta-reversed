@@ -4,36 +4,33 @@
 #include "AETwinLoopSoundEntity.h"
 
 class NOTSA_EXPORT_VTABLE CAEFrontendAudioEntity : public CAEAudioEntity {
-protected:
-    bool                   m_bAmplifierWakeUp;
-    uint8                  m_nbLoadingTuneSeed;
-    int16                  m_f7E; // unused
-    int16                  m_BulletPassCount;
-    eSoundBank             m_BulletPassBank;
-    uint32                 m_nLastFrameGeneral_or_nFrameCount;
-    uint32                 m_nLastFrameMissionComplete;
-    uint32                 m_nLastFrameBulletPass;
-    uint32                 m_nLastTimeCarRespray;
-    uint32                 m_nLatestTimerCount;
-    CAESound*              m_pAmplifierWakeUp;
-    CAETwinLoopSoundEntity m_objRetune;
-    CAETwinLoopSoundEntity m_objRetunePaused;
-
 public:
     void Initialise();
     void Reset();
 
-    void AddAudioEvent(eAudioEvents event, float fVolumeBoost = 0.0f, float fSpeed = 1.0f);
+    void AddAudioEvent(eAudioEvents event, float volumeBoost = 0.0f, float speed = 1.0f);
 
     bool IsRadioTuneSoundActive();
     bool IsLoadingTuneActive();
 
     void UpdateParameters(CAESound* sound, int16 curPlayPos) override;
 
-private:
-    friend void InjectHooksMain();
     static void InjectHooks();
 
+private:
+    bool                   m_IsAmplifierWakeUpPlaying{};
+    uint8                  m_LoadingTuneSeed{};
+    int16                  m_Unused7E{};
+    int16                  m_BulletPassCount{};
+    eSoundBank             m_BulletPassBank{};
+    uint32                 m_LastFrameGeneral{};
+    uint32                 m_LastFrameMissionComplete{};
+    uint32                 m_LastFrameBulletPass{};
+    uint32                 m_LastTimeCarRespray{};
+    uint32                 m_LastTimeTimerCount{};
+    CAESound*              m_AmplifierWakeUpSound{};
+    CAETwinLoopSoundEntity m_RetuneSound{};
+    CAETwinLoopSoundEntity m_RetunePausedSound{};
 };
 
 VALIDATE_SIZE(CAEFrontendAudioEntity, 0x1EC);
