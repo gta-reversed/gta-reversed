@@ -10297,7 +10297,7 @@
   {
     "Category": "CPostEffects",
     "Name": "HeatHazeFX",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CPostEffects",
@@ -10372,7 +10372,7 @@
   {
     "Category": "CPostEffects",
     "Name": "Radiosity",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CPostEffects",
@@ -18817,62 +18817,127 @@
   {
     "Category": "D3DResourceSystem",
     "Name": "CancelBuffering",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "D3DResourceSystem",
     "Name": "GetTotalIndexDataSize",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "D3DResourceSystem",
     "Name": "GetTotalPixelsSize",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "D3DResourceSystem",
     "Name": "Init",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "D3DResourceSystem",
     "Name": "SetUseD3DResourceBuffering",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "D3DResourceSystem",
     "Name": "Shutdown",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "D3DResourceSystem",
     "Name": "TidyUpD3DIndexBuffers",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "D3DResourceSystem",
     "Name": "TidyUpD3DTextures",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "D3DResourceSystem",
     "Name": "CreateIndexBuffer",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "D3DResourceSystem",
     "Name": "CreateTexture",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "D3DResourceSystem",
     "Name": "DestroyIndexBuffer",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "D3DResourceSystem",
     "Name": "DestroyTexture",
-    "IsReversed": false
+    "IsReversed": true
+  },
+  {
+    "Category": "D3DResourceSystem",
+    "Name": "D3DTextureBuffer::Setup",
+    "IsReversed": true
+  },
+  {
+    "Category": "D3DResourceSystem",
+    "Name": "D3DTextureBuffer::Clear",
+    "IsReversed": true
+  },
+  {
+    "Category": "D3DResourceSystem",
+    "Name": "D3DTextureBuffer::Destroy",
+    "IsReversed": true
+  },
+  {
+    "Category": "D3DResourceSystem",
+    "Name": "D3DTextureBuffer::Pop",
+    "IsReversed": true
+  },
+  {
+    "Category": "D3DResourceSystem",
+    "Name": "D3DTextureBuffer::Push",
+    "IsReversed": true
+  },
+  {
+    "Category": "D3DResourceSystem",
+    "Name": "D3DTextureBuffer::Resize",
+    "IsReversed": true
+  },
+  {
+    "Category": "D3DResourceSystem",
+    "Name": "D3DTextureBuffer::GetTotalDataSize",
+    "IsReversed": true
+  },
+  {
+    "Category": "D3DResourceSystem",
+    "Name": "D3DTextureBuffer::PushWithoutIncreasingCounter",
+    "IsReversed": true
+  },
+  {
+    "Category": "D3DResourceSystem",
+    "Name": "D3DIndexDataBuffer::Clear",
+    "IsReversed": true
+  },
+  {
+    "Category": "D3DResourceSystem",
+    "Name": "D3DIndexDataBuffer::Destroy",
+    "IsReversed": true
+  },
+  {
+    "Category": "D3DResourceSystem",
+    "Name": "D3DIndexDataBuffer::Pop",
+    "IsReversed": true
+  },
+  {
+    "Category": "D3DResourceSystem",
+    "Name": "D3DIndexDataBuffer::Resize",
+    "IsReversed": true
+  },
+  {
+    "Category": "D3DResourceSystem",
+    "Name": "D3DIndexDataBuffer::GetTotalDataSize",
+    "IsReversed": true
   },
   {
     "Category": "CStaticShadow",

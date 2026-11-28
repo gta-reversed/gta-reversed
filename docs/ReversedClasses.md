@@ -1,17 +1,17 @@
-# Reimplementation progress (*): 92%
+# Reimplementation progress (*): 93%
 This file is updated automatically every time the `hooks.json` file is updated (which happens every time there are changes to hooks made by a commit), and shows the current progress of reversed categories in the project.
 
-Last update was at Nov 28, 2026 at 00:47:01 UTC
-(Triggered by commit [f669b38d](https://github.com/gta-reversed/gta-reversed/commit/f669b38d8ab900cdd23c1cacc1758de40f483635))
+Last update was at Nov 28, 2026 at 12:04:41 UTC
+(Triggered by commit [7cbf091c](https://github.com/gta-reversed/gta-reversed/commit/7cbf091ca2f657a243d253b5b9f7e0bc101b3c6c))
 
 ## (*) Disclaimers
 **The progress** is based on the number of functions we have documented and reimplemented, so it might not completely reflect the actual progress, it's meant to be a rough estimate.
 
 **The percentages and the number of categories** shown here may not be completely accurate, because not all categories and functions are documented yet.
 
-## Stats (8238 out of 8913 functions done in 797 categories)
+## Stats (8265 out of 8926 functions done in 797 categories)
 
-#### Completely reversed categories (673/797) [84%]
+#### Completely reversed categories (674/797) [85%]
 
 <details>
 <summary>See list of categories</summary>
@@ -199,6 +199,7 @@ Last update was at Nov 28, 2026 at 00:47:01 UTC
 - CHandObject (3)<br />
 - CBuilding (2)<br />
 - CAnimatedBuilding (3)<br />
+- D3DResourceSystem (25)<br />
 - CStaticShadow (1)<br />
 - CRealTimeShadow (8)<br />
 - CShadowCamera (19)<br />
@@ -714,7 +715,7 @@ Last update was at Nov 28, 2026 at 00:47:01 UTC
 - CCarCtrl (27/110) [25%]<br />
 - CGarage (4/18) [22%]<br />
 - CGarages (21/27) [78%]<br />
-- CPostEffects (35/38) [92%]<br />
+- CPostEffects (37/38) [97%]<br />
 - CStencilShadows (9/13) [69%]<br />
 - CCamera (97/114) [85%]<br />
 - CGangWars (32/35) [91%]<br />
@@ -811,13 +812,12 @@ Last update was at Nov 28, 2026 at 00:47:01 UTC
 
 </details>
 
-#### Not-at-all reversed categories (11/797) [1%]
+#### Not-at-all reversed categories (10/797) [1%]
 
 <details>
 <summary>See list of categories</summary>
 - CPedStuckChecker (1)<br />
 - CMentalState (2)<br />
-- D3DResourceSystem (12)<br />
 - FxEmitter_c (1)<br />
 - CEventSource (1)<br />
 - CTaskComplexGangFollower (7)<br />
