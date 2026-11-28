@@ -138,7 +138,7 @@ CTask* CTaskComplexGangLeader::CreateNextSubTask(CPed* ped) {
         }
     }
 
-    if (CGeneral::GetRandomNumberInRange(0, 100) > 95 || m_Gang->GetMembership().CountMembers() < 3) { // 0x65E0E6
+    if (CGeneral::RandomBool(5.f) || m_Gang->GetMembership().CountMembers() < 3) { // 0x65E0E6
         m_WanderTimer.Start(CGeneral::GetRandomNumberInRange(15'000, 30'000));
         return new CTaskComplexWanderGang{ PEDMOVE_WALK, CGeneral::RandomNodeHeading(), 5'000, true, 0.05f };
     }
@@ -156,19 +156,7 @@ CTask* CTaskComplexGangLeader::ControlSubTask(CPed* ped) {
     ped->bDontAcceptIKLookAts = false;
 
     // Make sure anims are loaded (if they can/need to be)
-    if (m_AnimsReferenced) { // 0x66239B
-        if (!ShouldLoadGangAnims()) {
-            UnrefAnimBlock();
-        }
-    } else if (ShouldLoadGangAnims()) {
-        const auto blk = CAnimManager::GetAnimationBlockIndex("gangs");
-        if (CAnimManager::GetAnimBlocks()[blk].IsLoaded) {
-            CAnimManager::AddAnimBlockRef(blk);
-            m_AnimsReferenced = true;
-        } else {
-            CStreaming::RequestModel(IFPToModelId(blk), STREAMING_KEEP_IN_MEMORY);
-        }
-    }
+    CAnimManager::StreamAnimBlock("gangs", ShouldLoadGangAnims(), m_AnimsReferenced); // 0x66239B
 
     // If we're wandering and the wander time is out of time...
     // NOTE: The original doesn't check `m_pSubTask` for null here
@@ -202,23 +190,27 @@ CTask* CTaskComplexGangLeader::ControlSubTask(CPed* ped) {
         return m_pSubTask;
     }
 
-    // If ped isn't already looking at someone, look at a random member
-    if (!g_ikChainMan.IsLooking(ped) && CGeneral::GetRandomNumberInRange(0, 100) > 95) { // 0x6625A9
-        const auto lookTime = CGeneral::GetRandomNumberInRange(3'000, 5'000);
-        if (auto* const mem = m_Gang->GetMembership().GetMember(CGeneral::GetRandomNumberInRange(0, TOTAL_PED_GROUP_MEMBERS)); mem && mem != ped) {
-            g_ikChainMan.LookAt(
-                "TaskGangLeader",
-                ped,
-                mem,
-                lookTime,
-                BONE_HEAD,
-                nullptr,
-                true,
-                0.15f,
-                500,
-                3,
-                false
-            );
+    // If ped isn't already looking at someone, find a random member to look at them
+    if (!g_ikChainMan.IsLooking(ped) && CGeneral::RandomBool(5.f)) { // 0x662574
+        // The random logic has changed a little here for the sole reason
+        // that I want to use `GetRandom()`.
+        // This code path is very infrequent anyways (5% chance)...
+        if (auto* const mem = m_Gang->GetMembership().GetRandom()) {
+            if (mem != ped) {
+                g_ikChainMan.LookAt(
+                    "TaskGangLeader",
+                    ped,
+                    mem,
+                    CGeneral::GetRandomNumberInRange(3'000, 5'000),
+                    BONE_HEAD,
+                    nullptr,
+                    true,
+                    0.15f,
+                    500,
+                    3,
+                    false
+                );
+            }
         }
     }
 
@@ -234,12 +226,18 @@ CTask* CTaskComplexGangLeader::ControlSubTask(CPed* ped) {
             return m_pSubTask;
         }
 
-        // Otherwise maybe start a new partial anim
-        const auto rnd = CGeneral::GetRandomNumberInRange(0, 500);
-        if (rnd > 50 && rnd < 56) { // 0x662935
-            ped->GetTaskManager().SetTaskSecondary(new CTaskSimpleRunAnim{ ANIM_GROUP_GANGS, CGeneral::RandomChoice(s_gangTalkAnims) }, TASK_SECONDARY_PARTIAL_ANIM);
-        } else if (rnd == 100) { // 0x662991
-            ped->GetTaskManager().SetTaskSecondary(new CTaskComplexPlayHandSignalAnim{}, TASK_SECONDARY_PARTIAL_ANIM);
+        // Otherwise maybe create a new partial anim task
+        if (auto* const tAnim = [&]() -> CTask* {
+                const auto rnd = CGeneral::GetRandomNumberInRange(0, 500);
+                if (rnd > 50 && rnd < 56) { // 0x662935 - 1%
+                    return new CTaskSimpleRunAnim{ ANIM_GROUP_GANGS, CGeneral::RandomChoice(s_gangTalkAnims) };
+                }
+                if (rnd == 100) { // 0x662991 - 0.2%
+                    return new CTaskComplexPlayHandSignalAnim{};
+                }
+                return nullptr;
+            }()) {
+            ped->GetTaskManager().SetTaskSecondary(tAnim, TASK_SECONDARY_PARTIAL_ANIM);
         }
         return m_pSubTask;
     }
