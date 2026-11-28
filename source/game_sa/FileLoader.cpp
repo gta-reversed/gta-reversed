@@ -84,8 +84,8 @@ void CFileLoader::InjectHooks() {
     RH_ScopedInstall(LoadScene, 0x5B8700);
     RH_ScopedInstall(LoadObjectTypes, 0x5B8400);
 
-    RH_ScopedGlobalInstall(LinkLods, 0x5B51E0); 
-    RH_ScopedInstall(Load2dEffect, 0x5B7670, { .Reversed = false });
+    RH_ScopedGlobalInstall(LinkLods, 0x5B51E0);
+    RH_ScopedInstall(Load2dEffect, 0x5B7670);
 }
 
 // copy textures from dictionary to baseDictionary
@@ -963,45 +963,335 @@ int32 CFileLoader::LoadObject(const char* line) {
 
 // 0x5B7670
 void CFileLoader::Load2dEffect(const char* line) {
-    return plugin::Call<0x5B7670, const char*>(line);
-
-    // todo:
-    auto modelId{ MODEL_INVALID };
+    int32   modelId{};
     CVector pos{};
-    int32 type;
+    int32   type{};
     VERIFY(sscanf_s(line, "%d %f %f %f %d", &modelId, &pos.x, &pos.y, &pos.z, &type) == 5);
 
-    CTxdStore::PushCurrentTxd();
-    CTxdStore::SetCurrentTxd(CTxdStore::FindTxdSlot("particle"));
+    // NOTE: The original neither checks the range of the id nor the model info (and crashes in `Add2dEffect`)
+    if (notsa::bugfixes::GenericCrashing && (modelId < 0 || modelId >= CModelInfo::NUM_MODEL_INFOS || !CModelInfo::GetModelInfo(modelId))) {
+        return;
+    }
+    auto* const mi = CModelInfo::GetModelInfo(modelId);
+
+    const CTxdStore::ScopedTXDSlot txdSlot{ "particle" };
 
     auto& effect = CModelInfo::Get2dEffectStore()->AddItem();
-    CModelInfo::GetModelInfo(modelId)->Add2dEffect(&effect);
-    effect.m_Pos = pos;
-    effect.m_Type = *reinterpret_cast<e2dEffectType*>(type);
+    mi->Add2dEffect(&effect);
+    effect.m_Pos  = pos;
+    effect.m_Type = static_cast<e2dEffectType>(type);
 
+    // NOTE: The original leaves the values that are read into locals uninitialized if the line has fewer values
     switch (type) {
-    case EFFECT_LIGHT:
-        break;
-    case EFFECT_PARTICLE:
-        break;
-    case EFFECT_ATTRACTOR:
-        break;
-    case EFFECT_INTERIOR:
-        break;
-    case EFFECT_ENEX:
-        break;
-    case EFFECT_ROADSIGN:
-        break;
-    case EFFECT_TRIGGER_POINT:
-        break;
-    case EFFECT_COVER_POINT:
-        break;
-    case EFFECT_ESCALATOR:
-        break;
-    default:
+    case EFFECT_LIGHT: { // 0x5B78C2
+        auto& light = effect.light;
+
+        int32 red{}, green{}, blue{}, alpha{};
+        RET_IGNORED(sscanf_s(line, "%d %f %f %f %d %d %d %d %d", &modelId, &pos.x, &pos.y, &pos.z, &type, &red, &green, &blue, &alpha));
+
+        // Copy the next "quoted" string into `out`, `it` ends up after its closing quote
+        const char* it         = line;
+        const auto  ReadQuoted = [&it](auto& out) {
+            const auto IsAtEnd = [&] {
+                return notsa::bugfixes::GenericOOB && *it == '\0';
+            };
+            while (!IsAtEnd() && *it++ != '"') {
+            }
+            size_t n{};
+            for (; !IsAtEnd() && *it != '"'; ++it) {
+                if (!notsa::bugfixes::GenericOOB || n + 1 < std::size(out)) {
+                    out[n++] = *it;
+                }
+            }
+            out[n] = '\0';
+            if (!IsAtEnd()) {
+                ++it;
+            }
+        };
+        char coronaTexName[100]{}, shadowTexName[100]{};
+        ReadQuoted(coronaTexName);
+        ReadQuoted(shadowTexName);
+
+        int32 shadowColorMultiplier{}, flashType{}, reflection{}, flareType{}, flags{}, shadowZDistance{}, offsetX{}, offsetY{}, offsetZ{};
+        RET_IGNORED(sscanf_s(
+            it,
+            "%f %f %f %f %d %d %d %d %d %d %d %d %d",
+            &light.m_fCoronaFarClip,
+            &light.m_fPointlightRange,
+            &light.m_fCoronaSize,
+            &light.m_fShadowSize,
+            &shadowColorMultiplier,
+            &flashType,
+            &reflection,
+            &flareType,
+            &flags,
+            &shadowZDistance,
+            &offsetX,
+            &offsetY,
+            &offsetZ
+        ));
+        light.m_color                   = { (uint8)(red), (uint8)(green), (uint8)(blue), (uint8)(alpha) };
+        light.m_nShadowColorMultiplier  = (uint8)(shadowColorMultiplier);
+        light.m_nCoronaFlashType        = (e2dCoronaFlashType)(flashType);
+        light.m_bCoronaEnableReflection = reflection != 0; // NOTE: The original stores the byte as it is (bool member, only 0/1 are valid)
+        light.m_nCoronaFlareType        = (uint8)(flareType);
+        light.m_nFlags                  = (uint16)(flags);
+        light.m_nShadowZDistance        = (char)(shadowZDistance);
+        light.offsetX                   = (char)(offsetX);
+        light.offsetY                   = (char)(offsetY);
+        light.offsetZ                   = (char)(offsetZ);
+        light.m_pCoronaTex              = RwTextureRead(coronaTexName, nullptr);
+        light.m_pShadowTex              = RwTextureRead(shadowTexName, nullptr);
+        if (light.m_nFogType & 0b10) { // 0x5B7A26
+            light.m_nFogType &= 0b10;
+        }
         break;
     }
-    CTxdStore::PopCurrentTxd();
+    case EFFECT_PARTICLE: // 0x5B7A40
+        // NOTE: Not `sscanf_s`: it fills the rest of the name in debug builds
+        RET_IGNORED(sscanf(
+            line,
+            notsa::bugfixes::GenericOOB
+                ? "%d %f %f %f %d %23s"
+                : "%d %f %f %f %d %s", // NOTE/BUG: No limit for the name
+            &modelId,
+            &pos.x,
+            &pos.y,
+            &pos.z,
+            &type,
+            effect.particle.m_szName
+        ));
+        break;
+    case EFFECT_ATTRACTOR: { // 0x5B7A79
+        auto& attractor = effect.pedAttractor;
+
+        int32 attractorType{}, existingProbability{}, unk{};
+        char  scriptName[116]{};
+        RET_IGNORED(sscanf_s(
+            line,
+            "%d %f %f %f %d %d %f %f %f %f %f %f %f %f %f %d %d %s",
+            &modelId,
+            &pos.x,
+            &pos.y,
+            &pos.z,
+            &type,
+            &attractorType,
+            &attractor.m_vecQueueDir.x,
+            &attractor.m_vecQueueDir.y,
+            &attractor.m_vecQueueDir.z,
+            &attractor.m_vecUseDir.x,
+            &attractor.m_vecUseDir.y,
+            &attractor.m_vecUseDir.z,
+            &attractor.m_vecForwardDir.x,
+            &attractor.m_vecForwardDir.y,
+            &attractor.m_vecForwardDir.z,
+            &existingProbability,
+            &unk,
+            SCANF_S_STR(scriptName)
+        ));
+        attractor.m_nAttractorType = (ePedAttractorType)(attractorType);
+        if (notsa::bugfixes::GenericOOB) {
+            strncpy_s(attractor.m_szScriptName, scriptName, _TRUNCATE);
+        } else {
+            strcpy(attractor.m_szScriptName, scriptName); // NOTE/BUG: Names longer than 7 characters are written into the next effect
+        }
+        attractor.m_nPedExistingProbability = (uint8)(existingProbability);
+        attractor.field_36                  = (uint8)(unk);
+        break;
+    }
+    case EFFECT_INTERIOR: { // 0x5B7B1B
+        auto* const interior = notsa::cast<C2dEffectInterior>(&effect);
+
+        int32                       interiorType{}, door{}, seed{}, groupId{ -1 }, status{ 50 };
+        float                       width{}, depth{}, height{};
+        int32                       lDoorStart{ -1 }, lDoorEnd{ -1 }, tDoorStart{ -1 }, tDoorEnd{ -1 }, rDoorStart{ -1 }, rDoorEnd{ -1 };
+        int32                       lWindowStart{ -1 }, lWindowEnd{ -1 }, tWindowStart{ -1 }, tWindowEnd{ -1 }, rWindowStart{ -1 }, rWindowEnd{ -1 };
+        notsa::mdarray<int32, 3, 4> noGo{}; // left, bottom, width, depth
+        for (auto& v : noGo) {
+            v.fill(-1);
+        }
+        RET_IGNORED(sscanf_s(
+            line,
+            "%d %f %f %f %d %d %f %f %f %f %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d  %d %d %d %d  %d %d %d %d  %d %d %d %d",
+            &modelId,
+            &pos.x,
+            &pos.y,
+            &pos.z,
+            &type,
+            &interiorType,
+            &width,
+            &depth,
+            &height,
+            &interior->m_rot,
+            &door,
+            &seed,
+            &groupId,
+            &status,
+            &lDoorStart,
+            &lDoorEnd,
+            &tDoorStart,
+            &tDoorEnd,
+            &rDoorStart,
+            &rDoorEnd,
+            &lWindowStart,
+            &lWindowEnd,
+            &tWindowStart,
+            &tWindowEnd,
+            &rWindowStart,
+            &rWindowEnd,
+            &noGo[0][0],
+            &noGo[0][1],
+            &noGo[0][2],
+            &noGo[0][3],
+            &noGo[1][0],
+            &noGo[1][1],
+            &noGo[1][2],
+            &noGo[1][3],
+            &noGo[2][0],
+            &noGo[2][1],
+            &noGo[2][2],
+            &noGo[2][3]
+        ));
+        interior->m_type         = (uint8)(interiorType);
+        interior->m_groupId      = (int8)(groupId);
+        interior->m_width        = (uint8)((int32)(width));
+        interior->m_depth        = (uint8)((int32)(depth));
+        interior->m_height       = (uint8)((int32)(height));
+        interior->m_door         = (int8)(door);
+        interior->m_lDoorStart   = (int8)(lDoorStart);
+        interior->m_lDoorEnd     = (int8)(lDoorEnd);
+        interior->m_rDoorStart   = (int8)(rDoorStart);
+        interior->m_rDoorEnd     = (int8)(rDoorEnd);
+        interior->m_tDoorStart   = (int8)(tDoorStart);
+        interior->m_tDoorEnd     = (int8)(tDoorEnd);
+        interior->m_lWindowStart = (int8)(lWindowStart);
+        interior->m_lWindowEnd   = (int8)(lWindowEnd);
+        interior->m_rWindowStart = (int8)(rWindowStart);
+        interior->m_rWindowEnd   = (int8)(rWindowEnd);
+        interior->m_tWindowStart = (int8)(tWindowStart);
+        interior->m_tWindowEnd   = (int8)(tWindowEnd);
+        for (auto&& [i, area] : rngv::enumerate(noGo)) {
+            interior->m_noGoLeft[i]   = (int8)(area[0]);
+            interior->m_noGoBottom[i] = (int8)(area[1]);
+            interior->m_noGoWidth[i]  = (int8)(area[2]);
+            interior->m_noGoDepth[i]  = (int8)(area[3]);
+        }
+        interior->m_seed   = (uint8)(seed);
+        interior->m_status = (uint8)(status);
+        break;
+    }
+    case EFFECT_ENEX: { // 0x5B7DC8
+        auto& enex = effect.enEx;
+
+        int32 interiorId{}, flags{}, skyColor{};
+        char  interiorName[64]{};
+        RET_IGNORED(sscanf_s(
+            line,
+            "%d %f %f %f %d %f %f %f %f %f %f %f %d %d %s %d",
+            &modelId,
+            &pos.x,
+            &pos.y,
+            &pos.z,
+            &type,
+            &enex.m_fEnterAngle,
+            &enex.m_vecRadius.x,
+            &enex.m_vecRadius.y,
+            &enex.m_vecExitPosn.x,
+            &enex.m_vecExitPosn.y,
+            &enex.m_vecExitPosn.z,
+            &enex.m_fExitAngle,
+            &interiorId,
+            &flags,
+            SCANF_S_STR(interiorName),
+            &skyColor
+        ));
+        enex.m_nInteriorId = (eAreaCodes)(interiorId);
+        enex.m_nFlags1     = (uint8)(flags);
+        enex.m_nSkyColor   = (uint8)(skyColor);
+        // NOTE: Not NUL-terminated for 8 characters, the original's reader (`CEntryExitManager::AddOne` 0x43FA00) copies it with `strncpy` 8 too
+        strncpy(enex.m_szInteriorName, interiorName, std::size(enex.m_szInteriorName));
+        break;
+    }
+    case EFFECT_ROADSIGN: { // 0x5B7711
+        auto& sign = effect.roadsign;
+
+        int32                       flags{};
+        notsa::mdarray<char, 4, 33> lines{};
+        for (auto& l : lines) {
+            l[0] = ' ';
+        }
+        // NOTE: Not `sscanf_s`: it fills the rest of the buffers in debug builds, and all 16 characters of a line are copied
+        RET_IGNORED(sscanf(
+            line,
+            notsa::bugfixes::GenericOOB
+                ? "%d %f %f %f %d %f %f %f %f %f %d %32s %32s %32s %32s"
+                : "%d %f %f %f %d %f %f %f %f %f %d %s %s %s %s", // NOTE/BUG: No limit for the lines
+            &modelId,
+            &pos.x,
+            &pos.y,
+            &pos.z,
+            &type,
+            &sign.m_vecSize.x,
+            &sign.m_vecSize.y,
+            &sign.m_vecRotation.x,
+            &sign.m_vecRotation.y,
+            &sign.m_vecRotation.z,
+            &flags,
+            lines[0].data(),
+            lines[1].data(),
+            lines[2].data(),
+            lines[3].data()
+        ));
+        sign.m_nFlags = std::bit_cast<CRoadsignAttrFlags>((uint16)(flags));
+        sign.m_pText  = static_cast<RwChar*>(CMemoryMgr::Malloc(64, 0));
+        for (auto&& [i, l] : rngv::enumerate(lines)) {
+            rng::copy_n(l.data(), 16, sign.m_pText + i * 16); // Only the first 16 characters of every line are kept
+        }
+        sign.m_pAtomic = nullptr;
+        break;
+    }
+    case EFFECT_TRIGGER_POINT: // 0x5B7E63
+        RET_IGNORED(sscanf_s(line, "%d %f %f %f %d %d", &modelId, &pos.x, &pos.y, &pos.z, &type, &effect.slotMachineIndex.m_nId));
+        break;
+    case EFFECT_COVER_POINT: { // 0x5B7EAA
+        auto& cover = effect.coverPoint;
+
+        int32 usage{};
+        RET_IGNORED(sscanf_s(line, "%d %f %f %f %d %f %f %d", &modelId, &pos.x, &pos.y, &pos.z, &type, &cover.m_DirOfCover.x, &cover.m_DirOfCover.y, &usage));
+        cover.m_Usage = (CCoverPoint::eUsage)(usage);
+        break;
+    }
+    case EFFECT_ESCALATOR: { // 0x5B7F15
+        auto& escalator = effect.escalator;
+
+        int32 direction{};
+        RET_IGNORED(sscanf_s(
+            line,
+            "%d %f %f %f %d %f %f %f %f %f %f %f %f %f %d",
+            &modelId,
+            &pos.x,
+            &pos.y,
+            &pos.z,
+            &type,
+            &escalator.m_vecBottom.x,
+            &escalator.m_vecBottom.y,
+            &escalator.m_vecBottom.z,
+            &escalator.m_vecTop.x,
+            &escalator.m_vecTop.y,
+            &escalator.m_vecTop.z,
+            &escalator.m_vecEnd.x,
+            &escalator.m_vecEnd.y,
+            &escalator.m_vecEnd.z,
+            &direction
+        ));
+        escalator.m_nDirection = direction != 0;
+        break;
+    }
+    case EFFECT_MISSING_OR_UNK: // 0x5B7FF5
+    case EFFECT_SUN_GLARE:
+    default: // Unknown types from the file
+        break;
+    }
 }
 
 // 0x538090
