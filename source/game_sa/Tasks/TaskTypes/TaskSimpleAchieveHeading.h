@@ -13,7 +13,7 @@ public:
      * @param changeRate     How fast to change the heading
      * @param tolerance      The tolerance of the heading [In Radians]
     */
-    CTaskSimpleAchieveHeading(float desiredHeading, float changeRate = 0.5f, float tolerance = 0.2f);
+    CTaskSimpleAchieveHeading(float desiredHeadingRads, float changeRate = 0.5f, float tolerance = 0.2f);
 
     /*!
      * @notsa
