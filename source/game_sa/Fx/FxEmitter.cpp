@@ -50,9 +50,9 @@ void FxEmitter_c::CreateParticles(float currentTime, float deltaTime) {
     EmissionInfo_t emission;
     m_PrimBP->m_FxInfoManager.ProcessEmissionInfo(currentTime, deltaTime, m_System->m_SystemBP->m_fLength, m_System->m_UseConstTime, &emission);
 
-    const auto  lodStart = (float)m_PrimBP->m_FxInfoManager.m_nLodStart / 64.0f;
-    const auto  lodEnd   = (float)m_PrimBP->m_FxInfoManager.m_nLodEnd / 64.0f;
-    const auto  lodMult  = 1.0f - std::clamp(invLerp(lodStart, lodEnd, m_System->m_fCameraDistance), 0.0f, 1.0f);
+    const auto lodStart = (float)m_PrimBP->m_FxInfoManager.m_nLodStart / 64.0f;
+    const auto lodEnd   = (float)m_PrimBP->m_FxInfoManager.m_nLodEnd / 64.0f;
+    const auto lodMult  = 1.0f - std::clamp(invLerp(lodStart, lodEnd, m_System->m_fCameraDistance), 0.0f, 1.0f);
     m_EmissionIntensity += emission.m_fCount * lodMult * ((float)m_System->m_nRateMult / 1000.0f);
 
     if (CWeather::Wind < emission.m_fMinWind || CWeather::Wind > emission.m_fMaxWind) {
@@ -119,9 +119,9 @@ FxEmitterPrt_c* FxEmitter_c::CreateParticle(const EmissionInfo_t& emissionInfo, 
         }
 
         // 0x4A2759 - In a sphere: on its surface for a negative radius, inside it otherwise
-        const CVector dir = CVector::Random(-1.0f, 1.0f);
-        const auto invDist = 1.0f / dir.Magnitude();
-        const auto scale   = emissionInfo.m_fRadius < 0.0f
+        const CVector dir     = CVector::Random(-1.0f, 1.0f);
+        const auto    invDist = 1.0f / dir.Magnitude();
+        const auto    scale   = emissionInfo.m_fRadius < 0.0f
             ? invDist
             : CGeneral::GetRandomNumberInRange(0.0f, 1.0f) * invDist;
         return dir * (scale * emissionInfo.m_fRadius);
