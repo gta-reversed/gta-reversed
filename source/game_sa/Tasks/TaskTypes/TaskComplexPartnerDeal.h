@@ -4,7 +4,6 @@
 
 class NOTSA_EXPORT_VTABLE CTaskComplexPartnerDeal : public CTaskComplexPartner {
 public:
-    int32 field_70;
 
 public:
     static constexpr auto Type = TASK_COMPLEX_PARTNER_DEAL;
@@ -16,7 +15,7 @@ public:
     CTask*                        Clone() const override { return new CTaskComplexPartnerDeal(m_commandName, m_partner, m_leadSpeaker, m_distanceMultiplier, m_point); }
     CTask*                        CreateFirstSubTask(CPed* ped) override;
     void                          StreamRequiredAnims() override;
-    virtual CTaskComplexSequence* GetPartnerSequence();
+    CTaskComplexSequence*         GetPartnerSequence() override;
 
 public:
     static void InjectHooks();
