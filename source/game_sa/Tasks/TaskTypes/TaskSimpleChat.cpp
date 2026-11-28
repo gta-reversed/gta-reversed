@@ -28,7 +28,7 @@ CTaskSimpleChat::CTaskSimpleChat(uint32 duration) :
 
 // 0x5F65E0
 CTaskSimpleChat::CTaskSimpleChat(const CTaskSimpleChat& o) :
-    CTaskSimpleChat{ o.m_durationMs }
+    CTaskSimpleChat{ o.m_RunDurationMs }
 {
 }
 

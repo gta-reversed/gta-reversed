@@ -27,6 +27,6 @@ CTaskSimpleLookAbout::CTaskSimpleLookAbout(uint32 durationMs) :
 }
 
 CTaskSimpleLookAbout::CTaskSimpleLookAbout(const CTaskSimpleLookAbout& o) :
-    CTaskSimpleLookAbout{o.m_durationMs}
+    CTaskSimpleLookAbout{o.m_RunDurationMs}
 {
 }

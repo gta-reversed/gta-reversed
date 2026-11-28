@@ -13,7 +13,7 @@ public:
     constexpr static auto Type = eTaskType::TASK_SIMPLE_HANDS_UP;
 
     CTaskSimpleHandsUp(uint32 duration) : CTaskSimpleRunTimedAnim{ANIM_GROUP_DEFAULT, ANIM_ID_HANDSUP, 4.0, -4.0, duration, Type, "HandsUp", 0} {}
-    CTaskSimpleHandsUp(const CTaskSimpleHandsUp& o) : CTaskSimpleHandsUp{o.m_durationMs} {}
+    CTaskSimpleHandsUp(const CTaskSimpleHandsUp& o) : CTaskSimpleHandsUp{o.m_RunDurationMs} {}
     ~CTaskSimpleHandsUp() override = default;
 
     CTask* Clone() const override { return new CTaskSimpleHandsUp{*this}; }
