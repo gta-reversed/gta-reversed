@@ -849,6 +849,7 @@ void CClouds::RenderSkyPolys() {
 }
 
 namespace {
+// clang-format off
 // 0x8D5658
 constexpr float BOTTOM_CLOUDS_RANDOM[]{
     0.36f, 0.12f, 0.94f, 0.34f, 0.83f, 0.75f, 0.28f, 0.10f, 0.03f, 0.85f, 0.52f, 0.92f, 0.36f, 0.83f, 0.09f, 0.26f,
@@ -869,6 +870,7 @@ constexpr float BOTTOM_CLOUD_SPRITES_Y[]{
     54.f, 105.f, 203.f, 65.f, 213.f, 154.f, 169.f, 54.f, 76.f, 10.f, 119.f, 204.f, 176.f, 154.f, 132.f,
     190.f, 200.f, 37.f, 193.f, 154.f, 71.f, 111.f, 234.f, 12.f, 195.f, 165.f, 104.f, 94.f, 23.f, 222.f,
 };
+// clang-format on
 
 float GetBottomCloudsRandom(int32 idx) {
     return BOTTOM_CLOUDS_RANDOM[idx % std::size(BOTTOM_CLOUDS_RANDOM)];
