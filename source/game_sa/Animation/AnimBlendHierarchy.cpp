@@ -170,7 +170,7 @@ void CAnimBlendHierarchy::RemoveUncompressedData() {
 
 // 0x4CF800
 void CAnimBlendHierarchy::MoveMemory() {
-    NOTSA_UNREACHABLE("Unused Function"); //plugin::CallMethod<0x4CF800, CAnimBlendHierarchy*>(this);
+    NOTSA_UNUSED_FUNCTION(); //plugin::CallMethod<0x4CF800, CAnimBlendHierarchy*>(this);
 }
 
 // 0x4CF8A0

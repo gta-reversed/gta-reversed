@@ -399,7 +399,7 @@ bool CMessages::StringCompare(const GxtChar* str1, const GxtChar* str2, uint16 l
 
 // 0x69DC50
 void CMessages::CutString(int32 count, const GxtChar* str, GxtChar** dest) {
-    NOTSA_UNREACHABLE(); // unused
+    NOTSA_UNUSED_FUNCTION();
 }
 
 template<size_t N>

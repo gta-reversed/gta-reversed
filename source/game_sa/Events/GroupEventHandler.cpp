@@ -122,7 +122,7 @@ bool CGroupEventHandler::IsKillTaskAppropriate(CPedGroup* g, CPed* threat) {
 
 // 0x5FA910
 CTaskAllocator* CGroupEventHandler::ComputeWalkAlongsideResponse(CPedGroup* pg, CPed* ped1, CPed* ped2) {
-    NOTSA_UNREACHABLE(); // Unused
+    NOTSA_UNUSED_FUNCTION();
 }
 
 // 0x5F9BD0

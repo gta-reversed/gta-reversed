@@ -870,7 +870,7 @@ void CCutsceneMgr::RemoveCutscenePlayer() {
 
 // 0x4D5AF0
 void CCutsceneMgr::RemoveEverythingBecauseCutsceneDoesntFitInMemory() {
-    NOTSA_UNREACHABLE(); // Unused function
+    NOTSA_UNUSED_FUNCTION();
 }
 
 // 0x5B0390

@@ -542,7 +542,7 @@ void CCarAI::TellCarToBlockOtherCar(CVehicle* vehicle1, CVehicle* vehicle2) {
 
     vehicle1->m_autoPilot.SetCruiseSpeed(std::max(vehicle1->m_autoPilot.m_nCruiseSpeed, (uint8)6));
     */
-    NOTSA_UNREACHABLE("Unused");
+    NOTSA_UNUSED_FUNCTION();
 }
 
 // 0x41C960
@@ -570,7 +570,7 @@ void CCarAI::TellCarToRamOtherCar(CVehicle* vehicle1, CVehicle* vehicle2) {
 
     vehicle1->m_autoPilot.SetCruiseSpeed(std::max(vehicle1->m_autoPilot.m_nCruiseSpeed, (uint8)6));
     */
-    NOTSA_UNREACHABLE("Unused");
+    NOTSA_UNUSED_FUNCTION();
 }
 
 // 0x41C760

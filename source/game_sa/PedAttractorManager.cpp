@@ -57,7 +57,7 @@ CPedAttractorManager* GetPedAttractorManager() {
 
 // 0x? 0x5EF710 ?
 void CPedAttractorManager::RestoreStuffFromMem() {
-    NOTSA_UNREACHABLE("Unused function");
+    NOTSA_UNUSED_FUNCTION();
 }
 
 // 0x5EFE20

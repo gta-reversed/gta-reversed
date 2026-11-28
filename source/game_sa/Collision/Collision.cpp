@@ -2675,7 +2675,7 @@ void ResetMadeInvisibleObjects() {
 
 // 0x415620
 bool CCollision::RayPolyPOP(CVector* arg0, CVector* arg1, CColTriangle* arg2, CVector* arg3, CVector* arg4) {
-    NOTSA_UNREACHABLE(); // Unused
+    NOTSA_UNUSED_FUNCTION();
 }
 
 // 0x4156D0
@@ -3367,7 +3367,7 @@ bool CCollision::CameraConeCastVsWorldCollision(
 bool CCollision::SphereVsEntity(CColSphere* sphere, CEntity* entity) {
     ZoneScoped;
 
-    NOTSA_UNREACHABLE(); /* unused */
+    NOTSA_UNUSED_FUNCTION();
 }
 
 void CCollision::InjectHooks() {
