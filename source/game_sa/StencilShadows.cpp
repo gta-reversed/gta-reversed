@@ -49,8 +49,8 @@ void BuildShadowVolume(CStencilShadowObject& object, CCollisionData& colData, co
 
     object.m_SizeOfShadowFacesData = 0;
 
-    auto* const points = s_ShadowTrianglePoints;
-    auto* const world  = s_TransformedShadowTrianglePoints;
+    auto* const points             = s_ShadowTrianglePoints;
+    auto* const world              = s_TransformedShadowTrianglePoints;
     for (auto i = 0; i < (int32)colData.m_nNumShadowVertices; i++) {
         colData.GetShadTrianglePoint(points[i], i);
     }
