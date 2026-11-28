@@ -34,8 +34,8 @@ public:
 
     void Delete();
 
-    void SetTexture(Const char* name);
-    void SetTexture(Const char* name, Const char* maskName);
+    void SetTexture(const char* name);
+    void SetTexture(const char* name, const char* maskName);
     void SetAddressingUV(RwTextureAddressMode modeU, RwTextureAddressMode modeV);
     void SetAddressing(RwTextureAddressMode modeUV);
     void SetRenderState();
