@@ -62,6 +62,7 @@ public:
             RH_ScopedInstall(Destructor, 0x661F30);
 
             RH_ScopedInstall(CreateSubTask, 0x496DC0);
+            RH_ScopedInstall(SetMaxEntityDist2D, 0x6955D0);
 
             RH_ScopedVMTInstall(Clone, 0x664AF0);
             RH_ScopedVMTInstall(GetTaskType, 0x661EA0);
@@ -393,6 +394,14 @@ public:
 
     void SetEntityMinDist2D(float v) {
         m_minEntityDist2D = v;
+    }
+
+    // 0x6955D0
+    void SetMaxEntityDist2D(float v) {
+        if (v != m_maxEntityDist2D) {
+            m_maxEntityDist2D = v;
+            m_scanTimer.Start(0);
+        }
     }
 
     auto GetEntityToSeek() const {
