@@ -6,40 +6,30 @@
 */
 #pragma once
 
-#ifdef _DX9_SDK_INSTALLED
-#include "d3d9.h"
-#endif
-
+//! A free list of released D3D textures of one format and size (or of any, see `D3DResourceSystem`)
 class D3DTextureBuffer {
 public:
-    uint32 m_nFormat;
-    uint32 m_nWidth;
-    int32  m_nLevels; // -1 - not defined, 0 - full-chain, 1 - one level
-    uint32 m_nCapcacity;
-    uint32 m_nNumTexturesInBuffer;
-    uint32 m_nSize;
-#ifdef _D3D9_H_
-    IDirect3DTexture9 **m_apTextures;
-#else
-    void **m_apTextures;
-#endif
-
+    void   Setup(D3DFORMAT format, uint32 width, int32 levels, uint32 capacity);
     void Clear();
     void Destroy();
-    uint32 GetTotalDataSize();
     void Resize(uint32 newCapacity);
-    void Setup(uint32 format, int32 width, int32 bOneLevel, uint32 capacity);
-#ifdef _D3D9_H_
-    IDirect3DTexture9* Pop();
-    IDirect3DTexture9* Pop(uint32 format, int32 width, int32 height, int32 bOneLevel);
+    uint32 GetTotalDataSize() const;
+
+    IDirect3DTexture9* Pop(D3DFORMAT format, uint32 width, uint32 height, int32 levels);
     bool Push(IDirect3DTexture9* texture);
     bool PushWithoutIncreasingCounter(IDirect3DTexture9* texture);
-#else
-    void* Pop();
-    void* Pop(uint32 format, int32 width, int32 height, int32 bOneLevel);
-    bool Push(void* texture);
-    bool PushWithoutIncreasingCounter(void* texture);
-#endif
-};
 
+    IDirect3DTexture9* PopLast();
+    void               PushOrGrow(IDirect3DTexture9* texture);
+    bool               Matches(D3DFORMAT format, uint32 width, int32 levels) const;
+
+private:
+    D3DFORMAT           m_Format{};
+    uint32              m_Width{};
+    int32               m_Levels{}; //!< 0 - full chain, 1 - one level, -1 - any (the mixed buffer)
+    uint32              m_Capacity{};
+    uint32              m_NumTexturesCounter{}; //!< Increased by every push, decreased only by `PopLast` - not the real count
+    uint32              m_NumTextures{};
+    IDirect3DTexture9** m_Textures{};
+};
 VALIDATE_SIZE(D3DTextureBuffer, 0x1C);
