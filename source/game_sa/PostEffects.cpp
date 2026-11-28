@@ -532,8 +532,8 @@ void CPostEffects::HeatHazeFXInit() {
     m_HeatHazeFXTypeLast = m_HeatHazeFXType;
 
     for (auto i = 0; i < 180; i++) {
-        hpX[i] = CGeneral::GetRandomNumberInRange(0, RwRasterGetWidth(pRasterFrontBuffer) - m_HeatHazeFXScanSizeX);   // 0x7016A0
-        hpY[i] = CGeneral::GetRandomNumberInRange(0, RwRasterGetHeight(pRasterFrontBuffer) - m_HeatHazeFXScanSizeY);  // 0x7016E5
+        hpX[i] = CGeneral::GetRandomNumberInRange(0, RwRasterGetWidth(pRasterFrontBuffer) - m_HeatHazeFXScanSizeX);  // 0x7016A0
+        hpY[i] = CGeneral::GetRandomNumberInRange(0, RwRasterGetHeight(pRasterFrontBuffer) - m_HeatHazeFXScanSizeY); // 0x7016E5
         hpS[i] = CGeneral::GetRandomNumberInRange(m_HeatHazeFXSpeedMin,  m_HeatHazeFXSpeedMax);
     }
 }
@@ -601,7 +601,7 @@ void CPostEffects::HeatHazeFX(float intensity, bool alphaMaskMode) {
     const auto rasterWidth   = RwRasterGetWidth(pRasterFrontBuffer);
     const auto rasterHeight  = RwRasterGetHeight(pRasterFrontBuffer);
 
-    const auto PushQuad = [](const auto& SetVertex) {
+    const auto PushQuad      = [](const auto& SetVertex) {
         auto* const vertices = &aRadiosityVertexBuffer[uiTempBufferVerticesStored];
         SetVertex(&vertices[0], 0, 0);
         SetVertex(&vertices[1], 1, 0);
