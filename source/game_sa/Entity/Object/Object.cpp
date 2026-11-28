@@ -1396,7 +1396,7 @@ void CObject::ProcessControlLogic() {
         auto fRopeLengthChange = 0.0F;
         if (iRopeInd >= 0) {
             auto& rope = CRopes::GetRope(iRopeInd);
-            nSegments = static_cast<uint8>(rope.m_Height * 32.0F);
+            nSegments         = static_cast<uint8>(rope.m_Height * 32.0F);
             fRopeLengthChange = rope.m_TotalLength * rope.m_Height - static_cast<float>(nSegments) * rope.m_SegmentLength;
         }
 

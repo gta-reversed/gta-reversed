@@ -20,21 +20,21 @@ bool IsMagnoCraneObjectWithSides(int32 model) {
 // use switch like in Android?
 // 0x555FB0
 bool CRope::DoControlsApply() const {
-    return    m_Type == eRopeType::CRANE_MAGNO && CRopes::PlayerControlsCrane == eControlledCrane::MAGNO_CRANE
-           || m_Type == eRopeType::WRECKING_BALL && CRopes::PlayerControlsCrane == eControlledCrane::WRECKING_BALL
-           || m_Type == eRopeType::CRANE_TROLLEY && CRopes::PlayerControlsCrane == eControlledCrane::LAS_VEGAS_CRANE
-           || m_Type == eRopeType::QUARRY_CRANE_ARM && CRopes::PlayerControlsCrane == eControlledCrane::QUARRY_CRANE
-           || m_Type == eRopeType::CRANE_MAGNET1
-           || m_Type == eRopeType::MAGNET
-           || m_Type == eRopeType::CRANE_HARNESS;
+    return m_Type == eRopeType::CRANE_MAGNO && CRopes::PlayerControlsCrane == eControlledCrane::MAGNO_CRANE
+        || m_Type == eRopeType::WRECKING_BALL && CRopes::PlayerControlsCrane == eControlledCrane::WRECKING_BALL
+        || m_Type == eRopeType::CRANE_TROLLEY && CRopes::PlayerControlsCrane == eControlledCrane::LAS_VEGAS_CRANE
+        || m_Type == eRopeType::QUARRY_CRANE_ARM && CRopes::PlayerControlsCrane == eControlledCrane::QUARRY_CRANE
+        || m_Type == eRopeType::CRANE_MAGNET1
+        || m_Type == eRopeType::MAGNET
+        || m_Type == eRopeType::CRANE_HARNESS;
 }
 
 // 0x556030
 void CRope::ReleasePickedUpObject() {
     if (m_CarriedEntity) {
         m_CarriedEntity->AsPhysical()->physicalFlags.bAttachedToEntity = false;
-        m_CarriedEntity->AsPhysical()->physicalFlags.bCarriedByRope = false;
-        m_CarriedEntity = nullptr;
+        m_CarriedEntity->AsPhysical()->physicalFlags.bCarriedByRope    = false;
+        m_CarriedEntity                                                = nullptr;
     }
     m_HookObject->SetUsesCollision(true);
     m_PickUpCooldown = 60; // 6th, 7th bits set
@@ -42,8 +42,9 @@ void CRope::ReleasePickedUpObject() {
 
 // 0x556070
 void CRope::CreateHookObjectForRope() {
-    if (m_HookObject)
+    if (m_HookObject) {
         return;
+    }
 
     using namespace ModelIndices;
 
@@ -81,18 +82,18 @@ void CRope::CreateHookObjectForRope() {
 
     CWorld::Add(m_HookObject);
 
-    m_CarriedEntity = nullptr;
+    m_CarriedEntity  = nullptr;
     m_PickUpCooldown = 0;
 }
 
 // 0x5561B0
 // Returns true if the rope is stretched - `outWeightPos` is then where the weight has to be
 bool CRope::UpdateWeightInRope(CVector weightPos, float unused, CVector* outWeightPos) {
-    const CVector top                  = m_Segments[m_NumFixedSegments];
-    const auto    ropeLength           = (float)(int32)(NUM_ROPE_SEGMENTS - 1 - m_NumFixedSegments) * m_SegmentLength;
+    const CVector top                 = m_Segments[m_NumFixedSegments];
+    const auto    ropeLength          = (float)(int32)(NUM_ROPE_SEGMENTS - 1 - m_NumFixedSegments) * m_SegmentLength;
     m_Segments[NUM_ROPE_SEGMENTS - 1] = weightPos;
 
-    const CVector topToWeight          = weightPos - top;
+    const CVector topToWeight         = weightPos - top;
     if (const auto dist = topToWeight.Magnitude(); dist >= ropeLength) { // 0x556266 - Stretched: a straight line from the top
         *outWeightPos      = top + topToWeight * (ropeLength / dist);
 
@@ -147,8 +148,9 @@ bool CRope::UpdateWeightInRope(CVector weightPos, float unused, CVector* outWeig
 // 0x556780
 void CRope::Remove() {
     m_Type = eRopeType::NONE;
-    if (m_CarriedEntity)
+    if (m_CarriedEntity) {
         ReleasePickedUpObject();
+    }
 
     if (m_HookObject) {
         CWorld::Remove(m_HookObject);
@@ -160,11 +162,13 @@ void CRope::Remove() {
 // 0x556800
 void CRope::Render() {
     // Note: Probably needs adjustments if `NUM_ROPE_SEGMENTS` is changed
-    if (!TheCamera.IsSphereVisible(m_Segments[NUM_ROPE_SEGMENTS / 2], 20.0f))
+    if (!TheCamera.IsSphereVisible(m_Segments[NUM_ROPE_SEGMENTS / 2], 20.0f)) {
         return;
+    }
 
-    if ((TheCamera.GetPosition() - m_Segments[0]).Magnitude2D() >= 120.0f)
+    if ((TheCamera.GetPosition() - m_Segments[0]).Magnitude2D() >= 120.0f) {
         return;
+    }
 
     DefinedState();
 
@@ -201,7 +205,9 @@ void CRope::Render() {
     }
 
     if (m_Type == eRopeType::QUARRY_CRANE_ARM) {
-        const CVector pos[] = { m_Segments[0], { 709.32f, 916.20f, 53.0f } }; // Hunter Quarry
+        const CVector pos[] = {
+            m_Segments[0], { 709.32f, 916.20f, 53.0f }
+        }; // Hunter Quarry
         for (auto i = 0u; i < std::size(pos); i++) {
             RxObjSpace3DVertexSetPreLitColor(GetVertex(i), &color);
             RxObjSpace3DVertexSetPos(GetVertex(i), &pos[i]);
@@ -216,11 +222,13 @@ void CRope::Render() {
 
 // 0x5569C0
 void CRope::PickUpObject(CEntity* obj) {
-    if (m_CarriedEntity == obj)
+    if (m_CarriedEntity == obj) {
         return;
+    }
 
-    if (m_CarriedEntity)
+    if (m_CarriedEntity) {
         ReleasePickedUpObject();
+    }
 
     m_CarriedEntity = obj;
     obj->RegisterReference(&m_CarriedEntity);

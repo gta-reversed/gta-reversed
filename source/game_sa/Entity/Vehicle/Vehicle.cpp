@@ -2536,7 +2536,7 @@ void CVehicle::UpdateWinch() {
         const auto baseLen = (eRopeType)m_ropeType == eRopeType::MAGNET ? -0.2f : -0.6f;
         if (const auto ropeIdx = CRopes::FindRope(ropeID); ropeIdx >= 0) { // Inverted condition
             const auto& rope = CRopes::GetRope(ropeIdx);
-            const auto segCount = (uint32)(rope.m_Height * 32.f);
+            const auto  segCount = (uint32)(rope.m_Height * 32.f);
             return { (rope.m_TotalLength * rope.m_Height) - ((float)segCount * rope.m_SegmentLength) + baseLen, segCount };
         }
         return { baseLen, 0 };

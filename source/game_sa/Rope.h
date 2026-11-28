@@ -64,7 +64,7 @@ public:
     uint32                                 m_ExpireTime{};       //!< Time (ms) after which the rope falls down if it isn't registered again (0 = at once)
     uint8                                  m_NumFixedSegments{}; //!< Number of segments from the top that are held in place (by `CRopes::RegisterRope`)
     eRopeType                              m_Type{};
-    uint8                                  m_PickUpCooldown{};   //!< Frames left until something can be picked up again
+    uint8                                  m_PickUpCooldown{};    //!< Frames left until something can be picked up again
     bool                                   m_IsRegistered : 1 {}; //!< Set by `CRopes::RegisterRope`, cleared at the end of `Update`
     bool                                   m_Flag2 : 1 {};
     bool                                   m_HitsGround : 1 {};
