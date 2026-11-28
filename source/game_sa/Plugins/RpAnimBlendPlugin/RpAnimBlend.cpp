@@ -1,6 +1,7 @@
 #include "StdInc.h"
 
 #include "RpAnimBlend.h"
+#include <reversiblebugfixes/Bugs.hpp>
 
 static auto& ClumpOffset = StaticRef<uint32>(0xB5F878);
 
@@ -1756,27 +1757,27 @@ void RpAnimBlendNodeUpdateKeyFrames(AnimBlendUpdateData* c, AnimBlendFrameData* 
 void RpAnimBlendClumpUpdateAnimations(RpClump* clump, float timeStep, bool isOnScreen) {
     const auto bd = RpAnimBlendClumpGetData(clump);
 
+    gpAnimBlendClump = bd;
+
     if (bd->m_AnimList.IsEmpty()) {
         return;
     }
-
-    gpAnimBlendClump = bd;
 
     AnimBlendUpdateData ctx{};
     size_t             nodesCnt{};
 
     float totalTime{}, totalBlendAmnt{};
 
-    // 0x4D351F
+    // 0x4D3530 - `UpdateBlend` may delete `a`, the next one is read before it
     RpAnimBlendClumpForEachAssociation(clump, [&](CAnimBlendAssociation* a) {
         if (!a->UpdateBlend(timeStep)) {
             return;
         }
         const auto ah = a->GetHier();
-        if (ah->GetSequences().empty()) {
+        if (ah->GetSequences().empty()) { // NOTE: The original checks the pointer, not the count
             return;
         }
-        CAnimManager::UncompressAnimation(a->GetHier());
+        CAnimManager::UncompressAnimation(ah);
         if (nodesCnt + 1 <= std::size(ctx.BlendNodeArrays) - 1) { // - 1 for null terminator
             ctx.BlendNodeArrays[nodesCnt++] = a->GetNodesPtr();
         }
@@ -1801,7 +1802,10 @@ void RpAnimBlendClumpUpdateAnimations(RpClump* clump, float timeStep, bool isOnS
     const auto rootFD = &bd->GetRootFrameData();
     rootFD->IsUpdatingFrame = true;
 
-    if (rootFD->IsCompressed) {
+    if (notsa::bugfixes::GenericCrashing && !nodesCnt) {
+        // The frames are left as they are: the velocity extraction callbacks (0x4D1680, ...) read the first node array without checking it,
+        // so the original crashes when `UpdateBlend` removed every association
+    } else if (rootFD->IsCompressed) {
         bd->ForAllFrames(
             IsClumpSkinned(clump)
                 ? &FrameUpdateCallBackW<true, true>   // FrameUpdateCallBackCompressedSkinned
@@ -1827,10 +1831,14 @@ void RpAnimBlendClumpUpdateAnimations(RpClump* clump, float timeStep, bool isOnS
     }
 
     // 0x4D3715 - Update all animation's times
-    RpAnimBlendClumpForEachAssociation(clump, [&](CAnimBlendAssociation* a) {
-        a->UpdateTime(timeStep, animTimeMult);
-    });
-    
+    // NOTE: The next association is read after `UpdateTime`, as its finish callback may remove the following ones
+    const auto timeMult = totalTime == 0.f
+        ? 1.f
+        : totalBlendAmnt / totalTime;
+    for (auto* l = bd->GetAnims().next; l; l = l->next) {
+        CAnimBlendAssociation::FromLink(l)->UpdateTime(timeStep, timeMult);
+    }
+
     // 0x4D3764
     RwFrameUpdateObjects(RpClumpGetFrame(clump));
 }
@@ -1927,7 +1935,7 @@ void RpAnimBlendPlugin::InjectHooks() {
     RH_ScopedGlobalOverloadedInstall(RpAnimBlendGetNextAssociation, "Any", 0x4D6AB0, CAnimBlendAssociation * (*)(CAnimBlendAssociation * association));
     RH_ScopedGlobalOverloadedInstall(RpAnimBlendGetNextAssociation, "Flags", 0x4D6AD0, CAnimBlendAssociation * (*)(CAnimBlendAssociation * association, uint32 flags));
 
-    RH_ScopedGlobalInstall(RpAnimBlendClumpUpdateAnimations, 0x4D34F0, {.Reversed = false}); // TODO: Hook this again... Unhooked for testing.
+    RH_ScopedGlobalInstall(RpAnimBlendClumpUpdateAnimations, 0x4D34F0);
 #ifdef USE_COPY_PASTE_FRAME_UPDATE
     const auto state = (DISABLE_CUSTOM_FRAME_UPDATE_FUNCTIONS) ? HS::RedirectToGTA : HS::RedirectToOurs;
     // Most of these functions aren't hookable (without effort) they take args in <eax> and whatnot, they aren't regular `__cdecl` calls
