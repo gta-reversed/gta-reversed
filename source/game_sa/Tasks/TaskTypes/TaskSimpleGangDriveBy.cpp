@@ -164,8 +164,8 @@ void CTaskSimpleGangDriveBy::SetupStaticAnimForNPC(CPed* ped) {
     }
 
     // 0x627825 - The direction to use for the style
-    const bool noAnim          = m_nRequiredAnimID == ANIM_ID_NO_ANIMATION_SET;
-    const auto IsAngleBetween  = [&](float minDeg, float maxDeg) {
+    const bool noAnim         = m_nRequiredAnimID == ANIM_ID_NO_ANIMATION_SET;
+    const auto IsAngleBetween = [&](float minDeg, float maxDeg) {
         return angle > DegreesToRadians(minDeg) && angle < DegreesToRadians(maxDeg);
     };
     const auto GetClosestIfAny = [&](eDriveByDirection a, eDriveByDirection b) -> int8 {
@@ -179,7 +179,7 @@ void CTaskSimpleGangDriveBy::SetupStaticAnimForNPC(CPed* ped) {
         case eDrivebyStyle::START_FROM_LHS: return noAnim ? DRIVEBY_DIR_LEFT : GetClosestIfAny(DRIVEBY_DIR_LEFT, DRIVEBY_DIR_RIGHT);
         case eDrivebyStyle::START_FROM_RHS: return noAnim ? DRIVEBY_DIR_RIGHT : GetClosestIfAny(DRIVEBY_DIR_LEFT, DRIVEBY_DIR_RIGHT);
         case eDrivebyStyle::AI_SIDE: // 0x627952
-            return !noAnim                   ? GetClosestIfAny(DRIVEBY_DIR_LEFT, DRIVEBY_DIR_RIGHT)
+            return !noAnim                      ? GetClosestIfAny(DRIVEBY_DIR_LEFT, DRIVEBY_DIR_RIGHT)
                 : IsAngleBetween(15.f, 165.f)   ? DRIVEBY_DIR_LEFT
                 : IsAngleBetween(-165.f, -15.f) ? DRIVEBY_DIR_RIGHT
                                                 : -1;
@@ -187,7 +187,7 @@ void CTaskSimpleGangDriveBy::SetupStaticAnimForNPC(CPed* ped) {
         case eDrivebyStyle::FIXED_BAK: return DRIVEBY_DIR_BACK;
         case eDrivebyStyle::AI_FWD_BAK: // 0x62797f
             // NOTE/BUG: The original's check for the back (`angle > 105deg && angle < -105deg`) is never true
-            return !noAnim                  ? GetClosestIfAny(DRIVEBY_DIR_FWD, DRIVEBY_DIR_BACK)
+            return !noAnim                    ? GetClosestIfAny(DRIVEBY_DIR_FWD, DRIVEBY_DIR_BACK)
                 : IsAngleBetween(-75.f, 75.f) ? DRIVEBY_DIR_FWD
                                               : -1;
         case eDrivebyStyle::AI_ALL_DIRN: return GetDriveByDirection(angle);
