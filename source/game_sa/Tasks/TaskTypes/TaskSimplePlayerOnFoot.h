@@ -42,8 +42,8 @@ public:
     void ProcessPlayerWeapon(CPlayerPed* player);
     void PlayIdleAnimations(CPlayerPed* player);
     void PlayerControlFighter(CPlayerPed* player);
-    static void PlayerControlZeldaWeapon(CPlayerPed* player);
-    static void PlayerControlDucked(CPlayerPed* player);
+    static void __stdcall PlayerControlZeldaWeapon(CPlayerPed* player);
+    static void __stdcall PlayerControlDucked(CPlayerPed* player);
     int32 PlayerControlZelda(CPlayerPed* player, bool bAvoidJumpingAndDucking);
 
 private:
