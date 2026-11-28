@@ -11,12 +11,13 @@ public:
     };
 
 public:
-    struct {
+    struct EffectInfo {
         int32 Effect{ -1 };                  //!< Index of the effect (See `CScripted2dEffects::GetEffect`)
         int32 WaitingTask{ -1 };             //!< Task sequence index (Used in `CTaskComplexAttractorPartnerWait`)
         int32 PartnerTask{ -1 };             //!< Task sequence index (Used in `CTaskComplexUseAttractorPartner`)
         eMode PartnerUseMode{ eMode::NONE }; //!< Use mode
-    } Effects[2];
+    };
+    std::array<EffectInfo, 2> Effects{};
     bool UsePartnerImmediately{ false };
 };
 
@@ -28,6 +29,9 @@ public:
 
     int32 NumPairs{};
     CScriptedEffectPair Pairs[MAX_NUM_EFFECT_PAIRS]{};
+
+public:
+    void Flush();
 };
 VALIDATE_SIZE(CScriptedEffectPairs, 148);
 
@@ -40,7 +44,7 @@ VALIDATE_SIZE(tUserList_Child, 0x8);
 struct tUserList {
     std::array<int32, 4> m_UserTypes{ -1, -1, -1, -1 };
     std::array<int32, 4> m_UserTypesByPedType{ -1, -1, -1, -1 };
-    bool  m_bUseList{};
+    bool                 m_UseList{};
 };
 VALIDATE_SIZE(tUserList, 0x24);
 
