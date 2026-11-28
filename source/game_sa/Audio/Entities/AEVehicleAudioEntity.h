@@ -365,6 +365,22 @@ protected: // Config:
         } DummyRCHeli{};
 
         struct {
+            float TyreVolBase{ -8.f };                            // 0x8CBEBC
+            float TyreFrqMin{ 0.95f }, TyreFrqMax{ 1.05f };       // 0x8CBD58, 0x8CBD5C
+            float TyreFrqLeanFactor{ 0.2f };                      // 0x8CBD60
+            float SprocketVolBase{ -15.f };                       // 0x8CBEC0
+            float SprocketFrqMin{ 0.4f }, SprocketFrqMax{ 1.1f }; // 0x8CBD64, 0x8CBD68
+        } Bicycle{};
+
+        struct {
+            float VolMin{ -12.f }, VolMax{ -6.f }; // 0x8CBFAC, 0x8CBFB0
+            float FrqMin{ 0.8f }, FrqMax{ 1.15f }; // 0x8CBFB4, 0x8CBFB8
+            float FrqSkidFactor{ 0.15f };          // 0x8CBFBC
+            float FrqStep{ 0.0053333323f };        // 0x862D04
+            float RollOff{ 3.5f };                 // 0xNONE
+        } Hovercraft{};
+
+        struct {
             struct {
                 struct {
                     float FadeInStep{0.1f}, FadeOutStep{0.1f}; // 0x8CBBE4, 0x8CBBE8
@@ -604,6 +620,10 @@ public:
     static inline auto& s_NextDummyEngineSlot           = StaticRef<int16>(0xB6B998);
     static inline auto& s_pVehicleAudioSettingsForRadio = StaticRef<tVehicleAudioSettings*>(0xB6B98C);
     static inline auto& s_DummyEngineSlots              = StaticRef<std::array<tDummyEngineSlot, SND_BANK_SLOT_DUMMY_END - SND_BANK_SLOT_DUMMY_FIRST>>(0xB6B9A0);
+    static inline auto& s_DummyBicycleWasFreewheeling   = StaticRef<bool>(0xB6BAC8); //!< Shared by all dummy bicycles
+    static inline auto& s_PlayerBicycleWasFreewheeling  = StaticRef<bool>(0xB6BAC9);
+    static inline auto& s_PlayerBicycleCrankTimer       = StaticRef<float>(0xB6BACC); //!< Set and counted down, but never read
+    static inline auto& s_PlayerBicyclePrevCrankAngle   = StaticRef<float>(0xB6BAD0);
 
 public:
     CAEVehicleAudioEntity();
@@ -723,6 +743,7 @@ public:
     void ProcessAircraft(tVehicleParams& vp);
     void ProcessPlayerBicycle(tVehicleParams& vp);
     void ProcessDummyBicycle(tVehicleParams& vp);
+    void ProcessBicycleSounds(tVehicleParams& vp, bool& wasFreewheeling); // notsa
     void ProcessDummyStateTransition(eAEState newState, float fRatio, tVehicleParams& vp);
     void ProcessDummyVehicleEngine(tVehicleParams& vp);
     void ProcessPlayerVehicleEngine(tVehicleParams& vp);
@@ -834,7 +855,7 @@ public:
     float                  m_FadeIn{}; //<! Used for dummies (`ProcessDummyStateTransition`)
     float                  m_FadeOut{}; //<! Used for dummies (`ProcessDummyStateTransition`)
 
-    bool                   m_bNitroOnLastFrame{};
+    bool                   m_NitroOnLastFrame{};
     float                  m_CurrentNitroRatio{};
 
 
