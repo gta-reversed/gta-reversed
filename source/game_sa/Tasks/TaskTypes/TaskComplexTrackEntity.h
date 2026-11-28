@@ -7,47 +7,47 @@ class CEntity;
 
 class NOTSA_EXPORT_VTABLE CTaskComplexTrackEntity : public CTaskComplex {
 public:
-    CEntity* m_toTrack{};          // 0xC
-    CVector m_offsetPosn{};              // 0x10
-    uint8 a{};                     // 0x1C
-    int32 b{};                     // 0x20
-    float m_rangeMin{};            // 0x24
-    float m_rangeMax{};            // 0x28
-    uint8 f{};                     // 0x2C
-    uint32 m_someStartTimeMs{};    // 0x30
-    uint32 m_expirationInterval{}; // 0x34
-    bool gap2{};                   // 0x38
-    bool gap3{};                   // 0x39
-    float m_fMoveRatio{};          // 0x3C
-    float float40{};               // 0x40
-    CVector m_goToPos{};                 // 0x44
-    float m_distToTargetSq{};      // 0x50
-
-public:
-    static void InjectHooks();
-
     constexpr static auto Type = eTaskType::TASK_COMPLEX_TRACK_ENTITY;
 
-    CTaskComplexTrackEntity(CEntity* entity, CVector posn, uint8 a6, int32 a7, float rangeMin, float rangeMax, uint8 a10);
+    CTaskComplexTrackEntity(
+        CEntity* pEntity,
+        CVector  offsetPos,
+        bool     useSprint,
+        int32    giveUpTime,
+        float    nodeRouteDist,
+        float    giveUpDist,
+        bool     isLocalOffset
+    );
     CTaskComplexTrackEntity(const CTaskComplexTrackEntity&);
-    ~CTaskComplexTrackEntity();
+    ~CTaskComplexTrackEntity() override = default;
 
-    void SetOffsetPos(CVector posn);
+    void SetOffsetPos(CVector pos) { m_OffsetPos = pos; } // 0x65F760
     void CalcTargetPos(CPed* ped);
     void CalcMoveRatio(CPed* ped);
 
-    CTask*    Clone() const override { return new CTaskComplexTrackEntity{*this}; }
+    CTask*    Clone() const override { return new CTaskComplexTrackEntity{ *this }; }
     eTaskType GetTaskType() const override { return Type; }
     bool      MakeAbortable(CPed* ped, eAbortPriority priority = ABORT_PRIORITY_URGENT, const CEvent* event = nullptr) override;
     CTask*    CreateNextSubTask(CPed* ped) override;
     CTask*    CreateFirstSubTask(CPed* ped) override;
     CTask*    ControlSubTask(CPed* ped) override;
 
-private: // Wrappers for hooks
-    // 0x65F3B0
-    CTaskComplexTrackEntity* Constructor(CEntity* entity, CVector posn, uint8 a6, int32 a7, float rangeMin, float rangeMax, uint8 a10) { this->CTaskComplexTrackEntity::CTaskComplexTrackEntity(entity,  posn,  a6,  a7,  rangeMin,  rangeMax,  a10); return this; }
+public:
+    static void InjectHooks();
 
-    // 0x65F460
-    CTaskComplexTrackEntity* Destructor() { this->CTaskComplexTrackEntity::~CTaskComplexTrackEntity(); return this; }
+public:
+    notsa::EntityRef<> m_EntityToTrack{};        //!< The entity to track, if it becomes invalid, the task will be aborted
+    CVector            m_OffsetPos{};            //!< Offset from the entity's position to track - Either world space or local
+    bool               m_UseSprint{};            //!< If true, the ped will sprint to the target position, otherwise it will run
+    int32              m_GiveUpTime{};           //!< Time in milliseconds to give up tracking the entity if it becomes invalid or unreachable
+    float              m_NodeRouteDist{};        //!< Distance in world units to the target position at which the ped will start following a node route instead of going directly to the target position
+    float              m_GiveUpDist{};           //!< Distance in world units to the target position at which the ped will give up tracking the entity
+    bool               m_IsLocalOffset{};        //!< See `m_OffsetPos` member variable
+    CTaskTimer         m_GiveUpTimer{};          //!< Timer to track when to give up tracking the entity
+    float              m_MoveBlendRatio{ -1.f }; //!< Move blend ratio to use when moving towards the target position, if negative, it will be calculated based on the ped's move state
+    float              m_TargetBlendRatio{};     //!< Target move blend ratio to use when moving towards the target position, if negative, it will be calculated based on the ped's move state
+    CVector            m_TargetPos{};            //!< Target position to move towards, calculated based on the entity's position and the offset
+    float              m_DistToTargetSq{};       //!< SqDist from the ped's position to the target position, updated every frame
+    bool               m_HasEntityStopped{};     //!< Unused
 };
-VALIDATE_SIZE(CTaskComplexTrackEntity, 0x54);
+VALIDATE_SIZE(CTaskComplexTrackEntity, 0x58);

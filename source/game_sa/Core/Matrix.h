@@ -151,6 +151,26 @@ public:
     }
 
     /*!
+    * @notsa
+    * @brief Transform a 2D point (position) - will take into account translation part of the Matrix.
+    * @brief Use instead of `MultiplyMatrixWithVector` (0x59C890)
+    * @param pt The position (point) to transform
+    */
+    CVector2D TransformPoint2D(CVector2D pt) const {
+        return TransformVector2D(pt) + CVector2D{ m_pos };
+    }
+
+    /*!
+    * @notsa
+    * @brief Transform a 2D direction vector - will not take into account translation part of the Matrix.
+    * @param pt The vector (direction) to transform
+    */
+    CVector2D TransformVector2D(CVector2D v) const {
+        return v.x * m_right
+             + v.y * m_forward;
+    }
+
+    /*!
      * @notsa
      * @brief Transform a point (position) - will take into account translation part of the Matrix.
      * @brief Use instead of `MultiplyMatrixWithVector` (0x59C890)
@@ -171,7 +191,9 @@ public:
         // > m_right.x * v.x + m_forward.x * v.y + m_up.x * v.z,
         // > m_right.y * v.x + m_forward.y * v.y + m_up.y * v.z,
         // > m_right.z * v.x + m_forward.z * v.y + m_up.z * v.z,
-        return v.x * m_right + v.y * m_forward + v.z * m_up;
+        return v.x * m_right
+             + v.y * m_forward
+             + v.z * m_up;
     }
 
     /*!
