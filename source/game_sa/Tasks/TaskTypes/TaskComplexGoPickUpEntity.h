@@ -18,11 +18,9 @@ public:
 public:
     static constexpr auto Type = TASK_COMPLEX_GO_PICKUP_ENTITY;
 
-    static void InjectHooks();
-
-    CTaskComplexGoPickUpEntity(CEntity* pEntity, AssocGroupId animGroupId);
+    CTaskComplexGoPickUpEntity(CEntity* entity, AssocGroupId animGroupId);
     CTaskComplexGoPickUpEntity(const CTaskComplexGoPickUpEntity& o);
-    ~CTaskComplexGoPickUpEntity();
+    ~CTaskComplexGoPickUpEntity() override;
 
     CTask*    Clone() const override { return new CTaskComplexGoPickUpEntity{ *this }; }
     eTaskType GetTaskType() const override { return Type; }
@@ -32,12 +30,14 @@ public:
 
     CEntity* GetEntityToPickUp() const { return m_EntityToPickUp; }
 
+    static void InjectHooks();
+
 private:
-public:
     notsa::EntityRef<> m_EntityToPickUp{};
-    CVector            m_Position{ -999.f, 0.f, 0.f };
-    CVector            m_PickupPosition{ -999.f, 0.f, 0.f };
-    int32              m_TimePassedSinceLastSubTaskCreatedInMs{};
+    CVector            m_HoldPosition{ -999.f, 0.f, 0.f };   //!< Position of the entity relative to the ped's hand, passed to the hold/pick up tasks
+    CVector            m_PickUpPosition{ -999.f, 0.f, 0.f }; //!< Point (in the entity's space) the ped walks to before picking it up
+    uint32             m_SubTaskStartTimeMs{};               //!< Time the go-to/pick up sub task was started (for `MAX_GOTO_TIME`/`MAX_PICKUP_TIME`)
     AssocGroupId       m_AnimGroupId{};
     bool               m_IsAnimBlockReferenced{};
 };
+VALIDATE_SIZE(CTaskComplexGoPickUpEntity, 0x34);
