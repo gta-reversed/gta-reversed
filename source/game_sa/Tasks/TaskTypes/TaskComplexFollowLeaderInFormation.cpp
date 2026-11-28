@@ -72,14 +72,14 @@ CTask* CTaskComplexFollowLeaderInFormation::CreateSubTask(eTaskType taskType, CP
         return tSeek;
     }
     case TASK_SIMPLE_ACHIEVE_HEADING: { // 0x69650E
-        auto&       membership   = m_Group->GetMembership();
-        auto* const randomMember = membership.GetMember(CGeneral::GetRandomNumberInRange(0, (int32)membership.CountMembers()));
-        auto* const lookAtPed    = randomMember == ped ? membership.GetLeader() : randomMember;
-        if (lookAtPed && CGeneral::GetRandomNumberInRange(0, 50) == 20) { // 0x69655B
-            // NOTE: The original replaces `y == 0` with a small value here (`GetRadianAngleBetweenPoints`)
-            return new CTaskSimpleAchieveHeading{ (lookAtPed->GetPosition() - ped->GetPosition()).Heading() };
-        }
-        return new CTaskSimpleAchieveHeading{ ped->m_fCurrentRotation }; // 0x69661F
+        auto* const randomMember = m_Group->GetMembership().GetRandom();
+        auto* const lookAtPed    = randomMember == ped ? m_Group->GetMembership().GetLeader() : randomMember;
+        // NOTE: The original replaces `y == 0` with a small value here (`GetRadianAngleBetweenPoints`)
+        return new CTaskSimpleAchieveHeading{
+            lookAtPed && CGeneral::GetRandomNumberInRange(0, 50) == 20 // 0x69655B
+                ? (lookAtPed->GetPosition() - ped->GetPosition()).Heading()
+                : ped->m_fCurrentRotation // 0x69661F
+        };
     }
     case TASK_FINISHED: // 0x69647D
         return nullptr;
@@ -133,7 +133,6 @@ CTask* CTaskComplexFollowLeaderInFormation::ControlSubTask(CPed* ped) {
         return nullptr;
     }
 
-    const auto subTaskType = m_pSubTask->GetTaskType();
     if (notsa::isa<CTaskSimpleCarDrive>(m_pSubTask)) { // 0x696976
         return m_pSubTask;
     }
@@ -141,7 +140,7 @@ CTask* CTaskComplexFollowLeaderInFormation::ControlSubTask(CPed* ped) {
     const auto pedToLeaderDistSq = (ped->GetPosition() - m_Leader->GetPosition()).SquaredMagnitude();
     if (m_Leader->IsInVehicle()) { // 0x696981
         auto* const leaderVeh = m_Leader->m_pVehicle;
-        switch (subTaskType) {
+        switch (const auto subTaskType = m_pSubTask->GetTaskType()) {
         case TASK_COMPLEX_SEEK_ENTITY: { // 0x6969B8
             notsa::cast<CTaskComplexSeekEntity<CEntitySeekPosCalculatorXYOffset>>(m_pSubTask)->SetMaxEntityDist2D(leaderVeh->GetBoundRadius());
             if (m_MaxDist <= 0.f || pedToLeaderDistSq <= sq(m_MaxDist)) {
@@ -181,7 +180,7 @@ CTask* CTaskComplexFollowLeaderInFormation::ControlSubTask(CPed* ped) {
         }
     }
 
-    switch (subTaskType) {
+    switch (const auto subTaskType = m_pSubTask->GetTaskType()) {
     case TASK_COMPLEX_ENTER_CAR_AS_PASSENGER: // 0x696BF7
         return m_pSubTask->MakeAbortable(ped, ABORT_PRIORITY_LEISURE)
             ? CreateFirstSubTask(ped)
