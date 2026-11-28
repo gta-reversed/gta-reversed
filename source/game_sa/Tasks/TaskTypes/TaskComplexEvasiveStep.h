@@ -11,7 +11,7 @@ public:
     CTaskComplexEvasiveStep(const CTaskComplexEvasiveStep& o); // NOTSA
     ~CTaskComplexEvasiveStep() override = default;             // 0x653350
 
-    eTaskType GetTaskType() const override { return Type; } // 0x653340
+    eTaskType GetTaskType() const override { return Type; }                           // 0x653340
     CTask*    Clone() const override { return new CTaskComplexEvasiveStep{ *this }; } // 0x655870
     CTask*    CreateNextSubTask(CPed* ped) override;
     CTask*    CreateFirstSubTask(CPed* ped) override;

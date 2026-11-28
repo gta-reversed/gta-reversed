@@ -51,7 +51,7 @@ void CTaskComplexEvasiveStep::InjectHooks() {
     RH_ScopedVirtualClass(CTaskComplexEvasiveStep, 0x86f218, 11);
     RH_ScopedCategory("Tasks/TaskTypes");
 
-    RH_ScopedConstructorInstall(0x6532D0, "1", {}, CEntity*, CVector const&);
+    RH_ScopedConstructorInstall(0x6532D0, "1", {}, CEntity*, const CVector&);
     RH_ScopedDestructorInstall(0x653350);
 
     RH_ScopedInstall(CreateSubTask, 0x6533E0);
