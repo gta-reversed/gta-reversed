@@ -30,7 +30,7 @@ void CRopes::InjectHooks() {
 // 0x555DC0
 void CRopes::Init() {
     for (auto& rope : aRopes) {
-        rope.m_nType = eRopeType::NONE;
+        rope.m_Type = eRopeType::NONE;
     }
     PlayerControlsCrane = eControlledCrane::NONE;
 }
@@ -38,8 +38,9 @@ void CRopes::Init() {
 // 0x556B10
 void CRopes::Shutdown() {
     for (auto& rope : aRopes) {
-        if (rope.m_nType == eRopeType::NONE)
+        if (rope.m_Type == eRopeType::NONE) {
             continue;
+        }
 
         rope.Remove();
     }
@@ -53,8 +54,9 @@ void CRopes::Update() {
         return;
 
     for (auto& rope : aRopes) {
-        if (rope.m_nType != eRopeType::NONE)
+        if (rope.m_Type != eRopeType::NONE) {
             rope.Update();
+        }
     }
 }
 
@@ -63,8 +65,9 @@ void CRopes::Render() {
     ZoneScoped;
 
     for (auto& rope : aRopes) {
-        if (rope.m_nType != eRopeType::NONE)
+        if (rope.m_Type != eRopeType::NONE) {
             rope.Render();
+        }
     }
 }
 
@@ -83,8 +86,9 @@ float CRopes::FindPickupHeight(CEntity* entity) {
 // 0x556000
 int32 CRopes::FindRope(uint32 id) {
     for (auto ropeId = 0; ropeId < MAX_NUM_ROPES; ropeId++) {
-        if (aRopes[ropeId].m_nType != eRopeType::NONE && aRopes[ropeId].m_nId == id)
+        if (aRopes[ropeId].m_Type != eRopeType::NONE && aRopes[ropeId].m_Id == id) {
             return ropeId;
+        }
     }
     return -1;
 }
@@ -112,8 +116,9 @@ bool CRopes::IsCarriedByRope(CPhysical* entity) {
         return false;
 
     for (auto& rope : aRopes) {
-        if (rope.m_nType != eRopeType::NONE && rope.m_pRopeAttachObject == entity)
+        if (rope.m_Type != eRopeType::NONE && rope.m_CarriedEntity == entity) {
             return true;
+        }
     }
     return false;
 }
@@ -121,8 +126,8 @@ bool CRopes::IsCarriedByRope(CPhysical* entity) {
 // 0x555DF0
 void CRopes::SetSpeedOfTopNode(uint32 ropeId, CVector dirSpeed) {
     for (auto& rope : aRopes) {
-        if (rope.m_nType != eRopeType::NONE && rope.m_nId == ropeId) {
-            rope.m_aSpeed[0] = dirSpeed;
+        if (rope.m_Type != eRopeType::NONE && rope.m_Id == ropeId) {
+            rope.m_SegmentSpeeds[0] = dirSpeed;
             return;
         }
     }

@@ -2536,8 +2536,8 @@ void CVehicle::UpdateWinch() {
         const auto baseLen = (eRopeType)m_ropeType == eRopeType::MAGNET ? -0.2f : -0.6f;
         if (const auto ropeIdx = CRopes::FindRope(ropeID); ropeIdx >= 0) { // Inverted condition
             const auto& rope = CRopes::GetRope(ropeIdx);
-            const auto segCount = (uint32)(rope.m_fSegmentLength * 32.f);
-            return { (rope.m_fMass * rope.m_fSegmentLength) - ((float)segCount * rope.m_fTotalLength) + baseLen, segCount };
+            const auto  segCount = (uint32)(rope.m_Height * 32.f);
+            return { (rope.m_TotalLength * rope.m_Height) - ((float)segCount * rope.m_SegmentLength) + baseLen, segCount };
         }
         return { baseLen, 0 };
     };
@@ -2600,17 +2600,17 @@ void CVehicle::PickUpEntityWithWinch(CEntity* entity) const {
 
 // 0x6D3CF0
 CEntity* CVehicle::QueryPickedUpEntityWithWinch() const {
-    return CRopes::GetRope(GetRopeID()).m_pRopeAttachObject;
+    return CRopes::GetRope(GetRopeID()).m_CarriedEntity;
 }
 
 // 0x6D3D10
 float CVehicle::GetRopeHeightForHeli() const {
-    return CRopes::GetRope(GetRopeID()).m_fSegmentLength;
+    return CRopes::GetRope(GetRopeID()).m_Height;
 }
 
 // 0x6D3D30
 void CVehicle::SetRopeHeightForHeli(float height) const {
-    CRopes::GetRope(GetRopeID()).m_fSegmentLength = height;
+    CRopes::GetRope(GetRopeID()).m_Height = height;
 }
 
 // 0x6D3D60
