@@ -55,9 +55,10 @@ CTaskComplexFleeEntity::~CTaskComplexFleeEntity() {
 CTask* CTaskComplexFleeEntity::CreateSubTask(eTaskType taskType) {
     switch (taskType) {
     case TASK_COMPLEX_FLEE_POINT: {
-        // Below pos update code from `CreateFirstSubTask`
+        // [Code moved here from `CreateFirstSubTask`]
         m_posCheckTimer.Start(m_posCheckPeriod);
         m_pos = m_entity->GetPosition();
+        // [over]
         return new CTaskComplexFleePoint{
             m_pos,
             m_pedScream,

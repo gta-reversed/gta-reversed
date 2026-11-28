@@ -220,7 +220,7 @@ public:
 
     CTask* CreateFirstSubTask(CPed* ped) override {
         m_scanTimer.Start(m_scanInterval);
-        m_seekTimer.Start(m_seekInterval);
+        m_seekTimer.StartIfInterval(m_seekInterval);
 
         if (!m_entityToSeek) {
             return CreateSubTask(TASK_SIMPLE_TIRED, ped);

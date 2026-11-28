@@ -46,7 +46,7 @@ bool CTaskComplexGoToPointAndStandStillTimed::MakeAbortable(CPed* ped, eAbortPri
 
 // 0x66DC90
 CTask* CTaskComplexGoToPointAndStandStillTimed::CreateFirstSubTask(CPed* ped) {
-    m_timer.Start(m_nTime);
+    m_timer.StartIfInterval(m_nTime);
     return CTaskComplexGoToPointAndStandStill::CreateFirstSubTask(ped);
 }
 

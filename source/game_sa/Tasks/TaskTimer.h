@@ -28,14 +28,18 @@ public:
     {
     }
 
-    bool Start(int32 interval) {
+    bool StartIfInterval(int32 interval) {
         if (interval >= 0) {
-            m_nStartTime = CTimer::GetTimeInMS();
-            m_nInterval = interval;
-            m_bStarted = true;
+            Start(interval);
             return true;
         }
         return false;
+    }
+
+    void Start(int32 interval) {
+        m_nStartTime = CTimer::GetTimeInMS();
+        m_nInterval  = interval;
+        m_bStarted   = true;
     }
 
     void StartIfNotAlready(int32 interval) { // NOTSA
@@ -57,15 +61,6 @@ public:
 
     void Stop() {
         m_bStarted = false;
-    }
-
-    /*!
-    * @brief Make the timer be finished immidiately (So that `IsOutOfTime` returns true)
-    */
-    void SetOutOfTime() {
-        m_nStartTime = CTimer::GetTimeInMS();
-        m_nInterval = -1;
-        m_bStarted = true;
     }
 
     bool Reset() {

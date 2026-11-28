@@ -62,7 +62,7 @@ bool CTaskComplexEnterCarAsDriverTimed::MakeAbortable(CPed* ped, eAbortPriority 
 
 // 0x6405B0
 CTask* CTaskComplexEnterCarAsDriverTimed::CreateFirstSubTask(CPed* ped) {
-    m_enterBeganTimer.Start(m_enterMaxInterval);
+    m_enterBeganTimer.StartIfInterval(m_enterMaxInterval);
     return new CTaskComplexEnterCarAsDriver{ m_veh, m_moveState };
 }
 

@@ -34,7 +34,7 @@ CTaskComplexFleePoint::CTaskComplexFleePoint(CVector const& fleeFromPos, bool pe
     m_safeDist{safeDist},
     m_durationMs{durationMs}
 {
-    m_timer.Start(durationMs);
+    m_timer.StartIfInterval(durationMs);
 }
 
 CTaskComplexFleePoint::CTaskComplexFleePoint(const CTaskComplexFleePoint& o) :
