@@ -33,6 +33,8 @@ public:
     CTask*    CreateFirstSubTask(CPed* ped) override;
     CTask*    ControlSubTask(CPed* ped) override;
 
+    auto GetLeader() const { return m_Leader; } // NOTSA
+
 private:
     friend void InjectHooksMain();
     static void InjectHooks();

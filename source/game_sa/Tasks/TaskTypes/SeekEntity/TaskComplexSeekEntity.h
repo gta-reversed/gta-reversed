@@ -24,17 +24,67 @@
 #include "PosCalculators/EntitySeekPosCalculatorStandard.h"
 #include "PosCalculators/EntitySeekPosCalculatorXYOffset.h"
 
-template <std::derived_from<CEntitySeekPosCalculator> T_PosCalc = CEntitySeekPosCalculatorStandard>
-class NOTSA_EXPORT_VTABLE CTaskComplexSeekEntity : public CTaskComplex {
-    CEntity* m_entityToSeek{};
-    int32 m_seekInterval{};
-    int32 m_scanInterval{};
-    float m_maxEntityDist2D{};
-    float m_moveStateRadius{};
-    float m_minEntityDist2D{};
-    float m_followNodeThresholdHeightChange{};
+/*!
+ * NOTSA: The part of `CTaskComplexSeekEntity<>` that is the same for every seek pos calculator.
+ * All `CTaskComplexSeekEntity<>` have the same task type, so a task found by its type can only be used as this.
+ */
+class CTaskComplexSeekEntityBase : public CTaskComplex {
+public:
+    static constexpr auto Type = eTaskType::TASK_COMPLEX_SEEK_ENTITY;
+
+    CTaskComplexSeekEntityBase(
+        CEntity* entity,
+        int32    seekInterval,
+        int32    scanInterval,
+        float    maxEntityDist2D,
+        float    moveStateRadius,
+        float    followNodeThresholdHeightChange,
+        float    minEntityDist2D = 0.f
+    ) :
+        m_entityToSeek{ entity },
+        m_seekInterval{ seekInterval },
+        m_scanInterval{ scanInterval },
+        m_maxEntityDist2D{ maxEntityDist2D },
+        m_moveStateRadius{ moveStateRadius },
+        m_minEntityDist2D{ minEntityDist2D },
+        m_followNodeThresholdHeightChange{ followNodeThresholdHeightChange } {
+    }
+
+    // 0x4BC470
+    void SetMaxEntityDist2D(float v) {
+        if (v != m_maxEntityDist2D) {
+            m_maxEntityDist2D = v;
+            m_scanTimer.Start(0);
+        }
+    }
+
+    void SetEntityMinDist2D(float v) {
+        m_minEntityDist2D = v;
+    }
+
+    auto GetEntityToSeek() const {
+        return m_entityToSeek;
+    }
+
+    auto GetMoveStateRadius() const {
+        return m_moveStateRadius;
+    }
+
+protected:
+    CEntity*   m_entityToSeek{};
+    int32      m_seekInterval{};
+    int32      m_scanInterval{};
+    float      m_maxEntityDist2D{};
+    float      m_moveStateRadius{};
+    float      m_minEntityDist2D{};
+    float      m_followNodeThresholdHeightChange{};
     CTaskTimer m_scanTimer{};
     CTaskTimer m_seekTimer{};
+};
+VALIDATE_SIZE(CTaskComplexSeekEntityBase, 0x40);
+
+template<std::derived_from<CEntitySeekPosCalculator> T_PosCalc = CEntitySeekPosCalculatorStandard>
+class NOTSA_EXPORT_VTABLE CTaskComplexSeekEntity : public CTaskComplexSeekEntityBase {
     T_PosCalc m_entitySeekPosCalculator{};
 
     // Everything here mustn't be accesed without the proper `T_PosCalc` type!
@@ -84,34 +134,21 @@ public:
         bool      bFaceEntityWhenDone,
         T_PosCalc seekPosCalculator = {} // NOTSA
     ) :
-        m_entityToSeek{ entity },
-        m_seekInterval{ seekInterval },
-        m_scanInterval{ scanInterval },
-        m_maxEntityDist2D{ maxEntityDist2D },
-        m_moveStateRadius{ moveStateRadius },
-        m_followNodeThresholdHeightChange{ followNodeThresholdHeightChange },
+        CTaskComplexSeekEntityBase{ entity, seekInterval, scanInterval, maxEntityDist2D, moveStateRadius, followNodeThresholdHeightChange },
         m_bPlayTiredAnim{ bPlayTiredAnim },
         m_bFaceEntityWhenDone{ bFaceEntityWhenDone },
-        m_entitySeekPosCalculator{ seekPosCalculator }
-    {
+        m_entitySeekPosCalculator{ seekPosCalculator } {
         CEntity::SafeRegisterRef(m_entityToSeek);
     }
 
     CTaskComplexSeekEntity(const CTaskComplexSeekEntity& o) :
-        m_entityToSeek{ o.m_entityToSeek },
-        m_seekInterval{ o.m_seekInterval },
-        m_scanInterval{ o.m_scanInterval },
-        m_maxEntityDist2D{ o.m_maxEntityDist2D },
-        m_moveStateRadius{ o.m_moveStateRadius },
-        m_followNodeThresholdHeightChange{ o.m_followNodeThresholdHeightChange },
+        CTaskComplexSeekEntityBase{ o.m_entityToSeek, o.m_seekInterval, o.m_scanInterval, o.m_maxEntityDist2D, o.m_moveStateRadius, o.m_followNodeThresholdHeightChange, o.m_minEntityDist2D },
         m_bPlayTiredAnim{ o.m_bPlayTiredAnim },
         m_bFaceEntityWhenDone{ true },
 
         m_entitySeekPosCalculator{ o.m_entitySeekPosCalculator },
         m_moveState{ o.m_moveState },
-        m_bTrackingEntity{ o.m_bTrackingEntity },
-        m_minEntityDist2D{ o.m_minEntityDist2D }
-    {
+        m_bTrackingEntity{ o.m_bTrackingEntity } {
         CEntity::SafeRegisterRef(m_entityToSeek);
     }
 
@@ -389,18 +426,6 @@ public:
 
     auto& GetSeekPosCalculator() {
         return m_entitySeekPosCalculator;
-    }
-
-    void SetEntityMinDist2D(float v) {
-        m_minEntityDist2D = v;
-    }
-
-    auto GetEntityToSeek() const {
-        return m_entityToSeek;
-    }
-
-    auto GetMoveStateRadius() const {
-        return m_moveStateRadius;
     }
 
 private:

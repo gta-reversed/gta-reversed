@@ -30,11 +30,13 @@ public:
     CVehicle* m_vehicle;
 
 public:
+    static constexpr auto Type = EVENT_KNOCK_OFF_BIKE;
+
     CEventKnockOffBike(CVehicle* vehicle, const CVector& moveSpeed, const CVector& collisionImpactVelocity, float damageIntensity, float a6, uint8 knockOffType, uint8 knockOutDirection, int32 time, CPed* ped, bool isVictimDriver, bool forceKnockOff);
     CEventKnockOffBike();
     ~CEventKnockOffBike() override;
 
-    eEventType GetEventType() const override { return EVENT_KNOCK_OFF_BIKE; }
+    eEventType          GetEventType() const override { return Type; }
     float GetLocalSoundLevel() override { return 60.0f; }
     int32 GetEventPriority() const override { return 70; }
     int32 GetLifeTime() override { return 0; }
