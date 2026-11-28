@@ -126,7 +126,7 @@ void CMatrix::UpdateRwMatrix(RwMatrix* matrix) const
     RwMatrixUpdate(matrix);
 }
 
-void CMatrix::UpdateMatrix(RwMatrix* rwMatrix)
+void CMatrix::UpdateMatrix(const RwMatrix* rwMatrix)
 {
     m_right = *RwMatrixGetRight(rwMatrix);
     m_forward = *RwMatrixGetUp(rwMatrix);
