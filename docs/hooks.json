@@ -38982,7 +38982,7 @@
   {
     "Category": "CAEScriptAudioEntity",
     "Name": "ProcessMissionAudioEvent",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CAEScriptAudioEntity",
@@ -38997,7 +38997,7 @@
   {
     "Category": "CAEScriptAudioEntity",
     "Name": "UpdateParameters",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CAETwinLoopSoundEntity",

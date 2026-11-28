@@ -1,17 +1,17 @@
 # Reimplementation progress (*): 92%
 This file is updated automatically every time the `hooks.json` file is updated (which happens every time there are changes to hooks made by a commit), and shows the current progress of reversed categories in the project.
 
-Last update was at Nov 28, 2026 at 00:32:19 UTC
-(Triggered by commit [093cb985](https://github.com/gta-reversed/gta-reversed/commit/093cb985ada30467c2346d18e4ab38d874503bb3))
+Last update was at Nov 28, 2026 at 00:47:01 UTC
+(Triggered by commit [f669b38d](https://github.com/gta-reversed/gta-reversed/commit/f669b38d8ab900cdd23c1cacc1758de40f483635))
 
 ## (*) Disclaimers
 **The progress** is based on the number of functions we have documented and reimplemented, so it might not completely reflect the actual progress, it's meant to be a rough estimate.
 
 **The percentages and the number of categories** shown here may not be completely accurate, because not all categories and functions are documented yet.
 
-## Stats (8236 out of 8913 functions done in 797 categories)
+## Stats (8238 out of 8913 functions done in 797 categories)
 
-#### Completely reversed categories (672/797) [84%]
+#### Completely reversed categories (673/797) [84%]
 
 <details>
 <summary>See list of categories</summary>
@@ -655,6 +655,7 @@ Last update was at Nov 28, 2026 at 00:32:19 UTC
 - CAEPedlessSpeechAudioEntity (11)<br />
 - CAEPedSpeechAudioEntity (58)<br />
 - CAEWeaponAudioEntity (20)<br />
+- CAEScriptAudioEntity (19)<br />
 - CAETwinLoopSoundEntity (7)<br />
 - CAEWaterCannonAudioEntity (7)<br />
 - CAEWeatherAudioEntity (5)<br />
@@ -690,7 +691,7 @@ Last update was at Nov 28, 2026 at 00:32:19 UTC
 
 </details>
 
-#### Partially reversed categories (114/797) [14%]
+#### Partially reversed categories (113/797) [14%]
 
 <details>
 <summary>See list of categories</summary>
@@ -793,7 +794,6 @@ Last update was at Nov 28, 2026 at 00:32:19 UTC
 - CAEFrontendAudioEntity (5/6) [83%]<br />
 - CAEPedAudioEntity (16/20) [80%]<br />
 - CAEPoliceScannerAudioEntity (13/17) [76%]<br />
-- CAEScriptAudioEntity (17/19) [89%]<br />
 - CAEVehicleAudioEntity (103/106) [97%]<br />
 - CAEAmbienceTrackManager (6/7) [86%]<br />
 - CAERadioTrackManager (34/43) [79%]<br />
