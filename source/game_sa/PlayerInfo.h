@@ -24,6 +24,15 @@ enum ePlayerState : uint8 {
     PLAYERSTATE_LEFT_GAME
 };
 
+//! The crosshair of a player in the 2 player car shooting mode
+struct CPlayerCrossHair {
+    bool      m_IsActivated{};
+    CVector2D m_Target{}; //!< -1 ... 1 on screen
+
+    void Render(int32 playerId);
+};
+VALIDATE_SIZE(CPlayerCrossHair, 0xC);
+
 class CPlayerInfo {
 public:
     CPlayerPed*    m_pPed;                    // Pointer to the player ped (should always be set)
@@ -81,8 +90,7 @@ public:
     bool           m_bCanDoDriveBy;
     uint8          m_nBustedAudioStatus;
     uint16         m_nLastBustMessageNumber;
-    uint32         m_nCrosshairActivated;
-    CVector2D      m_vecCrosshairTarget; // -1 ... 1 on screen
+    CPlayerCrossHair m_CrossHair{};
     char           m_szSkinName[32];
     RwTexture*     m_pSkinTexture;
     bool           m_bParachuteReferenced;
