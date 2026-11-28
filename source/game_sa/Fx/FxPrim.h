@@ -16,8 +16,9 @@ public:
     virtual bool Init(FxPrimBP_c* prim, FxSystem_c* system) = 0;
     virtual void Update(float a2, float a3) = 0;
     virtual void Reset() = 0;
-    virtual void AddParticle(const RwMatrix& mat, const CVector& vel, float timeSince, const FxPrtMult_c& fxMults, float rotZ, float brightness, bool createLocal) = 0;
+    // NOTE: MSVC puts overloads into the vtable in reverse order: declared like this, the matrix one gets slot 4 and the position one slot 5 (as in 0x85A7A4)
     virtual void AddParticle(const CVector& pos, const CVector& vel, float timeSince, const FxPrtMult_c& fxMults, float rotZ, float brightness, bool createLocal) = 0;
+    virtual void AddParticle(const RwMatrix& mat, const CVector& vel, float timeSince, const FxPrtMult_c& fxMults, float rotZ, float brightness, bool createLocal) = 0;
 
     void Enable(bool enabled);
 };
