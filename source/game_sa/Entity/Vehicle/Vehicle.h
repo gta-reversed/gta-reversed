@@ -602,7 +602,7 @@ public:
     // return upgrade model id or -1 if not present
     int32 GetUpgrade(int32 upgradeId);
     RpAtomic* CreateReplacementAtomic(CBaseModelInfo* model, RwFrame* component, eAtomicComponentFlag flags, bool bDamaged, bool bIsWheel);
-    void AddReplacementUpgrade(int32 modelIndex, int32 nodeId);
+    void AddReplacementUpgrade(int32 upgradeModelIndex, int32 nodeId);
     void RemoveReplacementUpgrade(int32 nodeId);
     // return upgrade model id or -1 if not present
     int32 GetReplacementUpgrade(int32 nodeId);
@@ -815,7 +815,7 @@ private:
 };
 VALIDATE_SIZE(CVehicle, 0x5A0);
 
-bool IsValidModForVehicle(uint32 modelId, CVehicle* vehicle);
+bool IsValidModForVehicle(uint32 upgradeModelId, CVehicle* vehicle);
 bool IsVehiclePointerValid(CVehicle* vehicle);
 RpAtomic* RemoveUpgradeCB(RpAtomic* atomic, void* data);
 RpAtomic* FindUpgradeCB(RpAtomic* atomic, void* data);

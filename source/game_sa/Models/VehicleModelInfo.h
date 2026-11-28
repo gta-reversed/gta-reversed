@@ -60,6 +60,8 @@ enum eVehicleUpgradePosn {
     UPGRADE_LIGHTS_DAM,
     UPGRADE_ROOF,
     UPGRADE_NITRO,
+    UPGRADE_HYDRAULICS,
+    UPGRADE_STEREO
 };
 
 enum class eCarColLineType : uint32 {
