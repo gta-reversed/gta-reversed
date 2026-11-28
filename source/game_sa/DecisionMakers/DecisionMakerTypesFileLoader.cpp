@@ -9,7 +9,7 @@ void CDecisionMakerTypesFileLoader::InjectHooks() {
     RH_ScopedInstall(ReStart, 0x607D00);
     RH_ScopedInstall(GetPedDMName, 0x600860);
     RH_ScopedInstall(GetGrpDMName, 0x600880);
-    RH_ScopedInstall(UnloadDecisionMaker, 0x607A70, { .State = HS::RedirectToGTA, .Locked = true }); // Causes esp check failure
+    RH_ScopedInstall(UnloadDecisionMaker, 0x607A70);
     RH_ScopedInstall(LoadDefaultDecisionMaker, 0x5BF400);
     RH_ScopedOverloadedInstall(LoadDecisionMaker, "enum", 0x607D30, int32(*)(const char*, eDecisionTypes, bool));
     RH_ScopedOverloadedInstall(LoadDecisionMaker, "ptr", 0x6076B0, bool (*)(const char*, CDecisionMaker*));
@@ -17,8 +17,8 @@ void CDecisionMakerTypesFileLoader::InjectHooks() {
 
 // 0x607D00
 void CDecisionMakerTypesFileLoader::ReStart() {
-    for (int32 i = 0; i < +eDecisionMakerType::COUNT_GAME_DM; i++) {
-        UnloadDecisionMaker((eDecisionTypes)(i));
+    for (int32 i = +eDecisionMakerType::MISSION0; i < +eDecisionMakerType::COUNT_TOTAL; i++) { // 0x607D01
+        UnloadDecisionMaker((eDecisionMakerType)(i));
     }
 }
 
@@ -46,17 +46,23 @@ void CDecisionMakerTypesFileLoader::GetGrpDMName(int32 index, char* name) {
 // 0x5BF400
 void CDecisionMakerTypesFileLoader::LoadDefaultDecisionMaker() {
     for (int32 i = 0; i < +eDecisionMakerType::COUNT_TOTAL; i++) {
-        UnloadDecisionMaker((eDecisionTypes)(i));
+        UnloadDecisionMaker((eDecisionMakerType)(i));
     }
 
     CDecisionMakerTypes::GetInstance()->LoadEventIndices();
 
-    LoadDecisionMaker("RANDOM.ped", &CDecisionMakerTypes::GetInstance()->m_DefaultRandomPedDecisionMaker);
-    LoadDecisionMaker("m_norm.ped", &CDecisionMakerTypes::GetInstance()->m_DefaultMissionPedDecisionMaker);
-    LoadDecisionMaker("m_plyr.ped", &CDecisionMakerTypes::GetInstance()->m_DefaultPlayerPedDecisionMaker);
+    // Loaded into a fresh (default) decision maker that then replaces the whole default one (0x5BF42D)
+    const auto LoadDefault = [](const char* filepath, CDecisionMaker& out) {
+        CDecisionMaker dm{};
+        LoadDecisionMaker(filepath, &dm);
+        out = dm;
+    };
+    LoadDefault("RANDOM.ped", CDecisionMakerTypes::GetInstance()->m_DefaultRandomPedDecisionMaker);
+    LoadDefault("m_norm.ped", CDecisionMakerTypes::GetInstance()->m_DefaultMissionPedDecisionMaker);
+    LoadDefault("m_plyr.ped", CDecisionMakerTypes::GetInstance()->m_DefaultPlayerPedDecisionMaker);
 
-    LoadDecisionMaker("RANDOM.grp", &CDecisionMakerTypes::GetInstance()->m_DefaultRandomPedGroupDecisionMaker);
-    LoadDecisionMaker("MISSION.grp", &CDecisionMakerTypes::GetInstance()->m_DefaultMissionPedGroupDecisionMaker);
+    LoadDefault("RANDOM.grp", CDecisionMakerTypes::GetInstance()->m_DefaultRandomPedGroupDecisionMaker);
+    LoadDefault("MISSION.grp", CDecisionMakerTypes::GetInstance()->m_DefaultMissionPedGroupDecisionMaker);
 
     LoadDecisionMaker("GangMbr.ped", DEFAULT_DECISION_MAKER, false);
     LoadDecisionMaker("Cop.ped", DEFAULT_DECISION_MAKER, false);
@@ -71,10 +77,10 @@ void CDecisionMakerTypesFileLoader::LoadDefaultDecisionMaker() {
 }
 
 // 0x607D30 - Returns script handle for the DM
-int32 CDecisionMakerTypesFileLoader::LoadDecisionMaker(const char* filepath, eDecisionTypes decisionMakerType, bool bDecisionMakerForMission) {
+int32 CDecisionMakerTypesFileLoader::LoadDecisionMaker(const char* filepath, eDecisionTypes decisionMakerType, bool isForMission) {
     CDecisionMaker decisionMaker;
     LoadDecisionMaker(filepath, &decisionMaker);
-    return CDecisionMakerTypes::GetInstance()->AddDecisionMaker(&decisionMaker, decisionMakerType, bDecisionMakerForMission);
+    return CDecisionMakerTypes::GetInstance()->AddDecisionMaker(&decisionMaker, decisionMakerType, isForMission);
 }
 
 // 0x6076B0
@@ -143,6 +149,6 @@ bool CDecisionMakerTypesFileLoader::LoadDecisionMaker(const char* filepath, CDec
 }
 
 // 0x607A70
-void CDecisionMakerTypesFileLoader::UnloadDecisionMaker(eDecisionTypes dm) {
-    CDecisionMakerTypes::GetInstance()->RemoveDecisionMaker(dm);
+void CDecisionMakerTypesFileLoader::UnloadDecisionMaker(eDecisionMakerType dm) {
+    CDecisionMakerTypes::GetInstance()->RemoveDecisionMaker((eDecisionTypes)(+dm)); // NOTE: `RemoveDecisionMaker` takes the decision maker's index too, its parameter type is wrong
 }
