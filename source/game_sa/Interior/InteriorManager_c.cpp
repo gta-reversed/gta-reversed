@@ -210,7 +210,7 @@ void InteriorManager_c::AddSameGroupEffectInfos(InteriorEffectInfo_t* ifxi, int3
 }
 
 // 0x5980F0
-bool InteriorManager_c::AreAnimsLoaded(int32 animBlock) {
+bool __stdcall InteriorManager_c::AreAnimsLoaded(int32 animBlock) {
     animBlock = [&] {
         switch (animBlock) {
         case 0:  return CAnimManager::GetAnimationBlockIndex("int_house");
@@ -219,7 +219,7 @@ bool InteriorManager_c::AreAnimsLoaded(int32 animBlock) {
         default: return animBlock;
         }
     }();
-    return CAnimManager::GetAnimationBlock((AssocGroupId)animBlock)->IsLoaded;
+    return CAnimManager::GetAnimBlocks()[animBlock].IsLoaded;
 }
 
 // 0x598010
