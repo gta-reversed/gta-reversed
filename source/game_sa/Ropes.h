@@ -21,28 +21,28 @@ class CRopes {
 public:
     static constexpr auto MAX_NUM_ROPES{ 8u };
 
-    static inline auto& aRopes = StaticRef<std::array<CRope, MAX_NUM_ROPES>>(0xB768B8); // Access using CRopes::GetRope()
-    static inline auto& PlayerControlsCrane = StaticRef<eControlledCrane>(0xB76898);
-    static inline auto& m_nRopeIdCreationCounter = StaticRef<uint32>(0xB781F8);
-
 public:
-    static void InjectHooks();
-
     static void Init();
     static void Shutdown();
     static void Update();
     static void Render();
 
-    static bool RegisterRope(uint32 ropeObj, uint32 ropeType, CVector startPos, bool bExpires, uint8 segmentCount, uint8, CPhysical* holder, uint32 timeExpire);
+    static bool RegisterRope(uint32 ropeId, uint32 ropeType, CVector startPos, bool expires, uint8 segmentCount, uint8 flags, CPhysical* holder, uint32 timeExpire);
 
     static float FindPickupHeight(CEntity* entity);
     static int32 FindRope(uint32 id);
-    static bool  FindCoorsAlongRope(uint32 ropeId, float fDistAlongRope, CVector* outPosn, CVector* outSpeed);
+    static bool  FindCoorsAlongRope(uint32 ropeId, float distAlongRope, CVector* outPos, CVector* outSpeed);
 
     static int32 CreateRopeForSwatPed(const CVector& startPos);
-    static bool IsCarriedByRope(CPhysical* entity);
-    static void SetSpeedOfTopNode(uint32 ropeId, CVector dirSpeed);
+    static bool  IsCarriedByRope(CPhysical* entity);
+    static void  SetSpeedOfTopNode(uint32 ropeId, CVector dirSpeed);
+
+    static CRope& GetRope(int32 index) { return aRopes[index]; }
+
+    static void InjectHooks();
 
 public:
-    static inline CRope& GetRope(int32 index) { return aRopes[index]; }
+    static inline auto& aRopes                = StaticRef<std::array<CRope, MAX_NUM_ROPES>>(0xB768B8); // Access using CRopes::GetRope()
+    static inline auto& PlayerControlsCrane   = StaticRef<eControlledCrane>(0xB76898);
+    static inline auto& RopeIdCreationCounter = StaticRef<uint32>(0xB781F8);
 };

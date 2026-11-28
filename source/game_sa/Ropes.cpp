@@ -18,10 +18,10 @@ void CRopes::InjectHooks() {
     RH_ScopedInstall(Shutdown, 0x556B10);
     RH_ScopedInstall(Update, 0x558D70);
     RH_ScopedInstall(Render, 0x556AE0);
-    RH_ScopedInstall(RegisterRope, 0x556B40, { .Reversed = false });
+    RH_ScopedInstall(RegisterRope, 0x556B40);
     RH_ScopedInstall(FindPickupHeight, 0x556760);
     RH_ScopedInstall(FindRope, 0x556000);
-    RH_ScopedInstall(FindCoorsAlongRope, 0x555E40, { .Reversed = false });
+    RH_ScopedInstall(FindCoorsAlongRope, 0x555E40);
     RH_ScopedInstall(CreateRopeForSwatPed, 0x558D10);
     RH_ScopedInstall(IsCarriedByRope, 0x555F80);
     RH_ScopedInstall(SetSpeedOfTopNode, 0x555DF0);
@@ -70,8 +70,84 @@ void CRopes::Render() {
 
 // Must be used in loop to make attached to holder
 // 0x556B40
-bool CRopes::RegisterRope(uint32 ropeID, uint32 ropeType, CVector startPos, bool bExpires, uint8 segmentCount, uint8 flags, CPhysical* holder, uint32 timeExpire) {
-    return plugin::CallAndReturn<bool, 0x556B40, uint32, uint32, CVector, bool, uint8, uint8, CPhysical*, uint32>(ropeID, ropeType, startPos, bExpires, segmentCount, flags, holder, timeExpire);
+bool CRopes::RegisterRope(uint32 ropeId, uint32 ropeType, CVector startPos, bool expires, uint8 segmentCount, uint8 flags, CPhysical* holder, uint32 timeExpire) {
+    // NOTE: The member names of `CRope` are off: `m_fMass` is the total length, `m_fTotalLength` the length of one segment,
+    //       `m_fSegmentLength` how far the rope is let down (0..1, see `CObject::GetRopeHeight`). Kept, other files use them.
+
+    // 0x556B4C - Already registered: move it to `startPos`
+    if (const auto idx = FindRope(ropeId); idx >= 0) {
+        auto& rope = aRopes[idx];
+        rope.m_nFlags2 |= 1; // 0x556BE8
+        rope.m_nSegments = segmentCount;
+
+        // NOTE/BUG: The original doesn't check the segment count, `32` (A rope let down all the way) writes past both arrays
+        const auto lastSegment = notsa::bugfixes::GenericOOB
+            ? std::min<uint32>(segmentCount, NUM_ROPE_SEGMENTS - 1)
+            : segmentCount;
+        for (auto i = 0u; i <= lastSegment; i++) {
+            rope.m_aSegments[i] = startPos;
+            rope.m_aSpeed[i]    = CVector{};
+        }
+        rope.CreateHookObjectForRope();
+        return true;
+    }
+
+    // 0x556B6C - Otherwise take a free slot
+    const auto it = rng::find(aRopes, eRopeType::NONE, &CRope::m_nType);
+    if (it == aRopes.end()) {
+        return false;
+    }
+    auto& rope               = *it;
+
+    rope.m_nId               = ropeId;
+    rope.m_aSegments[0]      = startPos;
+    rope.m_aSpeed[0]         = CVector{};
+    rope.m_nSegments         = segmentCount;
+    rope.m_nFlags2           = (uint8)((rope.m_nFlags2 & ~0b110) | ((flags & 1) << 2) | 1); // 0x556CC7
+    rope.m_fGroundZ          = 0.f;
+    rope.m_pAttachedEntity   = nullptr;
+    rope.m_pRopeAttachObject = nullptr;
+    rope.m_fSegmentLength    = holder && holder->GetIsTypeVehicle() ? 0.9f : 0.5f; // 0x556CF9
+    rope.m_nFlags1           = 0;
+    rope.m_pRopeHolder       = holder;
+    rope.m_nType             = (eRopeType)ropeType;
+    CEntity::SafeRegisterRef(rope.m_pRopeHolder);
+    rope.m_nTime = expires ? CTimer::GetTimeInMS() + timeExpire : 0;
+
+    // 0x556D62
+    rope.m_fMass = [&] {
+        switch (rope.m_nType) {
+        case eRopeType::MAGNET:           return 10.f;
+        case eRopeType::CRANE_MAGNO:      return 50.f;
+        case eRopeType::WRECKING_BALL:
+        case eRopeType::QUARRY_CRANE_ARM:
+        case eRopeType::CRANE_TROLLEY:    return 68.f;
+        default:                          return 20.f;
+        }
+    }();
+    rope.m_fTotalLength = rope.m_fMass / (float)(NUM_ROPE_SEGMENTS - 1);
+
+    switch (rope.m_nType) {
+    case eRopeType::CRANE_MAGNO:
+    case eRopeType::WRECKING_BALL:
+    case eRopeType::QUARRY_CRANE_ARM:
+    case eRopeType::CRANE_TROLLEY:    { // 0x556DDA - Straight down
+        for (auto i = 1u; i < NUM_ROPE_SEGMENTS; i++) {
+            rope.m_aSegments[i] = rope.m_aSegments[i - 1] - CVector{ 0.f, 0.f, rope.m_fTotalLength }; // NOTE: The speeds are not reset here
+        }
+        break;
+    }
+    default: { // 0x557015 - Zig-zag along the X axis
+        for (auto i = 1u; i < NUM_ROPE_SEGMENTS; i++) {
+            rope.m_aSegments[i] = rope.m_aSegments[i - 1] + CVector{ i % 2 ? rope.m_fTotalLength : -rope.m_fTotalLength, 0.f, 0.f };
+            rope.m_aSpeed[i]    = CVector{};
+        }
+        break;
+    }
+    }
+
+    rope.CreateHookObjectForRope();
+    return true;
 }
 
 // 0x556760
@@ -91,19 +167,32 @@ int32 CRopes::FindRope(uint32 id) {
 
 // a4 always nullptr
 // 0x555E40
-bool CRopes::FindCoorsAlongRope(uint32 ropeId, float fDistAlongRope, CVector* outPosn, CVector* outSpeed) {
-    return plugin::CallAndReturn<bool, 0x555E40, uint32, float, CVector*, CVector*>(ropeId, fDistAlongRope, outPosn, outSpeed);
+bool CRopes::FindCoorsAlongRope(uint32 ropeId, float distAlongRope, CVector* outPos, CVector* outSpeed) {
+    const auto idx = FindRope(ropeId);
+    if (idx < 0) {
+        return false;
+    }
+    const auto& rope = aRopes[idx];
+
+    // `distAlongRope` is 0 (top) .. 1 (bottom)
+    const auto segmentPos = std::clamp(distAlongRope, 0.f, 0.999f) * (float)(NUM_ROPE_SEGMENTS - 1);
+    const auto segment    = (uint32)segmentPos;
+
+    *outPos               = Lerp(rope.m_aSegments[segment], rope.m_aSegments[segment + 1], segmentPos - (float)segment);
+    if (outSpeed) {
+        *outSpeed = rope.m_aSpeed[segment + 1];
+    }
+    return true;
 }
 
 // 0x558D10
 int32 CRopes::CreateRopeForSwatPed(const CVector& startPos) {
-    int32 newRopeId = m_nRopeIdCreationCounter + 100;
-    if (RegisterRope(newRopeId, static_cast<uint32>(eRopeType::SWAT), startPos, true, 0, 0, nullptr, 4000)) {
-        return -1;
-    }
+    const auto ropeId = RopeIdCreationCounter + 100;
 
-    m_nRopeIdCreationCounter += 1;
-    return newRopeId;
+    // NOTE: The original checks the result for `< 0` (0x558D4D), so it never fails, even when there was no free slot
+    RegisterRope(ropeId, static_cast<uint32>(eRopeType::SWAT), startPos, true, 0, 0, nullptr, 4'000);
+    RopeIdCreationCounter = (RopeIdCreationCounter + 1) % 256; // 0x558D56
+    return (int32)ropeId;
 }
 
 // 0x555F80
