@@ -1696,17 +1696,6 @@ void CEventHandler::ComputePassObjectResponse(CEventPassObject* e, CTask* tactiv
     m_EventResponseTask = new CTaskComplexPassObject{e->m_giver, e->m_dontPassObject};
 }
 
-// 0x4BC470 - `CTaskComplexSeekEntity::SetMaxEntityDist2D`
-// NOTE: Called as the original does: the task is found by its type [so it can be any `CTaskComplexSeekEntity<>`], and the class has no setter for this
-static void SetSeekEntityMaxDist2D(CTask* tSeekEntity, float dist) {
-    plugin::CallMethod<0x4BC470, CTask*, float>(tSeekEntity, dist);
-}
-
-// NOTE: `CTaskComplexFollowLeaderInFormation::m_Leader` is private and has no getter
-static CPed* GetFormationLeader(CTask* tFollowLeaderInFormation) {
-    return *reinterpret_cast<CPed**>(reinterpret_cast<uint8*>(tFollowLeaderInFormation) + 0x10);
-}
-
 // 0x4BDB80
 void CEventHandler::ComputePedCollisionWithPedResponse(CEventPedCollisionWithPed* e, CTask* tactive, CTask* tsimplest) {
     auto* const other = e->m_victim;
@@ -1763,7 +1752,7 @@ void CEventHandler::ComputePedCollisionWithPedResponse(CEventPedCollisionWithPed
                 if (auto* const tGangFollower = m_Ped->GetTaskManager().Find<CTaskComplexGangFollower>(false); tGangFollower && isSameGroup) { // 0x4BDE7B
                     auto* const tAvoidOtherPed = m_Ped->GetTaskManager().Find<CTaskComplexAvoidOtherPedWhileWandering>();
                     auto* const tGoToPoint     = m_Ped->GetTaskManager().Find<CTaskSimpleGoToPoint>(false);
-                    auto* const tSeekEntity    = m_Ped->GetIntelligence()->FindTaskByType(TASK_COMPLEX_SEEK_ENTITY); // NOTE: Not `Find<>`, the task is a template
+                    auto* const tSeekEntity    = m_Ped->GetTaskManager().Find<CTaskComplexSeekEntityBase>(false);
                     if (tGangFollower->m_Leader && tSeekEntity && (tAvoidOtherPed || tGoToPoint)) {
                         const CVector leaderToUs{ CVector2D{ m_Ped->GetPosition() - tGangFollower->m_Leader->GetPosition() } };
                         const auto    dist = leaderToUs.Magnitude();
@@ -1773,7 +1762,7 @@ void CEventHandler::ComputePedCollisionWithPedResponse(CEventPedCollisionWithPed
                         if (tGoToPoint) {
                             tGoToPoint->SetTargetPtRadius(dist + 0.1f);
                         }
-                        SetSeekEntityMaxDist2D(tSeekEntity, dist + 0.1f);
+                        tSeekEntity->SetMaxEntityDist2D(dist + 0.1f);
                         if (dist < 8.f) {
                             tGangFollower->dword20 = leaderToUs;
                         }
@@ -1893,7 +1882,7 @@ void CEventHandler::ComputePedCollisionWithPlayerResponse(CEventPedCollisionWith
     auto* const tGangFollower     = m_Ped->GetTaskManager().Find<CTaskComplexGangFollower>(false);
     auto* const tAvoidOtherPed    = m_Ped->GetTaskManager().Find<CTaskComplexAvoidOtherPedWhileWandering>();
     auto* const tGoToPoint        = m_Ped->GetTaskManager().Find<CTaskSimpleGoToPoint>(false);
-    auto* const tSeekEntity       = m_Ped->GetIntelligence()->FindTaskByType(TASK_COMPLEX_SEEK_ENTITY); // NOTE: Not `Find<>`, the task is a template
+    auto* const tSeekEntity       = m_Ped->GetTaskManager().Find<CTaskComplexSeekEntityBase>(false);
 
     // NOTE: Group 0 [Originally the player's] is hardcoded
     const auto isInPlayerGroup = [&] {
@@ -1934,7 +1923,7 @@ void CEventHandler::ComputePedCollisionWithPlayerResponse(CEventPedCollisionWith
             } else {
                 tGoToPoint->SetTargetPtRadius(dist + 0.1f);
             }
-            SetSeekEntityMaxDist2D(tSeekEntity, dist + 0.1f);
+            tSeekEntity->SetMaxEntityDist2D(dist + 0.1f);
             if (dist < 8.f) {
                 tGangFollower->dword20 = leaderToUs;
             }
@@ -1961,7 +1950,7 @@ void CEventHandler::ComputePedCollisionWithPlayerResponse(CEventPedCollisionWith
                 }
             }
             // 0x4BEAA5
-            return (isOtherFacingUs && other == GetFormationLeader(tactive)) || isInPlayerGroup
+            return (isOtherFacingUs && other == notsa::cast<CTaskComplexFollowLeaderInFormation>(tactive)->GetLeader()) || isInPlayerGroup
                 ? StepAsideUnlessFollowingLeader()
                 : nullptr;
         }
