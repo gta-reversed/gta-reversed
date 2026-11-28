@@ -1209,7 +1209,8 @@ void CCamera::UpdateSoundDistances() {
         MODE_ROCKETLAUNCHER_HS,
     };
     const bool    isFirstPerson = notsa::contains(FIRST_PERSON_MODES, GetActiveCam().m_nMode);
-    const CVector pos           = GetPosition() + m_mCameraMatrix.GetForward() * (isFirstPerson && m_pTargetEntity->GetIsTypePed() ? 0.5f : 5.f);
+    const bool    targetIsPed   = isFirstPerson && (!notsa::bugfixes::GenericCrashing || m_pTargetEntity) && m_pTargetEntity->GetIsTypePed(); // The original doesn't check for null
+    const CVector pos           = GetPosition() + m_mCameraMatrix.GetForward() * (targetIsPed ? 0.5f : 5.f);
 
     const auto frame            = CTimer::GetFrameCounter() % 12;
     if (frame == 0) { // 0x515CEC
@@ -1685,8 +1686,12 @@ void CCamera::ProcessShake(float intensity) {
         s_HandShakersSetUp = true;
     }
 
+    // The shake type comes from scripts (`AddShakeSimple`) unchecked
+    if (notsa::bugfixes::GenericOOB && (m_nShakeType < 0 || m_nShakeType >= (int32)gHandShaker.size())) {
+        return;
+    }
     auto& cam = GetActiveCam();
-    auto& hs  = gHandShaker[m_nShakeType];
+    auto& hs  = gHandShaker.data()[m_nShakeType]; // NOTE: `data()` - the original does not check the index (see above)
     hs.Process(m_fShakeIntensity);
 
     const float roll = hs.m_ang.z * m_fShakeIntensity;
