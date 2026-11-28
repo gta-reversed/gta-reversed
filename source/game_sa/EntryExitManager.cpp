@@ -101,12 +101,12 @@ void CEntryExitManager::Update() {
 
         for (auto* const enex : matches) {
             if (enex->bEnableAccess) {
-                if (   enex->m_pLink && enex->m_nArea == CGame::currArea  // Has link and link is in current area
-                    || !enex->m_pLink && enex->m_nArea != CGame::currArea // Has no link, and is not in current area
+                if (enex->m_Link && enex->m_Area == CGame::currArea     // Has link and link is in current area
+                    || !enex->m_Link && enex->m_Area != CGame::currArea // Has no link, and is not in current area
                 ) {
                     // !bDontShowMarkers check moved before the loop, as doing all this would be useless if bDontShowMarkers was false
                     if (const auto enexCenter = enex->GetPosition();  TheCamera.IsSphereVisible(enexCenter, 1.f)) {
-                        if (!CClock::GetIsTimeInRange(enex->m_nTimeOn, enex->m_nTimeOff)) {
+                        if (!CClock::GetIsTimeInRange(enex->m_TimeOn, enex->m_TimeOff)) {
                             continue;
                         }
 
@@ -159,7 +159,7 @@ void CEntryExitManager::AddEntryExitToStack(CEntryExit* enex) {
     
     if (ms_entryExitStackPosn > 0 && ms_entryExitStack[ms_entryExitStackPosn - 1] == enex) {
         ms_entryExitStackPosn--;
-    } else if (enex->m_nArea != AREA_CODE_NORMAL_WORLD) {
+    } else if (enex->m_Area != AREA_CODE_NORMAL_WORLD) {
         ms_entryExitStack[ms_entryExitStackPosn++] = enex;
     } else {
         ms_entryExitStackPosn = 0;
@@ -300,7 +300,7 @@ void CEntryExitManager::GetPositionRelativeToOutsideWorld(CVector& pos) {
 // 0x43F0A0
 void CEntryExitManager::PostEntryExitsCreation() {
     for (auto& enex : mp_poolEntryExits->GetAllValid()) {
-        if (enex.bCreateLinkedPair && !enex.m_pLink) {
+        if (enex.bCreateLinkedPair && !enex.m_Link) {
             LinkEntryExit(&enex);
         }
     }
@@ -312,19 +312,19 @@ void CEntryExitManager::LinkEntryExit(CEntryExit* enex) {
         return;
     }
 
-    const auto linkedEnExIdx{ GetEntryExitIndex(enex->m_szName, 0, CEntryExit::eFlags::CREATE_LINKED_PAIR) };
+    const auto linkedEnExIdx{ GetEntryExitIndex(enex->m_Name, 0, CEntryExit::eFlags::CREATE_LINKED_PAIR) };
     if (linkedEnExIdx == -1) {
         return;
     }
 
     if (const auto linkedEnEx{ mp_poolEntryExits->GetAt(linkedEnExIdx) }) {
-        enex->m_pLink = linkedEnEx;
-        if (linkedEnEx->m_pLink) {
-            linkedEnEx->m_pLink = enex;
+        enex->m_Link = linkedEnEx;
+        if (linkedEnEx->m_Link) {
+            linkedEnEx->m_Link = enex;
         }
         // ?????
-        linkedEnEx->m_nTimeOn = 0;
-        linkedEnEx->m_nTimeOff = 24;
+        linkedEnEx->m_TimeOn  = 0;
+        linkedEnEx->m_TimeOff = 24;
     }
 }
 
@@ -332,9 +332,9 @@ void CEntryExitManager::LinkEntryExit(CEntryExit* enex) {
 int32 CEntryExitManager::GetEntryExitIndex(const char* name, uint16 enabledFlags, uint16 disabledFlags) {
     for (auto&& [i, enex] : mp_poolEntryExits->GetAllValidWithIndex()) {
         // Remember: cast to `uint8` == mask by 0xFF
-        if ((uint8)(enex.m_nFlags & enabledFlags) == (uint8)enabledFlags
-            && (uint8)(enex.m_nFlags & disabledFlags) == 0) {
-            if (!_strnicmp(enex.m_szName, name, std::size(enex.m_szName))) {
+        if ((uint8)(enex.m_Flags & enabledFlags) == (uint8)enabledFlags
+            && (uint8)(enex.m_Flags & disabledFlags) == 0) {
+            if (!_strnicmp(enex.m_Name, name, std::size(enex.m_Name))) {
                 return i;
             }
         }
@@ -375,7 +375,7 @@ void CEntryExitManager::SetAreaCodeForVisibleObjects() {
 // NOTSA (Code somewhat based on 0x43FC00)
 void CEntryExitManager::AddEnExToWorld(CEntryExit* enex) {
     // Calculate rotated corner positions (We ain't gonna use a matrix for this like they did, too complicated)
-    const auto& r  = enex->m_recEntrance;
+    const auto& r  = enex->m_EntranceRect;
     const auto  rc = r.GetCenter();
     CVector2D corners[]{
         { r.right, r.top },
@@ -384,7 +384,7 @@ void CEntryExitManager::AddEnExToWorld(CEntryExit* enex) {
 
     // Rotate it around the center
     for (auto& corner : corners) {
-        corner = rc + (corner - rc).RotatedBy(enex->m_fEntranceAngleRad); // NOTE: If doesn't work properly, negate (-angle) the angle
+        corner = rc + (corner - rc).RotatedBy(enex->m_EntranceAngleRad); // NOTE: If doesn't work properly, negate (-angle) the angle
     }
 
     const auto GetMinMaxAxis = [&](size_t axis) {
@@ -422,13 +422,13 @@ bool CEntryExitManager::Load() {
         const auto linkedIdx = CGenericGameStorage::LoadDataFromWorkBuffer<int16>();
 
         if (auto enex = mp_poolEntryExits->GetAt(enexIdx)) {
-            enex->m_nFlags = flags;
+            enex->m_Flags = flags;
             if (linkedIdx == -1) {
-                enex->m_pLink = nullptr;
+                enex->m_Link = nullptr;
             } else if (const auto linked = mp_poolEntryExits->GetAt(linkedIdx)) {
-                enex->m_pLink = linked;
+                enex->m_Link = linked;
             } else {
-                enex->m_pLink = nullptr;
+                enex->m_Link = nullptr;
             }
         } else {
             // 2dfx entry-exits are re-created by streaming after the load, the original skips their records too
@@ -452,15 +452,15 @@ bool CEntryExitManager::Save() {
     // Save entry exits
     for (auto&& [i, enex] : mp_poolEntryExits->GetAllValidWithIndex()) {
         int16 data = -1;
-        if (enex.m_pLink) {
+        if (enex.m_Link) {
             // Make sure the link reference is valid
-            auto linkIndex = mp_poolEntryExits->GetIndex(enex.m_pLink);
+            auto linkIndex = mp_poolEntryExits->GetIndex(enex.m_Link);
             if (mp_poolEntryExits->IsIndexInBounds(linkIndex) && !mp_poolEntryExits->IsFreeSlotAtIndex(linkIndex)) {
                 data = linkIndex;
             }
         }
         CGenericGameStorage::SaveDataToWorkBuffer<int16>(i); // Enex idx in pool
-        CGenericGameStorage::SaveDataToWorkBuffer(enex.m_nFlags);
+        CGenericGameStorage::SaveDataToWorkBuffer(enex.m_Flags);
         CGenericGameStorage::SaveDataToWorkBuffer(data); // Linked enex idx in pool
     }
 

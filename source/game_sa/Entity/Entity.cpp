@@ -1066,7 +1066,7 @@ void CEntity::CreateEffects() {
 
             if (iEnExId != -1) {
                 if (auto* const enex = CEntryExitManager::GetInSlot(iEnExId)) {
-                    if (enex->m_pLink && !enex->m_pLink->bEnableAccess) {
+                    if (enex->m_Link && !enex->m_Link->bEnableAccess) {
                         enex->bEnableAccess = false;
                     }
                 }
