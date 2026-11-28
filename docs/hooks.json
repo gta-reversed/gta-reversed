@@ -16652,12 +16652,12 @@
   {
     "Category": "CPedSaveStructure",
     "Name": "Construct",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CPedSaveStructure",
     "Name": "Extract",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CCopPed",
@@ -31377,22 +31377,22 @@
   {
     "Category": "CTaskComplexFollowPedFootsteps",
     "Name": "CreateNextSubTask",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexFollowPedFootsteps",
     "Name": "CreateFirstSubTask",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexFollowPedFootsteps",
     "Name": "ControlSubTask",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexFollowPedFootsteps",
     "Name": "CreateSubTask",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexGetUpAndStandStill",
@@ -33796,13 +33796,13 @@
   },
   {
     "Category": "CTaskComplexKillPedFromBoat",
-    "Name": "Destructor",
+    "Name": "Desructor",
     "IsReversed": true
   },
   {
     "Category": "CTaskComplexKillPedFromBoat",
     "Name": "Clone",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexKillPedFromBoat",
@@ -33812,17 +33812,17 @@
   {
     "Category": "CTaskComplexKillPedFromBoat",
     "Name": "CreateNextSubTask",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexKillPedFromBoat",
     "Name": "CreateFirstSubTask",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexKillPedFromBoat",
     "Name": "ControlSubTask",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskComplexLeaveCar",
@@ -35033,56 +35033,6 @@
     "Category": "CEntitySeekPosCalculatorFixedPos",
     "Name": "ComputeEntitySeekPos",
     "IsReversed": true
-  },
-  {
-    "Category": "CScriptsForBrains",
-    "Name": "Init",
-    "IsReversed": false
-  },
-  {
-    "Category": "CScriptsForBrains",
-    "Name": "GetIndexOfScriptBrainWithThisName",
-    "IsReversed": true
-  },
-  {
-    "Category": "CScriptsForBrains",
-    "Name": "HasAttractorScriptBrainWithThisNameLoaded",
-    "IsReversed": true
-  },
-  {
-    "Category": "CScriptsForBrains",
-    "Name": "StartNewStreamedScriptBrain",
-    "IsReversed": false
-  },
-  {
-    "Category": "CScriptsForBrains",
-    "Name": "StartAttractorScriptBrainWithThisName",
-    "IsReversed": true
-  },
-  {
-    "Category": "CScriptsForBrains",
-    "Name": "StartOrRequestNewStreamedScriptBrain",
-    "IsReversed": false
-  },
-  {
-    "Category": "CScriptsForBrains",
-    "Name": "IsObjectWithinBrainActivationRange",
-    "IsReversed": false
-  },
-  {
-    "Category": "CScriptsForBrains",
-    "Name": "CheckIfNewEntityNeedsScript",
-    "IsReversed": false
-  },
-  {
-    "Category": "CScriptsForBrains",
-    "Name": "MarkAttractorScriptBrainWithThisNameAsNoLongerNeeded",
-    "IsReversed": false
-  },
-  {
-    "Category": "CScriptsForBrains",
-    "Name": "RequestAttractorScriptBrainWithThisName",
-    "IsReversed": false
   },
   {
     "Category": "CTaskComplexChat",
@@ -43862,6 +43812,76 @@
   {
     "Category": "InteriorManager_c",
     "Name": "Init",
+    "IsReversed": true
+  },
+  {
+    "Category": "CScriptsForBrains",
+    "Name": "Init",
+    "IsReversed": true
+  },
+  {
+    "Category": "CScriptsForBrains",
+    "Name": "SwitchAllObjectBrainsWithThisID",
+    "IsReversed": true
+  },
+  {
+    "Category": "CScriptsForBrains",
+    "Name": "AddNewScriptBrain",
+    "IsReversed": true
+  },
+  {
+    "Category": "CScriptsForBrains",
+    "Name": "AddNewStreamedScriptBrainForCodeUse",
+    "IsReversed": true
+  },
+  {
+    "Category": "CScriptsForBrains",
+    "Name": "GetIndexOfScriptBrainWithThisName",
+    "IsReversed": true
+  },
+  {
+    "Category": "CScriptsForBrains",
+    "Name": "RequestAttractorScriptBrainWithThisName",
+    "IsReversed": true
+  },
+  {
+    "Category": "CScriptsForBrains",
+    "Name": "MarkAttractorScriptBrainWithThisNameAsNoLongerNeeded",
+    "IsReversed": true
+  },
+  {
+    "Category": "CScriptsForBrains",
+    "Name": "HasAttractorScriptBrainWithThisNameLoaded",
+    "IsReversed": true
+  },
+  {
+    "Category": "CScriptsForBrains",
+    "Name": "StartNewStreamedScriptBrain",
+    "IsReversed": true
+  },
+  {
+    "Category": "CScriptsForBrains",
+    "Name": "StartAttractorScriptBrainWithThisName",
+    "IsReversed": true
+  },
+  {
+    "Category": "CScriptsForBrains",
+    "Name": "IsObjectWithinBrainActivationRange",
+    "IsReversed": true
+  },
+  {
+    "Category": "CScriptsForBrains",
+    "Name": "StartOrRequestNewStreamedScriptBrain",
+    "IsReversed": true
+  },
+  {
+    "Category": "CScriptsForBrains",
+    "Name": "StartOrRequestNewStreamedScriptBrainWithThisName",
+    "IsReversed": true
+  },
+  {
+    "Category": "CScriptsForBrains",
+    "Name": "CheckIfNewEntityNeedsScript",
     "IsReversed": true
   },
   {

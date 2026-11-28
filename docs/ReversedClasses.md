@@ -1,17 +1,17 @@
 # Reimplementation progress (*): 92%
 This file is updated automatically every time the `hooks.json` file is updated (which happens every time there are changes to hooks made by a commit), and shows the current progress of reversed categories in the project.
 
-Last update was at Nov 27, 2026 at 23:58:06 UTC
-(Triggered by commit [12fa4af6](https://github.com/gta-reversed/gta-reversed/commit/12fa4af6d42218f5b05a75559648604a36b1f1e4))
+Last update was at Nov 28, 2026 at 00:32:19 UTC
+(Triggered by commit [093cb985](https://github.com/gta-reversed/gta-reversed/commit/093cb985ada30467c2346d18e4ab38d874503bb3))
 
 ## (*) Disclaimers
 **The progress** is based on the number of functions we have documented and reimplemented, so it might not completely reflect the actual progress, it's meant to be a rough estimate.
 
 **The percentages and the number of categories** shown here may not be completely accurate, because not all categories and functions are documented yet.
 
-## Stats (8215 out of 8909 functions done in 797 categories)
+## Stats (8236 out of 8913 functions done in 797 categories)
 
-#### Completely reversed categories (668/797) [84%]
+#### Completely reversed categories (672/797) [84%]
 
 <details>
 <summary>See list of categories</summary>
@@ -186,6 +186,7 @@ Last update was at Nov 27, 2026 at 23:58:06 UTC
 - CCredits (6)<br />
 - CIdleCam (14)<br />
 - CVehicleSaveStructure (2)<br />
+- CPedSaveStructure (2)<br />
 - CCopPed (7)<br />
 - CPlayerSkin (4)<br />
 - CCivilianPed (3)<br />
@@ -507,6 +508,7 @@ Last update was at Nov 27, 2026 at 23:58:06 UTC
 - CTaskSimpleScratchHead (4)<br />
 - CTaskComplexObserveTrafficLightsAndAchieveHeading (5)<br />
 - CTaskSimpleInAir (4)<br />
+- CTaskComplexFollowPedFootsteps (9)<br />
 - CTaskComplexGetUpAndStandStill (5)<br />
 - CTaskSimpleDie (7)<br />
 - CTaskSimpleDuck (15)<br />
@@ -560,6 +562,7 @@ Last update was at Nov 27, 2026 at 23:58:06 UTC
 - CTaskSimplePlayHandSignalAnim (2)<br />
 - CTaskComplexCarDrive (11)<br />
 - CTaskComplexCarDriveMission (5)<br />
+- CTaskComplexKillPedFromBoat (7)<br />
 - CTaskComplexTreatAccident (7)<br />
 - CTaskComplexGoToPointAndStandStillTimed (6)<br />
 - CTaskComplexStuckInAir (6)<br />
@@ -680,13 +683,14 @@ Last update was at Nov 27, 2026 at 23:58:06 UTC
 - FurnitureGroup_c (6)<br />
 - FurnitureManager_c (7)<br />
 - InteriorManager_c (21)<br />
+- CScriptsForBrains (14)<br />
 - CTheScripts (69)<br />
 - CStreamedScripts (12)<br />
 - CScriptResourceManager (4)<br />
 
 </details>
 
-#### Partially reversed categories (117/797) [15%]
+#### Partially reversed categories (114/797) [14%]
 
 <details>
 <summary>See list of categories</summary>
@@ -761,7 +765,6 @@ Last update was at Nov 27, 2026 at 23:58:06 UTC
 - CTaskSimpleGangDriveBy (4/12) [33%]<br />
 - CTaskComplexHitPedWithCar (6/10) [60%]<br />
 - CTaskSimplePlayerOnFoot (11/12) [92%]<br />
-- CTaskComplexFollowPedFootsteps (5/9) [56%]<br />
 - CTaskComplexGoPickUpEntity (4/7) [57%]<br />
 - CTaskComplexFollowLeaderInFormation (6/8) [75%]<br />
 - CTaskUtilityLineUpPedWithCar (2/5) [40%]<br />
@@ -774,7 +777,6 @@ Last update was at Nov 27, 2026 at 23:58:06 UTC
 - CTaskComplexWalkRoundObject (5/8) [62%]<br />
 - CTaskComplexKillPedOnFoot (3/8) [38%]<br />
 - CTaskSimpleCarSetPedOut (5/7) [71%]<br />
-- CTaskComplexKillPedFromBoat (3/7) [43%]<br />
 - CTaskComplexLeaveCar (6/11) [55%]<br />
 - CTaskComplexPartnerShove (4/5) [80%]<br />
 - CTaskSimpleRunNamedAnim (5/7) [71%]<br />
@@ -784,7 +786,6 @@ Last update was at Nov 27, 2026 at 23:58:06 UTC
 - CTaskSimpleSlideToCoord (6/7) [86%]<br />
 - CTaskComplexPartnerDeal (5/7) [71%]<br />
 - CTaskComplexArrestPed (4/7) [57%]<br />
-- CScriptsForBrains (3/10) [30%]<br />
 - RpAnimBlend (42/43) [98%]<br />
 - CCustomBuildingDNPipeline (14/16) [88%]<br />
 - CConversations (10/11) [91%]<br />
@@ -810,13 +811,12 @@ Last update was at Nov 27, 2026 at 23:58:06 UTC
 
 </details>
 
-#### Not-at-all reversed categories (12/797) [2%]
+#### Not-at-all reversed categories (11/797) [1%]
 
 <details>
 <summary>See list of categories</summary>
 - CPedStuckChecker (1)<br />
 - CMentalState (2)<br />
-- CPedSaveStructure (2)<br />
 - D3DResourceSystem (12)<br />
 - FxEmitter_c (1)<br />
 - CEventSource (1)<br />
