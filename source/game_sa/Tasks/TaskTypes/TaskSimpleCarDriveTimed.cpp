@@ -3,16 +3,15 @@
 #include "TaskSimpleCarDriveTimed.h"
 
 // 0x5FF940
-CTaskSimpleCarDriveTimed::CTaskSimpleCarDriveTimed(CVehicle* vehicle, int32 nTime) :
-    CTaskSimpleCarDrive(vehicle, nullptr, false),
-    m_nTimer() {
-    m_nTime = nTime;
+CTaskSimpleCarDriveTimed::CTaskSimpleCarDriveTimed(CVehicle* vehicle, int32 time) :
+    CTaskSimpleCarDrive{ vehicle, nullptr, false },
+    m_Time{ time } {
 }
 
 // 0x46F610
 bool CTaskSimpleCarDriveTimed::ProcessPed(CPed* ped) {
-    m_nTimer.StartIfNotAlready(m_nTime);
-    if (m_nTimer.IsOutOfTime()) {
+    m_Timer.StartIfNotAlready(m_Time);
+    if (m_Timer.IsOutOfTime()) {
         return true;
     }
     return CTaskSimpleCarDrive::ProcessPed(ped);
