@@ -522,7 +522,7 @@ VALIDATE_SIZE(CCamera, 0xD78);
 
 extern CCamera& TheCamera;
 extern bool& gbModelViewer;
-extern int8& gbCineyCamMessageDisplayed;
+extern int8& gCineyCamMessageDisplayed;
 extern bool& gPlayerPedVisible;
 extern uint8& gCurCamColVars;
 extern int32& gCameraDirection;
