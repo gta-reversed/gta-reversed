@@ -67,6 +67,7 @@ public:
     static inline auto& ms_mf = StaticRef<tMovingFog>(0xC6C158);
     static inline auto& PlayerCoords = StaticRef<CVector>(0xC6E958); // gVecPlayerCoors
     static inline auto& CameraCoors = StaticRef<CVector>(0xC6E964);  // gVecCameraCoors
+    static inline auto& BottomCloudsWindShift = StaticRef<float>(0xC6E954);
 
     static inline struct DebugSettings {
         struct RenderSettingPair {
@@ -113,7 +114,6 @@ extern float& CurrentFogIntensity;               // default 1.0f
 extern RwTexture*& gpMoonMask;
 extern RwTexture*& gpCloudTex;
 extern RwTexture*& gpCloudMaskTex;
-extern float& flt_C6E954;
 extern float& flt_C6E970;
 
 extern int32& dword_C6E974;
