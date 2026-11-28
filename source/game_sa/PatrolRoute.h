@@ -33,6 +33,11 @@ public:
 public:
     void Extend(const CVector& position, const PointInfo& info);
     void Flush();
+    void Reverse();
+
+    auto             GetCount() const { return m_Count; }
+    const CVector&   GetPosition(size_t i) const { return m_Positions[i]; }
+    const PointInfo& GetInfo(size_t i) const { return m_Infos[i]; }
 
 public:
     static void InjectHooks();
