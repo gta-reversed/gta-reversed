@@ -213,7 +213,6 @@ CAnimBlendAssociation* RpAnimBlendClumpAddAssociation(RpClump* clump, CAnimBlend
 }
 
 //! @notsa
-//! NOTE: Iterating the returned link visits the list's head too (as if it was an association), use `RpAnimBlendClumpForEachAssociation` to visit the associations
 CAnimBlendLink& RpAnimBlendClumpGetAssociations(RpClump* clump) {
     const auto bd = RpAnimBlendClumpGetData(clump);
 
@@ -534,13 +533,7 @@ CAnimBlendAssociation* RpAnimBlendClumpGetMainPartialAssociation_N(RpClump* clum
 // notsa
 template<typename Fn>
 uint32 RpAnimBlendClumpCountAssociationsIf(RpClump* clump, Fn&& Pred) {
-    uint32 n{};
-    RpAnimBlendClumpForEachAssociation(clump, [&](CAnimBlendAssociation* a) {
-        if (std::invoke(Pred, *a)) {
-            n++;
-        }
-    });
-    return n;
+    return rng::count_if(RpAnimBlendClumpGetAssociations(clump), Pred);
 }
 
 // 0x4D6B60
@@ -573,16 +566,16 @@ bool RpAnimBlendClumpIsInitialized(RpClump* clump) {
 
 // 0x4D6B00
 void RpAnimBlendClumpPauseAllAnimations(RpClump* clump) {
-    RpAnimBlendClumpForEachAssociation(clump, [](CAnimBlendAssociation* a) {
-        a->SetFlag(ANIMATION_IS_PLAYING, false);
-    });
+    for (auto& a : RpAnimBlendClumpGetAssociations(clump)) {
+        a.SetFlag(ANIMATION_IS_PLAYING, false);
+    }
 }
 
 // 0x4D6B30
 void RpAnimBlendClumpUnPauseAllAnimations(RpClump* clump) {
-    RpAnimBlendClumpForEachAssociation(clump, [](CAnimBlendAssociation* a) {
-        a->SetFlag(ANIMATION_IS_PLAYING, true);
-    });
+    for (auto& a : RpAnimBlendClumpGetAssociations(clump)) {
+        a.SetFlag(ANIMATION_IS_PLAYING, true);
+    }
 }
 
 
@@ -639,7 +632,7 @@ float CalculateTotalBlendOfPartial(AnimBlendUpdateData* c, AnimBlendFrameData* f
     return sum;
 }
 
-#define USE_COPY_PASTE_FRAME_UPDATE 1 // Use the original frame update callbacks (`DISABLE_CUSTOM_FRAME_UPDATE_FUNCTIONS` redirects them to GTA)
+#define USE_COPY_PASTE_FRAME_UPDATE 0
 #ifdef USE_COPY_PASTE_FRAME_UPDATE
     #define DISABLE_CUSTOM_FRAME_UPDATE_FUNCTIONS 1
 #endif
@@ -1798,7 +1791,6 @@ void RpAnimBlendClumpUpdateAnimations(RpClump* clump, float timeStep, bool isOnS
     ctx.BlendNodeArrays[nodesCnt] = nullptr; // Null terminator
 
     // 0x4D35A2 - Update animation's timesteps
-    // NOTE: The original divides the anim's total time by `totalTime` first (different rounding)
     const auto animTimeMult = totalTime == 0.f
         ? 1.f
         : 1.f / totalTime * totalBlendAmnt;

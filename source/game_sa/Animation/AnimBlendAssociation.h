@@ -109,7 +109,7 @@ public:
 
     bool IsEmpty() const { return !next; }
 
-    auto begin() { return iterator{this}; }
+    auto begin() { return iterator{ next }; } //!< The links after this one (This one is the list's head, it's not part of an association)
     auto end() { return iterator{nullptr}; }
 };
 
