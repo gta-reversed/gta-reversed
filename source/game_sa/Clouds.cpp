@@ -872,13 +872,14 @@ constexpr float BOTTOM_CLOUD_SPRITES_Y[]{
 };
 // clang-format on
 
+//! A fixed value per cloud from the table (Not a random pick: a cloud has to get the same value every frame)
 float GetBottomCloudsRandom(int32 idx) {
     return BOTTOM_CLOUDS_RANDOM[idx % std::size(BOTTOM_CLOUDS_RANDOM)];
 }
 
-//! Wrap an offset into the `cellSize` wide cell around 0 (`cellSize` must be a power of 2)
-float WrapOffsetToCell(float offset, int32 cellSize) {
-    return offset - (float)(((int32)offset & ~(cellSize - 1)) + cellSize / 2);
+//! Wrap an offset into the `cellSize` wide cell around 0
+float WrapOffsetToCell(float offset, float cellSize) {
+    return offset - std::floor(offset / cellSize) * cellSize - cellSize / 2.f;
 }
 } // namespace
 
@@ -931,8 +932,8 @@ void CClouds::RenderBottomFromHeight() {
         for (auto i = 1; i <= NUM_CLOUD_QUADS; i++) {
             const auto    shift = (GetBottomCloudsRandom(i + 5) * 0.5f + 1.f) * BottomCloudsWindShift;
             const CVector pos{
-                camPos.x + WrapOffsetToCell(GetBottomCloudsRandom(i - 1) * 512.f + shift - camPos.x, 512),
-                camPos.y + WrapOffsetToCell(GetBottomCloudsRandom(i) * 512.f + shift - camPos.y, 512),
+                camPos.x + WrapOffsetToCell(GetBottomCloudsRandom(i - 1) * 512.f + shift - camPos.x, 512.f),
+                camPos.y + WrapOffsetToCell(GetBottomCloudsRandom(i) * 512.f + shift - camPos.y, 512.f),
                 lowZ + (highZ - lowZ) * GetBottomCloudsRandom(i + 1)
             };
 
@@ -971,8 +972,8 @@ void CClouds::RenderBottomFromHeight() {
         for (auto i = 0; i < NUM_CLOUD_SPRITES; i++) {
             const auto    shift = BottomCloudsWindShift * 0.5f;
             const CVector pos{
-                camPos.x + WrapOffsetToCell(shift + BOTTOM_CLOUD_SPRITES_X[i] - camPos.x, 256),
-                camPos.y + WrapOffsetToCell(shift + BOTTOM_CLOUD_SPRITES_Y[i] - camPos.y, 256),
+                camPos.x + WrapOffsetToCell(shift + BOTTOM_CLOUD_SPRITES_X[i] - camPos.x, 256.f),
+                camPos.y + WrapOffsetToCell(shift + BOTTOM_CLOUD_SPRITES_Y[i] - camPos.y, 256.f),
                 lowZ + (highZ - lowZ) * GetBottomCloudsRandom(i)
             };
 
