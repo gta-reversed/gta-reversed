@@ -480,16 +480,17 @@ void CPhysical::ProcessShift() {
     {
         if (GetHasHitWall())
         {
-            CPed* ped = AsPed();
             bool bSomeSpecificFlagsSet = false;
-            if (GetIsTypePed() && ped->m_standingOnEntity)
+            if (GetIsTypePed())
             {
-                if (!ped->m_standingOnEntity->m_bIsStatic || ped->m_standingOnEntity->GetHasContacted())
+                // 0x54DB74 - No type check in the original
+                const auto standingOn = AsPed()->m_standingOnEntity ? AsPed()->m_standingOnEntity->AsPhysical() : nullptr;
+                if (!standingOn || !standingOn->physicalFlags.bDisableCollisionForce || standingOn->physicalFlags.bCollidable)
                 {
                     bSomeSpecificFlagsSet = true;
                 }
             }
-            if ((GetIsTypePed() && bSomeSpecificFlagsSet) || CWorld::bSecondShift)
+            if (bSomeSpecificFlagsSet || CWorld::bSecondShift)
             {
                 float fMoveSpeedShift = pow(CPhysical::PHYSICAL_SHIFT_SPEED_DAMP, CTimer::GetTimeStep());
                 m_vecMoveSpeed *= fMoveSpeedShift;
