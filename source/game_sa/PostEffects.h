@@ -52,7 +52,7 @@ public:
     static void UnderWaterRippleFadeToFX();
 
     static void HeatHazeFXInit();
-    static void HeatHazeFX(float fIntensity, bool bAlphaMaskMode);
+    static void HeatHazeFX(float intensity, bool alphaMaskMode);
 
     static bool IsVisionFXActive();
 
@@ -112,6 +112,7 @@ public:
     static inline auto& m_bWaterDepthDarkness = StaticRef<bool>(0x8D5144);  // true;
 
     static inline auto& m_bHeatHazeFX = StaticRef<bool>(0xC402BA);
+    static inline auto& m_HeatHazeFXMaskModeTest                  = StaticRef<bool>(0xC402BB);  // Only ever cleared
     static inline auto& m_HeatHazeFXSpeedMin = StaticRef<int32>(0x8D50EC); // 6
     static inline auto& m_HeatHazeFXSpeedMax = StaticRef<int32>(0x8D50F0); // 10
     static inline auto& m_HeatHazeFXIntensity = StaticRef<int32>(0x8D50E8); // 150
@@ -153,10 +154,10 @@ public:
     static inline auto& m_RadiosityIntensity = StaticRef<int32>(0x8D5118); // 35
     static inline auto& m_RadiosityIntensityLimit = StaticRef<int32>(0x8D5114); // 220
     static inline auto& m_bRadiosityBypassTimeCycleIntensityLimit = StaticRef<bool>(0xC402CE);
-    static inline auto& m_RadiosityPixelsX = StaticRef<float>(0xC40314);  // SCREEN_WIDTH
-    static inline auto& m_RadiosityPixelsY = StaticRef<float>(0xC40318);  // SCREEN_HEIGHT
-    static inline auto& m_RadiosityFilterPasses = StaticRef<uint32>(0x8D5110); // 1
-    static inline auto& m_RadiosityRenderPasses = StaticRef<uint32>(0x8D510C); // 2
+    static inline auto& m_RadiosityPixelsX                        = StaticRef<int32>(0xC40314);  // RsGlobal.maximumWidth
+    static inline auto& m_RadiosityPixelsY                        = StaticRef<int32>(0xC40318);  // RsGlobal.maximumHeight
+    static inline auto& m_RadiosityFilterPasses                   = StaticRef<uint32>(0x8D510C); // 2
+    static inline auto& m_RadiosityRenderPasses                   = StaticRef<uint32>(0x8D5110); // 1
 
     static inline auto& m_VisionFXDayNightBalance = StaticRef<float>(0x8D50A4); // 1.0f
 
