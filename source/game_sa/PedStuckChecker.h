@@ -14,7 +14,7 @@ enum ePedStuckState : uint16 {
 class CPedStuckChecker {
 public:
     CVector        m_lastNonStuckPoint;
-    uint16         m_radius;
+    uint16         m_FramesInAir; //!< Number of frames the ped has been checked for (in the air) since `m_lastNonStuckPoint` was stored
     ePedStuckState m_state;
 
 public:
@@ -22,7 +22,7 @@ public:
 
 public:
     CPedStuckChecker() { // inlined 0x607292
-        m_radius = 0;
+        m_FramesInAir = 0;
         m_state = PED_STUCK_STATE_NONE;
     }
 

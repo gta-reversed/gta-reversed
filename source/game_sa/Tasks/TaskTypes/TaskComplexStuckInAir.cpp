@@ -135,8 +135,8 @@ CTask* CTaskComplexStuckInAir::CreateSubTask(eTaskType taskType, CPed* ped) {
         ped->bIsStanding = true;
 
         auto* const sc = &ped->GetIntelligence()->GetStuckChecker();
-        sc->m_radius   = 0;
-        sc->m_state    = PED_STUCK_STATE_NONE;
+        sc->m_FramesInAir = 0;
+        sc->m_state       = PED_STUCK_STATE_NONE;
 
         return new CTaskComplexJump{ CTaskComplexJump::eForceClimb::DISABLE };
     }
@@ -147,8 +147,8 @@ CTask* CTaskComplexStuckInAir::CreateSubTask(eTaskType taskType, CPed* ped) {
     }
     case TASK_COMPLEX_FALL_AND_GET_UP: { // 0x67BAC9
         auto* const sc = &ped->GetIntelligence()->GetStuckChecker();
-        sc->m_radius   = 0;
-        sc->m_state    = PED_STUCK_STATE_NONE;
+        sc->m_FramesInAir = 0;
+        sc->m_state       = PED_STUCK_STATE_NONE;
 
         return new CTaskComplexFallAndGetUp{ ANIM_ID_KO_SKID_BACK, ANIM_GROUP_DEFAULT, 1'000 };
     }
