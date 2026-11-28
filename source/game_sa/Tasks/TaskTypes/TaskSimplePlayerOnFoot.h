@@ -18,13 +18,6 @@ class CPed;
 
 class NOTSA_EXPORT_VTABLE CTaskSimplePlayerOnFoot : public CTaskSimple {
 public:
-    uint32   m_PlayerIdlesAnimBlockId;
-    uint32   m_nFrameCounter;
-    int32    m_nTimer;
-    int32    dword_14;           // always 0
-    CEntity* m_pLookingAtEntity; // always 0
-
-public:
     static constexpr auto Type = TASK_SIMPLE_PLAYER_ON_FOOT;
 
     CTaskSimplePlayerOnFoot();
@@ -46,21 +39,14 @@ public:
     static void PlayerControlDucked(CPlayerPed* player);
     int32 PlayerControlZelda(CPlayerPed* player, bool bAvoidJumpingAndDucking);
 
-private:
-    friend void InjectHooksMain();
     static void InjectHooks();
 
-    // 0x685750
-    CTaskSimplePlayerOnFoot* Constructor() {
-        this->CTaskSimplePlayerOnFoot::CTaskSimplePlayerOnFoot();
-        return this;
-    }
-
-    // 0x68B0C0
-    CTaskSimplePlayerOnFoot* Destructor() {
-        this->CTaskSimplePlayerOnFoot::~CTaskSimplePlayerOnFoot();
-        return this;
-    }
+private:
+    int32    m_PlayerIdlesAnimBlockId{};
+    uint32   m_FrameCounter{};
+    uint32   m_FightIdleTimeMs{}; //!< Time the player has been in a fight without attacking or moving back (`PlayerControlFighter`)
+    int32    m_Unused{};          //!< Always 0
+    CEntity* m_LookingAtEntity{};
 };
 
 VALIDATE_SIZE(CTaskSimplePlayerOnFoot, 0x1C);

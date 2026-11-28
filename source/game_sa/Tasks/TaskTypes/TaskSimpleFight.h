@@ -12,6 +12,29 @@ class CEntity;
 class CPed;
 class CPlayerPed;
 
+//! Command given to `CTaskSimpleFight` (`ControlFight`, `m_nNextCommand`, `m_nLastCommand`)
+enum class eFightCommand : int32 {
+    NONE            = -1,
+    IDLE            = 0,
+    BLOCK           = 2,
+    MOVE_FWD        = 3,
+    MOVE_LEFT       = 4,
+    MOVE_BACK       = 5,
+    MOVE_RIGHT      = 6,
+    STEP_FWD        = 7,
+    STEP_LEFT       = 8,
+    STEP_BACK       = 9,
+    STEP_RIGHT      = 10,
+    ATTACK_1        = 11,
+    ATTACK_2        = 12, //!< Uses the combo of the ped's fighting style
+    ATTACK_3        = 13,
+    ATTACK_4        = 14,
+    END_QUICK       = 15,
+    END_RUNAWAY     = 16,
+    END_SPRINT_AWAY = 17,
+    END_DUCK        = 18,
+};
+
 enum eFightAttackType : int8 {
     FIGHT_ATTACK_HIT_1 = 0,
     FIGHT_ATTACK_HIT_2 = 1,

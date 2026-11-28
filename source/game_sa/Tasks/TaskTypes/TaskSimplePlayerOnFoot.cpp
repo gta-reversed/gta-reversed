@@ -22,15 +22,15 @@ void CTaskSimplePlayerOnFoot::InjectHooks() {
     RH_ScopedVirtualClass(CTaskSimplePlayerOnFoot, 0x8708ec, 9);
     RH_ScopedCategory("Tasks/TaskTypes");
 
-    RH_ScopedInstall(Constructor, 0x685750);
-    RH_ScopedInstall(Destructor, 0x6857D0);
+    RH_ScopedConstructorInstall(0x685750, "0", {});
+    RH_ScopedDestructorInstall(0x6857D0);
 
     RH_ScopedInstall(PlayerControlZeldaWeapon, 0x687C20);
     RH_ScopedInstall(PlayerControlDucked, 0x687F30);
 
     RH_ScopedInstall(ProcessPlayerWeapon, 0x6859A0);
     RH_ScopedInstall(PlayIdleAnimations, 0x6872C0);
-    RH_ScopedInstall(PlayerControlFighter, 0x687530, {.Reversed = false});
+    RH_ScopedInstall(PlayerControlFighter, 0x687530);
     RH_ScopedInstall(PlayerControlZelda, 0x6883D0);
 
     RH_ScopedVMTInstall(Clone, 0x68AFF0);
@@ -40,12 +40,9 @@ void CTaskSimplePlayerOnFoot::InjectHooks() {
 }
 
 // 0x685750
-CTaskSimplePlayerOnFoot::CTaskSimplePlayerOnFoot() : CTaskSimple() {
-    m_PlayerIdlesAnimBlockId = CAnimManager::GetAnimationBlockIndex("playidles");
-    dword_14 = 0;
-    m_nTimer = 0;
-    m_pLookingAtEntity = nullptr;
-    m_nFrameCounter = CTimer::GetFrameCounter();
+CTaskSimplePlayerOnFoot::CTaskSimplePlayerOnFoot() :
+    m_PlayerIdlesAnimBlockId{ CAnimManager::GetAnimationBlockIndex("playidles") },
+    m_FrameCounter{ CTimer::GetFrameCounter() } {
 }
 
 // 0x6857E0
@@ -126,7 +123,7 @@ bool CTaskSimplePlayerOnFoot::ProcessPed(CPed* ped) {
         ProcessPlayerWeapon(player);
     }
 
-    m_nFrameCounter = CTimer::GetFrameCounter();
+    m_FrameCounter = CTimer::GetFrameCounter();
     return false;
 }
 
@@ -158,7 +155,7 @@ void CTaskSimplePlayerOnFoot::ProcessPlayerWeapon(CPlayerPed* player) {
             playerData->m_LastHSMissileTarget = nullptr;
         }
     } else {
-        if (pad->GetEnterTargeting() || TheCamera.m_bJustJumpedOutOf1stPersonBecauseOfTarget || pad->GetTarget() && m_nFrameCounter < (CTimer::GetFrameCounter() - 1)) {
+        if (pad->GetEnterTargeting() || TheCamera.m_bJustJumpedOutOf1stPersonBecauseOfTarget || pad->GetTarget() && m_FrameCounter < (CTimer::GetFrameCounter() - 1)) {
             auto weaponMode = eCamMode::MODE_NONE;
             switch (weaponType) {
             case WEAPON_RLAUNCHER: {
@@ -602,7 +599,7 @@ void CTaskSimplePlayerOnFoot::ProcessPlayerWeapon(CPlayerPed* player) {
                 }
             } else if (CCamera::m_bUseMouse3rdPerson) {
                 player->ClearWeaponTarget();
-            } else if (pad->GetEnterTargeting() || TheCamera.m_bJustJumpedOutOf1stPersonBecauseOfTarget || m_nFrameCounter < (uint32)(CTimer::GetFrameCounter() - 1)) {
+            } else if (pad->GetEnterTargeting() || TheCamera.m_bJustJumpedOutOf1stPersonBecauseOfTarget || m_FrameCounter < (uint32)(CTimer::GetFrameCounter() - 1)) {
                 player->FindWeaponLockOnTarget();
             }
             if (!player->m_pTargetedObject) {
@@ -650,10 +647,10 @@ void CTaskSimplePlayerOnFoot::ProcessPlayerWeapon(CPlayerPed* player) {
     playerData->m_bHaveTargetSelected = player->m_pTargetedObject ? true : false;
     CPed* targetedObject = player->m_pTargetedObject->AsPed();
     const auto AbortLookingIfPossible = [&]() {
-        if (m_pLookingAtEntity && g_ikChainMan.IsLooking(player) && g_ikChainMan.GetLookAtEntity(player) == m_pLookingAtEntity) {
+        if (m_LookingAtEntity && g_ikChainMan.IsLooking(player) && g_ikChainMan.GetLookAtEntity(player) == m_LookingAtEntity) {
             g_ikChainMan.AbortLookAt(player, 250);
         }
-        m_pLookingAtEntity = targetedObject;
+        m_LookingAtEntity = targetedObject;
     };
 
     if (!targetedObject)
@@ -679,7 +676,7 @@ void CTaskSimplePlayerOnFoot::ProcessPlayerWeapon(CPlayerPed* player) {
         g_ikChainMan.LookAt("ProcPlyrWeapon", player, targetedObject, gDefaultTaskTime, pedBoneId, nullptr, false, 0.25f, 500, 3, false);
     }
 
-    m_pLookingAtEntity = targetedObject;
+    m_LookingAtEntity = targetedObject;
 }
 
 // 0x6872C0
@@ -760,7 +757,103 @@ void CTaskSimplePlayerOnFoot::PlayIdleAnimations(CPlayerPed* player) {
 
 // 0x687530
 void CTaskSimplePlayerOnFoot::PlayerControlFighter(CPlayerPed* player) {
-    plugin::CallMethod<0x687530, CTaskSimplePlayerOnFoot*, CPlayerPed*>(this, player);
+    using enum eFightCommand;
+
+    auto* const tFight = player->GetIntelligence()->GetTaskFighting();
+    if (!tFight) {
+        return;
+    }
+    const auto ControlFight = [&](eFightCommand command) {
+        tFight->ControlFight(nullptr, (uint8)command);
+    };
+
+    const auto  isMelee      = player->GetActiveWeapon().IsTypeMelee();
+    auto* const pad          = player->GetPadFromPlayer();
+    const float padLeftRight = pad->GetPedWalkLeftRight();
+    const float padUpDown    = pad->GetPedWalkUpDown();
+    CVector2D   stick{ padLeftRight / 128.0f, padUpDown / 128.0f };
+    const auto  maxStep     = CTimer::GetTimeStep() * 0.07f;
+    const auto  isTargeting = player->m_pTargetedObject || CCamera::m_bUseMouse3rdPerson && pad->GetTarget();
+
+    // NOTE: The original's last command is compared signed (0x6878F2)
+    const auto IsAttacking = [&] {
+        return (eFightCommand)(int8)tFight->m_nLastCommand >= ATTACK_1;
+    };
+    const auto GetStickDir = [&] {
+        const auto heading = CGeneral::LimitRadianAngle(CGeneral::GetRadianAngleBetweenPoints(0.0f, 0.0f, -stick.x, stick.y) - TheCamera.m_fOrientation);
+        return CVector{ -std::sin(heading), std::cos(heading), 0.0f };
+    };
+    const auto ToPedSpace = [&](const CVector& dir, float moveBlendRatio) {
+        return CVector2D{
+            dir.Dot(player->GetRightVector()) * moveBlendRatio,
+            -(dir.Dot(player->GetForwardVector()) * moveBlendRatio)
+        };
+    };
+
+    if (CGameLogic::IsPlayerUse2PlayerControls(player)) {
+        if (const auto moveBlendRatio = stick.Magnitude(); moveBlendRatio > 0.0f) { // 0x6875EC
+            const auto dir = GetStickDir();
+            stick          = CGameLogic::IsPlayerAllowedToGoInThisDirection(player, dir, 0.0f)
+                ? ToPedSpace(dir, moveBlendRatio)
+                : CVector2D{};
+        }
+    } else if (isTargeting) {
+        if (const auto moveBlendRatio = stick.Magnitude(); moveBlendRatio > 0.0f) { // 0x6876F4
+            stick = ToPedSpace(GetStickDir(), std::min(moveBlendRatio, 1.0f));
+        }
+    }
+
+    auto&      fightMove        = player->GetPlayerData()->m_vecFightMovement;
+    const auto ControlFightMove = [&] { // 0x687B6C
+        if (std::abs(fightMove.y) > 0.0f && std::abs(fightMove.x) < std::abs(fightMove.y)) {
+            ControlFight(fightMove.y >= 0.0f ? MOVE_BACK : MOVE_FWD);
+        } else if (std::abs(fightMove.x) > 0.0f) {
+            ControlFight(fightMove.x > 0.0f ? MOVE_RIGHT : MOVE_LEFT);
+        }
+    };
+
+    if (isTargeting) { // 0x6879D1
+        fightMove.y                       = notsa::step_to(fightMove.y, stick.y, maxStep);
+        fightMove.x                       = notsa::step_to(fightMove.x, stick.x, maxStep);
+
+        const auto* const target          = player->m_pTargetedObject;
+        const auto        isFarFromTarget = target && CVector::DistSqr(player->GetPosition(), target->GetPosition()) > sq(4.0f) && !IsAttacking();
+        if (!isFarFromTarget && !pad->GetSprint() && isMelee) {
+            return ControlFightMove();
+        }
+        if (pad->GetSprint()) { // 0x687AE1
+            ControlFight(END_SPRINT_AWAY);
+        } else {
+            ControlFight(stick.y >= -0.5f ? END_QUICK : END_RUNAWAY);
+        }
+        return;
+    }
+
+    const auto moveBlendRatio = std::min(stick.Magnitude(), 1.0f);
+    if (moveBlendRatio == 0.0f) { // 0x687885
+        fightMove = {};
+    } else if (stick.y <= 0.0f) { // 0x687821
+        fightMove.y               = notsa::step_to(fightMove.y, -moveBlendRatio, maxStep);
+        fightMove.x               = 0.0f;
+        player->m_fAimingRotation = CGeneral::LimitRadianAngle(CGeneral::GetRadianAngleBetweenPoints(0.0f, 0.0f, -padLeftRight, padUpDown) - TheCamera.m_fOrientation);
+    }
+
+    // 0x6878D3
+    m_FightIdleTimeMs = stick.y <= 0.0f && !IsAttacking()
+        ? m_FightIdleTimeMs + (int32)CTimer::GetTimeStepInMS()
+        : 0;
+
+    if (!pad->GetSprint() && !pad->GetDuck() && isMelee && stick.y <= 0.0f && m_FightIdleTimeMs < 2'000) {
+        return ControlFightMove();
+    }
+
+    // 0x687967 - NOTE: The original calls `GetSprint` here once more and ignores the result
+    if (pad->DuckJustDown() && CTaskSimpleDuck::CanPedDuck(player)) {
+        player->GetIntelligence()->SetTaskDuckSecondary(0);
+        ControlFight(END_DUCK);
+        return;
+    }
+    ControlFight(moveBlendRatio > 0.5f ? END_RUNAWAY : END_QUICK);
 }
 
 // 0x687C20
