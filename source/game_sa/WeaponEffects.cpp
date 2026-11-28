@@ -231,7 +231,7 @@ void CWeaponEffects::Render() {
                 const float   playerAngle    = std::atan2(playerToTarget.Dot(camMat.GetUp()), playerToTarget.Dot(camMat.GetRight()));
 
                 const CVector2D dir{ std::cos(playerAngle), std::sin(playerAngle) };
-                const CVector2D side = dir.GetPerpRight() / 2.f;
+                const CVector2D side   = dir.GetPerpRight() / 2.f;
 
                 const auto RenderArrow = [&](CVector2D tip, float scale, uint8 r, uint8 g, uint8 b) {
                     CSprite::RenderOneXLUSprite_Triangle(
