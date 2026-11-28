@@ -48,7 +48,7 @@ eVehAnimDoorOffset GetDoorOffsetType(eTargetDoor door, CAnimBlendAssociation* as
     if (!assoc) {
         return GetOffsetTypeOfDoor(door, ENTER_FRONT);
     }
-    switch (assoc->GetAnimId()) {
+    switch (const auto animId = assoc->GetAnimId()) {
     case ANIM_ID_CAR_ALIGN_LHS: // 0x64fc64
     case ANIM_ID_CAR_ALIGN_RHS:
     case ANIM_ID_CAR_ALIGNHI_LHS:
@@ -93,10 +93,7 @@ eVehAnimDoorOffset GetDoorOffsetType(eTargetDoor door, CAnimBlendAssociation* as
     default: // 0x64fca2
         // NOTE/BUG: The original leaves the offset type uninitialized for every other anim (`ANIM_ID_CAR_ROLLOUT_LHS`, `ANIM_ID_CAR_ROLLDOOR`, ...):
         // The compiled code uses the vehicle's address as the type, so `ComputeAnimDoorOffsets` reads far out of bounds.
-        if (notsa::bugfixes::GenericUB) {
-            return GetOffsetTypeOfDoor(door, ENTER_FRONT);
-        }
-        NOTSA_UNREACHABLE("No door offset type for anim {}", (int32)assoc->GetAnimId());
+        NOTSA_UNREACHABLE_CASE(animId);
     }
 }
 
