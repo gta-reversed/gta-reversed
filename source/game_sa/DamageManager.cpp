@@ -32,7 +32,7 @@ void CDamageManager::InjectHooks() {
     RH_ScopedInstall(ResetDamageStatus, 0x6C20E0); 
     RH_ScopedInstall(GetComponentGroup, 0x6C2040); 
     RH_ScopedInstall(GetCarNodeIndexFromDoor, 0x6C26F0);
-    RH_ScopedNamedInstall(GetWheelStatus_Hooked, "GetWheelStatus", 0x6C21B0);
+    RH_ScopedInstall(GetWheelStatus, 0x6C21B0);
 }
 
 CDamageManager::CDamageManager(float wheelDamageEffect) :
@@ -209,8 +209,8 @@ bool CDamageManager::ProgressDoorDamage(eDoors door, CAutomobile* pAuto) {
 }
 
 // 0x6C2300
-uint8 CDamageManager::GetAeroplaneCompStatus(uint8 frame) {
-    return m_nPanelsStatus >> (2 * (frame - 12)) & 3;
+ePanelDamageState CDamageManager::GetAeroplaneCompStatus(uint8 frame) {
+    return (ePanelDamageState)(m_nPanelsStatus >> (2 * (frame - 12)) & 3);
 }
 
 // 0x6C22D0

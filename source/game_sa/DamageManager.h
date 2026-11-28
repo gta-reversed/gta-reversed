@@ -8,6 +8,7 @@
 
 #include "eCarWheel.h"
 #include "eCarNodes.h"
+#include "extensions/WEnum.hpp"
 
 class CAutomobile;
 
@@ -24,13 +25,14 @@ enum eDamageState : int8 {
 // TODO: Seems like these are the damage states for doors only.
 //       Panel's seems to be different, more like: DAMSTATE_OK, DAMSTATE_DAMAGED, DAMSTATE_MISSING
 // TODO(yukani): change prefix to something else?
-enum ePanelDamageState : uint8 {
+enum ePanelDamageState : uint32 {
     DAMSTATE_OK             = 0, // Closed, DT_DOOR_INTACT 
     DAMSTATE_OPENED         = 1, // Open, DT_DOOR_SWINGING_FREE
     DAMSTATE_DAMAGED        = 2, // Closed, DT_DOOR_BASHED
     DAMSTATE_OPENED_DAMAGED = 3, // Open, DT_DOOR_BASHED_AND_SWINGING_FREE
     DAMSTATE_NOTPRESENT     = 4  // Missing, DT_DOOR_MISSING
 };
+NOTSA_WENUM_DEFS_FOR(ePanelDamageState);
 
 // original name
 enum tComponent : uint8 {
@@ -72,13 +74,14 @@ enum tComponentGroup : uint8 {
     MAX_COMGROUPS
 };
 
-enum eCarWheelStatus : uint8  {
+enum eCarWheelStatus : uint32 {
     WHEEL_STATUS_OK = 0,
     WHEEL_STATUS_BURST,
     WHEEL_STATUS_MISSING,
     WHEEL_STATUS_3,
     WHEEL_STATUS_4
 };
+NOTSA_WENUM_DEFS_FOR(eCarWheelStatus);
 
 enum ePanels : uint8 {
     FRONT_LEFT_PANEL = 0,
@@ -103,6 +106,7 @@ enum eDoors : uint8  {
     MAX_DOORS
 };
 using eDoorStatus = ePanelDamageState;
+NOTSA_WENUM_DEFS_FOR(eDoorStatus);
 
 enum eLights : uint8 {
     LIGHT_FRONT_LEFT  = 0,
@@ -113,17 +117,18 @@ enum eLights : uint8 {
     MAX_LIGHTS
 };
 
-enum eLightsState : uint8 {
+enum eLightsState : uint32 {
     VEHICLE_LIGHT_OK      = 0x0,
     VEHICLE_LIGHT_SMASHED = 0x1,
 };
+NOTSA_WENUM_DEFS_FOR(eLightsState);
 
 class CDamageManager {
 public:
     float           m_fWheelDamageEffect;
     uint8           m_nEngineStatus; // 0 - 250
-    std::array<eCarWheelStatus, eCarWheel::MAX_CARWHEELS> m_anWheelsStatus;
-    std::array<eDoorStatus, eDoors::MAX_DOORS>            m_aDoorsStatus;
+    std::array<eCarWheelStatusU8, eCarWheel::MAX_CARWHEELS> m_anWheelsStatus;
+    std::array<eDoorStatusU8, eDoors::MAX_DOORS>            m_aDoorsStatus;
     union {
         /* Great job R*, really could've just used an array here... Ends up to be the same size... */
 
@@ -169,7 +174,7 @@ public:
     void ProgressEngineDamage();
     bool ProgressDoorDamage(eDoors door, CAutomobile* pAuto);
 
-    uint8 GetAeroplaneCompStatus(uint8 frame);
+    ePanelDamageState GetAeroplaneCompStatus(uint8 frame);
     void SetAeroplaneCompStatus(uint8 frame, ePanelDamageState status);
 
     uint32 GetEngineStatus();
@@ -212,11 +217,6 @@ public:
     [[nodiscard]] bool IsDoorPresent(eDoors door) const;
     [[nodiscard]] bool IsDoorDamaged(eDoors door) const;
 
-private: 
-    // Wrapper functions
-
-    // Return type has to be uint32, but we want to return `eCarWheelStatus` in our code.
-    uint32 GetWheelStatus_Hooked(eCarWheel wheel) { return (uint32)GetWheelStatus(wheel); }
 };
 
 VALIDATE_SIZE(CDamageManager, 0x18);
