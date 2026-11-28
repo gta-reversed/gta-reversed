@@ -36,11 +36,6 @@ enum eQuadBikeNodes {
 
 class NOTSA_EXPORT_VTABLE CQuadBike : public CAutomobile {
 public:
-    tBikeHandlingData* m_pHandling;
-    CRideAnimData      m_sRideAnimData{ ANIM_GROUP_QUAD };
-    float              field_9A8[4]; // unused
-    uint8              m_nQuadFlags;
-
     static constexpr auto Type = VEHICLE_TYPE_QUAD;
 
 public:
@@ -59,12 +54,13 @@ public:
     void SetupDamageAfterLoad() override;
     void SetupSuspensionLines() override;
 
-private:
-    friend void InjectHooksMain();
     static void InjectHooks();
 
-    CQuadBike* Constructor(int32 modelIndex, eVehicleCreatedBy createdBy);
-
+private:
+    tBikeHandlingData* m_BikeHandling{};
+    CRideAnimData      m_RideAnimData{ ANIM_GROUP_QUAD };
+    float              field_9A8[4]{}; // unused
+    uint8              m_QuadFlags{};
 };
 
 VALIDATE_SIZE(CQuadBike, 0x9BC);
