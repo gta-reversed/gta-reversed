@@ -1686,12 +1686,8 @@ void CCamera::ProcessShake(float intensity) {
         s_HandShakersSetUp = true;
     }
 
-    // The shake type comes from scripts (`AddShakeSimple`) unchecked
-    if (notsa::bugfixes::GenericOOB && (m_nShakeType < 0 || m_nShakeType >= (int32)gHandShaker.size())) {
-        return;
-    }
     auto& cam = GetActiveCam();
-    auto& hs  = gHandShaker.data()[m_nShakeType]; // NOTE: `data()` - the original does not check the index (see above)
+    auto& hs  = gHandShaker[m_nShakeType];
     hs.Process(m_fShakeIntensity);
 
     const float roll = hs.m_ang.z * m_fShakeIntensity;
