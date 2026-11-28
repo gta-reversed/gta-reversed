@@ -114,13 +114,13 @@ void CAERadioTrackManager::Reset() {
     m_StationsListed = m_StationsListDown = 0;
     m_TimeRadioStationRetuned = m_TimeToDisplayRadioName = 0;
     m_Prev = m_PlayBeginTime = 0;
-    m_RetuneStartedTime      = 0;
-    m_EnabledInPauseMode     = false;
+    m_RetuneStartedTime = 0;
+    m_EnabledInPauseMode = false;
     m_SavedGameClockDays = m_SavedGameClockHours = -1;
     m_RadioAutoSelect = m_BassEnhance = true;
     m_SavedRadioStationId = m_RadioStationMenuRequest = m_RadioStationScriptRequest = RADIO_INVALID;
-    ms_SpecialDJBanterPending                                                       = 3; // todo: enum
-    ms_SpecialDJBanterIndex                                                         = -1;
+    ms_SpecialDJBanterPending = 3; // todo: enum
+    ms_SpecialDJBanterIndex = -1;
     m_PauseMode = m_RetuneJustStarted = false;
     m_RadioDuckedVolume = m_RadioDuckFadeRate = 0.0f;
     ResetStatistics();
@@ -775,14 +775,12 @@ bool CAERadioTrackManager::TrackRadioStation(eRadioID id, bool skipTrack) {
             ? st.TrackPlayTime + timeAway
             : st.Elapsed[i] - totalElapsed + timeAway;
 
-        // NOTE/BUG: The original copies `num` tracks even if fewer were saved from `i` on, reading past `TrackQueue` / `TrackTypes` (Doesn't happen with a state saved by `StopRadio`)
         const auto RestoreQueue = [&](size_t num) {
-            const auto* const queue = st.TrackQueue.data();
-            const auto* const types = st.TrackTypes.data();
-            for (auto j = 0u; j < num; j++) {
-                if (notsa::bugfixes::GenericOOB && i + j >= st.TrackQueue.size()) {
-                    break;
-                }
+            // BUGFIX: The original always copies `num` tracks, reading past `TrackQueue` / `TrackTypes` when fewer were saved from `i` on
+            const auto        numSaved = notsa::bugfixes::GenericOOB ? std::min(num, st.TrackQueue.size() - i) : num;
+            const auto* const queue    = st.TrackQueue.data();
+            const auto* const types    = st.TrackTypes.data();
+            for (auto j = 0u; j < numSaved; j++) {
                 rs.TrackQueue[j] = queue[i + j];
                 rs.TrackTypes[j] = types[i + j];
             }
