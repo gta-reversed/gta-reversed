@@ -45,10 +45,9 @@ bool CTaskSimpleThrowControl::ProcessPed(CPed* ped) {
 
     auto* const tThrow       = ped->GetIntelligence()->GetTaskThrow();
     const auto  hasTargetPos = m_TargetPos != CVector{};
-    if (m_TargetEntity) { // 0x61FAF8
-        ped->m_fAimingRotation = (m_TargetEntity->GetPosition() - ped->GetPosition()).Heading();
-    } else if (hasTargetPos) { // 0x61FB80
-        ped->m_fAimingRotation = (m_TargetPos - ped->GetPosition()).Heading();
+    if (m_TargetEntity || hasTargetPos) { // 0x61FAF8, 0x61FB80
+        const CVector2D targetPos{ m_TargetEntity ? m_TargetEntity->GetPosition() : m_TargetPos };
+        ped->m_fAimingRotation = (targetPos - ped->GetPosition2D()).Heading();
     }
 
     if (!m_IsAttacking) {
