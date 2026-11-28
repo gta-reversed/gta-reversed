@@ -20,7 +20,7 @@ void CPhysical::InjectHooks()
     RH_ScopedInstall(Constructor, 0x542260);
     RH_ScopedInstall(Destructor, 0x542450);
 
-    RH_ScopedInstall(RemoveAndAdd, 0x542560, { .Reversed = false });
+    RH_ScopedInstall(RemoveAndAdd, 0x542560);
     RH_ScopedInstall(ApplyTurnForce, 0x542A50);
     RH_ScopedInstall(ApplyForce, 0x542B50);
     RH_ScopedInstall(GetSpeed, 0x542CE0);
@@ -30,7 +30,7 @@ void CPhysical::InjectHooks()
     RH_ScopedInstall(SetDamagedPieceRecord, 0x5428C0);
     RH_ScopedInstall(RemoveFromMovingList, 0x542860);
     RH_ScopedInstall(AddToMovingList, 0x542800);
-    RH_ScopedVMTInstall(Add, 0x544A30, { .Reversed = false });
+    RH_ScopedVMTInstall(Add, 0x544A30);
     RH_ScopedVMTInstall(Remove, 0x5424C0);
     RH_ScopedVMTInstall(GetBoundRect, 0x5449B0);
     RH_ScopedVMTInstall(ProcessControl, 0x5485E0);
@@ -138,48 +138,53 @@ CPhysical::~CPhysical()
     m_pCollisionList.Flush();
 }
 
+/*!
+* @notsa
+* @brief Call `fn` with the repeat sector and it's (typed) list the entity should be in, for all repeat sectors the entity overlaps
+*/
+template<typename Fn>
+static void ForEachOverlappedRepeatSectorList(CPhysical& physical, Fn&& fn) {
+    CWorld::IterateSectorsOverlappedByRect(physical.GetBoundRect(), [&](int32 x, int32 y) {
+        auto& rs = CWorld::GetRepeatSector(x, y);
+        switch (physical.GetType()) {
+        case ENTITY_TYPE_VEHICLE: std::invoke(fn, rs, rs.Vehicles); break;
+        case ENTITY_TYPE_PED:     std::invoke(fn, rs, rs.Peds); break;
+        case ENTITY_TYPE_OBJECT:  std::invoke(fn, rs, rs.Objects); break;
+        }
+        return true;
+    });
+}
+
+/*!
+* @notsa
+* @brief Add the entity to `list`, and create a new entry info node for it
+* @note The sector lists are typed per-class (`CVehicle*`/`CPed*`/`CObject*`), while the
+*       nodes stored in `CEntryInfoNode` are typed as `CPhysical*` - the layouts are
+*       identical, so reinterpret the node pointers (the original code did the same).
+*/
+template<typename PtrListType>
+static void AddNewEntryInfoNode(CPhysical& physical, CRepeatSector& rs, PtrListType& list) {
+    using ListItemType     = typename PtrListType::ItemType;
+    using EntryNodeType    = CPtrNodeDoubleLink<CPhysical*>;
+
+    auto* const node       = new CEntryInfoNode{};
+    node->m_doubleLink     = reinterpret_cast<EntryNodeType*>(list.AddItem(reinterpret_cast<ListItemType>(&physical)));
+    node->m_repeatSector   = &rs;
+    node->m_doubleLinkList = reinterpret_cast<CPtrListDoubleLink<CPhysical*>*>(&list);
+    node->AddToList(physical.m_pCollisionList.m_node);
+    physical.m_pCollisionList.m_node = node;
+}
+
 // 0x544A30
-void CPhysical::Add()
-{
-    // TODO: Refactor `CEntryInfoNode` to be templated then use it here
-#if 0
+void CPhysical::Add() {
     if (m_bIsBIGBuilding) {
         CEntity::Add();
         return;
     }
 
-    const auto boundRect = GetBoundRect();
-    int32 startSectorX = CWorld::GetSectorX(boundRect.left);
-    int32 startSectorY = CWorld::GetSectorY(boundRect.bottom);
-    int32 endSectorX = CWorld::GetSectorX(boundRect.right);
-    int32 endSectorY = CWorld::GetSectorY(boundRect.top);
-    for (int32 sectorY = startSectorY; sectorY <= endSectorY; ++sectorY) {
-        for (int32 sectorX = startSectorX; sectorX <= endSectorX; ++sectorX) {
-            CPtrListDoubleLink* list = nullptr;
-            CRepeatSector* repeatSector = GetRepeatSector(sectorX, sectorY);
-            switch (m_nType) {
-            case ENTITY_TYPE_VEHICLE:
-                list = &repeatSector.Vehicles;
-                break;
-            case ENTITY_TYPE_PED:
-                list = &repeatSector.Peds;
-                break;
-            case ENTITY_TYPE_OBJECT:
-                list = &repeatSector.Objects;
-                break;
-            }
-
-            auto newEntityInfoNode = new CEntryInfoNode();
-            if (newEntityInfoNode) {
-                newEntityInfoNode->m_doubleLink = list->AddItem(this);
-                newEntityInfoNode->m_repeatSector = repeatSector;
-                newEntityInfoNode->m_doubleLinkList = list;
-            }
-            newEntityInfoNode->AddToList(m_pCollisionList.m_node);
-            m_pCollisionList.m_node = newEntityInfoNode;
-        }
-    }
-#endif
+    ForEachOverlappedRepeatSectorList(*this, [this](CRepeatSector& rs, auto& list) {
+        AddNewEntryInfoNode(*this, rs, list);
+    });
 }
 
 // 0x5424C0
@@ -599,58 +604,31 @@ int32 CPhysical::ProcessEntityCollision(CEntity* entity, CColPoint* colPoint) {
 
 // 0x542560
 void CPhysical::RemoveAndAdd() {
-// TODO: Refactor `CEntryInfoNode` to be templated, otherwise this function will be a mess
     if (m_bIsBIGBuilding) {
         CEntity::Remove();
         CEntity::Add();
         return;
     }
 
+    // Re-use the existing nodes by moving them to the new lists, and only create new ones if we run out of them
     CEntryInfoNode* entryInfoNode = m_pCollisionList.m_node;
-    CRect boundRect = GetBoundRect();
-    int32 startSectorX = CWorld::GetSectorX(boundRect.left);
-    int32 startSectorY = CWorld::GetSectorY(boundRect.bottom);
-    int32 endSectorX = CWorld::GetSectorX(boundRect.right);
-    int32 endSectorY = CWorld::GetSectorY(boundRect.top);
-    for (int32 sectorY = startSectorY; sectorY <= endSectorY; ++sectorY) {
-        for (int32 sectorX = startSectorX; sectorX <= endSectorX; ++sectorX) {
-            CRepeatSector* const rs = &CWorld::GetRepeatSector(sectorX, sectorY);
-            const auto ProcessSectorList = [&]<typename PtrListType>(PtrListType& list) {
-                // The sector lists are typed per-class (CVehicle*/CPed*/CObject*), while the
-                // nodes stored in `CEntryInfoNode` are typed as `CPhysical*` - the layouts are
-                // identical, so reinterpret the node pointers (the original code did the same).
-                using ListNodeType  = typename PtrListType::NodeType;
-                using ListItemType  = typename PtrListType::ItemType;
-                using EntryNodeType = CPtrNodeDoubleLink<CPhysical*>;
-
-                if (entryInfoNode) {
-                    auto* doubleLink = reinterpret_cast<ListNodeType*>(entryInfoNode->m_doubleLink);
-
-                    entryInfoNode->m_doubleLinkList->UnlinkNode(reinterpret_cast<EntryNodeType*>(doubleLink));
-                    list.AddNode(doubleLink);
-
-                    entryInfoNode->m_repeatSector = rs;
-                    entryInfoNode->m_doubleLinkList = reinterpret_cast<CPtrListDoubleLink<CPhysical*>*>(&list);
-                    entryInfoNode = entryInfoNode->m_next;
-                } else {
-                    auto* newEntityInfoNode = new CEntryInfoNode{};
-                    if (newEntityInfoNode) {
-                        newEntityInfoNode->m_doubleLink = reinterpret_cast<EntryNodeType*>(list.AddItem(reinterpret_cast<std::remove_pointer_t<ListItemType>*>(this)));
-                        newEntityInfoNode->m_repeatSector = rs;
-                        newEntityInfoNode->m_doubleLinkList = reinterpret_cast<CPtrListDoubleLink<CPhysical*>*>(&list);
-                    }
-                    newEntityInfoNode->AddToList(m_pCollisionList.m_node);
-                    m_pCollisionList.m_node = newEntityInfoNode;
-                }
-            };
-            switch (GetType()) {
-            case ENTITY_TYPE_VEHICLE: ProcessSectorList(rs->Vehicles); break;
-            case ENTITY_TYPE_PED:     ProcessSectorList(rs->Peds);     break;
-            case ENTITY_TYPE_OBJECT:  ProcessSectorList(rs->Objects);  break;
-            }
+    ForEachOverlappedRepeatSectorList(*this, [&]<typename PtrListType>(CRepeatSector& rs, PtrListType& list) {
+        if (!entryInfoNode) {
+            AddNewEntryInfoNode(*this, rs, list);
+            return;
         }
-    }
 
+        using ListNodeType     = typename PtrListType::NodeType;
+        auto* const doubleLink = entryInfoNode->m_doubleLink;
+        entryInfoNode->m_doubleLinkList->UnlinkNode(doubleLink);
+        list.AddNode(reinterpret_cast<ListNodeType*>(doubleLink));
+
+        entryInfoNode->m_repeatSector   = &rs;
+        entryInfoNode->m_doubleLinkList = reinterpret_cast<CPtrListDoubleLink<CPhysical*>*>(&list);
+        entryInfoNode                   = entryInfoNode->m_next;
+    });
+
+    // Remove the nodes we didn't need
     while (entryInfoNode) {
         CEntryInfoNode* nextEntryInfoNode = entryInfoNode->m_next;
 
