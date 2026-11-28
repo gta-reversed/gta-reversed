@@ -213,7 +213,8 @@ public:
     * @return 3D Distance between 2 points
     */
     static float Dist(CVector a, CVector b) {
-        return (a - b).Magnitude();
+        const CVector delta{a.x - b.x, a.y - b.y, a.z - b.z};
+        return delta.Magnitude();
     }
 
     /*!
@@ -223,7 +224,8 @@ public:
     * @return 3D Squared distance between 2 points
     */
     static float DistSqr(CVector a, CVector b) {
-        return (a - b).SquaredMagnitude();
+        const CVector delta{a.x - b.x, a.y - b.y, a.z - b.z};
+        return delta.SquaredMagnitude();
     }
 
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(CVector, x, y, z);
