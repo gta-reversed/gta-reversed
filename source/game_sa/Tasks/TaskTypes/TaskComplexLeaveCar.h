@@ -15,12 +15,10 @@ class NOTSA_EXPORT_VTABLE CTaskComplexLeaveCar : public CTaskComplex {
 public:
     static constexpr auto Type = TASK_COMPLEX_LEAVE_CAR;
 
-    [[deprecated]] explicit CTaskComplexLeaveCar(CVehicle* targetVehicle, int32 nTargetDoor, int32 nDelayTime); // TODO: Add `bool die` to the ctor below and remove this one
-    explicit CTaskComplexLeaveCar(CVehicle* targetVehicle, int32 nTargetDoor /*= 0*/, int32 nDelayTime /*= 0*/, bool bSensibleLeaveCar /*= true */, bool bForceGetOut /*= false */);
-    CTaskComplexLeaveCar(const CTaskComplexLeaveCar& o);
+    [[deprecated]] explicit CTaskComplexLeaveCar(CVehicle* targetVehicle, int32 targetDoor, int32 delayTime); // TODO: Add `bool die` to the ctor below and remove this one
+    explicit CTaskComplexLeaveCar(CVehicle* targetVehicle, int32 targetDoor /*= 0*/, int32 delayTime /*= 0*/, bool sensibleLeaveCar /*= true */, bool forceGetOut /*= false */);
+    CTaskComplexLeaveCar(const CTaskComplexLeaveCar& o); // NOTSA
     ~CTaskComplexLeaveCar() override;
-
-    void ComputeTargetDoor(CPed* ped);
 
     eTaskType GetTaskType() const override { return Type; }
     CTask*    Clone() const override { return new CTaskComplexLeaveCar{ *this }; } // 0x63D9E0
@@ -28,24 +26,30 @@ public:
     CTask*    CreateNextSubTask(CPed* ped) override;
     CTask*    CreateFirstSubTask(CPed* ped) override;
     CTask*    ControlSubTask(CPed* ped) override;
-    CTask*    CreateSubTask(eTaskType taskType, CPed* ped);
 
-public:
+    CTask* CreateSubTask(eTaskType taskType, CPed* ped);
+    void   ComputeTargetDoor(CPed* ped);
+    void   SetVehicleFlags(CPed* ped);
+    void   CreateTaskUtilityLineUpPedWithCar(CPed* ped);
+    void   ClearVehicleFlags(); // NOTSA
+
+    static void GetDoorUsage(const CVehicle* veh, int32 door, bool& isGettingIn, bool& isGettingOut);
+
     static void InjectHooks();
 
-public:
-    CVehicle::Ref                                 m_pTargetVehicle{};
-    int32                                         m_nTargetDoor{};
-    int32                                         m_nDelayTime{};
-    bool                                          m_bSensibleLeaveCar{};
-    bool                                          m_bForceGetOut{};
-    bool                                          m_bDie{};
-    std::unique_ptr<CTaskUtilityLineUpPedWithCar> m_pTaskUtilityLineUpPedWithCar{};
-    uint8                                         m_nDoorFlagsSet{};
-    uint8                                         m_nNumGettingInSet{};
-    int32                                         m_nDieAnimID{ANIM_ID_KO_SHOT_FRONT_0};
-    float                                         m_fDieAnimBlendDelta{4.f};
-    float                                         m_fDieAnimSpeed{1.f};
-    bool                                          m_bIsInAir{};
+protected:
+    CVehicle::Ref                                 m_TargetVehicle{};
+    int32                                         m_TargetDoor{};
+    int32                                         m_DelayTime{};
+    bool                                          m_SensibleLeaveCar{};
+    bool                                          m_ForceGetOut{};
+    bool                                          m_Die{};
+    std::unique_ptr<CTaskUtilityLineUpPedWithCar> m_LineUpUtility{};
+    uint8                                         m_DoorFlagsSet{};    //!< Getting-out flags this task has set on the vehicle
+    uint8                                         m_NumGettingInSet{}; //!< How much this task has added to the vehicle's `m_nNumGettingIn`
+    AnimationId                                   m_DieAnimID{ ANIM_ID_KO_SHOT_FRONT_0 };
+    float                                         m_DieAnimBlendDelta{ 4.f };
+    float                                         m_DieAnimSpeed{ 1.f };
+    bool                                          m_IsInAir{};
 };
 VALIDATE_SIZE(CTaskComplexLeaveCar, 0x34);

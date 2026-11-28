@@ -12,9 +12,8 @@ void CTaskComplexLeaveCarAndDie::InjectHooks() {
 
 // NOTSA
 CTaskComplexLeaveCarAndDie::CTaskComplexLeaveCarAndDie(const CTaskComplexLeaveCarAndDie& o) :
-    CTaskComplexLeaveCar{o.m_pTargetVehicle, o.m_nTargetDoor, o.m_nDelayTime, false, true}
-{
-    m_bDie = true;
+    CTaskComplexLeaveCar{ o.m_TargetVehicle, o.m_TargetDoor, o.m_DelayTime, false, true } {
+    m_Die = true;
 }
 
 // 0x642280
