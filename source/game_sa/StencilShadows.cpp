@@ -12,8 +12,6 @@ namespace {
 constexpr auto VEHICLE_SHADOW_LENGTH        = 5.f;
 constexpr auto FLYING_VEHICLE_SHADOW_LENGTH = 40.f;
 constexpr auto OBJECT_SHADOW_LENGTH         = 60.f;
-constexpr auto MAX_SHADOW_VERTICES          = 2'048u; //!< Size of `s_ShadowTrianglePoints` and `s_TransformedShadowTrianglePoints` (See `Process`)
-constexpr auto MAX_SHADOW_EDGES             = 6'144u; //!< Size of `s_ShadowTrianglePointsUnk` in edges (See `Process`)
 
 //! An edge of the silhouette, `s_ShadowTrianglePointsUnk` holds these (as 2 vertex indices each)
 struct ShadowEdge {
@@ -29,9 +27,6 @@ void ToggleEdge(ShadowEdge* edges, uint16& numEdges, RxVertexIndex a, RxVertexIn
             e = edges[--numEdges];
             return;
         }
-    }
-    if (notsa::bugfixes::GenericOOB && numEdges >= MAX_SHADOW_EDGES) {
-        return; // NOTSA: The original writes past the end of the buffer
     }
     edges[numEdges++] = { a, b };
 }
@@ -53,17 +48,6 @@ void BuildShadowVolume(CStencilShadowObject& object, CCollisionData& colData, co
     const auto sunDir              = mat.InverseTransformVector(s_SunPosNrm);
 
     object.m_SizeOfShadowFacesData = 0;
-
-    // NOTSA: The col data comes from a file, the original doesn't check that it fits the buffers
-    if (notsa::bugfixes::GenericOOB) {
-        const auto numVerts      = colData.m_nNumShadowVertices;
-        const auto IsBadTriangle = [&](const CColTriangle& tri) {
-            return tri.vA >= numVerts || tri.vB >= numVerts || tri.vC >= numVerts;
-        };
-        if (numVerts > MAX_SHADOW_VERTICES || rng::any_of(std::span{ colData.m_pShadowTriangles, (size_t)std::max<int16>(object.m_NumShadowFaces, 0) }, IsBadTriangle)) {
-            return;
-        }
-    }
 
     auto* const points = s_ShadowTrianglePoints;
     auto* const world  = s_TransformedShadowTrianglePoints;
