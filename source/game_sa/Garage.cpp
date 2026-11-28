@@ -271,13 +271,145 @@ void CSaveGarage::CopyGarageOutOfSaveGarage(CGarage& g) const {
     strcpy_s(g.m_anName, m_anName);
 }
 
+void CStoredCar::InjectHooks() {
+    RH_ScopedClass(CStoredCar);
+    RH_ScopedCategoryGlobal();
+
+    RH_ScopedInstall(StoreCar, 0x449760);
+    RH_ScopedInstall(RestoreCar, 0x447E40);
+}
+
 // todo move
 // 0x449760
 void CStoredCar::StoreCar(CVehicle* vehicle) {
-    plugin::CallMethod<0x449760, CStoredCar*, CVehicle*>(this, vehicle);
+    m_wModelIndex = vehicle->m_nModelIndex;
+    m_vPosn       = vehicle->GetPosition();
+
+    m_PackedForward = vehicle->GetForward();
+
+    m_nPrimaryColor   = vehicle->m_nPrimaryColor;
+    m_nSecondaryColor  = vehicle->m_nSecondaryColor;
+    m_nTertiaryColor   = vehicle->m_nTertiaryColor;
+    m_nQuaternaryColor = vehicle->m_nQuaternaryColor;
+    m_nRadioStation    = vehicle->m_vehicleAudio.m_AuSettings.RadioStation;
+    m_nHandlingFlags   = vehicle->m_nHandlingFlagsIntValue;
+    m_anCompsToUse[0]  = vehicle->m_anExtras[0];
+    m_anCompsToUse[1]  = vehicle->m_anExtras[1];
+
+    m_nStoredCarFlags = 0;
+    bBulletProof      = vehicle->physicalFlags.bBulletProof;
+    bFireProof        = vehicle->physicalFlags.bFireProof;
+    bExplosionProof   = vehicle->physicalFlags.bExplosionProof;
+    bCollisionProof   = vehicle->physicalFlags.bCollisionProof;
+    bMeleeProof       = vehicle->physicalFlags.bMeleeProof;
+    bUpgradedStereo   = vehicle->vehicleFlags.bUpgradedStereo;
+    bHydraulics       = vehicle->handlingFlags.bHydraulicInst;
+    bNitro            = vehicle->handlingFlags.bNosInst;
+
+    if (vehicle->IsAutomobile() || vehicle->IsBike()) {
+        m_nBombType = vehicle->m_nBombOnBoard;
+    }
+    rng::copy(vehicle->m_anUpgrades, m_awCarMods);
+    m_nPaintJob    = (int8)vehicle->GetRemapIndex();
+    m_nNitroBoosts = vehicle->m_nNitroBoosts;
 }
 
+// NOTE: Unlike `CCarGenerator::CreateVehicle`, trains (and the fake planes/helis) are created as automobiles
+CVehicle* CStoredCar::CreateVehicle(eModelID modelId) {
+    switch (CModelInfo::GetModelInfo(modelId)->AsVehicleModelInfoPtr()->m_nVehicleType) {
+    case VEHICLE_TYPE_MTRUCK:
+        return new CMonsterTruck(modelId, RANDOM_VEHICLE);
+    case VEHICLE_TYPE_QUAD:
+        return new CQuadBike(modelId, RANDOM_VEHICLE);
+    case VEHICLE_TYPE_HELI:
+        return new CHeli(modelId, RANDOM_VEHICLE);
+    case VEHICLE_TYPE_PLANE:
+        return new CPlane(modelId, RANDOM_VEHICLE);
+    case VEHICLE_TYPE_BOAT:
+        return new CBoat(modelId, RANDOM_VEHICLE);
+    case VEHICLE_TYPE_BIKE: {
+        auto* const bike = new CBike(modelId, RANDOM_VEHICLE);
+        bike->bikeFlags.bOnSideStand = true;
+        return bike;
+    }
+    case VEHICLE_TYPE_BMX: {
+        auto* const bmx = new CBmx(modelId, RANDOM_VEHICLE);
+        bmx->bikeFlags.bOnSideStand = true;
+        return bmx;
+    }
+    case VEHICLE_TYPE_TRAILER:
+        return new CTrailer(modelId, RANDOM_VEHICLE);
+    default:
+        return new CAutomobile(modelId, RANDOM_VEHICLE, true);
+    }
+}
+
+// Returns null if the model or any of the upgrades isn't loaded yet (they're requested)
 // 0x447E40
 CVehicle* CStoredCar::RestoreCar() {
-    return plugin::CallMethodAndReturn<CVehicle*, 0x447E40, CStoredCar*>(this);
+    CStreaming::RequestModel(m_wModelIndex, STREAMING_KEEP_IN_MEMORY);
+    for (const auto upgrade : m_awCarMods) {
+        if (upgrade != -1) {
+            CStreaming::RequestVehicleUpgrade(upgrade, STREAMING_DEFAULT);
+        }
+    }
+
+    if (!CStreaming::IsModelLoaded(m_wModelIndex)) {
+        return nullptr;
+    }
+    for (const auto upgrade : m_awCarMods) {
+        if (upgrade != -1 && !CStreaming::HasVehicleUpgradeLoaded(upgrade)) {
+            return nullptr;
+        }
+    }
+
+    CVehicleModelInfo::ms_compsToUse[0] = m_anCompsToUse[0];
+    CVehicleModelInfo::ms_compsToUse[1] = m_anCompsToUse[1];
+
+    auto* const vehicle = CreateVehicle((eModelID)m_wModelIndex);
+    vehicle->SetPosn(m_vPosn);
+
+    auto& mat = vehicle->GetMatrix();
+    const CVector fwd = m_PackedForward;
+    mat.GetForward() = fwd;
+    mat.GetRight()   = CVector{ fwd.y, -fwd.x, 0.0f };
+    mat.GetUp()      = CVector{ 0.0f, 0.0f, 1.0f };
+
+    vehicle->SetStatus(STATUS_ABANDONED);
+    vehicle->m_pDriver = nullptr;
+    vehicle->m_vehicleAudio.m_AuSettings.RadioStation = (eRadioID)m_nRadioStation;
+    vehicle->m_nHandlingFlagsIntValue                 = (eVehicleHandlingFlags)m_nHandlingFlags;
+    vehicle->vehicleFlags.bFreebies             = false;
+    vehicle->vehicleFlags.bHasBeenOwnedByPlayer = true;
+    vehicle->m_nDoorLock                        = CARLOCK_UNLOCKED;
+    if (vehicle->IsAutomobile()) {
+        vehicle->m_nBombOnBoard = m_nBombType;
+    }
+
+    // NOTE: These are only ever set, never cleared (eg.: The Rhino is bullet and explosion proof by default)
+    vehicle->physicalFlags.bBulletProof    |= bBulletProof;
+    vehicle->physicalFlags.bFireProof      |= bFireProof;
+    vehicle->physicalFlags.bExplosionProof |= bExplosionProof;
+    vehicle->physicalFlags.bCollisionProof |= bCollisionProof;
+    vehicle->physicalFlags.bMeleeProof     |= bMeleeProof;
+    vehicle->handlingFlags.bHydraulicInst  |= bHydraulics;
+    vehicle->handlingFlags.bNosInst        |= bNitro;
+    if (bUpgradedStereo) {
+        vehicle->vehicleFlags.bUpgradedStereo            = true;
+        vehicle->m_vehicleAudio.m_AuSettings.BassSetting = eBassSetting::BOOST;
+    }
+
+    rng::copy(m_awCarMods, vehicle->m_anUpgrades.begin());
+    vehicle->SetupUpgradesAfterLoad();
+    vehicle->SetRemap(m_nPaintJob);
+    vehicle->vehicleFlags.bEngineOn = false;
+    vehicle->m_nNitroBoosts         = m_nNitroBoosts;
+
+    vehicle->m_nPrimaryColor                        = m_nPrimaryColor;
+    vehicle->m_nSecondaryColor                      = m_nSecondaryColor;
+    vehicle->m_nTertiaryColor                       = m_nTertiaryColor;
+    vehicle->vehicleFlags.bDontSetColourWhenRemapping = true;
+    vehicle->m_nQuaternaryColor                     = m_nQuaternaryColor;
+
+    return vehicle;
 }

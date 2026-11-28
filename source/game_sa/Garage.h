@@ -1,6 +1,7 @@
 #pragma once
 
 #include "AEDoorAudioEntity.h"
+#include <extensions/FixedVector.hpp>
 
 enum eGarageType : uint8 {
     INVALID = 0,
@@ -64,8 +65,19 @@ enum eGarageDoorState : uint8 {
 struct CStoredCar {
     CVector m_vPosn;
     uint32  m_nHandlingFlags;
-    uint8   m_nStoredCarFlags;
-    uint8   _pad0;
+    union {
+        uint16 m_nStoredCarFlags;
+        struct {
+            uint16 bBulletProof : 1;
+            uint16 bFireProof : 1;
+            uint16 bExplosionProof : 1;
+            uint16 bCollisionProof : 1;
+            uint16 bMeleeProof : 1;
+            uint16 bUpgradedStereo : 1;
+            uint16 bHydraulics : 1;
+            uint16 bNitro : 1;
+        };
+    };
     uint16  m_wModelIndex;
     int16   m_awCarMods[15];
     uint8   m_nPrimaryColor;
@@ -75,14 +87,14 @@ struct CStoredCar {
     uint8   m_nRadioStation;
     uint8   m_anCompsToUse[2];
     uint8   m_nBombType;
-    uint8   m_nPaintJob;
+    int8    m_nPaintJob; //!< Remap index (-1 if none)
     uint8   m_nNitroBoosts;
-    uint8   m_nPackedForwardX;
-    uint8   m_nPackedForwardY;
-    uint8   m_nPackedForwardZ;
+    FixedVector<int8, 100.f> m_PackedForward;
     uint8   _pad1;
 
 public:
+    static void InjectHooks();
+
     void      StoreCar(CVehicle* vehicle); // 0x449760
     CVehicle* RestoreCar();                // 0x447E40
 
@@ -90,6 +102,10 @@ public:
     void Init() { m_wModelIndex = 0; }
     void Clear() { m_wModelIndex = 0; }
     bool HasCar() const { return m_wModelIndex != 0; }
+
+private:
+    // NOTSA (Inlined into `RestoreCar`)
+    static CVehicle* CreateVehicle(eModelID modelId);
 };
 VALIDATE_SIZE(CStoredCar, 0x40);
 
