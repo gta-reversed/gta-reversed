@@ -26,41 +26,42 @@ enum eBmxNodes {
 
 class NOTSA_EXPORT_VTABLE CBmx : public CBike {
 public:
-    float m_fControlJump;
-    float m_fControlPedaling;     // always 0.0f
-    float m_fSprintLeanAngle;
-    float m_fCrankAngle;
-    float m_fPedalAngleL;
-    float m_fPedalAngleR;
-    float m_fMidWheelDistY;
-    float m_fMidWheelFracY;
-    bool  m_bIsFreewheeling;
-
     static constexpr auto Type = VEHICLE_TYPE_BMX;
 
-public:
     CBmx(int32 modelIndex, eVehicleCreatedBy createdBy);
     ~CBmx() override;
 
-    void BlowUpCar(CEntity* damager, bool bHideExplosion) override;
-    bool SetUpWheelColModel(CColModel* wheelCol) override;
-    bool BurstTyre(uint8 tyreComponentId, bool bPhysicalEffect) override;
-    void ProcessControl() override;
-    void ProcessDrivingAnims(CPed* driver, bool blend) override;
-    float FindWheelWidth(bool bRear) override;
-    void PreRender() override;
-    bool ProcessAI(uint32& extraHandlingFlags) override;
+    void  BlowUpCar(CEntity* damager, bool hideExplosion) override;
+    bool  SetUpWheelColModel(CColModel* wheelCol) override;
+    bool  BurstTyre(uint8 tyreComponentId, bool physicalEffect) override;
+    void  ProcessControl() override;
+    void  ProcessDrivingAnims(CPed* driver, bool blend) override;
+    float FindWheelWidth(bool rear) override;
+    void  PreRender() override;
+    bool  ProcessAI(uint32& extraHandlingFlags) override;
 
-    void GetFrameOffset(float& fZOffset, float& fAngleOffset);
+    void GetFrameOffset(float& zOffset, float& angleOffset);
     void ProcessBunnyHop();
-    static void LaunchBunnyHopCB(CAnimBlendAssociation* blendAssoc, void* data);
+
+    float GetControlJump() const { return m_ControlJump; } // NOTSA
+
+    static void InjectHooks();
 
 private:
-    friend void InjectHooksMain();
-    static void InjectHooks();
+    static void LaunchBunnyHopCB(CAnimBlendAssociation* assoc, void* data);
 
     CBmx* Constructor(int32 modelIndex, eVehicleCreatedBy createdBy) { this->CBmx::CBmx(modelIndex, createdBy); return this; }
     CBmx* Destructor() { this->CBmx::~CBmx(); return this; }
 
-                                };
+private:
+    float m_ControlJump{};     //!< How long the bunny hop has been charged for (In time steps, up to 25)
+    float m_ControlPedaling{}; //!< How hard the rider pedals (Above 5 they sprint)
+    float m_SprintLeanAngle{}; //!< Sideways sway of the frame while sprinting
+    float m_CrankAngle{};
+    float m_PedalAngleL{};
+    float m_PedalAngleR{};
+    float m_MidWheelDistY{}; //!< Distance between the 2 wheels
+    float m_MidWheelFracY{}; //!< Front wheel's Y position as a fraction of `m_MidWheelDistY`
+    bool  m_IsFreewheeling{};
+};
 VALIDATE_SIZE(CBmx, 0x838);
