@@ -3927,12 +3927,7 @@ void CAEVehicleAudioEntity::ProcessDummyHovercraft(tVehicleParams& vp) {
     // 0x5010CD
     const auto [accel, brake] = [&]() -> std::pair<int16, int16> {
         if (vortex->GetStatus() != STATUS_PLAYER) {
-            if (notsa::bugfixes::GenericUB) {
-                return { 0, 0 };
-            }
-            // NOTE/BUG: Uninitialized in the original, they hold the low 16 bits of `skid` (the stack slot they reuse)
-            const auto garbage = (int16)(std::bit_cast<uint32>(skid));
-            return { garbage, garbage };
+            return { 0, 0 }; // NOTSA/BUGFIX: Uninitialized in the original
         }
         const auto* const pad = CPad::GetPad(0);
         if (vp.Speed < 0.001f) {
