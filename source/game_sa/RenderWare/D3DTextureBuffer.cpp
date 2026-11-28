@@ -68,7 +68,7 @@ uint32 D3DTextureBuffer::GetTotalDataSize() const {
     for (auto* const texture : std::span{ m_Textures, m_NumTextures }) {
         const auto   desc   = GetTopLevelDesc(texture);
         const uint32 pixels = desc.Height * desc.Width;
-        total = texture->GetLevelCount() == 0
+        total               = texture->GetLevelCount() == 0
             ? (uint32)((float)pixels * (4.f / 3.f) + (float)total)
             : total + pixels;
     }

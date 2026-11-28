@@ -9,7 +9,7 @@
 //! A free list of released D3D textures of one format and size (or of any, see `D3DResourceSystem`)
 class D3DTextureBuffer {
 public:
-    void Setup(D3DFORMAT format, uint32 width, int32 levels, uint32 capacity);
+    void   Setup(D3DFORMAT format, uint32 width, int32 levels, uint32 capacity);
     void Clear();
     void Destroy();
     void Resize(uint32 newCapacity);
@@ -20,13 +20,13 @@ public:
     bool PushWithoutIncreasingCounter(IDirect3DTexture9* texture);
 
     IDirect3DTexture9* PopLast();
-    void PushOrGrow(IDirect3DTexture9* texture);
-    bool Matches(D3DFORMAT format, uint32 width, int32 levels) const;
+    void               PushOrGrow(IDirect3DTexture9* texture);
+    bool               Matches(D3DFORMAT format, uint32 width, int32 levels) const;
 
 private:
     D3DFORMAT           m_Format{};
     uint32              m_Width{};
-    int32               m_Levels{};             //!< 0 - full chain, 1 - one level, -1 - any (the mixed buffer)
+    int32               m_Levels{}; //!< 0 - full chain, 1 - one level, -1 - any (the mixed buffer)
     uint32              m_Capacity{};
     uint32              m_NumTexturesCounter{}; //!< Increased by every push, decreased only by `PopLast` - not the real count
     uint32              m_NumTextures{};

@@ -11,8 +11,8 @@
 
 // 0x730830
 void D3DResourceSystem::Init() {
-    ms_NumTextureBuffers        = 1;
-    ms_UseD3DResourceBuffering  = true;
+    ms_NumTextureBuffers       = 1;
+    ms_UseD3DResourceBuffering = true;
     ms_TextureBuffers[0].Setup(D3DFMT_UNKNOWN, 0, -1, INITIAL_BUFFER_CAPACITY);
     for (auto i = 0u; i < NUM_SIZED_INDEX_DATA_BUFFERS; i++) {
         ms_IndexDataBuffers[i].Setup(D3DFMT_INDEX16, (i + 1) * NUM_INDICES_PER_SIZE_CLASS, INITIAL_BUFFER_CAPACITY);
@@ -108,7 +108,7 @@ void D3DResourceSystem::TidyUpD3DIndexBuffers(uint32 count) {
 // 0x730510
 HRESULT D3DResourceSystem::CreateTexture(int32 width, int32 height, int32 levels, D3DFORMAT format, IDirect3DTexture9** outTexture) {
     const auto numLevels = levels > 1 ? 0 : levels; // Only single level textures and full chains are buffered
-    *outTexture = [&]() -> IDirect3DTexture9* {
+    *outTexture          = [&]() -> IDirect3DTexture9* {
         if (width == height) {
             for (auto& buffer : GetTextureBuffers() | rngv::drop(1)) {
                 if (buffer.Matches(format, width, numLevels)) {
@@ -130,7 +130,7 @@ void D3DResourceSystem::DestroyTexture(IDirect3DTexture9* texture) {
         texture->Release();
         return;
     }
-    const int32 levels = texture->GetLevelCount() <= 1 ? 1 : 0;
+    const int32     levels = texture->GetLevelCount() <= 1 ? 1 : 0;
     D3DSURFACE_DESC desc;
     texture->GetLevelDesc(0, &desc);
     const auto isSquare = desc.Width == desc.Height;
@@ -143,7 +143,7 @@ void D3DResourceSystem::DestroyTexture(IDirect3DTexture9* texture) {
         }
     }
     if (ms_NumTextureBuffers < MAX_NUM_TEXTURE_BUFFERS && isSquare && desc.Width >= MIN_BUFFERED_TEXTURE_SIZE) { // 0x730C07
-        if (desc.Width <= MAX_BUFFERED_TEXTURE_SIZE) { // Start a new buffer for this kind
+        if (desc.Width <= MAX_BUFFERED_TEXTURE_SIZE) {                                                           // Start a new buffer for this kind
             auto& buffer = ms_TextureBuffers[ms_NumTextureBuffers++];
             buffer.Setup(desc.Format, desc.Width, levels, INITIAL_BUFFER_CAPACITY);
             buffer.Push(texture);
