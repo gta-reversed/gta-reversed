@@ -43,7 +43,7 @@ bool CTaskSimpleThrowControl::ProcessPed(CPed* ped) {
         m_IsAttacking = true;
     }
 
-    auto* const tThrow = ped->GetIntelligence()->GetTaskThrow();
+    auto* const tThrow       = ped->GetIntelligence()->GetTaskThrow();
     const auto  hasTargetPos = m_TargetPos != CVector{};
     if (m_TargetEntity) { // 0x61FAF8
         ped->m_fAimingRotation = (m_TargetEntity->GetPosition() - ped->GetPosition()).Heading();
