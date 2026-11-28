@@ -154,7 +154,7 @@ void VehicleAudioEntityDebugModule::RenderMemberVars() {
     FormattedText("MovingPartSmoothedSpeed: {}", ae->m_MovingPartSmoothedSpeed);
     FormattedText("FadeIn: {}", ae->m_FadeIn);
     FormattedText("FadeOut: {}", ae->m_FadeOut);
-    FormattedText("bNitroOnLastFrame: {}", ae->m_bNitroOnLastFrame);
+    FormattedText("NitroOnLastFrame: {}", ae->m_NitroOnLastFrame);
     FormattedText("CurrentNitroRatio: {}", ae->m_CurrentNitroRatio);
 }
 
