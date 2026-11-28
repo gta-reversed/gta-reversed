@@ -20,7 +20,7 @@ void CClouds::InjectHooks() {
     RH_ScopedInstall(SetUpOneSkyPoly, 0x713060);
     RH_ScopedInstall(Render, 0x713950);
     RH_ScopedInstall(RenderSkyPolys, 0x714650);
-    RH_ScopedInstall(RenderBottomFromHeight, 0x7154B0, { .Reversed = false });
+    RH_ScopedInstall(RenderBottomFromHeight, 0x7154B0);
 
     // Moving fog
     RH_ScopedInstall(MovingFogInit, 0x713660);
@@ -848,43 +848,171 @@ void CClouds::RenderSkyPolys() {
     CBrightLights::RenderOutGeometryBuffer();
 }
 
+namespace {
+// clang-format off
+// 0x8D5658
+constexpr float BOTTOM_CLOUDS_RANDOM[]{
+    0.36f, 0.12f, 0.94f, 0.34f, 0.83f, 0.75f, 0.28f, 0.10f, 0.03f, 0.85f, 0.52f, 0.92f, 0.36f, 0.83f, 0.09f, 0.26f,
+    0.43f, 0.27f, 0.95f, 0.02f, 0.64f, 0.23f, 0.49f, 0.55f, 0.30f, 0.88f, 0.37f, 0.94f, 0.58f, 0.67f, 0.21f, 0.47f,
+    0.38f, 0.03f, 0.26f, 0.96f, 0.74f, 0.66f, 0.99f, 0.11f, 0.85f, 0.29f, 0.58f, 0.30f, 0.30f, 0.36f, 0.39f, 0.08f,
+    0.58f, 0.33f, 0.16f, 0.76f, 0.34f, 0.96f, 0.69f, 0.71f, 0.75f, 0.39f, 0.48f, 0.90f, 0.80f, 0.76f, 0.69f, 0.28f,
+    0.23f, 0.29f, 0.75f, 0.72f, 0.14f, 0.73f, 0.59f, 0.35f, 0.90f, 0.18f, 0.77f, 0.04f, 0.48f, 0.37f, 0.81f, 0.67f,
+};
+
+// 0x8D5818
+constexpr float BOTTOM_CLOUD_SPRITES_X[]{
+    100.f, 50.f, 156.f, 123.f, 232.f, 12.f, 76.f, 203.f, 164.f, 120.f, 64.f, 164.f, 94.f, 195.f, 125.f,
+    71.f, 243.f, 123.f, 176.f, 65.f, 132.f, 54.f, 94.f, 12.f, 234.f, 167.f, 165.f, 200.f, 100.f, 40.f,
+};
+
+// 0x8D57A0
+constexpr float BOTTOM_CLOUD_SPRITES_Y[]{
+    54.f, 105.f, 203.f, 65.f, 213.f, 154.f, 169.f, 54.f, 76.f, 10.f, 119.f, 204.f, 176.f, 154.f, 132.f,
+    190.f, 200.f, 37.f, 193.f, 154.f, 71.f, 111.f, 234.f, 12.f, 195.f, 165.f, 104.f, 94.f, 23.f, 222.f,
+};
+// clang-format on
+
+//! A fixed value per cloud from the table (Not a random pick: a cloud has to get the same value every frame)
+float GetBottomCloudsRandom(int32 idx) {
+    return BOTTOM_CLOUDS_RANDOM[idx % std::size(BOTTOM_CLOUDS_RANDOM)];
+}
+
+//! Wrap an offset into the `cellSize` wide cell around 0
+float WrapOffsetToCell(float offset, float cellSize) {
+    return offset - std::floor(offset / cellSize) * cellSize - cellSize / 2.f;
+}
+} // namespace
+
 // 0x7154B0
 void CClouds::RenderBottomFromHeight() {
-    /****
-    * Code below should be good
-    * but it isn't complete...
-    *****\
-   
-    const auto camPos = TheCamera.GetPosition();
-    if (camPos.z < -90.f) { // 0x71557D [Moved up here]
+    constexpr auto NUM_CLOUD_QUADS   = 28;
+    constexpr auto NUM_CLOUD_SPRITES = 30;
+    constexpr auto LOW_Z             = 160.f;
+    constexpr auto HIGH_Z            = 190.f;
+
+    // NOTE: Only the first vertex of the quads gets the brightened color, the rest (and the sprites) use the plain one
+    const CRGBA brightColor{
+        (uint8)std::min((float)CTimeCycle::GetFluffyCloudsBottomRed() * 2.f + 20.f, 255.f),
+        (uint8)std::min((float)CTimeCycle::GetFluffyCloudsBottomGreen() * 1.5f, 255.f),
+        (uint8)std::min((float)CTimeCycle::GetFluffyCloudsBottomBlue() * 1.5f, 255.f),
+        255
+    };
+    const CRGBA color{
+        (uint8)CTimeCycle::GetFluffyCloudsBottomRed(),
+        (uint8)CTimeCycle::GetFluffyCloudsBottomGreen(),
+        (uint8)CTimeCycle::GetFluffyCloudsBottomBlue(),
+        255
+    };
+
+    const auto& camPos = TheCamera.GetPosition();
+    if (camPos.z < -90.f) { // 0x71556A
         return;
     }
 
-    const auto& cc = CTimeCycle::m_CurrentColours; // cc = color component
-    const auto ClampClr = [](float clr) {
-        return std::min(clr, 255.f);
-    };
-    const auto fcClr = CRGBA{ // fc = fluffy clouds
-        (uint8)ClampClr(cc.m_nFluffyCloudsBottomRed * 2.f + 20.f),
-        (uint8)ClampClr(cc.m_nFluffyCloudsBottomGreen * 1.5f),
-        (uint8)ClampClr(cc.m_nFluffyCloudsBottomBlue * 1.5f),
-        (uint8)255
-    };
+    // Raise the clouds when the camera is above them
+    const auto raise = (camPos.z - HIGH_Z - 10.f) * 0.3f;
+    const auto lowZ  = raise > 0.f ? LOW_Z + raise : LOW_Z;
+    const auto highZ = raise > 0.f ? HIGH_Z + raise : HIGH_Z;
 
-    auto lowZ = 160.f, highZ = 190.f;
+    BottomCloudsWindShift += CTimer::GetTimeStep() * CWeather::Wind * 0.25f;
 
-    auto& windShift = StaticRef<float>(0xC6E954);
-
-    RwRenderStateSet(rwRENDERSTATEZWRITEENABLE,      RWRSTATE(TRUE));
+    RwRenderStateSet(rwRENDERSTATEZWRITEENABLE,      RWRSTATE(FALSE));
     RwRenderStateSet(rwRENDERSTATEZTESTENABLE,       RWRSTATE(TRUE));
     RwRenderStateSet(rwRENDERSTATEVERTEXALPHAENABLE, RWRSTATE(TRUE));
-    RwRenderStateSet(rwRENDERSTATEFOGENABLE,         RWRSTATE(TRUE));
+    RwRenderStateSet(rwRENDERSTATEFOGENABLE,         RWRSTATE(FALSE));
     RwRenderStateSet(rwRENDERSTATESRCBLEND,          RWRSTATE(rwBLENDSRCALPHA));
     RwRenderStateSet(rwRENDERSTATEDESTBLEND,         RWRSTATE(rwBLENDINVSRCALPHA));
     RwRenderStateSet(rwRENDERSTATETEXTURERASTER,     RWRSTATE(RwTextureGetRaster(gpCloudMaskTex)));
 
-    // TODO....
-    */
+    const auto cloudAlpha = (int32)CTimeCycle::GetCloudAlpha();
+
+    // Cloud quads [0x715670 - 0x715B52]
+    if (cloudAlpha != 0) {
+        RenderBuffer::ClearRenderBuffer();
+        for (auto i = 1; i <= NUM_CLOUD_QUADS; i++) {
+            const auto    shift = (GetBottomCloudsRandom(i + 5) * 0.5f + 1.f) * BottomCloudsWindShift;
+            const CVector pos{
+                camPos.x + WrapOffsetToCell(GetBottomCloudsRandom(i - 1) * 512.f + shift - camPos.x, 512.f),
+                camPos.y + WrapOffsetToCell(GetBottomCloudsRandom(i) * 512.f + shift - camPos.y, 512.f),
+                lowZ + (highZ - lowZ) * GetBottomCloudsRandom(i + 1)
+            };
+
+            // Fade out with the height above the camera (0x7157D5) and towards the edge of the cell (0x715935)
+            const auto heightAboveCam = pos.z - camPos.z;
+            const auto heightAlpha    = heightAboveCam > 0.f
+                ? (int32)((1.f - heightAboveCam * 0.004f) * (float)cloudAlpha)
+                : cloudAlpha;
+            if (heightAlpha <= 0) {
+                continue;
+            }
+            const auto dist  = std::max(std::abs(camPos.x - pos.x), std::abs(camPos.y - pos.y)) / 256.f;
+            const auto alpha = dist > 0.75f
+                ? (int32)((1.f - (dist - 0.75f) * 4.f) * (float)heightAlpha)
+                : heightAlpha;
+            if (alpha <= 0) {
+                continue;
+            }
+
+            const CVector2D halfSize{
+                GetBottomCloudsRandom(i + 2) * 100.f + 60.f,
+                GetBottomCloudsRandom(i + 3) * 100.f + 60.f
+            };
+            RenderBuffer::PushIndices({ 2, 1, 0, 2, 3, 1 }, true);
+            RenderBuffer::PushVertex({ pos.x - halfSize.x, pos.y + halfSize.y, pos.z }, { 0.f, 0.f }, { brightColor.r, brightColor.g, brightColor.b, (uint8)alpha });
+            RenderBuffer::PushVertex({ pos.x + halfSize.x, pos.y + halfSize.y, pos.z }, { 0.f, 1.f }, { color.r, color.g, color.b, (uint8)alpha });
+            RenderBuffer::PushVertex({ pos.x - halfSize.x, pos.y - halfSize.y, pos.z }, { 1.f, 0.f }, { color.r, color.g, color.b, (uint8)alpha });
+            RenderBuffer::PushVertex({ pos.x + halfSize.x, pos.y - halfSize.y, pos.z }, { 1.f, 1.f }, { color.r, color.g, color.b, (uint8)alpha });
+        }
+        RenderBuffer::Render(rwPRIMTYPETRILIST, nullptr, rwIM3D_VERTEXUV | rwIM3D_VERTEXXYZ | rwIM3D_VERTEXRGBA);
+    }
+
+    // Cloud sprites [0x715B57 - 0x715EFB]
+    CSprite::InitSpriteBuffer();
+    if (cloudAlpha > 0) {
+        for (auto i = 0; i < NUM_CLOUD_SPRITES; i++) {
+            const auto    shift = BottomCloudsWindShift * 0.5f;
+            const CVector pos{
+                camPos.x + WrapOffsetToCell(shift + BOTTOM_CLOUD_SPRITES_X[i] - camPos.x, 256.f),
+                camPos.y + WrapOffsetToCell(shift + BOTTOM_CLOUD_SPRITES_Y[i] - camPos.y, 256.f),
+                lowZ + (highZ - lowZ) * GetBottomCloudsRandom(i)
+            };
+
+            const auto heightAlpha = (int32)((1.f - std::abs(camPos.z - pos.z) * 0.004f) * (float)cloudAlpha);
+            if (heightAlpha <= 0) {
+                continue;
+            }
+            const auto size  = (GetBottomCloudsRandom(i + 1) + 1.f) * 12.f;
+            const auto dist  = std::min(std::max(std::abs(camPos.x - pos.x), std::abs(camPos.y - pos.y)) / 128.f, 1.f);
+            const auto alpha = dist > 0.75f
+                ? (int32)((1.f - (dist - 0.75f) * 4.f) * (float)heightAlpha)
+                : heightAlpha;
+            if (dist <= 0.05f) { // 0x715E3A
+                continue;
+            }
+
+            CVector   screenPos;
+            CVector2D screenSize;
+            if (!CSprite::CalcScreenCoors(pos, &screenPos, &screenSize.x, &screenSize.y, false, true)) {
+                continue;
+            }
+            CSprite::RenderBufferedOneXLUSprite(
+                screenPos,
+                screenSize * size,
+                color.r,
+                color.g,
+                color.b,
+                256,
+                1.f / screenPos.z,
+                (uint8)(dist < 0.1f ? (int32)((dist - 0.05f) * (float)alpha * 20.f) : alpha) // Fade in close to the camera (0x715E4B)
+            );
+        }
+    }
+    CSprite::FlushSpriteBuffer();
+
+    RwRenderStateSet(rwRENDERSTATETEXTURERASTER,     RWRSTATE(NULL));
+    RwRenderStateSet(rwRENDERSTATEVERTEXALPHAENABLE, RWRSTATE(FALSE));
+    RwRenderStateSet(rwRENDERSTATEZWRITEENABLE,      RWRSTATE(TRUE));
+    RwRenderStateSet(rwRENDERSTATEZTESTENABLE,       RWRSTATE(TRUE));
 }
 
 //
