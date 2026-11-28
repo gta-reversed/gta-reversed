@@ -94,7 +94,7 @@ void CAEVehicleAudioEntity::Initialise(CEntity* entity) {
     m_TimeSplashLastTriggered     = 0;
     m_TimeBeforeAllowAccelerate   = 0;
     m_TimeBeforeAllowCruise       = 0;
-    m_NitroOnLastFrame           = false;
+    m_NitroOnLastFrame            = false;
     m_IsHelicopterDisabled        = false;
     m_ACPlayPositionThisFrame     = -1;
     m_ACPlayPositionLastFrame     = -1;
@@ -2519,7 +2519,7 @@ void CAEVehicleAudioEntity::ProcessNitro(tVehicleParams& vp) {
         StopGenericEngineSound(AE_SOUND_NITRO1);
         StopGenericEngineSound(AE_SOUND_NITRO2);
 
-        m_NitroOnLastFrame = false;
+        m_NitroOnLastFrame  = false;
         m_CurrentNitroRatio = -1.f;
     }
 }
@@ -3945,8 +3945,8 @@ void CAEVehicleAudioEntity::ProcessDummyHovercraft(tVehicleParams& vp) {
     const auto freqOffset = brake > 0
         ? -0.05f
         : accel > 0
-            ? 0.1f
-            : skid;
+        ? 0.1f
+        : skid;
 
     // 0x50113C
     const auto propSpeed = std::clamp(vortex->m_fPropSpeed / 0.34f, 0.f, 1.f);
@@ -4426,7 +4426,7 @@ void CAEVehicleAudioEntity::PlayBicycleSound(eBicycleSoundType st, eSoundBankSlo
 
     const auto DoPlaySound = [&](eSoundBankSlot bankSlot, eSoundID sfxId, float rollOff, uint32 flags = 0, int16 playTime = 0) {
         m_EngineSounds[st].Sound = AESoundManager.PlaySound({
-            .BankSlotID      = bankSlot,
+            .BankSlotID    = bankSlot,
             .SoundID       = sfxId,
             .AudioEntity   = this,
             .Pos           = m_Entity->GetPosition(),
@@ -4516,8 +4516,8 @@ void CAEVehicleAudioEntity::ProcessPlayerBicycle(tVehicleParams& vp) {
 
 // notsa - Shared by `ProcessDummyBicycle` (0x4FFE6F) and `ProcessPlayerBicycle` (0x5000EE)
 void CAEVehicleAudioEntity::ProcessBicycleSounds(tVehicleParams& vp, bool& wasFreewheeling) {
-    const auto* const cfg = &s_Config.Bicycle;
-    auto* const       bmx = vp.Vehicle->AsBmx();
+    const auto* const cfg       = &s_Config.Bicycle;
+    auto* const       bmx       = vp.Vehicle->AsBmx();
 
     const auto speedRatio       = std::clamp(std::abs(vp.Speed / vp.Transmission->m_MaxVelocity), 0.f, 1.f);
     const auto numContactWheels = (float)(bmx->GetNumContactWheels());
