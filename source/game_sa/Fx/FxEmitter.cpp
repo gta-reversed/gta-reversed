@@ -54,7 +54,7 @@ void FxEmitter_c::CreateParticles(float currentTime, float deltaTime) {
     const auto  lodEnd   = (float)m_PrimBP->m_FxInfoManager.m_nLodEnd / 64.0f;
     const float camDist  = m_System->m_fCameraDistance;
     const auto  lodMult  = camDist < lodStart ? 1.0f
-                         : camDist > lodEnd   ? 0.0f
+        : camDist > lodEnd                    ? 0.0f
                                               : 1.0f - (camDist - lodStart) / (lodEnd - lodStart);
     m_EmissionIntensity += emission.m_fCount * lodMult * ((float)m_System->m_nRateMult / 1000.0f);
 
@@ -93,21 +93,21 @@ FxEmitterPrt_c* FxEmitter_c::CreateParticle(const EmissionInfo_t& emissionInfo, 
             return nullptr;
         }
     }
-    auto* const prt = particle->AsFxEmitterPrt();
+    auto* const prt        = particle->AsFxEmitterPrt();
 
-    prt->m_fCurrentLife = 0.0f;
-    prt->m_fTotalLife   = (CGeneral::GetRandomNumberInRange(-1.0f, 1.0f) * emissionInfo.m_fLifeBias + emissionInfo.m_fLife) * fxMults.m_fLife;
-    prt->m_System       = m_System;
+    prt->m_fCurrentLife    = 0.0f;
+    prt->m_fTotalLife      = (CGeneral::GetRandomNumberInRange(-1.0f, 1.0f) * emissionInfo.m_fLifeBias + emissionInfo.m_fLife) * fxMults.m_fLife;
+    prt->m_System          = m_System;
 
-    prt->m_MultColor      = CRGBA{ fxMults.m_Color };
-    prt->m_MultSize       = fxMults.m_fSize;
-    prt->m_MultRot        = fxMults.m_Rot;
-    prt->m_bLocalToSystem = createLocal;
+    prt->m_MultColor       = CRGBA{ fxMults.m_Color };
+    prt->m_MultSize        = fxMults.m_fSize;
+    prt->m_MultRot         = fxMults.m_Rot;
+    prt->m_bLocalToSystem  = createLocal;
 
-    prt->m_RandR      = CGeneral::GetRandomNumberInRange(0, 256);
-    prt->m_RandG      = CGeneral::GetRandomNumberInRange(0, 256);
-    prt->m_RandB      = CGeneral::GetRandomNumberInRange(0, 256);
-    prt->m_Brightness = brightness;
+    prt->m_RandR           = CGeneral::GetRandomNumberInRange(0, 256);
+    prt->m_RandG           = CGeneral::GetRandomNumberInRange(0, 256);
+    prt->m_RandB           = CGeneral::GetRandomNumberInRange(0, 256);
+    prt->m_Brightness      = brightness;
 
     prt->m_RotZ            = -1;
     prt->m_CurrentRotation = CGeneral::GetRandomNumberInRange(emissionInfo.m_fRotationMinAngle, emissionInfo.m_fRotationMaxAngle);
@@ -143,8 +143,8 @@ FxEmitterPrt_c* FxEmitter_c::CreateParticle(const EmissionInfo_t& emissionInfo, 
     if (velOverride) {
         prt->m_Velocity = *velOverride;
     } else {
-        const auto heading = CGeneral::GetRandomNumberInRange(0.0f, TWO_PI);
-        const auto pitch   = CGeneral::GetRandomNumberInRange(DegreesToRadians(emissionInfo.m_fAngleMin), DegreesToRadians(emissionInfo.m_fAngleMax));
+        const auto    heading = CGeneral::GetRandomNumberInRange(0.0f, TWO_PI);
+        const auto    pitch   = CGeneral::GetRandomNumberInRange(DegreesToRadians(emissionInfo.m_fAngleMin), DegreesToRadians(emissionInfo.m_fAngleMax));
         const CVector dirInCone{
             CMaths::GetCosFast(heading) * CMaths::GetSinFast(pitch),
             CMaths::GetCosFast(pitch),
@@ -155,7 +155,7 @@ FxEmitterPrt_c* FxEmitter_c::CreateParticle(const EmissionInfo_t& emissionInfo, 
         const auto coneAxis = emissionInfo.m_Direction.x <= 10.0f
             ? emissionInfo.m_Direction.Normalized()
             : prt->m_Pos;
-        CVector coneAxisWld;
+        CVector    coneAxisWld;
         RwV3dTransformVectors(&coneAxisWld, &coneAxis, 1, &wldMat);
 
         CVector dir;
@@ -209,8 +209,8 @@ void FxEmitter_c::InjectHooks() {
     RH_ScopedVMTInstall(Init, 0x4A2550);
     RH_ScopedVMTInstall(Update, 0x4A4460);
     RH_ScopedVMTInstall(Reset, 0x4A2570);
-    RH_ScopedVMTOverloadedInstall(AddParticle, "mat", 0x4A4050, void(FxEmitter_c::*)(const RwMatrix&, const CVector&, float, const FxPrtMult_c&, float, float, bool));
-    RH_ScopedVMTOverloadedInstall(AddParticle, "pos", 0x4A3EA0, void(FxEmitter_c::*)(const CVector&, const CVector&, float, const FxPrtMult_c&, float, float, bool));
+    RH_ScopedVMTOverloadedInstall(AddParticle, "mat", 0x4A4050, void (FxEmitter_c::*)(const RwMatrix&, const CVector&, float, const FxPrtMult_c&, float, float, bool));
+    RH_ScopedVMTOverloadedInstall(AddParticle, "pos", 0x4A3EA0, void (FxEmitter_c::*)(const CVector&, const CVector&, float, const FxPrtMult_c&, float, float, bool));
     RH_ScopedInstall(CreateParticles, 0x4A41E0);
     RH_ScopedInstall(CreateParticle, 0x4A2580);
 }

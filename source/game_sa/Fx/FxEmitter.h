@@ -7,7 +7,7 @@ class FxEmitterPrt_c;
 
 class NOTSA_EXPORT_VTABLE FxEmitter_c : public FxPrim_c {
 public:
-    FxEmitter_c() = default;           // 0x4A1920
+    FxEmitter_c()           = default; // 0x4A1920
     ~FxEmitter_c() override = default; // 0x4A2BB0
 
     bool Init(FxPrimBP_c* primBP, FxSystem_c* system) override;
