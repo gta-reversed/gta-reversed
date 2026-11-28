@@ -369,7 +369,7 @@ public:
     void ProcessMusicFade();
     void ProcessScriptedCommands();
     void ProcessShake();
-    CVector* ProcessShake(float intensity);
+    void        ProcessShake(float intensity);
     void ProcessVectorMoveLinear();
     void ProcessVectorMoveLinear(float ratio);
     void ProcessVectorTrackLinear();
@@ -398,7 +398,7 @@ public:
     void SetFadeColour(uint8 red, uint8 green, uint8 blue);
     void SetMotionBlur(uint8 red, uint8 green, uint8 blue, int32 value, eMotionBlurType blurType);
     void SetMotionBlurAlpha(int32 alpha);
-    void SetNearClipBasedOnPedCollision(float arg2);
+    void SetNearClipBasedOnPedCollision(float pedDistSq);
     void SetNearClipScript(float nearClip);
     void SetNewPlayerWeaponMode(eCamMode mode, int16 maxZoom = 0, int16 minZoom = 0);
     void SetParametersForScriptInterpolation(float interpolationToStopMoving, float interpolationToCatchUp, uint32 timeForInterpolation);
@@ -488,8 +488,8 @@ public:
     void GetScreenRect(CRect* rect) const;
     [[nodiscard]] bool Get_Just_Switched_Status() const;
 
-    void HandleCameraMotionForDucking(CPed* ped, CVector* source, CVector* targPosn, bool arg5);
-    void HandleCameraMotionForDuckingDuringAim(CPed* ped, CVector* source, CVector* targPosn, bool arg5);
+    void HandleCameraMotionForDucking(CPed* ped, CVector* source, CVector* targPosn, bool keepMotionFactor);
+    void HandleCameraMotionForDuckingDuringAim(CPed* ped, CVector* source, CVector* targPosn, bool keepMotionFactor);
     void ImproveNearClip(CVehicle* vehicle, CPed* ped, CVector* source, CVector* targPosn);
 
     bool ShouldPedControlsBeRelative();

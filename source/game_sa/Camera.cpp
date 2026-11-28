@@ -5,6 +5,7 @@
 #include "TaskSimpleGangDriveBy.h"
 #include "TaskSimpleHoldEntity.h"
 #include "TaskSimpleDuck.h"
+#include "HandShaker.h"
 #include "Hud.h"
 
 auto& TheCamera = StaticRef<CCamera>(0xB6F028);
@@ -77,7 +78,7 @@ void CCamera::InjectHooks() {
     RH_ScopedInstall(GetLookingLRBFirstPerson, 0x50AE60);
     RH_ScopedInstall(GetLookDirection, 0x50AE90);
     RH_ScopedInstall(GetLookingForwardFirstPerson, 0x50AED0);
-    RH_ScopedInstall(CopyCameraMatrixToRWCam, 0x50AFA0, { .Reversed = false });
+    RH_ScopedInstall(CopyCameraMatrixToRWCam, 0x50AFA0);
     RH_ScopedInstall(CalculateMirroredMatrix, 0x50B380);
     RH_ScopedInstall(DealWithMirrorBeforeConstructRenderList, 0x50B510);
     RH_ScopedInstall(ProcessFade, 0x50B5D0);
@@ -95,10 +96,10 @@ void CCamera::InjectHooks() {
     RH_ScopedInstall(UpdateTargetEntity, 0x50C360);
     RH_ScopedInstall(TakeControl, 0x50C7C0);
     RH_ScopedInstall(TakeControlNoEntity, 0x50C8B0);
-    RH_ScopedInstall(TakeControlAttachToEntity, 0x50C910, { .Reversed = false });
+    RH_ScopedInstall(TakeControlAttachToEntity, 0x50C910);
     RH_ScopedInstall(TakeControlWithSpline, 0x50CAE0);
     RH_ScopedInstall(SetCamCollisionVarDataSet, 0x50CB60);
-    RH_ScopedInstall(SetNearClipBasedOnPedCollision, 0x50CB90, { .Reversed = false });
+    RH_ScopedInstall(SetNearClipBasedOnPedCollision, 0x50CB90);
     RH_ScopedInstall(SetColVarsPed, 0x50CC50);
     RH_ScopedInstall(SetColVarsVehicle, 0x50CCA0);
     RH_ScopedInstall(StartTransitionWhenNotFinishedInter, 0x515BC0);
@@ -110,8 +111,8 @@ void CCamera::InjectHooks() {
     RH_ScopedInstall(IsExtraEntityToIgnore, 0x50CE80);
     RH_ScopedInstall(ConsiderPedAsDucking, 0x50CEB0);
     RH_ScopedInstall(ResetDuckingSystem, 0x50CEF0);
-    RH_ScopedInstall(HandleCameraMotionForDucking, 0x50CFA0, { .Reversed = false });
-    RH_ScopedInstall(HandleCameraMotionForDuckingDuringAim, 0x50D090, { .Reversed = false });
+    RH_ScopedInstall(HandleCameraMotionForDucking, 0x50CFA0);
+    RH_ScopedInstall(HandleCameraMotionForDuckingDuringAim, 0x50D090);
     RH_ScopedInstall(VectorMoveLinear, 0x50D160);
     RH_ScopedInstall(VectorTrackLinear, 0x50D1D0);
     RH_ScopedInstall(AddShakeSimple, 0x50D240);
@@ -119,8 +120,8 @@ void CCamera::InjectHooks() {
     RH_ScopedInstall(DrawBordersForWideScreen, 0x514860);
     RH_ScopedInstall(Find3rdPersonCamTargetVector, 0x514970);
     RH_ScopedInstall(CalculateGroundHeight, 0x514B80);
-    RH_ScopedInstall(CalculateFrustumPlanes, 0x514D60, { .Reversed = false });
-    RH_ScopedInstall(CalculateDerivedValues, 0x5150E0, { .Reversed = false });
+    RH_ScopedInstall(CalculateFrustumPlanes, 0x514D60);
+    RH_ScopedInstall(CalculateDerivedValues, 0x5150E0);
     RH_ScopedInstall(ImproveNearClip, 0x516B20, { .Reversed = false });
     RH_ScopedInstall(SetCameraUpForMirror, 0x51A560);
     RH_ScopedInstall(RestoreCameraAfterMirror, 0x51A5A0);
@@ -139,12 +140,12 @@ void CCamera::InjectHooks() {
     RH_ScopedOverloadedInstall(ProcessVectorMoveLinear, "wo-ratio", 0x5164A0, void(CCamera::*)());
     RH_ScopedOverloadedInstall(ProcessFOVLerp, "with-ratio", 0x50D510, void(CCamera::*)(float));
     RH_ScopedOverloadedInstall(ProcessFOVLerp, "wo-ratio", 0x516500, void(CCamera::*)());
-    RH_ScopedOverloadedInstall(ProcessShake, "float", 0x516560, CVector*(CCamera::*)(float), { .Reversed = false });
+    RH_ScopedOverloadedInstall(ProcessShake, "float", 0x516560, void(CCamera::*)(float));
 
     RH_ScopedGlobalInstall(CamShakeNoPos, 0x50A970);
-    RH_ScopedInstall(UpdateSoundDistances, 0x515BD0, { .Reversed = false });
-    RH_ScopedOverloadedInstall(IsSphereVisible, "", 0x420C40, bool(CCamera::*)(const CVector&, float, RwMatrix*), { .Reversed = false });
-    RH_ScopedOverloadedInstall(ProcessShake, "void", 0x51A6F0, void(CCamera::*)(), { .Reversed = false });
+    RH_ScopedInstall(UpdateSoundDistances, 0x515BD0);
+    RH_ScopedOverloadedInstall(IsSphereVisible, "", 0x420C40, bool(CCamera::*)(const CVector&, float, RwMatrix*));
+    RH_ScopedOverloadedInstall(ProcessShake, "void", 0x51A6F0, void(CCamera::*)());
 }
 
 CCamera* CCamera::Constructor() { this->CCamera::CCamera(); return this; }
@@ -510,7 +511,51 @@ float CCamera::GetRoughDistanceToGround() {
 
 // 0x50AFA0
 void CCamera::CopyCameraMatrixToRWCam(bool bUpdateMatrix) {
-    return plugin::CallMethod<0x50AFA0, CCamera*, bool>(this, bUpdateMatrix);
+    static auto& s_PrevRwCamAxes     = StaticRef<std::array<CVector, 4>>(0xB6FF90); // Right, up, at and position of the RW camera's matrix last time
+    static auto& s_PrevRwCamAxesInit = StaticRef<uint32>(0xB6FFC0);                 // Bit `8 >> i` is set once `s_PrevRwCamAxes[i]` was initialised
+
+    constexpr float SNAP_DIST        = 0.00001f; // 0x8CCC7C (position) and 0x8CCC78 (axes) are both this
+
+    RwFrame* const  frame            = RwCameraGetFrame(m_pRwCamera);
+    RwMatrix* const matrix           = RwFrameGetMatrix(frame);
+
+    if (!bUpdateMatrix) {
+        m_mCameraMatrixOld.UpdateMatrix(matrix);
+    }
+
+    *RwMatrixGetPos(matrix)   = m_mCameraMatrix.GetPosition();
+    *RwMatrixGetAt(matrix)    = m_mCameraMatrix.GetForward();
+    *RwMatrixGetUp(matrix)    = m_mCameraMatrix.GetUp();
+    *RwMatrixGetRight(matrix) = m_mCameraMatrix.GetRight();
+
+    // An axis that barely moved since last time snaps back to its previous value
+    const std::array<CVector*, 4> axes{
+        static_cast<CVector*>(RwMatrixGetRight(matrix)),
+        static_cast<CVector*>(RwMatrixGetUp(matrix)),
+        static_cast<CVector*>(RwMatrixGetAt(matrix)),
+        static_cast<CVector*>(RwMatrixGetPos(matrix)),
+    };
+    for (auto i = 0u; i < axes.size(); i++) {
+        auto& prev = s_PrevRwCamAxes[i];
+        if (const auto initBit = 8u >> i; !(s_PrevRwCamAxesInit & initBit)) {
+            s_PrevRwCamAxesInit |= initBit;
+            prev = CVector{ -99999.f, -99999.f, -99999.f };
+        }
+        auto& axis = *axes[i];
+        if ((prev - axis).SquaredMagnitude() < sq(SNAP_DIST)) {
+            axis = prev;
+        }
+        prev = axis;
+    }
+
+    RwMatrixUpdate(matrix);
+    RwFrameUpdateObjects(frame);
+    RwFrameOrthoNormalize(frame);
+
+    if (m_bResetOldMatrix && !bUpdateMatrix) {
+        m_mCameraMatrixOld.UpdateMatrix(matrix);
+        m_bResetOldMatrix = false;
+    }
 }
 
 // 0x50B380
@@ -1099,7 +1144,36 @@ void CCamera::TakeControlNoEntity(const CVector& fixedModeVector, eSwitchType sw
 
 // 0x50C910
 void CCamera::TakeControlAttachToEntity(CEntity* target, CEntity* attached, CVector* attachedCamOffset, CVector* attachedCamLookAt, float tilt, eSwitchType switchType, int32 whoIsInControlOfTheCamera) {
-    plugin::CallMethod<0x50C910, CCamera*, CEntity*, CEntity*, CVector*, CVector*, float, eSwitchType, int32>(this, target, attached, attachedCamOffset, attachedCamLookAt, tilt, switchType, whoIsInControlOfTheCamera);
+    if (whoIsInControlOfTheCamera == 2 && m_nWhoIsInControlOfTheCamera == 1) {
+        return;
+    }
+    m_nWhoIsInControlOfTheCamera = whoIsInControlOfTheCamera;
+
+    CEntity* const attachTo      = [attached]() -> CEntity* {
+        if (attached) {
+            return attached;
+        }
+        if (auto* const veh = FindPlayerVehicle()) {
+            return veh;
+        }
+        return FindPlayerPed();
+    }();
+
+    if (target) {
+        CEntity::ChangeEntityReference(m_pTargetEntity, target);
+        m_bLookingAtVector = false;
+    } else {
+        m_bLookingAtVector     = true;
+        m_vecAttachedCamLookAt = *attachedCamLookAt != *attachedCamOffset ? *attachedCamLookAt : CVector{};
+    }
+    m_vecAttachedCamOffset = *attachedCamOffset == CVector{} ? CVector{ 0.f, 0.f, 2.f } : *attachedCamOffset;
+    m_fAttachedCamAngle    = tilt;
+    CEntity::ChangeEntityReference(m_pAttachedEntity, attachTo);
+
+    m_nModeToGoTo       = MODE_ATTACHCAM;
+    m_nTypeOfSwitch     = switchType;
+    m_bLookingAtPlayer  = false;
+    m_bStartInterScript = true;
 }
 
 // 0x50CAE0
@@ -1119,13 +1193,48 @@ void CCamera::UpdateAimingCoors(const CVector& aimingTargetCoors) {
 
 // 0x515BD0
 void CCamera::UpdateSoundDistances() {
-    plugin::CallMethod<0x515BD0, CCamera*>(this);
+    constexpr std::array FIRST_PERSON_MODES{
+        MODE_1STPERSON,
+        MODE_SNIPER,
+        MODE_SNIPER_RUNABOUT,
+        MODE_ROCKETLAUNCHER_RUNABOUT,
+        MODE_ROCKETLAUNCHER_RUNABOUT_HS,
+        MODE_M16_1STPERSON_RUNABOUT,
+        MODE_FIGHT_CAM_RUNABOUT,
+        MODE_1STPERSON_RUNABOUT,
+        MODE_HELICANNON_1STPERSON,
+        MODE_CAMERA,
+        MODE_M16_1STPERSON,
+        MODE_ROCKETLAUNCHER,
+        MODE_ROCKETLAUNCHER_HS,
+    };
+    const bool    isFirstPerson = notsa::contains(FIRST_PERSON_MODES, GetActiveCam().m_nMode);
+    const CVector pos           = GetPosition() + m_mCameraMatrix.GetForward() * (isFirstPerson && m_pTargetEntity->GetIsTypePed() ? 0.5f : 5.f);
+
+    const auto frame            = CTimer::GetFrameCounter() % 12;
+    if (frame == 0) { // 0x515CEC
+        m_fSoundDistUpAsReadOld = m_fSoundDistUpAsRead;
+
+        CColPoint cp{};
+        CEntity*  hitEntity{};
+        m_fSoundDistUpAsRead = CWorld::ProcessVerticalLine(pos, pos.z + 20.f, cp, hitEntity, true, false, false, false, true)
+            ? cp.m_vecPoint.z - pos.z
+            : 20.f;
+    }
+    // NOTE: The line is checked every 12 frames, but the blend is over 6 frames, so it goes on past the new value (up to twice the change)
+    m_fSoundDistUp = std::lerp(m_fSoundDistUpAsReadOld, m_fSoundDistUpAsRead, (float)(frame + 1) / 6.f);
 }
 
 // unused
 // 0x50CB90
-void CCamera::SetNearClipBasedOnPedCollision(float arg2) {
-    plugin::CallMethod<0x50CB90, CCamera*, float>(this, arg2);
+void CCamera::SetNearClipBasedOnPedCollision(float pedDistSq) {
+    static auto& s_NearestPedDistSq = StaticRef<float>(0xB6EC68); // NOTE: Never written on PC (stays 0, so this divides by zero)
+
+    const float minNearClip         = gpCamColVars[4];
+    RwCameraSetNearClipPlane(
+        Scene.m_pRwCamera,
+        std::max(std::sqrt(pedDistSq) / s_NearestPedDistSq * 0.25f * (0.3f - minNearClip) + minNearClip, minNearClip)
+    );
 }
 
 // TODO: eAimingType
@@ -1226,7 +1335,15 @@ bool CCamera::IsExtraEntityToIgnore(CEntity* entity) {
 
 // 0x420C40
 bool CCamera::IsSphereVisible(const CVector& origin, float radius, RwMatrix* transformMatrix) {
-    return plugin::CallMethodAndReturn<bool, 0x420C40, CCamera*, const CVector&, float, RwMatrix*>(this, origin, radius, transformMatrix);
+    CVector pt = origin;
+    RwV3dTransformPoints(&pt, &pt, 1, transformMatrix);
+    if (pt.y + radius < CDraw::GetNearClipZ() || pt.y - radius > CDraw::GetFarClipZ()) {
+        return false;
+    }
+    // NOTE: The original skips the component that is 0 in each normal (z of the left / right, x of the top / bottom one)
+    return rng::none_of(m_avecFrustumNormals, [&](const CVector& normal) {
+        return pt.Dot(normal) > radius;
+    });
 }
 
 // 0x420D40 - NOTE: Function has no hook
@@ -1256,25 +1373,46 @@ void CCamera::ResetDuckingSystem(CPed* ped) {
         return;
 
     float factor;
-    if (ped->m_vecMoveSpeed.Magnitude() <= 0.000001f)
+    if (ped->m_vecMoveSpeed.SquaredMagnitude() <= sq(0.001f)) {
         factor = 0.3f - 1.0f;
-    else
+    } else {
         factor = 0.3f - 0.5f;
+    }
 
     m_fDuckCamMotionFactor    = factor;
     m_fDuckAimCamMotionFactor = -0.35f;
 }
 
-// arg5 always used as false
+// keepMotionFactor always used as false
 // 0x50CFA0
-void CCamera::HandleCameraMotionForDucking(CPed* ped, CVector* source, CVector* targPosn, bool arg5) {
-    plugin::CallMethod<0x50CFA0, CCamera*, CPed*, CVector*, CVector*, bool>(this, ped, source, targPosn, arg5);
+void CCamera::HandleCameraMotionForDucking(CPed* ped, CVector* source, CVector* targPosn, bool keepMotionFactor) {
+    const float targetFactor = ConsiderPedAsDucking(ped)
+        ? (ped->GetMoveSpeed().SquaredMagnitude() <= sq(0.001f) ? 0.3f - 1.0f : 0.3f - 0.5f)
+        : 0.f;
+    if (!keepMotionFactor) {
+        m_fDuckCamMotionFactor += (targetFactor - m_fDuckCamMotionFactor) * (CTimer::GetTimeStep() * 0.1f);
+    }
+    if (source) {
+        source->z += m_fDuckCamMotionFactor;
+    }
+    if (targPosn) {
+        targPosn->z += m_fDuckCamMotionFactor;
+    }
 }
 
-// arg5 always used as false
+// keepMotionFactor always used as false
 // 0x50D090
-void CCamera::HandleCameraMotionForDuckingDuringAim(CPed* ped, CVector* source, CVector* targPosn, bool arg5) {
-    plugin::CallMethod<0x50D090, CCamera*, CPed*, CVector*, CVector*, bool>(this, ped, source, targPosn, arg5);
+void CCamera::HandleCameraMotionForDuckingDuringAim(CPed* ped, CVector* source, CVector* targPosn, bool keepMotionFactor) {
+    const float targetFactor = ConsiderPedAsDucking(ped) ? -0.35f : 0.f;
+    if (!keepMotionFactor) {
+        m_fDuckAimCamMotionFactor += (targetFactor - m_fDuckAimCamMotionFactor) * (CTimer::GetTimeStep() * 0.13f);
+    }
+    if (source) {
+        source->z += m_fDuckAimCamMotionFactor;
+    }
+    if (targPosn) {
+        targPosn->z += m_fDuckAimCamMotionFactor;
+    }
 }
 
 // 0x50D160
@@ -1513,13 +1651,52 @@ void CCamera::ProcessVectorMoveLinear() {
 // unused
 // 0x51A6F0
 void CCamera::ProcessShake() {
-    plugin::CallMethod<0x51A6F0, CCamera*>(this);
+    if (const auto now = (float)CTimer::GetTimeInMS(); now <= m_fEndShakeTime) {
+        ProcessShake(invLerp(m_fStartShakeTime, m_fEndShakeTime, now));
+    }
 }
 
-// shakeIntensity not used
+// intensity not used
 // 0x516560
-CVector* CCamera::ProcessShake(float intensity) {
-    return plugin::CallMethodAndReturn<CVector*, 0x516560, CCamera*, float>(this, intensity);
+void CCamera::ProcessShake(float intensity) {
+    static auto& s_HandShakersSetUp = StaticRef<bool>(0xB70048);
+
+    if (!s_HandShakersSetUp) { // 0x516586 - `gHandShaker[0]` keeps its defaults
+        constexpr struct {
+            int32 freq;
+            float vel;
+        } TWITCHES[]{
+            { 15, 0.001f  },
+            { 20, 0.001f  },
+            { 10, 0.0005f },
+            { 20, 0.002f  },
+            { 2,  0.003f  },
+        };
+        for (auto i = 1u; i < gHandShaker.size(); i++) {
+            auto& hs = gHandShaker[i];
+            hs.m_lim.Set(0.02f, 0.02f, i == 2 ? 0.04f : 0.01f);
+            hs.m_motion.Set(0.0002f, 0.0002f, 0.0001f);
+            hs.m_slow.Set(1.3f, 1.3f, 1.4f);
+            hs.m_scaleReactionMin = 0.3f;
+            hs.m_scaleReactionMax = 1.f;
+            hs.m_twitchFreq       = TWITCHES[i - 1].freq;
+            hs.m_twitchVel        = TWITCHES[i - 1].vel;
+        }
+        s_HandShakersSetUp = true;
+    }
+
+    auto& cam = GetActiveCam();
+    auto& hs  = gHandShaker[m_nShakeType];
+    hs.Process(m_fShakeIntensity);
+
+    const float roll = hs.m_ang.z * m_fShakeIntensity;
+    cam.m_vecFront   = hs.m_resultMat.InverseTransformVector(cam.m_vecFront).Normalized();
+    cam.m_vecUp      = CVector{ std::sin(roll), 0.f, std::cos(roll) };
+    cam.m_vecUp      = cam.m_vecFront.Cross(cam.m_vecUp).Normalized().Cross(cam.m_vecFront);
+    if (cam.m_vecFront.x == 0.f && cam.m_vecFront.y == 0.f) {
+        cam.m_vecFront.x = cam.m_vecFront.y = 0.0001f;
+    }
+    cam.m_vecUp = cam.m_vecFront.Cross(cam.m_vecUp).Normalized().Cross(cam.m_vecFront);
 }
 
 // inlined - 0x52B845
@@ -1640,12 +1817,42 @@ float CCamera::CalculateGroundHeight(eGroundHeightType type) {
 
 // 0x514D60
 void CCamera::CalculateFrustumPlanes(bool bForMirror) {
-    plugin::CallMethod<0x514D60, CCamera*, bool>(this, bForMirror);
+    const float halfFOV = DegreesToRadians(CDraw::GetFOV() / 2.f);
+    const float cosHalf = std::cos(halfFOV);
+    const float sinHalf = std::sin(halfFOV);
+    const float aspect  = (float)RsGlobal.maximumHeight / (float)RsGlobal.maximumWidth;
+
+    // Camera space (x right, y forward, z up)
+    m_avecFrustumNormals = {
+        CVector{ cosHalf,  -sinHalf,            0.f                 },
+        CVector{ -cosHalf, -sinHalf,            0.f                 },
+        CVector{ 0.f,      -(aspect * sinHalf), -(aspect * cosHalf) },
+        CVector{ 0.f,      -(aspect * sinHalf), aspect * cosHalf    },
+    };
+
+    auto& worldNormals = bForMirror ? m_avecFrustumWorldNormals_Mirror : m_avecFrustumWorldNormals;
+    auto& offsets      = bForMirror ? m_fFrustumPlaneOffsets_Mirror : m_fFrustumPlaneOffsets;
+    TransformVectors(worldNormals.data(), (int32)worldNormals.size(), m_mCameraMatrix, m_avecFrustumNormals.data());
+    for (auto&& [normal, offset] : rngv::zip(worldNormals, offsets)) {
+        offset = normal.Dot(GetPosition());
+    }
 }
 
 // 0x5150E0
 void CCamera::CalculateDerivedValues(bool bForMirror, bool bOriented) {
-    return plugin::CallMethod<0x5150E0, CCamera*, bool, bool>(this, bForMirror, bOriented);
+    m_mMatInverse = Invert(m_mCameraMatrix);
+    CalculateFrustumPlanes(bForMirror);
+
+    auto& fwd = m_mCameraMatrix.GetForward();
+    if (fwd.x == 0.f && fwd.y == 0.f) {
+        fwd.x = 0.0001f;
+    } else if (bOriented) {
+        m_fOrientation = std::atan2(fwd.x, fwd.y);
+    }
+
+    const CVector2D fwdNorm2D = CVector2D{ fwd }.Normalized();
+    m_fCamFrontXNorm          = fwdNorm2D.x;
+    m_fCamFrontYNorm          = fwdNorm2D.y;
 }
 
 // 0x516B20
