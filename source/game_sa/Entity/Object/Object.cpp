@@ -722,19 +722,19 @@ void CObject::SetRemapTexture(RwTexture* remapTexture, int16 txdIndex) {
 // 0x59F380
 float CObject::GetRopeHeight() {
     const auto ropeIndex = CRopes::FindRope(reinterpret_cast<uint32>(this));
-    return CRopes::GetRope(ropeIndex).m_fSegmentLength;
+    return CRopes::GetRope(ropeIndex).m_Height;
 }
 
 // 0x59F3A0
 void CObject::SetRopeHeight(float height) {
     const auto ropeIndex = CRopes::FindRope(reinterpret_cast<uint32>(this));
-    CRopes::GetRope(ropeIndex).m_fSegmentLength = height;
+    CRopes::GetRope(ropeIndex).m_Height = height;
 }
 
 // 0x59F3C0
 CEntity* CObject::GetObjectCarriedWithRope() {
     const auto ropeIndex = CRopes::FindRope(reinterpret_cast<uint32>(this));
-    return CRopes::GetRope(ropeIndex).m_pAttachedEntity;
+    return CRopes::GetRope(ropeIndex).m_HookObject;
 }
 
 // 0x59F3E0
@@ -1306,16 +1306,16 @@ void CObject::GrabObjectToCarryWithRope(CPhysical* attachTo) {
     const auto iRopeInd = CRopes::FindRope(reinterpret_cast<uint32>(this));
     auto& rope = CRopes::GetRope(iRopeInd);
     rope.ReleasePickedUpObject();
-    rope.m_pAttachedEntity = attachTo;
-    assert(rope.m_pAttachedEntity);
-    rope.m_pAttachedEntity->RegisterReference(&rope.m_pAttachedEntity);
+    rope.m_HookObject = attachTo;
+    assert(rope.m_HookObject);
+    rope.m_HookObject->RegisterReference(&rope.m_HookObject);
 
     auto vecRopePoint = CVector();
     vecRopePoint.z = CRopes::FindPickupHeight(attachTo);
     vecRopePoint *= attachTo->m_matrix->TransformPoint(vecRopePoint);
 
-    rope.m_pRopeAttachObject->SetPosn(vecRopePoint);
-    rope.m_pRopeAttachObject->SetUsesCollision(false);
+    rope.m_CarriedEntity->SetPosn(vecRopePoint);
+    rope.m_CarriedEntity->SetUsesCollision(false);
 }
 
 // 0x5A1B60
@@ -1396,8 +1396,8 @@ void CObject::ProcessControlLogic() {
         auto fRopeLengthChange = 0.0F;
         if (iRopeInd >= 0) {
             auto& rope = CRopes::GetRope(iRopeInd);
-            nSegments = static_cast<uint8>(rope.m_fSegmentLength * 32.0F);
-            fRopeLengthChange = rope.m_fMass * rope.m_fSegmentLength - static_cast<float>(nSegments) * rope.m_fTotalLength;
+            nSegments = static_cast<uint8>(rope.m_Height * 32.0F);
+            fRopeLengthChange = rope.m_TotalLength * rope.m_Height - static_cast<float>(nSegments) * rope.m_SegmentLength;
         }
 
         if (m_nModelIndex == ModelIndices::MI_MAGNOCRANE) {

@@ -51,22 +51,23 @@ private:
     void                 LetDownForPickUp(float heightAbovePickUpPoint);               // NOTSA
 
 public:
-    // NOTE: Some names are off (see the comments), they are kept because other files use them
-    std::array<CVector, NUM_ROPE_SEGMENTS> m_aSegments{};
-    std::array<CVector, NUM_ROPE_SEGMENTS> m_aSpeed{};
-    uintptr                                m_nId{};
-    float                                  m_fGroundZ{};
-    float                                  m_fMass{};             //!< The length of the whole rope
-    float                                  m_fTotalLength{};      //!< The length of one segment (`m_fMass / (NUM_ROPE_SEGMENTS - 1)`)
-    CEntity*                               m_pRopeHolder{};       //!< The crane / vehicle the rope hangs from
-    CEntity*                               m_pAttachedEntity{};   //!< The hook object at the end of the rope (magnet, harness, wrecking ball)
-    CEntity*                               m_pRopeAttachObject{}; //!< The entity the rope carries
-    float                                  m_fSegmentLength{};    //!< How far the rope is let down (0.01 .. 0.9), `CObject::GetRopeHeight`
-    uint32                                 m_nTime{};             //!< Time (ms) after which the rope falls down if it isn't registered again (0 = at once)
-    uint8                                  m_nSegments{};         //!< Number of segments from the top that are held in place (by `CRopes::RegisterRope`)
-    eRopeType                              m_nType{};
-    uint8                                  m_nFlags1{}; //!< Frames left until something can be picked up again
-    uint8                                  m_nFlags2{}; //!< 0x1 - Registered this frame, 0x4 - Collides with the ground
+    std::array<CVector, NUM_ROPE_SEGMENTS> m_Segments{};
+    std::array<CVector, NUM_ROPE_SEGMENTS> m_SegmentSpeeds{};
+    uintptr                                m_Id{};
+    float                                  m_GroundZ{};
+    float                                  m_TotalLength{};      //!< The length of the whole rope
+    float                                  m_SegmentLength{};    //!< The length of one segment (`m_TotalLength / (NUM_ROPE_SEGMENTS - 1)`)
+    CEntity*                               m_Holder{};           //!< The crane / vehicle the rope hangs from
+    CEntity*                               m_HookObject{};       //!< The hook object at the end of the rope (magnet, harness, wrecking ball)
+    CEntity*                               m_CarriedEntity{};    //!< The entity the rope carries
+    float                                  m_Height{};           //!< How far the rope is let down (0.01 .. 0.9), `CObject::GetRopeHeight`
+    uint32                                 m_ExpireTime{};       //!< Time (ms) after which the rope falls down if it isn't registered again (0 = at once)
+    uint8                                  m_NumFixedSegments{}; //!< Number of segments from the top that are held in place (by `CRopes::RegisterRope`)
+    eRopeType                              m_Type{};
+    uint8                                  m_PickUpCooldown{};   //!< Frames left until something can be picked up again
+    bool                                   m_IsRegistered : 1 {}; //!< Set by `CRopes::RegisterRope`, cleared at the end of `Update`
+    bool                                   m_Flag2 : 1 {};
+    bool                                   m_HitsGround : 1 {};
 };
 
 VALIDATE_SIZE(CRope, 0x328);
