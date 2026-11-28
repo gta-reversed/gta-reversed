@@ -51,11 +51,10 @@ void CDecisionMakerTypesFileLoader::LoadDefaultDecisionMaker() {
 
     CDecisionMakerTypes::GetInstance()->LoadEventIndices();
 
-    // Loaded into a fresh (default) decision maker that then replaces the whole default one (0x5BF42D)
+    // 0x5BF42D - The file only sets the decisions of the events it lists, the rest is reset
     const auto LoadDefault = [](const char* filepath, CDecisionMaker& out) {
-        CDecisionMaker dm{};
-        LoadDecisionMaker(filepath, &dm);
-        out = dm;
+        out = {};
+        LoadDecisionMaker(filepath, &out);
     };
     LoadDefault("RANDOM.ped", CDecisionMakerTypes::GetInstance()->m_DefaultRandomPedDecisionMaker);
     LoadDefault("m_norm.ped", CDecisionMakerTypes::GetInstance()->m_DefaultMissionPedDecisionMaker);
@@ -150,5 +149,5 @@ bool CDecisionMakerTypesFileLoader::LoadDecisionMaker(const char* filepath, CDec
 
 // 0x607A70
 void CDecisionMakerTypesFileLoader::UnloadDecisionMaker(eDecisionMakerType dm) {
-    CDecisionMakerTypes::GetInstance()->RemoveDecisionMaker((eDecisionTypes)(+dm)); // NOTE: `RemoveDecisionMaker` takes the decision maker's index too, its parameter type is wrong
+    CDecisionMakerTypes::GetInstance()->RemoveDecisionMaker(dm);
 }
