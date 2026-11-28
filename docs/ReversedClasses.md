@@ -1,17 +1,17 @@
 # Reimplementation progress (*): 93%
 This file is updated automatically every time the `hooks.json` file is updated (which happens every time there are changes to hooks made by a commit), and shows the current progress of reversed categories in the project.
 
-Last update was at Nov 28, 2026 at 12:25:01 UTC
-(Triggered by commit [c2f770dd](https://github.com/gta-reversed/gta-reversed/commit/c2f770ddd50f6daf7ecb3d34685d3f4a2af1d11d))
+Last update was at Nov 28, 2026 at 13:37:10 UTC
+(Triggered by commit [ad80d259](https://github.com/gta-reversed/gta-reversed/commit/ad80d259dc16d1ddb748a6c2e4b55413d298eaa8))
 
 ## (*) Disclaimers
 **The progress** is based on the number of functions we have documented and reimplemented, so it might not completely reflect the actual progress, it's meant to be a rough estimate.
 
 **The percentages and the number of categories** shown here may not be completely accurate, because not all categories and functions are documented yet.
 
-## Stats (8267 out of 8926 functions done in 797 categories)
+## Stats (8268 out of 8926 functions done in 797 categories)
 
-#### Completely reversed categories (676/797) [85%]
+#### Completely reversed categories (677/797) [85%]
 
 <details>
 <summary>See list of categories</summary>
@@ -225,6 +225,7 @@ Last update was at Nov 28, 2026 at 12:25:01 UTC
 - CPedAttractor (20)<br />
 - CPedAttractorPedPlacer (1)<br />
 - CPedShelterAttractor (4)<br />
+- CGroupEventHandler (32)<br />
 - CEvent (3)<br />
 - CEventSeenPanickedPed (2)<br />
 - CEventCarUpsideDown (2)<br />
@@ -694,7 +695,7 @@ Last update was at Nov 28, 2026 at 12:25:01 UTC
 
 </details>
 
-#### Partially reversed categories (111/797) [14%]
+#### Partially reversed categories (110/797) [14%]
 
 <details>
 <summary>See list of categories</summary>
@@ -743,7 +744,6 @@ Last update was at Nov 28, 2026 at 12:25:01 UTC
 - FxSystem_c (31/35) [89%]<br />
 - FxPrimBP_c (1/2) [50%]<br />
 - FxEmitterBP_c (2/9) [22%]<br />
-- CGroupEventHandler (31/32) [97%]<br />
 - CEventHandler (69/72) [96%]<br />
 - CEventScanner (1/4) [25%]<br />
 - CPedGroupDefaultTaskAllocatorSitInLeaderCar (1/2) [50%]<br />

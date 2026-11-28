@@ -20747,7 +20747,7 @@
   {
     "Category": "CGroupEventHandler",
     "Name": "ComputeResponseLeaderEnteredCar",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CGroupEventHandler",
