@@ -31356,12 +31356,12 @@
   },
   {
     "Category": "CTaskSimplePlayerOnFoot",
-    "Name": "Constructor",
+    "Name": "Constructor-0",
     "IsReversed": true
   },
   {
     "Category": "CTaskSimplePlayerOnFoot",
-    "Name": "Destructor",
+    "Name": "Desructor",
     "IsReversed": true
   },
   {
@@ -31387,7 +31387,7 @@
   {
     "Category": "CTaskSimplePlayerOnFoot",
     "Name": "PlayerControlFighter",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CTaskSimplePlayerOnFoot",
@@ -38292,7 +38292,7 @@
   {
     "Category": "CAEFrontendAudioEntity",
     "Name": "AddAudioEvent",
-    "IsReversed": false
+    "IsReversed": true
   },
   {
     "Category": "CAEFrontendAudioEntity",

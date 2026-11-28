@@ -1,17 +1,17 @@
 # Reimplementation progress (*): 93%
 This file is updated automatically every time the `hooks.json` file is updated (which happens every time there are changes to hooks made by a commit), and shows the current progress of reversed categories in the project.
 
-Last update was at Nov 28, 2026 at 12:04:41 UTC
-(Triggered by commit [7cbf091c](https://github.com/gta-reversed/gta-reversed/commit/7cbf091ca2f657a243d253b5b9f7e0bc101b3c6c))
+Last update was at Nov 28, 2026 at 12:25:01 UTC
+(Triggered by commit [c2f770dd](https://github.com/gta-reversed/gta-reversed/commit/c2f770ddd50f6daf7ecb3d34685d3f4a2af1d11d))
 
 ## (*) Disclaimers
 **The progress** is based on the number of functions we have documented and reimplemented, so it might not completely reflect the actual progress, it's meant to be a rough estimate.
 
 **The percentages and the number of categories** shown here may not be completely accurate, because not all categories and functions are documented yet.
 
-## Stats (8265 out of 8926 functions done in 797 categories)
+## Stats (8267 out of 8926 functions done in 797 categories)
 
-#### Completely reversed categories (674/797) [85%]
+#### Completely reversed categories (676/797) [85%]
 
 <details>
 <summary>See list of categories</summary>
@@ -509,6 +509,7 @@ Last update was at Nov 28, 2026 at 12:04:41 UTC
 - CTaskSimpleScratchHead (4)<br />
 - CTaskComplexObserveTrafficLightsAndAchieveHeading (5)<br />
 - CTaskSimpleInAir (4)<br />
+- CTaskSimplePlayerOnFoot (12)<br />
 - CTaskComplexFollowPedFootsteps (9)<br />
 - CTaskComplexGetUpAndStandStill (5)<br />
 - CTaskSimpleDie (7)<br />
@@ -652,6 +653,7 @@ Last update was at Nov 28, 2026 at 12:04:41 UTC
 - CAEDoorAudioEntity (6)<br />
 - CAEExplosionAudioEntity (3)<br />
 - CAEFireAudioEntity (7)<br />
+- CAEFrontendAudioEntity (6)<br />
 - CAEGlobalWeaponAudioEntity (6)<br />
 - CAEPedlessSpeechAudioEntity (11)<br />
 - CAEPedSpeechAudioEntity (58)<br />
@@ -692,7 +694,7 @@ Last update was at Nov 28, 2026 at 12:04:41 UTC
 
 </details>
 
-#### Partially reversed categories (113/797) [14%]
+#### Partially reversed categories (111/797) [14%]
 
 <details>
 <summary>See list of categories</summary>
@@ -766,7 +768,6 @@ Last update was at Nov 28, 2026 at 12:04:41 UTC
 - CTaskSimpleUseGun (18/19) [95%]<br />
 - CTaskSimpleGangDriveBy (4/12) [33%]<br />
 - CTaskComplexHitPedWithCar (6/10) [60%]<br />
-- CTaskSimplePlayerOnFoot (11/12) [92%]<br />
 - CTaskComplexGoPickUpEntity (4/7) [57%]<br />
 - CTaskComplexFollowLeaderInFormation (6/8) [75%]<br />
 - CTaskUtilityLineUpPedWithCar (2/5) [40%]<br />
@@ -792,7 +793,6 @@ Last update was at Nov 28, 2026 at 12:04:41 UTC
 - CCustomBuildingDNPipeline (14/16) [88%]<br />
 - CConversations (10/11) [91%]<br />
 - CPedToPlayerConversations (2/3) [67%]<br />
-- CAEFrontendAudioEntity (5/6) [83%]<br />
 - CAEPedAudioEntity (16/20) [80%]<br />
 - CAEPoliceScannerAudioEntity (13/17) [76%]<br />
 - CAEVehicleAudioEntity (103/106) [97%]<br />
