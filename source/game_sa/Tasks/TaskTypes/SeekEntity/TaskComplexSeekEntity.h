@@ -47,8 +47,7 @@ public:
         m_maxEntityDist2D{ maxEntityDist2D },
         m_moveStateRadius{ moveStateRadius },
         m_minEntityDist2D{ minEntityDist2D },
-        m_followNodeThresholdHeightChange{ followNodeThresholdHeightChange }
-    {
+        m_followNodeThresholdHeightChange{ followNodeThresholdHeightChange } {
     }
 
     // 0x4BC470
@@ -84,7 +83,7 @@ protected:
 };
 VALIDATE_SIZE(CTaskComplexSeekEntityBase, 0x40);
 
-template <std::derived_from<CEntitySeekPosCalculator> T_PosCalc = CEntitySeekPosCalculatorStandard>
+template<std::derived_from<CEntitySeekPosCalculator> T_PosCalc = CEntitySeekPosCalculatorStandard>
 class NOTSA_EXPORT_VTABLE CTaskComplexSeekEntity : public CTaskComplexSeekEntityBase {
     T_PosCalc m_entitySeekPosCalculator{};
 
@@ -138,8 +137,7 @@ public:
         CTaskComplexSeekEntityBase{ entity, seekInterval, scanInterval, maxEntityDist2D, moveStateRadius, followNodeThresholdHeightChange },
         m_bPlayTiredAnim{ bPlayTiredAnim },
         m_bFaceEntityWhenDone{ bFaceEntityWhenDone },
-        m_entitySeekPosCalculator{ seekPosCalculator }
-    {
+        m_entitySeekPosCalculator{ seekPosCalculator } {
         CEntity::SafeRegisterRef(m_entityToSeek);
     }
 
@@ -150,8 +148,7 @@ public:
 
         m_entitySeekPosCalculator{ o.m_entitySeekPosCalculator },
         m_moveState{ o.m_moveState },
-        m_bTrackingEntity{ o.m_bTrackingEntity }
-    {
+        m_bTrackingEntity{ o.m_bTrackingEntity } {
         CEntity::SafeRegisterRef(m_entityToSeek);
     }
 
